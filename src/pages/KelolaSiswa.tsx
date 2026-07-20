@@ -1,0 +1,862 @@
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { supabase } from '../lib/supabase';
+import { 
+  Users, 
+  Plus, 
+  Search, 
+  Edit3, 
+  Trash2, 
+  Download,
+  Upload,
+  X,
+  User,
+  Filter,
+  Loader2,
+  Copy,
+  Key
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import * as XLSX from 'xlsx';
+import XLSXStyle from 'xlsx-js-style';
+import { cn } from '../lib/utils';
+import { useAlert } from '../context/AlertContext';
+import { useSchool } from '../context/SchoolContext';
+import { getFullState, addClass, addStudent, deleteStudent } from '../services/dbAttendance';
+import { saveClass, saveStudent, deleteStudent as deleteStudentGrading } from '../services/dbGrading';
+
+export default function KelolaSiswa() {
+  const [students, setStudents] = useState<any[]>([]);
+  const [classes, setClasses] = useState<any[]>([]);
+  const [selectedStudentIds, setSelectedStudentIds] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedClass, setSelectedClass] = useState<string>('all');
+  const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [importing, setImporting] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 25;
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { showAlert } = useAlert();
+  const { activeSchool } = useSchool();
+  const isMountedRef = useRef(true);
+
+  const [formData, setFormData] = useState({ name: '', class_id: '', student_code: '', password: '' });
+
+  // 1. Generator Fungsi di Paling Atas (Mencegah Hoisting Error)
+  const generateStudentCode = () => {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let code = '';
+    for (let i = 0; i < 6; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
+    return code;
+  };
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    fetchData();
+    return () => { isMountedRef.current = false; };
+  }, [activeSchool]);
+
+  const fetchData = async () => {    
+    setLoading(true);
+    setError(null);
+    try {
+      // 1. Load from local IndexedDB first so it's instantly visible!
+      const localState = await getFullState(true);
+      let localStudents = localState.students || [];
+      let localClasses = localState.classes || [];
+
+      const healStudentsList = async (list: any[], classesList: any[]) => {
+        let changed = false;
+        const healed = await Promise.all(list.map(async (s) => {
+          if (!s.school_id && !s.schoolId) {
+            let foundSchoolId = null;
+            const classId = s.classId || s.class_id || s.idKelas;
+            if (classId) {
+              const cls = classesList.find(c => c.id === classId || (c as any).idKelas === classId || (c as any).classId === classId);
+              if (cls) foundSchoolId = cls.school_id || (cls as any).schoolId || (cls as any).school_id;
+            }
+            if (!foundSchoolId && activeSchool?.id && activeSchool.id !== 'legacy') {
+              foundSchoolId = activeSchool.id;
+            }
+            if (foundSchoolId) {
+              changed = true;
+              const updated = {
+                ...s,
+                school_id: foundSchoolId,
+                schoolId: foundSchoolId,
+                classId: classId,
+                class_id: classId
+              };
+              await addStudent(updated as any);
+              await saveStudent({
+                idSiswa: s.id || s.idSiswa,
+                teacherId: s.teacher_id || s.teacherId,
+                schoolId: foundSchoolId,
+                idKelas: classId,
+                nama: s.name || s.nama,
+                student_code: s.student_code,
+                password: s.password || 'murid19'
+              } as any);
+              return updated;
+            }
+          }
+          return s;
+        }));
+        return { list: healed, changed };
+      };
+
+      // Auto-heal local students missing school_id
+      const firstHeal = await healStudentsList(localStudents, localClasses);
+      if (firstHeal.changed) {
+        localStudents = firstHeal.list;
+      }
+
+      // Filter by active school
+      if (activeSchool?.id) {
+        if (activeSchool.id === 'legacy') {
+          localStudents = localStudents.filter(s => !(s as any).school_id && !s.schoolId);
+          localClasses = localClasses.filter(c => !(c as any).school_id && !(c as any).schoolId);
+        } else {
+          localStudents = localStudents.filter(s => (s as any).school_id === activeSchool.id || s.schoolId === activeSchool.id);
+          localClasses = localClasses.filter(c => (c as any).school_id === activeSchool.id || (c as any).schoolId === activeSchool.id);
+        }
+      }
+
+      // Map classes.name for students
+      const mappedLocalStudents = localStudents.map(s => {
+        const cls = localClasses.find(c => c.id === (s.classId || (s as any).class_id || (s as any).idKelas));
+        return {
+          ...s,
+          class_id: s.classId || (s as any).class_id || (s as any).idKelas,
+          classes: cls ? { name: cls.name || (cls as any).namaKelas } : null
+        };
+      });
+
+      if (isMountedRef.current) {
+        setStudents(mappedLocalStudents);
+        setClasses(localClasses.map(c => ({
+          ...c,
+          name: c.name || (c as any).namaKelas
+        })));
+        setSelectedStudentIds([]);
+      }
+
+      // 2. Background Pull from Supabase Cloud to update local databases and sync
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        try {
+          const { syncService } = await import('../services/sync');
+          await syncService.pullFromCloud();
+          
+          const updatedLocalState = await getFullState(true);
+          let updatedStudents = updatedLocalState.students || [];
+          let updatedClasses = updatedLocalState.classes || [];
+
+          // Auto-heal updated students missing school_id
+          const secondHeal = await healStudentsList(updatedStudents, updatedClasses);
+          if (secondHeal.changed) {
+            updatedStudents = secondHeal.list;
+          }
+
+          if (activeSchool?.id) {
+            if (activeSchool.id === 'legacy') {
+              updatedStudents = updatedStudents.filter(s => !(s as any).school_id && !s.schoolId);
+              updatedClasses = updatedClasses.filter(c => !(c as any).school_id && !(c as any).schoolId);
+            } else {
+              updatedStudents = updatedStudents.filter(s => (s as any).school_id === activeSchool.id || s.schoolId === activeSchool.id);
+              updatedClasses = updatedClasses.filter(c => (c as any).school_id === activeSchool.id || (c as any).schoolId === activeSchool.id);
+            }
+          }
+
+          const remappedStudents = updatedStudents.map(s => {
+            const cls = updatedClasses.find(c => c.id === (s.classId || (s as any).class_id || (s as any).idKelas));
+            return {
+              ...s,
+              class_id: s.classId || (s as any).class_id || (s as any).idKelas,
+              classes: cls ? { name: cls.name || (cls as any).namaKelas } : null
+            };
+          });
+
+          if (isMountedRef.current) {
+            setStudents(remappedStudents);
+            setClasses(updatedClasses.map(c => ({
+              ...c,
+              name: c.name || (c as any).namaKelas
+            })));
+          }
+        } catch (syncErr) {
+          console.warn('Background pull failed:', syncErr);
+        }
+      }
+    } catch (err: any) {
+      console.error('Error fetching local/remote data:', err);
+    } finally {
+      if (isMountedRef.current) setLoading(false);
+    }
+  };
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.name) return;
+    setSubmitting(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not found');
+      
+      if (editingId) {
+        const { data: updatedStudent, error } = await supabase.from('students').update({ 
+          name: formData.name, 
+          class_id: formData.class_id || null,
+          student_code: formData.student_code.trim() || null,
+          password: formData.password.trim() || 'murid19'
+        }).eq('id', editingId).select().single();
+        if (error) throw error;
+        
+        if (updatedStudent) {
+          await addStudent({
+            id: updatedStudent.id,
+            teacher_id: updatedStudent.teacher_id,
+            school_id: updatedStudent.school_id,
+            schoolId: updatedStudent.school_id,
+            classId: updatedStudent.class_id,
+            class_id: updatedStudent.class_id,
+            name: updatedStudent.name,
+            student_code: updatedStudent.student_code,
+            password: updatedStudent.password || 'murid19',
+            createdAt: updatedStudent.created_at
+          } as any);
+          await saveStudent({
+            idSiswa: updatedStudent.id,
+            teacherId: updatedStudent.teacher_id,
+            schoolId: updatedStudent.school_id,
+            idKelas: updatedStudent.class_id,
+            nama: updatedStudent.name,
+            student_code: updatedStudent.student_code,
+            password: updatedStudent.password || 'murid19'
+          } as any);
+        }
+        showAlert({ title: 'Berhasil', message: 'Data siswa diperbarui.', type: 'success' });
+      } else {
+        if (!activeSchool?.id) {
+          throw new Error('Pilih sekolah terlebih dahulu di header.');
+        }
+
+        const { data: newStudent, error } = await supabase.from('students').insert([{ 
+          teacher_id: user.id, 
+          school_id: activeSchool.id,
+          name: formData.name, 
+          class_id: formData.class_id || null,
+          student_code: formData.student_code.trim() || generateStudentCode(),
+          password: formData.password.trim() || 'murid19'
+        }]).select().single();
+        if (error) throw error;
+
+        if (newStudent) {
+          await addStudent({
+            id: newStudent.id,
+            teacher_id: newStudent.teacher_id,
+            school_id: newStudent.school_id,
+            schoolId: newStudent.school_id,
+            classId: newStudent.class_id,
+            class_id: newStudent.class_id,
+            name: newStudent.name,
+            student_code: newStudent.student_code,
+            password: newStudent.password || 'murid19',
+            createdAt: newStudent.created_at
+          } as any);
+          await saveStudent({
+            idSiswa: newStudent.id,
+            teacherId: newStudent.teacher_id,
+            schoolId: newStudent.school_id,
+            idKelas: newStudent.class_id,
+            nama: newStudent.name,
+            student_code: newStudent.student_code,
+            password: newStudent.password || 'murid19'
+          } as any);
+        }
+        showAlert({ title: 'Berhasil', message: 'Siswa baru ditambahkan.', type: 'success' });
+      }
+      
+      setShowForm(false);
+      setFormData({ name: '', class_id: '', student_code: '', password: '' });
+      setEditingId(null);
+      await fetchData();
+    } catch (err: any) { 
+      console.error('Error saving student:', err);
+      showAlert({ title: 'Gagal', message: err.message || 'Terjadi kesalahan saat menyimpan data.', type: 'error' }); 
+    } finally { 
+      setSubmitting(false); 
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    showAlert({
+      title: 'Hapus Siswa?', message: 'Data siswa akan terhapus secara permanen.', type: 'confirm', confirmText: 'Ya, Hapus',
+      onConfirm: async () => {
+        try {
+          const { error } = await supabase.from('students').delete().eq('id', id);
+          if (error) throw error;
+          
+          await deleteStudent(id);
+          await deleteStudentGrading(id);
+          
+          if (isMountedRef.current) {
+            setSelectedStudentIds(prev => prev.filter(item => item !== id));
+            fetchData();
+          }
+          showAlert({ title: 'Terhapus', message: 'Siswa berhasil dihapus.', type: 'success' });
+        } catch (error: any) { if (isMountedRef.current) showAlert({ title: 'Gagal', message: error.message, type: 'error' }); }
+      }
+    });
+  };
+
+  const handleResetPassword = async (id: string, name: string) => {
+    showAlert({
+      title: 'Reset Password',
+      message: `Apakah Anda yakin ingin me-reset password ${name} kembali ke default (murid19)?`,
+      type: 'confirm',
+      confirmText: 'Ya, Reset',
+      onConfirm: async () => {
+        try {
+          const { data: updatedStudent, error } = await supabase
+            .from('students')
+            .update({ password: 'murid19' })
+            .eq('id', id)
+            .select()
+            .single();
+
+          if (error) throw error;
+          
+          if (updatedStudent) {
+            await addStudent({
+              id: updatedStudent.id,
+              teacher_id: updatedStudent.teacher_id,
+              school_id: updatedStudent.school_id,
+              schoolId: updatedStudent.school_id,
+              classId: updatedStudent.class_id,
+              class_id: updatedStudent.class_id,
+              name: updatedStudent.name,
+              student_code: updatedStudent.student_code,
+              password: updatedStudent.password || 'murid19',
+              createdAt: updatedStudent.created_at
+            } as any);
+            await saveStudent({
+              idSiswa: updatedStudent.id,
+              teacherId: updatedStudent.teacher_id,
+              schoolId: updatedStudent.school_id,
+              idKelas: updatedStudent.class_id,
+              nama: updatedStudent.name,
+              student_code: updatedStudent.student_code,
+              password: updatedStudent.password || 'murid19'
+            } as any);
+          }
+          showAlert({ title: 'Berhasil', message: `Password ${name} telah di-reset ke murid19.`, type: 'success' });
+          fetchData();
+        } catch (err: any) {
+          console.error(err);
+          showAlert({ title: 'Gagal', message: 'Gagal me-reset password.', type: 'error' });
+        }
+      }
+    });
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedStudentIds.length === 0) return;
+    showAlert({
+      title: 'Hapus Siswa Terpilih?',
+      message: `Apakah Anda yakin ingin menghapus ${selectedStudentIds.length} siswa terpilih secara permanen?`,
+      type: 'confirm',
+      confirmText: 'Ya, Hapus Semua',
+      onConfirm: async () => {
+        try {
+          const { error } = await supabase.from('students').delete().in('id', selectedStudentIds);
+          if (error) throw error;
+
+          for (const id of selectedStudentIds) {
+            await deleteStudent(id);
+            await deleteStudentGrading(id);
+          }
+
+          if (isMountedRef.current) {
+            setSelectedStudentIds([]);
+            fetchData();
+          }
+          showAlert({ title: 'Terhapus', message: 'Siswa terpilih berhasil dihapus.', type: 'success' });
+        } catch (error: any) {
+          if (isMountedRef.current) showAlert({ title: 'Gagal', message: error.message, type: 'error' });
+        }
+      }
+    });
+  };
+
+  const copyCode = (code: string) => {
+    navigator.clipboard.writeText(code);
+    showAlert({ title: 'Disalin!', message: 'Kode unik berhasil disalin.', type: 'success' });
+  };
+
+  const handleExportExcel = () => {
+    if (selectedClass === 'all') {
+      showAlert({ title: 'Pilih Kelas', message: 'Silakan filter berdasarkan kelas tertentu terlebih dahulu.', type: 'warning' });
+      return;
+    }
+    if (filteredStudents.length === 0) {
+      showAlert({ title: 'Kosong', message: 'Tidak ada data siswa untuk diekspor.', type: 'warning' });
+      return;
+    }
+
+    const className = classes.find(c => c.id === selectedClass)?.name || 'Kelas';
+    const header = ['NAMA LENGKAP', 'KODE UNIK'];
+    const rows = filteredStudents.map(s => [s.name, s.student_code || '-']);
+
+    const worksheet = XLSXStyle.utils.aoa_to_sheet([header, ...rows]);
+    
+    // Auto-fit column widths
+    const maxNameLen = Math.max(
+      header[0].length,
+      ...rows.map(r => String(r[0] || '').length)
+    );
+    const maxCodeLen = Math.max(
+      header[1].length,
+      ...rows.map(r => String(r[1] || '').length)
+    );
+    
+    worksheet['!cols'] = [
+      { wch: Math.max(maxNameLen + 3, 18) },
+      { wch: Math.max(maxCodeLen + 3, 14) }
+    ];
+
+    // Set row heights
+    worksheet['!rows'] = [
+      { hpt: 28 }, // Header row height (spacious & premium)
+      ...rows.map(() => ({ hpt: 22 })) // Data row heights
+    ];
+
+    // Apply styles (borders, bg colors, alignment)
+    const range = XLSXStyle.utils.decode_range(worksheet['!ref'] || 'A1:A1');
+    for (let r = range.s.r; r <= range.e.r; ++r) {
+      for (let c = range.s.c; c <= range.e.c; ++c) {
+        const cellRef = XLSXStyle.utils.encode_cell({ r, c });
+        if (!worksheet[cellRef]) continue;
+
+        if (r === 0) {
+          // Header Row Style
+          worksheet[cellRef].s = {
+            fill: {
+              fgColor: { rgb: "1E1B4B" } // Premium Indigo bg
+            },
+            font: {
+              name: "Segoe UI",
+              sz: 11,
+              bold: true,
+              color: { rgb: "FFFFFF" } // White text
+            },
+            alignment: {
+              horizontal: "center",
+              vertical: "center"
+            },
+            border: {
+              top: { style: "thin", color: { rgb: "312E81" } },
+              bottom: { style: "medium", color: { rgb: "0F172A" } },
+              left: { style: "thin", color: { rgb: "312E81" } },
+              right: { style: "thin", color: { rgb: "312E81" } }
+            }
+          };
+        } else {
+          // Data Row Style
+          worksheet[cellRef].s = {
+            font: {
+              name: "Segoe UI",
+              sz: 10
+            },
+            alignment: {
+              vertical: "center",
+              horizontal: c === 1 ? "center" : "left" // Center align code, left align name
+            },
+            border: {
+              top: { style: "thin", color: { rgb: "E2E8F0" } },
+              bottom: { style: "thin", color: { rgb: "E2E8F0" } },
+              left: { style: "thin", color: { rgb: "E2E8F0" } },
+              right: { style: "thin", color: { rgb: "E2E8F0" } }
+            }
+          };
+        }
+      }
+    }
+
+    const workbook = XLSXStyle.utils.book_new();
+    XLSXStyle.utils.book_append_sheet(workbook, worksheet, "Data Siswa");
+    XLSXStyle.writeFile(workbook, `Data_Siswa_${className}.xlsx`.replace(/\s+/g, '_'));
+  };
+
+  const handleDownloadTemplate = () => {
+    const template = [
+      { 'Nama Lengkap': 'Ahmad Fauzi', 'Nama Kelas': 'XII IPA 1' },
+      { 'Nama Lengkap': 'Siti Aminah', 'Nama Kelas': 'XII IPA 1' }
+    ];
+    const worksheet = XLSX.utils.json_to_sheet(template);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Template Siswa");
+    XLSX.writeFile(workbook, "Template_Import_Siswa.xlsx");
+  };
+
+  const handleImportExcel = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !activeSchool?.id) return;
+    
+    setImporting(true);
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error('Session expired');
+        
+        if (!event.target?.result) throw new Error('Gagal membaca file.');
+        
+        const arrayBuffer = event.target.result as ArrayBuffer;
+        const workbook = XLSX.read(new Uint8Array(arrayBuffer), { type: 'array' });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const rawData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' }) as any[][];
+        
+        if (rawData.length < 2) throw new Error('File tidak memiliki data.');
+        
+        const headers = rawData[0].map((h: any) => String(h || '').trim());
+        const nameIdx = headers.findIndex(h => h === 'Nama Lengkap');
+        const classIdx = headers.findIndex(h => h === 'Nama Kelas');
+        
+        if (nameIdx === -1) throw new Error('Kolom "Nama Lengkap" tidak ditemukan.');
+        
+        let successCount = 0;
+        let errorMessages: string[] = [];
+        
+        for (let i = 1; i < rawData.length; i++) {
+          const row = rawData[i];
+          const name = String(row[nameIdx] || '').trim();
+          if (!name) continue;
+          
+          try {
+            const className = classIdx !== -1 ? String(row[classIdx] || '').trim() : '';
+            let classId: string | null = null;
+            if (className) {
+              const cls = classes.find(c => c.name.toLowerCase() === className.toLowerCase());
+              if (cls) { classId = cls.id; }
+              else {
+                const { data: newCls } = await supabase.from('classes').insert([{ 
+                  name: className, 
+                  teacher_id: user.id,
+                  school_id: activeSchool?.id === 'legacy' ? null : activeSchool?.id
+                }]).select().single();
+                
+                if (newCls) { 
+                  classId = newCls.id; 
+                  setClasses(prev => [...prev, newCls]); 
+                  
+                  // Save class locally
+                  await addClass({
+                    id: newCls.id,
+                    teacher_id: newCls.teacher_id,
+                    school_id: newCls.school_id,
+                    name: newCls.name,
+                    subject: newCls.subject || 'Seni Rupa',
+                    created_at: newCls.created_at
+                  } as any);
+                  await saveClass({
+                    idKelas: newCls.id,
+                    teacherId: newCls.teacher_id,
+                    schoolId: newCls.school_id,
+                    namaKelas: newCls.name,
+                    mapel: newCls.subject || 'Seni Rupa'
+                  } as any);
+                }
+              }
+            }
+            
+            const { data: newStudent } = await supabase.from('students').insert([{ 
+              teacher_id: user.id, 
+              school_id: activeSchool?.id === 'legacy' ? null : activeSchool?.id,
+              name, 
+              class_id: classId,
+              student_code: generateStudentCode(),
+              password: 'murid19'
+            }]).select().single();
+
+            if (newStudent) {
+              await addStudent({
+                id: newStudent.id,
+                teacher_id: newStudent.teacher_id,
+                school_id: newStudent.school_id,
+                schoolId: newStudent.school_id,
+                classId: newStudent.class_id,
+                class_id: newStudent.class_id,
+                name: newStudent.name,
+                student_code: newStudent.student_code,
+                password: newStudent.password || 'murid19',
+                createdAt: newStudent.created_at
+              } as any);
+              await saveStudent({
+                idSiswa: newStudent.id,
+                teacherId: newStudent.teacher_id,
+                schoolId: newStudent.school_id,
+                idKelas: newStudent.class_id,
+                nama: newStudent.name,
+                student_code: newStudent.student_code,
+                password: newStudent.password || 'murid19'
+              } as any);
+            }
+            successCount++;
+          } catch (rowErr: any) {
+            errorMessages.push(`Baris ${i + 1}: ${rowErr.message}`);
+          }
+        }
+        
+        showAlert({ 
+          title: 'Impor Selesai', 
+          message: `${successCount} siswa berhasil diimpor.`, 
+          type: successCount > 0 ? 'success' : 'error' 
+        });
+        if (isMountedRef.current) fetchData();
+      } catch (err: any) { 
+        if (isMountedRef.current) showAlert({ title: 'Gagal Impor', message: err.message, type: 'error' }); 
+      } finally { 
+        if (isMountedRef.current) setImporting(false); 
+        if (fileInputRef.current) fileInputRef.current.value = '';
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  };
+
+  const filteredStudents = useMemo(() => {
+    return students.filter(s => {
+      const matchesSearch = s.name.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesClass = selectedClass === 'all' || s.class_id === selectedClass;
+      return matchesSearch && matchesClass;
+    });
+  }, [students, searchTerm, selectedClass]);
+
+  const paginatedStudents = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredStudents.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [filteredStudents, currentPage]);
+
+  const totalPages = Math.ceil(filteredStudents.length / ITEMS_PER_PAGE);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedClass]);
+
+  return (
+    <div className="space-y-6 pb-10">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-3xl font-bold text-indigo-950 tracking-tight">Kelola Siswa</h2>
+          <p className="text-slate-500 mt-1 font-medium">Daftar nama siswa untuk rekapitulasi data pengerjaan ujian.</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <button onClick={handleDownloadTemplate} className="bg-white text-slate-600 border border-slate-200 px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 hover:bg-slate-50 transition-all">
+            <Download className="w-4 h-4" /> Template
+          </button>
+          <button onClick={handleExportExcel} className="bg-emerald-50 text-emerald-700 px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 hover:bg-emerald-100 transition-all border border-emerald-100">
+            <Download className="w-4 h-4" /> Ekspor Excel
+          </button>
+          <button onClick={() => fileInputRef.current?.click()} disabled={importing} className="bg-indigo-50 text-indigo-700 px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 hover:bg-indigo-100 transition-all border border-indigo-100">
+            {importing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />} Impor Siswa
+          </button>
+          <input type="file" ref={fileInputRef} className="hidden" accept=".xlsx, .xls" onChange={handleImportExcel} />
+          {selectedStudentIds.length > 0 && (
+            <button onClick={handleBulkDelete} className="bg-rose-50 text-rose-700 px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 hover:bg-rose-100 transition-all border border-rose-100">
+              <Trash2 className="w-4 h-4" /> Hapus Terpilih ({selectedStudentIds.length})
+            </button>
+          )}
+          <button onClick={() => { setEditingId(null); setFormData({ name: '', class_id: '', student_code: '', password: '' }); setShowForm(true); }}
+            className="bg-indigo-950 text-white px-5 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 hover:bg-indigo-900 transition-all shadow-lg shadow-slate-200/50 active:scale-[0.98]"
+          >
+            <Plus className="w-4 h-4" /> Tambah Siswa
+          </button>
+        </div>
+      </div>
+
+      <div className="flex flex-col lg:flex-row gap-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+          <input type="text" placeholder="Cari berdasarkan nama siswa..."
+            className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 bg-white outline-none focus:ring-2 focus:ring-indigo-950/10 focus:border-indigo-950 transition-all text-sm font-medium text-slate-700"
+            value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+        <div className="relative min-w-[200px]">
+          <Filter className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+          <select className="w-full pl-10 pr-8 py-3 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-indigo-950/10 focus:border-indigo-950 appearance-none bg-white text-sm font-medium text-slate-700 transition-all cursor-pointer"
+            value={selectedClass} onChange={(e) => setSelectedClass(e.target.value)}
+          >
+            <option value="all">Semua Kelas</option>
+            {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-slate-50/50 border-b border-slate-100">
+                <th className="px-6 py-4 w-12 text-center">
+                  <input type="checkbox"
+                    className="w-4 h-4 rounded border-slate-300 text-indigo-950 focus:ring-indigo-950/20 cursor-pointer"
+                    checked={paginatedStudents.length > 0 && paginatedStudents.every(s => selectedStudentIds.includes(s.id))}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        const newSelections = [...selectedStudentIds];
+                        paginatedStudents.forEach(s => {
+                          if (!newSelections.includes(s.id)) newSelections.push(s.id);
+                        });
+                        setSelectedStudentIds(newSelections);
+                      } else {
+                        const paginatedIds = paginatedStudents.map(s => s.id);
+                        setSelectedStudentIds(selectedStudentIds.filter(id => !paginatedIds.includes(id)));
+                      }
+                    }}
+                  />
+                </th>
+                <th className="px-6 py-4 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Data Siswa</th>
+                <th className="px-6 py-4 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Username</th>
+                <th className="px-6 py-4 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Kelas</th>
+                <th className="px-6 py-4 text-[10px] font-semibold text-slate-400 uppercase tracking-wider text-right">Aksi</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-50">
+              {loading ? (
+                [1,2,3,4,5].map(i => (
+                  <tr key={i} className="animate-pulse">
+                    <td colSpan={5} className="px-6 py-4"><div className="h-10 bg-slate-100 rounded-lg w-full"></div></td>
+                  </tr>
+                ))
+              ) : filteredStudents.length > 0 ? (
+                paginatedStudents.map((s, idx) => (
+                  <motion.tr 
+                    initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: idx * 0.02 }}
+                    key={s.id} className={cn("hover:bg-slate-50/50 transition-all group", selectedStudentIds.includes(s.id) && "bg-indigo-50/30 hover:bg-indigo-50/40")}
+                  >
+                    <td className="px-6 py-4 w-12 text-center">
+                      <input type="checkbox"
+                        className="w-4 h-4 rounded border-slate-300 text-indigo-950 focus:ring-indigo-950/20 cursor-pointer"
+                        checked={selectedStudentIds.includes(s.id)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedStudentIds([...selectedStudentIds, s.id]);
+                          } else {
+                            setSelectedStudentIds(selectedStudentIds.filter(id => id !== s.id));
+                          }
+                        }}
+                      />
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                          <User className="w-4 h-4" />
+                        </div>
+                        <span className="font-semibold text-indigo-950 text-sm">{s.name}</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2">
+                        <span className="bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-md font-mono font-semibold text-xs tracking-wider">{s.student_code || '-'}</span>
+                        {s.student_code && (
+                          <button onClick={() => copyCode(s.student_code)} className="p-1 text-slate-400 hover:text-indigo-600 transition-colors">
+                            <Copy className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 font-semibold text-xs border border-slate-200 whitespace-nowrap">{s.classes?.name || 'Tanpa Kelas'}</span>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex items-center justify-end gap-1">
+                        <button onClick={() => handleResetPassword(s.id, s.name)} 
+                          title="Reset Password ke murid19"
+                          className="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all"
+                        >
+                          <Key className="w-4 h-4" />
+                        </button>
+                        <button onClick={() => { setEditingId(s.id); setFormData({ name: s.name, class_id: s.class_id || '', student_code: s.student_code || '', password: s.password || 'murid19' }); setShowForm(true); }}
+                          className="p-2 text-slate-400 hover:text-indigo-950 hover:bg-slate-100 rounded-lg transition-all"
+                        >
+                          <Edit3 className="w-4 h-4" />
+                        </button>
+                        <button onClick={() => handleDelete(s.id)} className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </motion.tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={5} className="px-6 py-20 text-center text-slate-400 text-sm font-medium">
+                    Tidak ada siswa ditemukan.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <AnimatePresence>
+        {showForm && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowForm(false)} className="absolute inset-0 bg-indigo-950/30 backdrop-blur-sm" />
+            <motion.div initial={{ opacity: 0, scale: 0.97, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.97, y: 10 }} className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl p-7">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-bold text-indigo-950">{editingId ? 'Edit Data Siswa' : 'Tambah Siswa Baru'}</h3>
+                <button onClick={() => setShowForm(false)} className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
+                  <X className="w-5 h-5 text-slate-400" />
+                </button>
+              </div>
+              <form onSubmit={handleSave} className="space-y-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Nama Lengkap</label>
+                  <input type="text" required placeholder="Contoh: Budi Santoso"
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 outline-none focus:ring-2 focus:ring-indigo-950/10 focus:border-indigo-950 text-sm font-medium text-indigo-950"
+                    value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Pilih Kelas</label>
+                  <select className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 outline-none focus:ring-2 focus:ring-indigo-950/10 focus:border-indigo-950 text-sm font-medium text-indigo-950"
+                    value={formData.class_id} onChange={(e) => setFormData({ ...formData, class_id: e.target.value })}
+                  >
+                    <option value="">Tanpa Kelas</option>
+                    {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  </select>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Username</label>
+                  <input type="text" placeholder={editingId ? "Masukkan username" : "Kosongkan untuk generate otomatis"}
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 outline-none focus:ring-2 focus:ring-indigo-950/10 focus:border-indigo-950 text-sm font-medium text-indigo-950 font-mono tracking-wider"
+                    value={formData.student_code} onChange={(e) => setFormData({ ...formData, student_code: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Password</label>
+                  <input type="text" placeholder="Kosongkan untuk default 'murid19'"
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 outline-none focus:ring-2 focus:ring-indigo-950/10 focus:border-indigo-950 text-sm font-medium text-indigo-950 font-mono"
+                    value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  />
+                </div>
+                <div className="flex gap-3 pt-3">
+                  <button type="button" onClick={() => setShowForm(false)} className="flex-1 py-3 text-sm font-medium text-slate-400 hover:bg-slate-50 rounded-xl transition-all">Batal</button>
+                  <button type="submit" disabled={submitting} className="flex-[2] bg-indigo-950 text-white py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 hover:bg-indigo-900 shadow-sm active:scale-[0.98] transition-all">
+                    {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : editingId ? 'Perbarui Data' : 'Simpan Siswa'}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}

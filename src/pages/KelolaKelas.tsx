@@ -1,0 +1,1061 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { supabase } from '../lib/supabase';
+import { 
+  Users, 
+  Plus, 
+  Search, 
+  Edit3, 
+  Trash2, 
+  MoreHorizontal,
+  X,
+  ChevronRight,
+  School,
+  ArrowRight,
+  Loader2,
+  Download,
+  Upload,
+  BookOpen,
+  ChevronDown
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import * as XLSX from 'xlsx';
+import XLSXStyle from 'xlsx-js-style';
+import { cn } from '../lib/utils';
+import { useAlert } from '../context/AlertContext';
+import { staggerContainer, staggerItem } from '../lib/animations';
+import { useSchool } from '../context/SchoolContext';
+import { getFullState, addClass, deleteClassCascade, addStudent, deleteStudent } from '../services/dbAttendance';
+import { saveClass, deleteClass, saveStudent, deleteStudent as deleteStudentGrading } from '../services/dbGrading';
+
+export default function KelolaKelas() {
+  const [classes, setClasses] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<'classes' | 'schedules' | 'settings'>('classes');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showForm, setShowForm] = useState(false);
+  const [showStudents, setShowStudents] = useState(false);
+  const [selectedClass, setSelectedClass] = useState<any>(null);
+  const [classStudents, setClassStudents] = useState<any[]>([]);
+  const [loadingStudents, setLoadingStudents] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingStudentId, setEditingStudentId] = useState<string | null>(null);
+  const [showAddStudentForm, setShowAddStudentForm] = useState(false);
+  const [newStudentName, setNewStudentName] = useState('');
+  const [importing, setImporting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [formData, setFormData] = useState({ name: '', subject: '' });
+  const [submitting, setSubmitting] = useState(false);
+  const isMountedRef = useRef(true);
+  const { showAlert } = useAlert();
+  const { activeSchool } = useSchool();
+  
+  const [teacherSubjects, setTeacherSubjects] = useState<any[]>([]);
+  const [subjectDropdownOpen, setSubjectDropdownOpen] = useState(false);
+  const subjectRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    fetchClasses();
+    fetchTeacherSubjects();
+    return () => { isMountedRef.current = false; };
+  }, [activeSchool]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (subjectRef.current && !subjectRef.current.contains(event.target as Node)) {
+        setSubjectDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const fetchTeacherSubjects = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      
+      const { data: teacherSubjectsData } = await supabase
+        .from('teacher_subjects')
+        .select('subject_id, subjects(*)')
+        .eq('teacher_id', user.id);
+      
+      if (teacherSubjectsData) {
+        const allSubjects = teacherSubjectsData
+          .map(ts => ts.subjects as any)
+          .filter(Boolean);
+        const uniqueSubjects = allSubjects.filter((subject, index, self) => 
+          index === self.findIndex(s => s.name.toLowerCase() === subject.name.toLowerCase())
+        );
+        setTeacherSubjects(uniqueSubjects);
+      }
+    } catch (error) {
+      console.error('Error fetching teacher subjects:', error);
+    }
+  };
+
+  const fetchClasses = async () => {
+    try {
+      setLoading(true);
+      
+      // 1. Load classes from local IndexedDB first (instant load)
+      const localState = await getFullState(true);
+      let localClasses = localState.classes || [];
+      
+      if (activeSchool?.id) {
+        if (activeSchool.id === 'legacy') {
+          localClasses = localClasses.filter(c => !(c as any).school_id && !(c as any).schoolId);
+        } else {
+          localClasses = localClasses.filter(c => (c as any).school_id === activeSchool.id || (c as any).schoolId === activeSchool.id);
+        }
+      }
+      
+      // Manually count students per class locally
+      const localStudents = localState.students || [];
+      const mappedClasses = localClasses.map(c => {
+        const studentCount = localStudents.filter(s => s.classId === c.id || (s as any).class_id === c.id || (s as any).idKelas === c.id).length;
+        return {
+          ...c,
+          name: c.name || (c as any).namaKelas,
+          subject: c.subject || (c as any).mapel,
+          students: [{ count: studentCount }]
+        };
+      });
+      
+      if (isMountedRef.current) {
+        setClasses(mappedClasses);
+      }
+      
+      // 2. Fetch from Supabase in background to update local DB and sync
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        try {
+          const { syncService } = await import('../services/sync');
+          await syncService.pullFromCloud();
+          
+          const updatedLocalState = await getFullState(true);
+          let updatedClasses = updatedLocalState.classes || [];
+          
+          if (activeSchool?.id) {
+            if (activeSchool.id === 'legacy') {
+              updatedClasses = updatedClasses.filter(c => !(c as any).school_id && !(c as any).schoolId);
+            } else {
+              updatedClasses = updatedClasses.filter(c => (c as any).school_id === activeSchool.id || (c as any).schoolId === activeSchool.id);
+            }
+          }
+          
+          const updatedStudents = updatedLocalState.students || [];
+          const remappedClasses = updatedClasses.map(c => {
+            const studentCount = updatedStudents.filter(s => s.classId === c.id || (s as any).class_id === c.id || (s as any).idKelas === c.id).length;
+            return {
+              ...c,
+              name: c.name || (c as any).namaKelas,
+              subject: c.subject || (c as any).mapel,
+              students: [{ count: studentCount }]
+            };
+          });
+          
+          if (isMountedRef.current) {
+            setClasses(remappedClasses);
+          }
+        } catch (syncErr) {
+          console.warn('Background sync classes failed:', syncErr);
+        }
+      }
+    } catch (error) { 
+      console.error('Error fetching classes:', error); 
+    } finally { 
+      setLoading(false); 
+    }
+  };
+
+  const fetchClassStudents = async (classId: string) => {
+    setLoadingStudents(true);
+    try {
+      // 1. Load students locally first
+      const localState = await getFullState(true);
+      const localStudents = localState.students || [];
+      const classStudentsLocal = localStudents.filter(s => s.classId === classId || (s as any).class_id === classId || (s as any).idKelas === classId);
+      
+      if (isMountedRef.current) {
+        setClassStudents(classStudentsLocal.map(s => ({
+          ...s,
+          class_id: s.classId || (s as any).class_id || (s as any).idKelas
+        })));
+      }
+
+      // 2. Only fetch from Supabase if not legacy, and update local database
+      if (activeSchool?.id && activeSchool.id !== 'legacy') {
+        const { data, error } = await supabase
+          .from('students')
+          .select('id, name, nisn, student_code, class_id, teacher_id, created_at, school_id, password')
+          .eq('class_id', classId)
+          .order('name', { ascending: true });
+          
+        if (error) throw error;
+        if (isMountedRef.current && data) {
+          // Sync online fetched students into IndexedDB so they are kept locally too
+          for (const s of data) {
+            await addStudent({
+              id: s.id,
+              teacher_id: s.teacher_id,
+              school_id: s.school_id,
+              schoolId: s.school_id,
+              classId: s.class_id,
+              class_id: s.class_id,
+              name: s.name,
+              student_code: s.student_code,
+              password: s.password || 'murid19',
+              createdAt: s.created_at
+            } as any);
+            await saveStudent({
+              idSiswa: s.id,
+              teacherId: s.teacher_id,
+              schoolId: (s as any).school_id,
+              idKelas: s.class_id,
+              nama: s.name,
+              student_code: s.student_code,
+              password: (s as any).password || 'murid19'
+            } as any);
+          }
+          
+          // Re-load from local to ensure correct state representation
+          const updatedState = await getFullState(true);
+          const updatedStudents = updatedState.students || [];
+          const classStudentsUpdated = updatedStudents.filter(s => s.classId === classId || (s as any).class_id === classId || (s as any).idKelas === classId);
+          
+          if (isMountedRef.current) {
+            setClassStudents(classStudentsUpdated.map(s => ({
+              ...s,
+              class_id: s.classId || (s as any).class_id || (s as any).idKelas
+            })));
+          }
+        }
+      }
+    } catch (error) { 
+      console.error('Error fetching students:', error); 
+    } finally { 
+      setLoadingStudents(false); 
+    }
+  };
+
+  const handleAddStudent = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newStudentName || !selectedClass) return;
+    setSubmitting(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (editingStudentId) {
+        const { data: updatedStudent, error } = await supabase.from('students').update({ name: newStudentName }).eq('id', editingStudentId).select().single();
+        if (error) throw error;
+        
+        if (updatedStudent) {
+          await addStudent({
+            id: updatedStudent.id,
+            teacher_id: updatedStudent.teacher_id,
+            school_id: updatedStudent.school_id,
+            schoolId: updatedStudent.school_id,
+            classId: updatedStudent.class_id,
+            class_id: updatedStudent.class_id,
+            name: updatedStudent.name,
+            student_code: updatedStudent.student_code,
+            password: updatedStudent.password || 'murid19',
+            createdAt: updatedStudent.created_at
+          } as any);
+          await saveStudent({
+            idSiswa: updatedStudent.id,
+            teacherId: updatedStudent.teacher_id,
+            schoolId: updatedStudent.school_id,
+            idKelas: updatedStudent.class_id,
+            nama: updatedStudent.name,
+            student_code: updatedStudent.student_code,
+            password: updatedStudent.password || 'murid19'
+          } as any);
+        }
+        showAlert({ title: 'Berhasil', message: 'Nama siswa berhasil diperbarui.', type: 'success' });
+      } else {
+        const { data: newStudent, error } = await supabase.from('students').insert([{ 
+          name: newStudentName, 
+          class_id: selectedClass.id, 
+          teacher_id: user?.id, 
+          school_id: activeSchool?.id === 'legacy' ? null : activeSchool?.id,
+          student_code: generateStudentCode(),
+          password: 'murid19'
+        }]).select().single();
+        if (error) throw error;
+
+        if (newStudent) {
+          await addStudent({
+            id: newStudent.id,
+            teacher_id: newStudent.teacher_id,
+            school_id: newStudent.school_id,
+            schoolId: newStudent.school_id,
+            classId: newStudent.class_id,
+            class_id: newStudent.class_id,
+            name: newStudent.name,
+            student_code: newStudent.student_code,
+            password: newStudent.password || 'murid19',
+            createdAt: newStudent.created_at
+          } as any);
+          await saveStudent({
+            idSiswa: newStudent.id,
+            teacherId: newStudent.teacher_id,
+            schoolId: newStudent.school_id,
+            idKelas: newStudent.class_id,
+            nama: newStudent.name,
+            student_code: newStudent.student_code,
+            password: newStudent.password || 'murid19'
+          } as any);
+        }
+        showAlert({ title: 'Berhasil', message: 'Siswa berhasil ditambahkan.', type: 'success' });
+      }
+      setShowAddStudentForm(false);
+      setNewStudentName('');
+      setEditingStudentId(null);
+      fetchClassStudents(selectedClass.id);
+      fetchClasses();
+    } catch (error: any) { showAlert({ title: 'Gagal', message: error.message, type: 'error' }); }
+    finally { setSubmitting(false); }
+  };
+
+  const handleDeleteStudent = async (id: string) => {
+    showAlert({
+      title: 'Hapus Siswa?', message: 'Data siswa akan terhapus secara permanen.', type: 'confirm', confirmText: 'Ya, Hapus',
+      onConfirm: async () => {
+        try {
+          const { error } = await supabase.from('students').delete().eq('id', id);
+          if (error) throw error;
+
+          await deleteStudent(id);
+          await deleteStudentGrading(id);
+
+          fetchClassStudents(selectedClass.id);
+          fetchClasses(); 
+          showAlert({ title: 'Terhapus', message: 'Siswa berhasil dihapus.', type: 'success' });
+        } catch (error: any) { showAlert({ title: 'Gagal', message: error.message, type: 'error' }); }
+      }
+    });
+  };
+
+  const handleDownloadTemplate = () => {
+    const template = [{ 'Nama Lengkap': 'Ahmad Fauzi' }, { 'Nama Lengkap': 'Siti Aminah' }];
+    const worksheet = XLSX.utils.json_to_sheet(template);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Template");
+    XLSX.writeFile(workbook, `Template_Siswa_${selectedClass?.name || 'Kelas'}.xlsx`);
+  };
+
+  const handleExportExcel = () => {
+    if (!selectedClass) return;
+    if (classStudents.length === 0) {
+      showAlert({ title: 'Kosong', message: 'Tidak ada data siswa untuk diekspor.', type: 'warning' });
+      return;
+    }
+
+    const header = ['NAMA LENGKAP', 'KODE UNIK'];
+    const rows = classStudents.map(s => [s.name, s.student_code || '-']);
+
+    const worksheet = XLSXStyle.utils.aoa_to_sheet([header, ...rows]);
+
+    // Auto-fit column widths
+    const maxNameLen = Math.max(
+      header[0].length,
+      ...rows.map(r => String(r[0] || '').length)
+    );
+    const maxCodeLen = Math.max(
+      header[1].length,
+      ...rows.map(r => String(r[1] || '').length)
+    );
+
+    worksheet['!cols'] = [
+      { wch: Math.max(maxNameLen + 3, 18) },
+      { wch: Math.max(maxCodeLen + 3, 14) }
+    ];
+
+    // Set row heights
+    worksheet['!rows'] = [
+      { hpt: 28 }, // Header row height (spacious & premium)
+      ...rows.map(() => ({ hpt: 22 })) // Data row heights
+    ];
+
+    // Apply styles (borders, bg colors, alignment)
+    const range = XLSXStyle.utils.decode_range(worksheet['!ref'] || 'A1:A1');
+    for (let r = range.s.r; r <= range.e.r; ++r) {
+      for (let c = range.s.c; c <= range.e.c; ++c) {
+        const cellRef = XLSXStyle.utils.encode_cell({ r, c });
+        if (!worksheet[cellRef]) continue;
+
+        if (r === 0) {
+          // Header Row Style
+          worksheet[cellRef].s = {
+            fill: {
+              fgColor: { rgb: "1E1B4B" } // Premium Indigo bg
+            },
+            font: {
+              name: "Segoe UI",
+              sz: 11,
+              bold: true,
+              color: { rgb: "FFFFFF" } // White text
+            },
+            alignment: {
+              horizontal: "center",
+              vertical: "center"
+            },
+            border: {
+              top: { style: "thin", color: { rgb: "312E81" } },
+              bottom: { style: "medium", color: { rgb: "0F172A" } },
+              left: { style: "thin", color: { rgb: "312E81" } },
+              right: { style: "thin", color: { rgb: "312E81" } }
+            }
+          };
+        } else {
+          // Data Row Style
+          worksheet[cellRef].s = {
+            font: {
+              name: "Segoe UI",
+              sz: 10
+            },
+            alignment: {
+              vertical: "center",
+              horizontal: c === 1 ? "center" : "left" // Center align code, left align name
+            },
+            border: {
+              top: { style: "thin", color: { rgb: "E2E8F0" } },
+              bottom: { style: "thin", color: { rgb: "E2E8F0" } },
+              left: { style: "thin", color: { rgb: "E2E8F0" } },
+              right: { style: "thin", color: { rgb: "E2E8F0" } }
+            }
+          };
+        }
+      }
+    }
+
+    const workbook = XLSXStyle.utils.book_new();
+    XLSXStyle.utils.book_append_sheet(workbook, worksheet, "Data Siswa");
+    XLSXStyle.writeFile(workbook, `Data_Siswa_${selectedClass.name}.xlsx`.replace(/\s+/g, '_'));
+  };
+
+  const handleImportExcel = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !selectedClass) return;
+    setImporting(true);
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (!event.target?.result) {
+          throw new Error('Gagal membaca file. Silakan coba lagi.');
+        }
+        
+        const arrayBuffer = event.target.result as ArrayBuffer;
+        const workbook = XLSX.read(new Uint8Array(arrayBuffer), { type: 'array' });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const rawData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' }) as any[][];
+        
+        if (rawData.length < 2) {
+          throw new Error('File tidak memiliki data. Pastikan ada header dan minimal 1 baris data.');
+        }
+        
+        const headers = rawData[0].map((h: any) => String(h || '').trim());
+        const nameIdx = headers.findIndex(h => h === 'Nama Lengkap');
+        
+        if (nameIdx === -1) {
+          throw new Error('Kolom "Nama Lengkap" tidak ditemukan. Pastikan file sesuai dengan template.');
+        }
+        
+        let successCount = 0;
+        let skippedCount = 0;
+        let errorMessages: string[] = [];
+        
+        for (let i = 1; i < rawData.length; i++) {
+          const row = rawData[i];
+          const name = String(row[nameIdx] || '').trim();
+          
+          if (!name) {
+            const hasData = row.some(cell => cell !== null && cell !== undefined && cell !== '');
+            if (hasData) skippedCount++;
+            continue;
+          }
+          
+          try {
+            const { data: newStudent, error: insertError } = await supabase.from('students').insert([{ 
+              name, 
+              class_id: selectedClass.id, 
+              teacher_id: user?.id, 
+              school_id: activeSchool?.id === 'legacy' ? null : activeSchool?.id,
+              student_code: generateStudentCode(),
+              password: 'murid19'
+            }]).select().single();
+            
+            if (insertError) {
+              console.error('Error inserting student:', insertError);
+              errorMessages.push(`Baris ${i + 1}: ${insertError.message}`);
+            } else {
+              successCount++;
+              if (newStudent) {
+                await addStudent({
+                  id: newStudent.id,
+                  teacher_id: newStudent.teacher_id,
+                  school_id: newStudent.school_id,
+                  schoolId: newStudent.school_id,
+                  classId: newStudent.class_id,
+                  class_id: newStudent.class_id,
+                  name: newStudent.name,
+                  student_code: newStudent.student_code,
+                  password: newStudent.password || 'murid19',
+                  createdAt: newStudent.created_at
+                } as any);
+                await saveStudent({
+                  idSiswa: newStudent.id,
+                  teacherId: newStudent.teacher_id,
+                  schoolId: newStudent.school_id,
+                  idKelas: newStudent.class_id,
+                  nama: newStudent.name,
+                  student_code: newStudent.student_code,
+                  password: newStudent.password || 'murid19'
+                } as any);
+              }
+            }
+          } catch (rowErr: any) {
+            console.error('Error on row', i + 1, rowErr);
+            errorMessages.push(`Baris ${i + 1}: ${rowErr.message}`);
+          }
+        }
+        
+        let message = `${successCount} siswa diimpor ke kelas ${selectedClass.name}.`;
+        if (skippedCount > 0) message += ` ${skippedCount} baris kosong dilewati.`;
+        if (errorMessages.length > 0) {
+          message += ` ${errorMessages.length} gagal. Cek console untuk detail.`;
+          console.error('Import errors:', errorMessages);
+        }
+        showAlert({ title: 'Impor Selesai', message: message.slice(0, 500), type: successCount > 0 ? 'success' : 'error' });
+        fetchClassStudents(selectedClass.id);
+        fetchClasses();
+      } catch (err: any) { 
+        console.error('Import error:', err);
+        showAlert({ title: 'Gagal Impor', message: err.message || 'Terjadi kesalahan saat mengimpor.', type: 'error' }); 
+      }
+      finally { setImporting(false); if (fileInputRef.current) fileInputRef.current.value = ''; }
+    };
+    reader.readAsArrayBuffer(file);
+  };
+
+  const generateStudentCode = () => {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let code = '';
+    for (let i = 0; i < 6; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
+    return code;
+  };
+
+  const handleGenerateCodes = async () => {
+    if (!selectedClass) return;
+    showAlert({
+      title: 'Generate Username?', message: 'Siswa yang belum memiliki username akan mendapatkan username baru.', type: 'confirm', confirmText: 'Ya, Generate',
+      onConfirm: async () => {
+        try {
+          const updates = classStudents.filter(s => !s.student_code).map(s => ({ id: s.id, student_code: generateStudentCode() }));
+          if (updates.length === 0) { showAlert({ title: 'Info', message: 'Semua siswa sudah memiliki username.', type: 'info' }); return; }
+          for (const s of updates) { 
+            const { data: updatedStudent } = await supabase.from('students').update({ student_code: s.student_code }).eq('id', s.id).select().single(); 
+            if (updatedStudent) {
+              await addStudent({
+                id: updatedStudent.id,
+                teacher_id: updatedStudent.teacher_id,
+                classId: updatedStudent.class_id,
+                name: updatedStudent.name,
+                student_code: updatedStudent.student_code,
+                password: updatedStudent.password || 'murid19',
+                createdAt: updatedStudent.created_at
+              } as any);
+              await saveStudent({
+                idSiswa: updatedStudent.id,
+                teacherId: updatedStudent.teacher_id,
+                schoolId: updatedStudent.school_id,
+                idKelas: updatedStudent.class_id,
+                nama: updatedStudent.name,
+                student_code: updatedStudent.student_code,
+                password: updatedStudent.password || 'murid19'
+              } as any);
+            }
+          }
+          fetchClassStudents(selectedClass.id);
+          showAlert({ title: 'Berhasil', message: 'Username berhasil dibuat.', type: 'success' });
+        } catch (error: any) { showAlert({ title: 'Gagal', message: error.message, type: 'error' }); }
+      }
+    });
+  };
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not found');
+      if (editingId) {
+        const { data: updatedCls, error } = await supabase.from('classes').update({ name: formData.name, subject: formData.subject }).eq('id', editingId).select().single();
+        if (error) throw error;
+        
+        if (updatedCls) {
+          await addClass({
+            id: updatedCls.id,
+            teacher_id: updatedCls.teacher_id,
+            school_id: updatedCls.school_id,
+            name: updatedCls.name,
+            subject: updatedCls.subject,
+            created_at: updatedCls.created_at
+          } as any);
+          await saveClass({
+            idKelas: updatedCls.id,
+            teacherId: updatedCls.teacher_id,
+            schoolId: updatedCls.school_id,
+            namaKelas: updatedCls.name,
+            mapel: updatedCls.subject
+          } as any);
+        }
+        showAlert({ title: 'Berhasil', message: 'Nama kelas berhasil diperbarui.', type: 'success' });
+      } else {
+        if (!activeSchool?.id) {
+          throw new Error('Pilih sekolah terlebih dahulu di header sebelum menambah kelas.');
+        }
+
+        const { data: newCls, error } = await supabase.from('classes').insert([{ 
+          name: formData.name, 
+          subject: formData.subject, 
+          teacher_id: user.id,
+          school_id: activeSchool.id
+        }]).select().single();
+        if (error) throw error;
+
+        if (newCls) {
+          await addClass({
+            id: newCls.id,
+            teacher_id: newCls.teacher_id,
+            school_id: newCls.school_id,
+            name: newCls.name,
+            subject: newCls.subject,
+            created_at: newCls.created_at
+          } as any);
+          await saveClass({
+            idKelas: newCls.id,
+            teacherId: newCls.teacher_id,
+            schoolId: newCls.school_id,
+            namaKelas: newCls.name,
+            mapel: newCls.subject
+          } as any);
+        }
+        showAlert({ title: 'Berhasil', message: 'Kelas baru berhasil ditambahkan.', type: 'success' });
+      }
+      setShowForm(false);
+      setFormData({ name: '', subject: '' });
+      setEditingId(null);
+      await fetchClasses();
+    } catch (error: any) { 
+      console.error('Error saving class:', error);
+      showAlert({ title: 'Gagal', message: error.message || 'Terjadi kesalahan saat menyimpan kelas.', type: 'error' }); 
+    } finally { 
+      setSubmitting(false); 
+    }
+  };
+
+  const handleEdit = (cls: any) => { setEditingId(cls.id); setFormData({ name: cls.name, subject: cls.subject || '' }); setShowForm(true); };
+
+  const handleDelete = async (cls: any, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const studentCount = cls.students?.[0]?.count || 0;
+    const hasStudents = studentCount > 0;
+
+    showAlert({
+      title: 'Hapus Kelas?',
+      message: hasStudents
+        ? `Menghapus kelas ini juga akan menghapus seluruh murid (${studentCount} murid) yang berada di dalam kelas ini. Apakah Anda yakin ingin melanjutkan?`
+        : 'Apakah Anda yakin ingin menghapus kelas ini?',
+      type: 'confirm',
+      confirmText: 'Ya, Hapus',
+      onConfirm: async () => {
+        try {
+          if (hasStudents) {
+            // Delete all students in the class first
+            const { error: studentDeleteError } = await supabase
+              .from('students')
+              .delete()
+              .eq('class_id', cls.id);
+            if (studentDeleteError) throw studentDeleteError;
+          }
+
+          // Delete the class
+          const { error: classDeleteError } = await supabase
+            .from('classes')
+            .delete()
+            .eq('id', cls.id);
+          if (classDeleteError) throw classDeleteError;
+
+          // Delete locally
+          await deleteClassCascade(cls.id);
+          await deleteClass(cls.id);
+
+          fetchClasses();
+          showAlert({ title: 'Terhapus', message: 'Kelas berhasil dihapus.', type: 'success' });
+        } catch (error: any) {
+          showAlert({ title: 'Gagal', message: error.message, type: 'error' });
+        }
+      }
+    });
+  };
+
+  const viewClass = (cls: any) => { setSelectedClass(cls); fetchClassStudents(cls.id); setShowStudents(true); };
+
+  const filteredClasses = classes.filter(c => c.name.toLowerCase().includes(searchTerm.toLowerCase()));
+
+  return (
+    <div className="space-y-6 pb-10">
+      {/* Header */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-3xl font-bold text-indigo-950 tracking-tight">Kelola Kelas</h2>
+          <p className="text-slate-500 mt-1 font-medium">Manajemen daftar kelas dan mata pelajaran.</p>
+        </div>
+        <button 
+          onClick={() => { setEditingId(null); setFormData({ name: '', subject: '' }); setShowForm(true); }}
+          className="bg-indigo-950 text-white px-5 py-2.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 hover:bg-indigo-900 transition-all shadow-lg shadow-slate-200/50 active:scale-[0.98]"
+        >
+          <Plus className="w-4 h-4" />
+          Tambah Kelas Baru
+        </button>
+      </div>
+
+      {/* Search */}
+      <div className="relative">
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+        <input 
+          type="text" 
+          placeholder="Cari nama kelas..."
+          className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 bg-white outline-none focus:ring-2 focus:ring-indigo-950/10 focus:border-indigo-950 transition-all text-sm font-medium text-slate-700"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+      </div>
+
+      {/* Class Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        {loading ? (
+          [1,2,3].map(i => <div key={i} className="h-40 bg-slate-100 animate-pulse rounded-2xl"></div>)
+        ) : filteredClasses.length > 0 ? (
+          filteredClasses.map((cls, index) => (
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.03 }}
+              key={cls.id}
+              onClick={() => viewClass(cls)}
+              className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm hover:shadow-md hover:border-indigo-200 transition-all group flex flex-col justify-between cursor-pointer relative overflow-hidden"
+            >
+              <div className="absolute top-0 right-14 p-5 opacity-[0.03] group-hover:scale-110 transition-transform">
+                <School className="w-24 h-24 text-indigo-950" />
+              </div>
+
+              <div className="flex justify-between items-start relative z-10">
+                <div className="flex-1">
+                  <h3 className="text-xl font-bold text-indigo-950 mb-0.5 group-hover:text-indigo-600 transition-colors uppercase tracking-tight">{cls.name}</h3>
+                  <p className="text-indigo-400 font-semibold text-[11px] uppercase tracking-widest mb-3">{cls.subject || 'Belum Ada Mapel'}</p>
+                  <div className="flex items-center gap-1.5 text-slate-400 px-2 py-1 bg-slate-50 rounded-lg inline-flex">
+                    <Users className="w-3.5 h-3.5" />
+                    <span className="text-[10px] font-semibold uppercase tracking-wider">{cls.students?.[0]?.count || 0} Siswa</span>
+                  </div>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); handleEdit(cls); }} 
+                    className="p-2 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50/80 rounded-lg transition-all"
+                    title="Edit Kelas"
+                  >
+                    <Edit3 className="w-4 h-4" />
+                  </button>
+                  <button 
+                    onClick={(e) => handleDelete(cls, e)} 
+                    className="p-2 text-rose-600 hover:text-rose-800 hover:bg-rose-50 rounded-lg transition-all"
+                    title="Hapus Kelas"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="mt-6 pt-4 border-t border-slate-50 flex items-center justify-between relative z-10">
+                <span className="text-xs font-medium text-slate-400">Klik untuk Kelola Siswa</span>
+                <div className="bg-indigo-950 text-white p-2 rounded-lg group-hover:translate-x-0.5 transition-all">
+                  <ChevronRight className="w-4 h-4" />
+                </div>
+              </div>
+            </motion.div>
+          ))
+        ) : (
+          <div className="col-span-full py-20 bg-white rounded-2xl border border-dashed border-slate-200 flex flex-col items-center">
+            <div className="bg-slate-50 w-16 h-16 rounded-2xl flex items-center justify-center mb-5">
+              <School className="w-8 h-8 text-slate-200" />
+            </div>
+            <h3 className="text-lg font-bold text-indigo-950 mb-2">Belum Ada Kelas</h3>
+            <p className="text-slate-400 text-sm font-medium max-w-sm text-center">Mulai kelola kelas Anda dengan menambahkan kelas pertama.</p>
+            <button onClick={() => setShowForm(true)} className="mt-6 px-6 py-3 bg-indigo-950 text-white rounded-xl font-semibold text-sm flex items-center gap-2 hover:bg-indigo-900 transition-all">
+              <Plus className="w-4 h-4" />
+              Tambah Sekarang
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Students Management Modal */}
+      <AnimatePresence>
+        {showStudents && selectedClass && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-0 sm:p-4 lg:pl-[200px]">
+            <motion.div 
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              onClick={() => setShowStudents(false)} 
+              className="absolute inset-0 bg-indigo-950/30 backdrop-blur-sm" 
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.97, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.97, y: 10 }}
+              className="relative w-full h-full sm:h-auto sm:max-w-3xl bg-white sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-screen sm:max-h-[85vh]"
+            >
+              {/* Header */}
+              <div className="p-6 sm:p-8 pb-4 shrink-0 flex items-start justify-between border-b border-slate-50">
+                <div>
+                  <h3 className="text-xl font-bold text-indigo-950">Kelola Siswa — {selectedClass.name}</h3>
+                  <p className="text-slate-400 text-sm mt-0.5">Daftar siswa dan manajemen akun/username ujian.</p>
+                  <div className="flex items-center gap-2 mt-3">
+                    <span className="bg-indigo-50 text-indigo-600 px-2.5 py-0.5 rounded-md text-[10px] font-semibold uppercase tracking-wider border border-indigo-100/50">
+                      {selectedClass.subject || 'Mata Pelajaran'}
+                    </span>
+                    <span className="bg-slate-50 text-slate-400 px-2.5 py-0.5 rounded-md text-[10px] font-semibold uppercase tracking-wider border border-slate-100">
+                      {classStudents.length} Siswa
+                    </span>
+                  </div>
+                </div>
+                <button onClick={() => setShowStudents(false)} className="p-2 bg-slate-50 text-slate-400 hover:text-indigo-950 hover:bg-slate-100 rounded-lg transition-all">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Toolbar */}
+              <div className="px-6 sm:px-8 py-3 flex flex-wrap items-center gap-2 shrink-0 border-b border-slate-50">
+                <button onClick={handleDownloadTemplate} className="px-3.5 py-2 bg-white text-slate-600 border border-slate-200 rounded-lg font-semibold text-xs flex items-center gap-1.5 hover:bg-slate-50 transition-all">
+                  <Download className="w-3.5 h-3.5 text-indigo-500" /> Template
+                </button>
+                <button onClick={() => fileInputRef.current?.click()} disabled={importing} className="px-3.5 py-2 bg-white text-slate-600 border border-slate-200 rounded-lg font-semibold text-xs flex items-center gap-1.5 hover:bg-slate-50 transition-all disabled:opacity-50">
+                  {importing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5 text-indigo-500" />} Impor Excel
+                </button>
+                <input type="file" ref={fileInputRef} className="hidden" accept=".xlsx, .xls" onChange={handleImportExcel} />
+                <button onClick={handleExportExcel} className="px-3.5 py-2 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-lg font-semibold text-xs flex items-center gap-1.5 hover:bg-emerald-100 transition-all">
+                  <Download className="w-3.5 h-3.5" /> Ekspor Excel
+                </button>
+                <button onClick={() => { setEditingStudentId(null); setNewStudentName(''); setShowAddStudentForm(true); }} className="px-4 py-2 bg-indigo-950 text-white rounded-lg font-semibold text-xs flex items-center gap-1.5 hover:bg-indigo-900 transition-all active:scale-95 shadow-sm">
+                  <Plus className="w-4 h-4" /> Tambah Siswa
+                </button>
+              </div>
+
+              {/* Content */}
+              <div className="flex-1 overflow-y-auto px-6 sm:px-8 py-4">
+                {loadingStudents ? (
+                  <div className="py-16 flex flex-col items-center">
+                    <Loader2 className="w-8 h-8 animate-spin text-indigo-950 opacity-20" />
+                    <p className="mt-3 text-slate-300 text-xs font-medium">Memuat data siswa...</p>
+                  </div>
+                ) : classStudents.length > 0 ? (
+                  <div className="space-y-4">
+                    <div className="rounded-xl border border-slate-100 overflow-hidden bg-white">
+                      <table className="w-full border-collapse">
+                        <thead>
+                          <tr className="bg-slate-50/50 border-b border-slate-100">
+                            <th className="px-4 py-3 text-[10px] font-semibold text-slate-400 uppercase tracking-wider w-12">No</th>
+                            <th className="px-4 py-3 text-[10px] font-semibold text-slate-400 uppercase tracking-wider text-left">Nama Siswa</th>
+                            <th className="px-4 py-3 text-[10px] font-semibold text-slate-400 uppercase tracking-wider text-center w-36">Username</th>
+                            <th className="px-4 py-3 text-[10px] font-semibold text-slate-400 uppercase tracking-wider text-center w-24">Status</th>
+                            <th className="px-4 py-3 text-[10px] font-semibold text-slate-400 uppercase tracking-wider text-right w-24">Aksi</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-50">
+                          {classStudents.map((s, idx) => (
+                            <tr key={s.id} className="group hover:bg-slate-50/50 transition-colors">
+                              <td className="px-4 py-3 text-center text-sm font-medium text-slate-300">{idx + 1}</td>
+                              <td className="px-4 py-3">
+                                <span className="font-semibold text-indigo-950 text-sm group-hover:text-indigo-600 transition-colors">{s.name}</span>
+                              </td>
+                              <td className="px-4 py-3 text-center">
+                                {s.student_code ? (
+                                  <span className="inline-block bg-white border border-slate-200 px-2.5 py-1 rounded-md font-mono font-semibold text-xs text-indigo-600 tracking-wider">{s.student_code}</span>
+                                ) : (
+                                  <span className="text-xs text-slate-300 italic">Belum Ada</span>
+                                )}
+                              </td>
+                              <td className="px-4 py-3 text-center">
+                                <span className="inline-flex items-center justify-center gap-1.5 text-[10px] font-semibold uppercase text-green-500">
+                                  <div className="w-1.5 h-1.5 rounded-full bg-green-500" /> Aktif
+                                </span>
+                              </td>
+                              <td className="px-4 py-3 text-right">
+                                <div className="flex items-center justify-end gap-1">
+                                  <button onClick={() => { setEditingStudentId(s.id); setNewStudentName(s.name); setShowAddStudentForm(true); }}
+                                    className="p-1.5 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50/80 rounded-lg transition-all" title="Edit Siswa"
+                                  >
+                                    <Edit3 className="w-3.5 h-3.5" />
+                                  </button>
+                                  <button onClick={() => handleDeleteStudent(s.id)} className="p-1.5 text-rose-600 hover:text-rose-800 hover:bg-rose-50 rounded-lg transition-all" title="Hapus Siswa">
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    <div className="bg-slate-50 p-5 rounded-xl border border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+                      <div className="text-center sm:text-left">
+                        <p className="font-semibold text-indigo-950 text-sm">Otomatisasi Username Siswa</p>
+                        <p className="text-slate-400 text-xs mt-0.5">Buat username untuk siswa yang belum punya secara otomatis.</p>
+                      </div>
+                      <button onClick={handleGenerateCodes} className="px-4 py-2.5 bg-white border border-slate-200 text-indigo-950 rounded-lg font-semibold text-xs hover:bg-indigo-950 hover:text-white transition-all active:scale-95 flex items-center gap-1.5">
+                        Buat Username Massal <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="py-16 flex flex-col items-center justify-center text-center">
+                    <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4">
+                      <Users className="w-7 h-7 text-slate-200" />
+                    </div>
+                    <h4 className="text-base font-bold text-indigo-950">Belum Ada Siswa</h4>
+                    <p className="text-slate-400 text-sm max-w-xs mx-auto mt-1">Klik "Tambah Siswa" atau gunakan fitur "Impor Excel".</p>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Add Student Form Modal */}
+      <AnimatePresence>
+        {showAddStudentForm && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowAddStudentForm(false)} className="absolute inset-0 bg-indigo-900/30 backdrop-blur-sm" />
+            <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.97 }} className="relative w-full max-w-sm bg-white rounded-2xl shadow-2xl p-6">
+              <h3 className="text-lg font-bold text-indigo-950 mb-5">{editingStudentId ? 'Edit Nama Siswa' : 'Tambah Siswa Manual'}</h3>
+              <form onSubmit={handleAddStudent} className="space-y-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Nama Lengkap Siswa</label>
+                  <input type="text" autoFocus required placeholder="Contoh: Budi Santoso"
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 outline-none focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-950 text-sm font-medium text-indigo-950"
+                    value={newStudentName} onChange={(e) => setNewStudentName(e.target.value)}
+                  />
+                </div>
+                <div className="flex gap-3 pt-2">
+                  <button type="button" onClick={() => setShowAddStudentForm(false)} className="flex-1 py-3 text-sm font-medium text-slate-400 hover:bg-slate-50 rounded-xl transition-all">Batal</button>
+                  <button type="submit" disabled={submitting} className="flex-[2] bg-indigo-950 text-white py-3 rounded-xl font-semibold text-sm hover:bg-indigo-900 transition-all shadow-sm flex items-center justify-center">
+                    {submitting ? 'Menyimpan...' : editingStudentId ? 'Perbarui Siswa' : 'Simpan Siswa'}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Add/Edit Class Form Modal */}
+      <AnimatePresence>
+        {showForm && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowForm(false)} className="absolute inset-0 bg-indigo-950/30 backdrop-blur-sm" />
+            <motion.div initial={{ opacity: 0, scale: 0.97, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.97, y: 10 }} className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl p-7">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="bg-indigo-50 p-2.5 rounded-xl">
+                    <School className="w-5 h-5 text-indigo-600" />
+                  </div>
+                  <h3 className="text-lg font-bold text-indigo-950">{editingId ? 'Edit Kelas' : 'Kelas Baru'}</h3>
+                </div>
+                <button onClick={() => setShowForm(false)} className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
+                  <X className="w-5 h-5 text-slate-400" />
+                </button>
+              </div>
+
+              <form onSubmit={handleSave} className="space-y-5">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Nama Kelas</label>
+                  <input name="name" type="text" autoFocus required placeholder="Contoh: XII - IPA 1"
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 outline-none focus:ring-2 focus:ring-indigo-950/10 focus:border-indigo-950 transition-all font-medium text-sm text-indigo-950"
+                    value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Mata Pelajaran</label>
+                  <div className="relative" ref={subjectRef}>
+                    <button
+                      type="button"
+                      onClick={() => setSubjectDropdownOpen(!subjectDropdownOpen)}
+                      className="w-full flex items-center justify-between px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 outline-none focus:ring-2 focus:ring-indigo-950/10 focus:border-indigo-950 transition-all font-medium text-sm text-left"
+                    >
+                      <span className={formData.subject ? "text-indigo-950" : "text-slate-400"}>
+                        {formData.subject || "Pilih mata pelajaran..."}
+                      </span>
+                      <ChevronDown className={cn("w-4 h-4 text-slate-400 transition-transform", subjectDropdownOpen && "rotate-180")} />
+                    </button>
+                    
+                    <AnimatePresence>
+                      {subjectDropdownOpen && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-slate-200 z-50 max-h-48 overflow-y-auto"
+                        >
+                          {teacherSubjects.length === 0 ? (
+                            <div className="px-4 py-3 text-sm text-slate-400 text-center italic">
+                              Belum ada mapel. Pilih mapel di Profil terlebih dahulu.
+                            </div>
+                          ) : (
+                            teacherSubjects.map(subject => (
+                              <button
+                                key={subject.id}
+                                type="button"
+                                onClick={() => {
+                                  setFormData({ ...formData, subject: subject.name });
+                                  setSubjectDropdownOpen(false);
+                                }}
+                                className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 transition-colors text-left"
+                              >
+                                <BookOpen className="w-4 h-4 text-green-600" />
+                                <div className="flex-1">
+                                  <p className="font-semibold text-indigo-950 text-sm">{subject.name}</p>
+                                  <p className="text-[10px] text-slate-400">{subject.level}</p>
+                                </div>
+                                {formData.subject === subject.name && (
+                                  <div className="w-4 h-4 rounded-full bg-indigo-950 flex items-center justify-center">
+                                    <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                    </svg>
+                                  </div>
+                                )}
+                              </button>
+                            ))
+                          )}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </div>
+                <div className="flex gap-3 pt-2">
+                  <button type="button" onClick={() => setShowForm(false)} className="flex-1 py-3 rounded-xl font-medium text-sm text-slate-400 hover:bg-slate-50 transition-all">Batal</button>
+                  <button type="submit" disabled={submitting} className="flex-[2] py-3 rounded-xl font-semibold text-sm text-white bg-indigo-950 hover:bg-indigo-900 transition-all shadow-sm flex items-center justify-center gap-2">
+                    {submitting ? 'Menyimpan...' : editingId ? 'Perbarui' : 'Simpan'} {!submitting && <ArrowRight className="w-4 h-4" />}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
