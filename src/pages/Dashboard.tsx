@@ -14,7 +14,8 @@ import {
   ClipboardCheck,
   Activity,
   Sparkles,
-  Loader2
+  Loader2,
+  Calendar
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -22,6 +23,7 @@ import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { slideUp } from '../lib/animations';
 import { ComposedChart, Line, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useSchool } from '../context/SchoolContext';
+import { getFullState } from '../services/dbAttendance';
 
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
@@ -65,6 +67,26 @@ export default function Dashboard() {
     { name: 'Jumat', Kehadiran: 0, Nilai: 0 },
   ]);
   const [isSampleData, setIsSampleData] = useState(false);
+  const [todaySchedules, setTodaySchedules] = useState<any[]>([]);
+
+  const getScheduleStatus = (startTime: string, endTime: string) => {
+    const now = new Date();
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+    
+    const [startH, startM] = startTime.split(':').map(Number);
+    const [endH, endM] = endTime.split(':').map(Number);
+    
+    const startMinutes = startH * 60 + startM;
+    const endMinutes = endH * 60 + endM;
+    
+    if (currentMinutes >= startMinutes && currentMinutes <= endMinutes) {
+      return 'ongoing';
+    } else if (currentMinutes > endMinutes) {
+      return 'completed';
+    } else {
+      return 'upcoming';
+    }
+  };
 
   useEffect(() => {
     fetchDashboardData();
@@ -182,6 +204,32 @@ export default function Dashboard() {
           { name: 'Jumat', Kehadiran: 0, Nilai: 0 },
         ]);
       }
+
+      // Fetch today's teaching schedules from IndexedDB
+      try {
+        const localState = await getFullState(true);
+        const allSchedules = localState.schedules || [];
+        const allClasses = localState.classes || [];
+        
+        const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+        const todayName = days[new Date().getDay()];
+        
+        const filteredSchedules = allSchedules
+          .filter((s: any) => s.dayName === todayName)
+          .map((s: any) => {
+            const cls = allClasses.find((c: any) => c.id === s.classId);
+            return {
+              ...s,
+              className: cls ? (cls.name || cls.namaKelas) : 'Kelas',
+              subject: cls ? (cls.subject || cls.mapel) : 'Mata Pelajaran'
+            };
+          })
+          .sort((a: any, b: any) => a.startTime.localeCompare(b.startTime));
+          
+        setTodaySchedules(filteredSchedules);
+      } catch (err) {
+        console.warn('Failed to fetch schedules for dashboard board:', err);
+      }
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
     } finally {
@@ -217,6 +265,33 @@ export default function Dashboard() {
       border: 'border-purple-100/50',
       desc: 'Murid Aktif Terdaftar'
     },
+    { 
+      label: 'Kehadiran Total', 
+      value: `${overallAttendance}%`, 
+      icon: CheckCircle, 
+      color: 'text-indigo-600', 
+      bg: 'bg-indigo-50',
+      border: 'border-indigo-100/50',
+      desc: 'Rata-rata absensi kelas'
+    },
+    { 
+      label: 'Rerata Nilai', 
+      value: overallGradeAvg, 
+      icon: TrendingUp, 
+      color: 'text-amber-600', 
+      bg: 'bg-amber-50',
+      border: 'border-amber-100/50',
+      desc: 'Rerata nilai formatif/sumatif'
+    },
+    { 
+      label: 'Rerata Ujian', 
+      value: overallExamAvg, 
+      icon: GraduationCap, 
+      color: 'text-rose-600', 
+      bg: 'bg-rose-50',
+      border: 'border-rose-100/50',
+      desc: 'Rerata nilai ujian digital'
+    },
   ];
 
   if (loading) return (
@@ -225,9 +300,9 @@ export default function Dashboard() {
       <div className="h-44 bg-slate-100 rounded-3xl w-full"></div>
       
       {/* Cards Skeleton */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {[1,2,3].map(i => (
-          <div key={i} className="h-36 bg-slate-100 rounded-3xl"></div>
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        {[1,2,3,4,5,6].map(i => (
+          <div key={i} className="h-32 bg-slate-100 rounded-3xl"></div>
         ))}
       </div>
 
@@ -307,27 +382,27 @@ export default function Dashboard() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
         {statCards.map((stat, index) => (
           <motion.div
             key={index}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.05, duration: 0.3 }}
-            className={`bg-white border ${stat.border} rounded-2xl p-3.5 shadow-sm hover:shadow-md hover:scale-[1.01] transition-all duration-300 group`}
+            className={`bg-white border ${stat.border} rounded-2xl p-3 shadow-sm hover:shadow-md hover:scale-[1.01] transition-all duration-300 group`}
           >
-            <div className="flex items-center justify-between mb-2">
-              <div className={`${stat.bg} ${stat.color} p-2 rounded-xl transition-transform duration-300 group-hover:scale-110`}>
-                <stat.icon className="w-4 h-4" />
+            <div className="flex items-center justify-between mb-1.5">
+              <div className={`${stat.bg} ${stat.color} p-1.5 rounded-xl transition-transform duration-300 group-hover:scale-110`}>
+                <stat.icon className="w-3.5 h-3.5" />
               </div>
-              <div className={`${stat.bg} ${stat.color} px-1.5 py-0.5 rounded text-[9px] font-bold flex items-center gap-0.5`}>
-                <ArrowUpRight className="w-2.5 h-2.5" />
+              <div className={`${stat.bg} ${stat.color} px-1 py-0.2 rounded text-[8px] font-bold flex items-center gap-0.5`}>
+                <ArrowUpRight className="w-2 h-2" />
                 Info
               </div>
             </div>
             <div>
-              <p className="text-slate-400 text-[9px] font-black uppercase tracking-widest leading-none">{stat.label}</p>
-              <h3 className="text-2xl font-extrabold text-indigo-950 mt-1 tracking-tight leading-none">{stat.value}</h3>
+              <p className="text-slate-400 text-[8px] font-black uppercase tracking-widest leading-none">{stat.label}</p>
+              <h3 className="text-lg font-extrabold text-indigo-950 mt-1 tracking-tight leading-none">{stat.value}</h3>
             </div>
           </motion.div>
         ))}
@@ -390,44 +465,76 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Performance Summary Column */}
-        <motion.div 
+        {/* Today's Teaching Schedule Board */}
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.25 }}
-          className="flex flex-col gap-3"
+          className="bg-white border border-slate-100 shadow-sm rounded-2xl p-4.5 hover:shadow-md transition-all duration-300 flex flex-col h-full min-h-[300px]"
         >
-          {/* Card 1: Kehadiran Total */}
-          <div className="bg-white border border-slate-100 shadow-sm rounded-2xl p-4 hover:shadow-md transition-all duration-300 flex items-center gap-4 flex-1">
-            <div className="w-10 h-10 bg-indigo-50 text-indigo-950 rounded-xl flex items-center justify-center shrink-0">
-              <Users className="w-5 h-5" />
+          <div className="flex items-center gap-3 mb-4">
+            <div className="bg-indigo-50 text-indigo-950 p-2 rounded-xl">
+              <Calendar className="w-5 h-5" />
             </div>
             <div>
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block leading-none">Kehadiran Total</span>
-              <h4 className="text-xl font-black text-indigo-950 mt-1.5 leading-none">{overallAttendance}%</h4>
+              <h3 className="text-base font-bold text-indigo-950">Jadwal Mengajar</h3>
+              <p className="text-slate-400 text-[10px] font-semibold">
+                {new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+              </p>
             </div>
           </div>
-
-          {/* Card 2: Rerata Nilai */}
-          <div className="bg-white border border-slate-100 shadow-sm rounded-2xl p-4 hover:shadow-md transition-all duration-300 flex items-center gap-4 flex-1">
-            <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center shrink-0">
-              <TrendingUp className="w-5 h-5" />
-            </div>
-            <div>
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block leading-none">Rerata Nilai</span>
-              <h4 className="text-xl font-black text-indigo-950 mt-1.5 leading-none">{overallGradeAvg}</h4>
-            </div>
-          </div>
-
-          {/* Card 3: Rerata Ujian */}
-          <div className="bg-white border border-slate-100 shadow-sm rounded-2xl p-4 hover:shadow-md transition-all duration-300 flex items-center gap-4 flex-1">
-            <div className="w-10 h-10 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center shrink-0">
-              <GraduationCap className="w-5 h-5" />
-            </div>
-            <div>
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block leading-none">Rerata Ujian</span>
-              <h4 className="text-xl font-black text-indigo-950 mt-1.5 leading-none">{overallExamAvg}</h4>
-            </div>
+          
+          <div className="flex-1 overflow-y-auto space-y-3 pr-1 max-h-[220px] scrollbar-thin">
+            {todaySchedules.length === 0 ? (
+              <div className="h-full flex flex-col items-center justify-center text-center py-10">
+                <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mb-3">
+                  <Calendar className="w-6 h-6 text-slate-300" />
+                </div>
+                <p className="text-slate-400 text-xs font-semibold">Tidak ada jadwal mengajar hari ini.</p>
+                <p className="text-[10px] text-slate-300 mt-0.5">Selamat beristirahat!</p>
+              </div>
+            ) : (
+              todaySchedules.map((sch) => {
+                const status = getScheduleStatus(sch.startTime, sch.endTime);
+                return (
+                  <div 
+                    key={sch.id} 
+                    className={`p-3 rounded-xl border transition-all duration-300 flex items-center justify-between gap-3 ${
+                      status === 'ongoing' 
+                        ? 'bg-emerald-50/40 border-emerald-100/50 shadow-sm shadow-emerald-50' 
+                        : status === 'completed'
+                          ? 'bg-slate-50/50 border-slate-100 opacity-60'
+                          : 'bg-white border-slate-100 hover:border-slate-200'
+                    }`}
+                  >
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-extrabold text-xs text-indigo-950">{sch.className}</span>
+                        <span className="text-[9px] text-slate-400 font-semibold">• {sch.startTime} - {sch.endTime}</span>
+                      </div>
+                      <p className="text-[10px] text-slate-500 font-medium leading-tight">{sch.subject}</p>
+                    </div>
+                    
+                    <div>
+                      {status === 'ongoing' ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold text-emerald-600 bg-emerald-100/70 border border-emerald-200/50 animate-pulse">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                          Aktif
+                        </span>
+                      ) : status === 'completed' ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold text-slate-400 bg-slate-100 border border-slate-200/50">
+                          Selesai
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold text-indigo-600 bg-indigo-50 border border-indigo-100/50">
+                          Mendatang
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })
+            )}
           </div>
         </motion.div>
       </div>
