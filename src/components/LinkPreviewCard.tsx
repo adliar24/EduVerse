@@ -18,6 +18,7 @@ export const LinkPreviewCard: React.FC<LinkPreviewCardProps> = ({ url, className
   const [ogData, setOgData] = useState<OGData | null>(null);
   const [loading, setLoading] = useState(true);
   const [imgFailed, setImgFailed] = useState(false);
+  const [screenshotIndex, setScreenshotIndex] = useState(0);
 
   if (!url) return null;
 
@@ -87,6 +88,7 @@ export const LinkPreviewCard: React.FC<LinkPreviewCardProps> = ({ url, className
     let isMounted = true;
     setLoading(true);
     setImgFailed(false);
+    setScreenshotIndex(0);
 
     if (youtubeId) {
       setOgData({
@@ -114,10 +116,14 @@ export const LinkPreviewCard: React.FC<LinkPreviewCardProps> = ({ url, className
         if (!isMounted) return;
         if (json.status === 'success' && json.data) {
           const d = json.data;
+          // Filter out generic default title/description if placeholder
+          const titleToUse = d.title && !d.title.includes('Google AI Studio') ? d.title : domain;
+          const descToUse = d.description && !d.description.includes('menghubungkan ke basis data') ? d.description : formattedUrl;
+          
           setOgData({
-            title: d.title || domain,
-            description: d.description,
-            image: d.image?.url || d.logo?.url,
+            title: titleToUse,
+            description: descToUse,
+            image: d.image?.url,
             logo: d.logo?.url,
             publisher: d.publisher
           });
@@ -138,7 +144,26 @@ export const LinkPreviewCard: React.FC<LinkPreviewCardProps> = ({ url, className
     };
   }, [formattedUrl, youtubeId, isImage, domain]);
 
-  const displayImage = ogData?.image && !imgFailed ? ogData.image : null;
+  // Live screenshot fallbacks if Open Graph has no og:image specified
+  const screenshotSources = [
+    `https://image.thum.io/get/width/1280/crop/720/noanimate/${formattedUrl}`,
+    `https://s0.wp.com/mshots/v1/${encodeURIComponent(formattedUrl)}?w=1280&h=720&vtype=desktop&wait=5`,
+    `https://api.microlink.io/?url=${encodeURIComponent(formattedUrl)}&screenshot=true&embed=screenshot.url`
+  ];
+
+  const currentImage = (ogData?.image && !imgFailed)
+    ? ogData.image
+    : (screenshotSources[screenshotIndex] || null);
+
+  const isMaxFallback = !ogData?.image && screenshotIndex >= screenshotSources.length;
+
+  const handleImageError = () => {
+    if (ogData?.image && !imgFailed) {
+      setImgFailed(true);
+    } else {
+      setScreenshotIndex((prev) => prev + 1);
+    }
+  };
 
   return (
     <a
@@ -156,13 +181,13 @@ export const LinkPreviewCard: React.FC<LinkPreviewCardProps> = ({ url, className
             <p className="text-xs font-semibold text-slate-300">Memuat pratinjau tautan...</p>
             <p className="text-[10px] text-slate-400 mt-1 truncate max-w-[200px]">{domain}</p>
           </div>
-        ) : displayImage ? (
+        ) : currentImage && !isMaxFallback ? (
           <>
             <img
-              src={displayImage}
+              src={currentImage}
               alt={ogData?.title || 'Web Preview'}
-              onError={() => setImgFailed(true)}
-              className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
+              onError={handleImageError}
+              className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500"
               loading="lazy"
             />
             {youtubeId && (
