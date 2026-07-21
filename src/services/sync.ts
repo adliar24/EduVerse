@@ -165,11 +165,13 @@ const mapToCloud = (tableName: string, item: any, userId: string): any => {
     syncItem.deadline = item.deadline || null;
     syncItem.target_type = item.targetType || item.target_type || 'class';
     syncItem.student_ids = item.studentIds || item.student_ids || [];
+    syncItem.is_graded = item.isGraded !== false && item.is_graded !== false;
     syncItem.created_at = item.created_at || item.createdAt;
 
     delete syncItem.classId;
     delete syncItem.targetType;
     delete syncItem.studentIds;
+    delete syncItem.isGraded;
     delete syncItem.createdAt;
     delete syncItem.schoolId;
   }
@@ -276,6 +278,8 @@ const mapToLocal = (tableName: string, cloudItem: any): any => {
     item.target_type = cloudItem.target_type;
     item.studentIds = cloudItem.student_ids;
     item.student_ids = cloudItem.student_ids;
+    item.isGraded = cloudItem.is_graded !== false;
+    item.is_graded = cloudItem.is_graded !== false;
     item.createdAt = cloudItem.created_at;
   }
   

@@ -869,6 +869,7 @@ CREATE TABLE IF NOT EXISTS public.assignments (
   deadline TIMESTAMP WITH TIME ZONE,
   target_type TEXT DEFAULT 'class' NOT NULL, -- 'class' atau 'students'
   student_ids UUID[] DEFAULT '{}'::UUID[], -- list student IDs jika target_type = 'students'
+  is_graded BOOLEAN DEFAULT true,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
 

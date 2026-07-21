@@ -221,7 +221,16 @@ export default function MateriTugasSiswa() {
                       <span className="bg-purple-50 text-purple-700 text-[10px] font-black px-2.5 py-0.5 rounded-md uppercase tracking-wider">
                         Tugas Sekolah
                       </span>
-                      <div className="flex gap-1.5">
+                      <div className="flex gap-1.5 flex-wrap">
+                        {a.isGraded !== false && a.is_graded !== false ? (
+                          <span className="bg-emerald-50 text-emerald-700 text-[9px] font-bold px-2 py-0.5 rounded-md border border-emerald-100">
+                            Diberi Nilai
+                          </span>
+                        ) : (
+                          <span className="bg-slate-50 text-slate-500 text-[9px] font-bold px-2 py-0.5 rounded-md border border-slate-200/60">
+                            Tanpa Nilai
+                          </span>
+                        )}
                         {a.target_type === 'students' && (
                           <span className="bg-amber-50 text-amber-700 text-[9px] font-bold px-2 py-0.5 rounded-md border border-amber-100">
                             Khusus Anda

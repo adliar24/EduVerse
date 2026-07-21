@@ -49,6 +49,7 @@ export default function KelolaMateriTugas() {
   const [formDesc, setFormDesc] = useState('');
   const [formLink, setFormLink] = useState('');
   const [formDeadline, setFormDeadline] = useState('');
+  const [formIsGraded, setFormIsGraded] = useState(true);
   const [formClassId, setFormClassId] = useState('');
   const [formTargetType, setFormTargetType] = useState<'class' | 'students'>('class');
   const [selectedStudentIds, setSelectedStudentIds] = useState<string[]>([]);
@@ -168,7 +169,8 @@ export default function KelolaMateriTugas() {
     setFormDesc('');
     setFormLink('');
     setFormDeadline('');
-    setFormClassId(classes[0]?.id || '');
+    setFormIsGraded(true);
+    setFormClassId(classes[0]?.id || 'all');
     setFormTargetType('class');
     setSelectedStudentIds([]);
     setStudentSearchTerm('');
@@ -182,6 +184,7 @@ export default function KelolaMateriTugas() {
     setFormDesc(item.description);
     setFormLink(item.link || '');
     if (type === 'assignment') {
+      setFormIsGraded(item.isGraded !== false && item.is_graded !== false);
       // Format deadline to yyyy-MM-ddThh:mm
       if (item.deadline) {
         const d = new Date(item.deadline);
@@ -195,7 +198,7 @@ export default function KelolaMateriTugas() {
         setFormDeadline('');
       }
     }
-    setFormClassId(item.classId || item.class_id || classes[0]?.id || '');
+    setFormClassId(item.classId || item.class_id || 'all');
     setFormTargetType(item.targetType || item.target_type || 'class');
     setSelectedStudentIds(item.studentIds || item.student_ids || []);
     setStudentSearchTerm('');
@@ -222,12 +225,14 @@ export default function KelolaMateriTugas() {
       const activeSchoolId = activeSchool?.id === 'legacy' ? null : (activeSchool?.id || null);
       const uuid = editingId || uuidv4();
 
+      const targetClassId = formClassId === 'all' ? null : formClassId;
+
       if (formType === 'material') {
         const payload = {
           id: uuid,
           teacher_id: user.id,
           school_id: activeSchoolId,
-          class_id: formClassId,
+          class_id: targetClassId,
           title: formTitle.trim(),
           description: formDesc.trim(),
           link: formLink.trim() || null,
@@ -249,8 +254,8 @@ export default function KelolaMateriTugas() {
           teacher_id: user.id,
           schoolId: activeSchoolId,
           school_id: activeSchoolId,
-          classId: formClassId,
-          class_id: formClassId,
+          classId: targetClassId,
+          class_id: targetClassId,
           title: formTitle.trim(),
           description: formDesc.trim(),
           link: formLink.trim() || null,
@@ -266,13 +271,14 @@ export default function KelolaMateriTugas() {
           id: uuid,
           teacher_id: user.id,
           school_id: activeSchoolId,
-          class_id: formClassId,
+          class_id: targetClassId,
           title: formTitle.trim(),
           description: formDesc.trim(),
           link: formLink.trim() || null,
           deadline: deadlineISO,
           target_type: formTargetType,
           student_ids: formTargetType === 'students' ? selectedStudentIds : [],
+          is_graded: formIsGraded,
         };
 
         // 1. Save directly to cloud
@@ -289,8 +295,8 @@ export default function KelolaMateriTugas() {
           teacher_id: user.id,
           schoolId: activeSchoolId,
           school_id: activeSchoolId,
-          classId: formClassId,
-          class_id: formClassId,
+          classId: targetClassId,
+          class_id: targetClassId,
           title: formTitle.trim(),
           description: formDesc.trim(),
           link: formLink.trim() || null,
@@ -299,6 +305,8 @@ export default function KelolaMateriTugas() {
           target_type: formTargetType,
           studentIds: formTargetType === 'students' ? selectedStudentIds : [],
           student_ids: formTargetType === 'students' ? selectedStudentIds : [],
+          isGraded: formIsGraded,
+          is_graded: formIsGraded,
           created_at: new Date().toISOString()
         });
       }
@@ -521,7 +529,16 @@ export default function KelolaMateriTugas() {
                       <span className="bg-purple-50 text-purple-700 text-xs font-bold px-3 py-1 rounded-md">
                         {cls?.name || 'Semua Kelas'}
                       </span>
-                      <div className="flex gap-1">
+                      <div className="flex gap-1 flex-wrap">
+                        {a.isGraded !== false && a.is_graded !== false ? (
+                          <span className="bg-emerald-50 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-md border border-emerald-100">
+                            Diberi Nilai
+                          </span>
+                        ) : (
+                          <span className="bg-slate-50 text-slate-500 text-[10px] font-bold px-2 py-0.5 rounded-md border border-slate-200/60">
+                            Tanpa Nilai
+                          </span>
+                        )}
                         {a.target_type === 'students' && (
                           <span className="bg-amber-50 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1 border border-amber-100">
                             <Users className="w-3.5 h-3.5" />
@@ -661,16 +678,41 @@ export default function KelolaMateriTugas() {
                   </div>
 
                   {formType === 'assignment' && (
-                    <div className="space-y-1">
-                      <label className="text-[13px] font-bold text-slate-700 ml-0.5">Tenggat Waktu (Deadline)</label>
-                      <input 
-                        type="datetime-local" 
-                        required
-                        className="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-indigo-950 text-sm font-semibold text-slate-800 transition-colors"
-                        value={formDeadline}
-                        onChange={(e) => setFormDeadline(e.target.value)}
-                      />
-                    </div>
+                    <>
+                      <div className="space-y-1">
+                        <label className="text-[13px] font-bold text-slate-700 ml-0.5">Tenggat Waktu (Deadline)</label>
+                        <input 
+                          type="datetime-local" 
+                          required
+                          className="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-indigo-950 text-sm font-semibold text-slate-800 transition-colors"
+                          value={formDeadline}
+                          onChange={(e) => setFormDeadline(e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[13px] font-bold text-slate-700 ml-0.5">Penilaian</label>
+                        <div className="flex gap-4 py-2.5">
+                          <label className="flex items-center gap-2 text-sm font-bold text-slate-700 cursor-pointer">
+                            <input 
+                              type="radio" 
+                              name="is_graded" 
+                              checked={formIsGraded === true} 
+                              onChange={() => setFormIsGraded(true)}
+                            />
+                            Diberi Nilai
+                          </label>
+                          <label className="flex items-center gap-2 text-sm font-bold text-slate-700 cursor-pointer">
+                            <input 
+                              type="radio" 
+                              name="is_graded" 
+                              checked={formIsGraded === false} 
+                              onChange={() => setFormIsGraded(false)}
+                            />
+                            Tugas Tanpa Nilai
+                          </label>
+                        </div>
+                      </div>
+                    </>
                   )}
                 </div>
 
@@ -680,37 +722,46 @@ export default function KelolaMateriTugas() {
                     <select 
                       value={formClassId}
                       onChange={(e) => {
-                        setFormClassId(e.target.value);
+                        const val = e.target.value;
+                        setFormClassId(val);
+                        if (val === 'all') {
+                          setFormTargetType('class');
+                        }
                         setSelectedStudentIds([]);
                       }}
                       className="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-indigo-950 text-sm font-semibold text-slate-800 transition-colors cursor-pointer bg-white"
                     >
+                      <option value="all">Semua Kelas</option>
                       {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                     </select>
                   </div>
 
                   <div className="space-y-1">
                     <label className="text-[13px] font-bold text-slate-700 ml-0.5">Target Penerima</label>
-                    <div className="flex gap-4 py-2.5">
-                      <label className="flex items-center gap-2 text-sm font-bold text-slate-700 cursor-pointer">
-                        <input 
-                          type="radio" 
-                          name="target_type" 
-                          checked={formTargetType === 'class'} 
-                          onChange={() => setFormTargetType('class')}
-                        />
-                        Seluruh Kelas
-                      </label>
-                      <label className="flex items-center gap-2 text-sm font-bold text-slate-700 cursor-pointer">
-                        <input 
-                          type="radio" 
-                          name="target_type" 
-                          checked={formTargetType === 'students'} 
-                          onChange={() => setFormTargetType('students')}
-                        />
-                        Murid Tertentu
-                      </label>
-                    </div>
+                    {formClassId === 'all' ? (
+                      <p className="text-sm font-bold text-slate-400 py-2.5 ml-0.5">Semua Kelas (Otomatis)</p>
+                    ) : (
+                      <div className="flex gap-4 py-2.5">
+                        <label className="flex items-center gap-2 text-sm font-bold text-slate-700 cursor-pointer">
+                          <input 
+                            type="radio" 
+                            name="target_type" 
+                            checked={formTargetType === 'class'} 
+                            onChange={() => setFormTargetType('class')}
+                          />
+                          Seluruh Kelas
+                        </label>
+                        <label className="flex items-center gap-2 text-sm font-bold text-slate-700 cursor-pointer">
+                          <input 
+                            type="radio" 
+                            name="target_type" 
+                            checked={formTargetType === 'students'} 
+                            onChange={() => setFormTargetType('students')}
+                          />
+                          Murid Tertentu
+                        </label>
+                      </div>
+                    )}
                   </div>
                 </div>
 

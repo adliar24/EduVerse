@@ -364,6 +364,8 @@ export interface Assignment {
   targetType?: 'class' | 'students';
   student_ids?: string[];
   studentIds?: string[];
+  is_graded?: boolean;
+  isGraded?: boolean;
   created_at?: string;
   createdAt?: string;
 }
