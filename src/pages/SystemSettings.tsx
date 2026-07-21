@@ -205,27 +205,71 @@ export default function SystemSettings() {
                   'readwrite'
                 );
                 
+                const targetSchoolId = activeSchool?.id;
+                
                 if (data.attendance.teacher) await tx.objectStore('teacher').put(data.attendance.teacher);
                 if (data.attendance.classes && Array.isArray(data.attendance.classes)) {
-                  for (const c of data.attendance.classes) await tx.objectStore('classes').put(c);
+                  for (const c of data.attendance.classes) {
+                    if (targetSchoolId) {
+                      c.school_id = targetSchoolId;
+                      c.schoolId = targetSchoolId;
+                    }
+                    await tx.objectStore('classes').put(c);
+                  }
                 }
                 if (data.attendance.students && Array.isArray(data.attendance.students)) {
-                  for (const s of data.attendance.students) await tx.objectStore('students').put(s);
+                  for (const s of data.attendance.students) {
+                    if (targetSchoolId) {
+                      s.school_id = targetSchoolId;
+                      s.schoolId = targetSchoolId;
+                    }
+                    await tx.objectStore('students').put(s);
+                  }
                 }
                 if (data.attendance.sessions && Array.isArray(data.attendance.sessions)) {
-                  for (const s of data.attendance.sessions) await tx.objectStore('sessions').put(s);
+                  for (const s of data.attendance.sessions) {
+                    if (targetSchoolId) {
+                      s.school_id = targetSchoolId;
+                      s.schoolId = targetSchoolId;
+                    }
+                    await tx.objectStore('sessions').put(s);
+                  }
                 }
                 if (data.attendance.records && Array.isArray(data.attendance.records)) {
-                  for (const r of data.attendance.records) await tx.objectStore('records').put(r);
+                  for (const r of data.attendance.records) {
+                    if (targetSchoolId) {
+                      r.school_id = targetSchoolId;
+                      r.schoolId = targetSchoolId;
+                    }
+                    await tx.objectStore('records').put(r);
+                  }
                 }
                 if (data.attendance.schedules && Array.isArray(data.attendance.schedules)) {
-                  for (const s of data.attendance.schedules) await tx.objectStore('schedules').put(s);
+                  for (const s of data.attendance.schedules) {
+                    if (targetSchoolId) {
+                      s.school_id = targetSchoolId;
+                      s.schoolId = targetSchoolId;
+                    }
+                    await tx.objectStore('schedules').put(s);
+                  }
                 }
                 if (data.attendance.events && Array.isArray(data.attendance.events)) {
-                  for (const ev of data.attendance.events) await tx.objectStore('events').put(ev);
+                  for (const ev of data.attendance.events) {
+                    if (targetSchoolId) {
+                      ev.school_id = targetSchoolId;
+                      ev.schoolId = targetSchoolId;
+                    }
+                    await tx.objectStore('events').put(ev);
+                  }
                 }
                 if (data.attendance.cancellations && Array.isArray(data.attendance.cancellations)) {
-                  for (const c of data.attendance.cancellations) await tx.objectStore('cancellations').put(c);
+                  for (const c of data.attendance.cancellations) {
+                    if (targetSchoolId) {
+                      c.school_id = targetSchoolId;
+                      c.schoolId = targetSchoolId;
+                    }
+                    await tx.objectStore('cancellations').put(c);
+                  }
                 }
                 await tx.done;
               }

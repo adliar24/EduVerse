@@ -15,7 +15,8 @@ const getCloudTableName = (tableName: string): string => {
 // Helper to map local IndexedDB objects to Supabase snake_case schema format
 const mapToCloud = (tableName: string, item: any, userId: string): any => {
   const activeSchoolId = typeof window !== 'undefined' ? localStorage.getItem('active_school_id') : null;
-  const schoolId = item.school_id || item.schoolId || (activeSchoolId === 'legacy' ? null : activeSchoolId);
+  // Force activeSchoolId if it exists to prevent foreign key errors with legacy/backup school IDs
+  const schoolId = (activeSchoolId && activeSchoolId !== 'legacy') ? activeSchoolId : (item.school_id || item.schoolId || null);
   
   let syncItem: any = { ...item, teacher_id: userId };
   
