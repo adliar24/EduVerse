@@ -384,11 +384,11 @@ CREATE POLICY "Teachers can manage their subjects" ON public.teacher_subjects FO
 GRANT ALL ON public.participants TO anon;
 GRANT ALL ON public.answers TO anon;
 GRANT ALL ON public.exams TO anon;
-GRANT ALL, UPDATE ON public.students TO anon;
+GRANT ALL ON public.students TO anon;
 GRANT ALL ON public.participants TO authenticated;
 GRANT ALL ON public.answers TO authenticated;
 GRANT ALL ON public.exams TO authenticated;
-GRANT ALL, UPDATE ON public.students TO authenticated;
+GRANT ALL ON public.students TO authenticated;
 
 -- ============================================
 -- DATABASE INDEXES

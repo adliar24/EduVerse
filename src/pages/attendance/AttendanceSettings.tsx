@@ -57,14 +57,55 @@ export const AttendanceSettings: React.FC<Props> = ({ state, refresh, notify }) 
   };
 
   const handleSaveSettings = async () => {
-    if (!state.teacher) {
-      notify("Data profil guru belum dimuat. Silakan reload halaman.", "error");
-      return;
+    setSaving(true);
+    let currentTeacher = state.teacher;
+
+    if (!currentTeacher) {
+      try {
+        const { supabase } = await import('../../lib/supabase');
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          const userMetadata = session.user.user_metadata;
+          // Get school info
+          const { data: schoolsRes } = await supabase
+            .from('teacher_schools')
+            .select('schools(name)')
+            .eq('teacher_id', session.user.id);
+            
+          const schoolNames = (schoolsRes || [])
+            .map((s: any) => s.schools?.name)
+            .filter(Boolean);
+
+          currentTeacher = {
+            id: session.user.id,
+            teacherName: userMetadata?.name || session.user.email?.split('@')[0] || 'Guru',
+            schools: schoolNames.length > 0 ? schoolNames : ['Sekolah Belum Diatur'],
+            currentSchoolIndex: 0,
+            schoolYear: userMetadata?.schoolYear || '2025/2026',
+            subjects: userMetadata?.subjects || ['UMUM'],
+            customSubjects: [],
+            lateSetting: {
+              isEnabled: lateEnabled,
+              bufferMinutes: lateBuffer === '' ? 15 : Number(lateBuffer)
+            },
+            notificationMinutes: notifEnabled ? (notifBuffer === '' ? 5 : Number(notifBuffer)) : 0,
+            createdAt: new Date().toISOString()
+          };
+        } else {
+          notify("Sesi login tidak ditemukan. Silakan login kembali.", "error");
+          setSaving(false);
+          return;
+        }
+      } catch (err: any) {
+        console.error('Gagal memuat profil dari sesi:', err);
+        notify("Gagal memuat profil: " + err.message, "error");
+        setSaving(false);
+        return;
+      }
     }
 
-    setSaving(true);
     const updated: TeacherProfile = {
-      ...state.teacher,
+      ...currentTeacher,
       lateSetting: {
         isEnabled: lateEnabled,
         bufferMinutes: lateBuffer === '' ? 15 : Number(lateBuffer)
