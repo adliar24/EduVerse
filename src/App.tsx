@@ -102,7 +102,15 @@ const AttendancePageWrapper = ({ Component }: { Component: React.ComponentType<a
     );
   }
 
-  return <Component state={state} refresh={loadState} notify={notify} />;
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-[60vh] w-full">
+        <Loader2 className="w-10 h-10 text-indigo-950 animate-spin" />
+      </div>
+    }>
+      <Component state={state} refresh={loadState} notify={notify} />
+    </Suspense>
+  );
 };
 
 // Wrapper to load local IndexedDB state for grading pages
@@ -133,7 +141,15 @@ const GradingPageWrapper = ({ Component }: { Component: React.ComponentType<any>
     );
   }
 
-  return <Component key={profile?.activeSchoolId} profile={profile} refreshProfile={refreshProfile} onUpdate={refreshProfile} />;
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-[60vh] w-full">
+        <Loader2 className="w-10 h-10 text-indigo-950 animate-spin" />
+      </div>
+    }>
+      <Component key={profile?.activeSchoolId} profile={profile} refreshProfile={refreshProfile} onUpdate={refreshProfile} />
+    </Suspense>
+  );
 };
 
 function AnimatedRoutes({ session, studentSession, profileCompleted, userRole }: { session: any, studentSession: any, profileCompleted: boolean | null, userRole: string | null }) {
