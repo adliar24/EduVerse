@@ -82,11 +82,11 @@ export default function Dashboard() {
 
       // Build queries that include both current school and legacy (NULL) data
       let examQuery = supabase.from('exams').select('id', { count: 'exact' }).eq('teacher_id', user.id);
-      let questionQuery = supabase.from('questions').select('id', { count: 'exact', head: true }).eq('teacher_id', user.id);
-      let classQuery = supabase.from('classes').select('id', { count: 'exact', head: true }).eq('teacher_id', user.id);
-      let studentQuery = supabase.from('students').select('id', { count: 'exact', head: true }).eq('teacher_id', user.id);
-      let attendanceQuery = supabase.from('attendance_records').select('id', { count: 'exact', head: true }).eq('teacher_id', user.id);
-      let scoreQuery = supabase.from('meeting_scores').select('id', { count: 'exact', head: true }).eq('user_id', user.id);
+      let questionQuery = supabase.from('questions').select('id', { count: 'exact' }).eq('teacher_id', user.id);
+      let classQuery = supabase.from('classes').select('id', { count: 'exact' }).eq('teacher_id', user.id);
+      let studentQuery = supabase.from('students').select('id', { count: 'exact' }).eq('teacher_id', user.id);
+      let attendanceQuery = supabase.from('attendance_records').select('id', { count: 'exact' }).eq('teacher_id', user.id);
+      let scoreQuery = supabase.from('meeting_scores').select('id', { count: 'exact' }).eq('user_id', user.id);
 
       if (activeSchool?.id) {
         if (activeSchool.id === 'legacy') {
