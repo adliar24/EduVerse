@@ -8,6 +8,7 @@ interface LinkPreviewCardProps {
 
 export const LinkPreviewCard: React.FC<LinkPreviewCardProps> = ({ url, className = '' }) => {
   const [imgIndex, setImgIndex] = useState(0);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   if (!url) return null;
 
@@ -46,10 +47,7 @@ export const LinkPreviewCard: React.FC<LinkPreviewCardProps> = ({ url, className
   // Favicon API from Google (High-res 128px)
   const faviconUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
 
-  // Real-time Cache Buster for instant browser cache bypass
-  const cacheBuster = Date.now();
-
-  // Multiple 16:9 High-Resolution Desktop Screenshot Sources (1280x720) with Auto-Refresh & Delay
+  // Multiple 16:9 High-Resolution Desktop Screenshot Sources (1280x720) configured to WAIT until page finishes loading completely
   const imageSources: string[] = [];
   if (youtubeId) {
     imageSources.push(`https://img.youtube.com/vi/${youtubeId}/sddefault.jpg`);
@@ -57,12 +55,14 @@ export const LinkPreviewCard: React.FC<LinkPreviewCardProps> = ({ url, className
   } else if (isImage) {
     imageSources.push(formattedUrl);
   } else {
-    // 1. WordPress mShots 1280x720 16:9 Desktop Engine (Force Fresh Live Capture + 6s Wait for JS Hydration)
-    imageSources.push(`https://s0.wp.com/mshots/v1/${encodeURIComponent(formattedUrl)}?w=1280&h=720&vtype=desktop&wait=6&refresh=true&_cb=${cacheBuster}`);
-    // 2. Microlink Screenshot API (Force Fresh Live Capture + 5s Wait)
-    imageSources.push(`https://api.microlink.io/?url=${encodeURIComponent(formattedUrl)}&screenshot=true&embed=screenshot.url&waitForTimeout=5000&_cb=${cacheBuster}`);
-    // 3. Thum.io 1280x720 with Live Refresh & 6s Wait
-    imageSources.push(`https://image.thum.io/get/width/1280/crop/720/wait/6/noanimate/refresh/${formattedUrl}?_cb=${cacheBuster}`);
+    // 1. Microlink Screenshot API: waitUntil=networkidle0 waits until network connections stop (0 active requests for 500ms) + 8s JS timeout
+    imageSources.push(`https://api.microlink.io/?url=${encodeURIComponent(formattedUrl)}&screenshot=true&embed=screenshot.url&waitUntil=networkidle0&waitForTimeout=8000`);
+    
+    // 2. WordPress mShots 1280x720 (Wait 12s for full JS hydration & page rendering to finish)
+    imageSources.push(`https://s0.wp.com/mshots/v1/${encodeURIComponent(formattedUrl)}?w=1280&h=720&vtype=desktop&wait=12`);
+
+    // 3. Thum.io 1280x720 (Wait 10s after DOM load before snapshotting)
+    imageSources.push(`https://image.thum.io/get/width/1280/crop/720/wait/10/noanimate/${formattedUrl}`);
   }
 
   const currentImgUrl = imageSources[imgIndex] || null;
@@ -96,6 +96,7 @@ export const LinkPreviewCard: React.FC<LinkPreviewCardProps> = ({ url, className
   };
 
   const handleImageError = () => {
+    setIsLoaded(false);
     setImgIndex((prev) => prev + 1);
   };
 
@@ -110,15 +111,26 @@ export const LinkPreviewCard: React.FC<LinkPreviewCardProps> = ({ url, className
       <div className="relative w-full aspect-[16/9] min-h-[160px] max-h-[280px] bg-slate-900 overflow-hidden flex items-center justify-center border-b border-slate-100">
         {!isMaxFallback && currentImgUrl ? (
           <>
+            {/* Loading Shimmer while screenshot is capturing on networkidle */}
+            {!isLoaded && (
+              <div className="absolute inset-0 bg-slate-800/90 backdrop-blur-sm z-10 flex flex-col items-center justify-center p-4 text-center animate-pulse">
+                <div className="w-10 h-10 rounded-full border-2 border-indigo-400 border-t-transparent animate-spin mb-3" />
+                <p className="text-xs font-semibold text-slate-200">Menunggu halaman web selesai dimuat...</p>
+                <p className="text-[10px] text-slate-400 mt-1 truncate max-w-[200px]">{domain}</p>
+              </div>
+            )}
             <img
               src={currentImgUrl}
               alt="16:9 Live Web Preview"
+              onLoad={() => setIsLoaded(true)}
               onError={handleImageError}
-              className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500"
+              className={`w-full h-full object-cover object-top group-hover:scale-105 transition-all duration-500 ${
+                isLoaded ? 'opacity-100' : 'opacity-0'
+              }`}
               loading="lazy"
             />
-            {youtubeId && (
-              <div className="absolute inset-0 bg-black/25 flex items-center justify-center group-hover:bg-black/40 transition-colors">
+            {youtubeId && isLoaded && (
+              <div className="absolute inset-0 bg-black/25 flex items-center justify-center group-hover:bg-black/40 transition-colors z-10">
                 <div className="w-14 h-14 rounded-full bg-red-600 text-white flex items-center justify-center shadow-2xl group-hover:scale-110 transition-transform">
                   <Play className="w-7 h-7 fill-current ml-0.5" />
                 </div>
