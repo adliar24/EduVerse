@@ -51,37 +51,58 @@ export function SchoolProvider({ children }: { children: ReactNode }) {
         const schoolList = teacherSchools
           .map(ts => {
             // Support both direct object and array returns from Supabase joins
-            const s = (ts as any).schools || (ts as any).school;
-            return Array.isArray(s) ? s[0] : s;
+            const raw = (ts as any).schools || (ts as any).school;
+            const s = Array.isArray(raw) ? raw[0] : raw;
+            const schoolId = s?.id || ts.school_id;
+            if (!schoolId) return null;
+            return {
+              id: schoolId,
+              name: s?.name || s?.nama || 'Sekolah',
+              address: s?.address || s?.alamat || ''
+            };
           })
-          .filter(s => s && s.id && s.name);
+          .filter((s): s is School => Boolean(s && s.id));
 
         // Remove duplicates just in case
-        const uniqueSchools = Array.from(new Map(schoolList.map((s: any) => [s.id, s])).values()) as School[];
+        const uniqueSchools = Array.from(new Map(schoolList.map((s: School) => [s.id, s])).values());
         
         console.log('SchoolContext - uniqueSchools:', uniqueSchools);
-        setSchools(uniqueSchools);
-        setLoading(false);
+        if (uniqueSchools.length > 0) {
+          setSchools(uniqueSchools);
+          setLoading(false);
 
-        const storedSchoolId = localStorage.getItem('active_school_id');
-        if (storedSchoolId) {
-          const stored = uniqueSchools.find((s: School) => s.id === storedSchoolId);
-          if (stored) {
-            setActiveSchoolState(stored);
-          } else if (uniqueSchools.length > 0 && uniqueSchools[0]) {
-            setActiveSchoolState(uniqueSchools[0]);
-            localStorage.setItem('active_school_id', uniqueSchools[0].id);
+          const storedSchoolId = localStorage.getItem('active_school_id');
+          const stored = storedSchoolId ? uniqueSchools.find((s: School) => s.id === storedSchoolId) : null;
+          const active = stored || uniqueSchools[0];
+          setActiveSchoolState(active);
+          if (active?.id) {
+            localStorage.setItem('active_school_id', active.id);
           }
-        } else if (uniqueSchools.length > 0 && uniqueSchools[0]) {
-          setActiveSchoolState(uniqueSchools[0]);
-          localStorage.setItem('active_school_id', uniqueSchools[0].id);
+          return;
+        }
+      }
+
+      // Fallback: Fetch directly from 'schools' table if teacher_schools mapping is empty/null
+      const { data: allSchools } = await supabase.from('schools').select('*');
+      if (allSchools && allSchools.length > 0) {
+        const fallbackSchools: School[] = allSchools.map((s: any) => ({
+          id: s.id,
+          name: s.name || s.nama || 'Sekolah',
+          address: s.address || s.alamat || ''
+        }));
+        setSchools(fallbackSchools);
+        const storedSchoolId = localStorage.getItem('active_school_id');
+        const active = fallbackSchools.find(s => s.id === storedSchoolId) || fallbackSchools[0];
+        setActiveSchoolState(active);
+        if (active?.id) {
+          localStorage.setItem('active_school_id', active.id);
         }
       } else {
         console.log('SchoolContext - No schools found');
         setSchools([]);
         setActiveSchoolState(null);
-        setLoading(false);
       }
+      setLoading(false);
     } catch (error) {
       console.error('Error loading schools:', error);
       setLoading(false);
