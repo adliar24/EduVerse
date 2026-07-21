@@ -46,7 +46,10 @@ export const LinkPreviewCard: React.FC<LinkPreviewCardProps> = ({ url, className
   // Favicon API from Google (High-res 128px)
   const faviconUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
 
-  // Multiple 16:9 High-Resolution Desktop Screenshot Sources (1280x720) with Wait Time for JS Hydration
+  // Hourly Cache Buster for auto-refreshing live web updates
+  const hourlyCacheTag = Math.floor(Date.now() / (1000 * 60 * 60));
+
+  // Multiple 16:9 High-Resolution Desktop Screenshot Sources (1280x720) with Auto-Refresh & Delay
   const imageSources: string[] = [];
   if (youtubeId) {
     imageSources.push(`https://img.youtube.com/vi/${youtubeId}/sddefault.jpg`);
@@ -54,12 +57,12 @@ export const LinkPreviewCard: React.FC<LinkPreviewCardProps> = ({ url, className
   } else if (isImage) {
     imageSources.push(formattedUrl);
   } else {
-    // 1. WordPress mShots 1280x720 16:9 Desktop Engine (Wait 6 seconds for SPA hydration & loading screen)
-    imageSources.push(`https://s0.wp.com/mshots/v1/${encodeURIComponent(formattedUrl)}?w=1280&h=720&vtype=desktop&wait=6`);
-    // 2. Microlink Screenshot API with 5s delay
-    imageSources.push(`https://api.microlink.io/?url=${encodeURIComponent(formattedUrl)}&screenshot=true&embed=screenshot.url&waitForTimeout=5000`);
-    // 3. Thum.io 1280x720 with 6s wait
-    imageSources.push(`https://image.thum.io/get/width/1280/crop/720/wait/6/noanimate/${formattedUrl}`);
+    // 1. WordPress mShots 1280x720 16:9 Desktop Engine (Auto-Refresh + 6s Wait for JS Hydration)
+    imageSources.push(`https://s0.wp.com/mshots/v1/${encodeURIComponent(formattedUrl)}?w=1280&h=720&vtype=desktop&wait=6&refresh=true&v=${hourlyCacheTag}`);
+    // 2. Microlink Screenshot API (Auto-Refresh + 5s Wait)
+    imageSources.push(`https://api.microlink.io/?url=${encodeURIComponent(formattedUrl)}&screenshot=true&embed=screenshot.url&waitForTimeout=5000&ttl=1h&v=${hourlyCacheTag}`);
+    // 3. Thum.io 1280x720 with Live Refresh & 6s Wait
+    imageSources.push(`https://image.thum.io/get/width/1280/crop/720/wait/6/noanimate/refresh/${formattedUrl}`);
   }
 
   const currentImgUrl = imageSources[imgIndex] || null;
@@ -109,7 +112,7 @@ export const LinkPreviewCard: React.FC<LinkPreviewCardProps> = ({ url, className
           <>
             <img
               src={currentImgUrl}
-              alt="16:9 Web Preview"
+              alt="16:9 Live Web Preview"
               onError={handleImageError}
               className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500"
               loading="lazy"
