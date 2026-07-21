@@ -775,19 +775,22 @@ export const syncLocalToCloud = async (): Promise<boolean> => {
 
     if (backup.schools.length > 0) {
       await supabase.from('schools').upsert(backup.schools.map(s => ({
-        id: s.id, user_id: uid, nama: s.nama, tahun_ajaran: s.tahunAjaran, semester: s.semester, kkm_default: s.kkmDefault, created_at: s.createdAt
+        id: s.id, name: s.nama, created_at: s.createdAt
+      })));
+      await supabase.from('teacher_schools').upsert(backup.schools.map(s => ({
+        teacher_id: uid, school_id: s.id, academic_year: s.tahunAjaran, semester: s.semester
       })));
     }
 
     if (backup.classes.length > 0) {
       await supabase.from('classes').upsert(backup.classes.map(c => ({
-        id_kelas: c.idKelas, user_id: uid, school_id: c.schoolId, nama_kelas: c.namaKelas, mapel: c.mapel
+        id_kelas: c.idKelas, teacher_id: uid, school_id: c.schoolId, nama_kelas: c.namaKelas, subject: c.mapel
       })));
     }
     
     if (backup.students.length > 0) {
       await supabase.from('students').upsert(backup.students.map(s => ({
-        id_siswa: s.idSiswa, user_id: uid, school_id: s.schoolId, id_kelas: s.idKelas, nama: s.nama
+        id_siswa: s.idSiswa, teacher_id: uid, school_id: s.schoolId, id_kelas: s.idKelas, nama: s.nama
       })));
     }
 
@@ -856,9 +859,9 @@ export const syncCloudToLocal = async (existingProfile?: TeacherProfile | null):
     const profile = existingProfile || await getTeacherProfile();
 
     const [schRes, cRes, sRes, mRes, msRes, spRes, fgRes, loRes, tpRes, ptRes] = await Promise.all([
-      supabase.from('schools').select('*').eq('user_id', uid),
-      supabase.from('classes').select('*').eq('user_id', uid),
-      supabase.from('students').select('*').eq('user_id', uid),
+      supabase.from('teacher_schools').select('school_id, academic_year, semester, schools(id, name, created_at)').eq('teacher_id', uid),
+      supabase.from('classes').select('*').eq('teacher_id', uid),
+      supabase.from('students').select('*').eq('teacher_id', uid),
       supabase.from('meetings').select('*').eq('user_id', uid),
       supabase.from('meeting_scores').select('*').eq('user_id', uid),
       supabase.from('student_points').select('*').eq('user_id', uid),
@@ -891,9 +894,17 @@ export const syncCloudToLocal = async (existingProfile?: TeacherProfile | null):
     
         if (profile) tx.objectStore('teacherProfile').put({ ...profile, id: 'profile' });
         
-        const schools = (schRes.data || []).map((row: any) => ({
-            id: row.id, nama: row.nama, tahunAjaran: row.tahun_ajaran, semester: row.semester, kkmDefault: row.kkm_default, createdAt: row.created_at
-        }));
+        const schools = (schRes.data || []).map((row: any) => {
+            const s = Array.isArray(row.schools) ? row.schools[0] : row.schools;
+            return {
+                id: row.school_id,
+                nama: s?.name || '',
+                tahunAjaran: row.academic_year || '',
+                semester: row.semester || '',
+                kkmDefault: 75,
+                createdAt: s?.created_at || new Date().toISOString()
+            };
+        });
         
         const firstSchoolId = schools.length > 0 ? schools[0].id : (profile?.schools && profile.schools.length > 0 ? profile.schools[0].id : '');
         const targetSchoolId = profile?.activeSchoolId || firstSchoolId;
@@ -907,12 +918,19 @@ export const syncCloudToLocal = async (existingProfile?: TeacherProfile | null):
         }
 
         const classes = (cRes.data || []).map((row: any) => ({
-            idKelas: row.id_kelas, schoolId: row.school_id || targetSchoolId, namaKelas: row.nama_kelas, mapel: row.mapel
+            idKelas: row.id_kelas || row.id,
+            schoolId: row.school_id || targetSchoolId,
+            namaKelas: row.nama_kelas || row.name,
+            mapel: row.subject || row.mapel || ''
         }));
         classes.forEach(c => tx.objectStore('classes').put(c));
 
         const students = (sRes.data || []).map((row: any) => ({
-            idSiswa: row.id_siswa, schoolId: row.school_id || targetSchoolId, idKelas: row.id_kelas, nama: row.nama, nisn: row.nisn
+            idSiswa: row.id_siswa || row.id,
+            schoolId: row.school_id || targetSchoolId,
+            idKelas: row.id_kelas || row.class_id,
+            nama: row.nama || row.name,
+            nisn: row.nisn || ''
         }));
         students.forEach(s => tx.objectStore('students').put(s));
 

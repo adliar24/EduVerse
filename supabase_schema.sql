@@ -908,3 +908,22 @@ GRANT ALL ON public.materials TO service_role;
 GRANT ALL ON public.assignments TO authenticated;
 GRANT ALL ON public.assignments TO anon;
 GRANT ALL ON public.assignments TO service_role;
+
+-- 15. Tabel Template Poin Perilaku (EduScore)
+CREATE TABLE IF NOT EXISTS public.point_templates (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  school_id UUID REFERENCES public.schools(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  amount INT DEFAULT 0,
+  type TEXT NOT NULL, -- 'positive' atau 'negative'
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
+);
+
+-- Matikan RLS untuk point_templates (agar kompatibel dengan skema tabel EduScore lainnya)
+ALTER TABLE public.point_templates DISABLE ROW LEVEL SECURITY;
+
+-- Grant permissions untuk point_templates
+GRANT ALL ON public.point_templates TO authenticated;
+GRANT ALL ON public.point_templates TO anon;
+GRANT ALL ON public.point_templates TO service_role;
