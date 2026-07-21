@@ -150,7 +150,20 @@ const GradingPageWrapper = ({ Component }: { Component: React.ComponentType<any>
   };
 
   useEffect(() => {
+    // 1. Load local profile instantly
     refreshProfile().then(() => setLoading(false));
+
+    // 2. Pull updates from cloud in background
+    const autoPullGrading = async () => {
+      try {
+        await dbGrading.syncCloudToLocal();
+        await refreshProfile();
+      } catch (err) {
+        console.error("[GradingPageWrapper] Auto-pull failed:", err);
+      }
+    };
+
+    autoPullGrading();
   }, []);
 
   if (loading) {
