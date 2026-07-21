@@ -279,9 +279,24 @@ export default function SystemSettings() {
                 await restoreBackup(data.grading, 'full');
               }
 
+              // 3. Auto-push restored data to Supabase Cloud
+              try {
+                const { syncService } = await import('../services/sync');
+                if (syncService.isConfigured()) {
+                  const user = await syncService.getUser();
+                  if (user) {
+                    await syncService.pushToCloud();
+                    const { syncLocalToCloud } = await import('../services/dbGrading');
+                    await syncLocalToCloud();
+                  }
+                }
+              } catch (syncErr) {
+                console.error("Auto sync after restore failed:", syncErr);
+              }
+
               showAlert({
                 title: 'Berhasil',
-                message: 'Pemulihan data selesai. Sistem akan dimuat ulang.',
+                message: 'Pemulihan data selesai. Data telah disinkronkan ke Cloud dan sistem akan dimuat ulang.',
                 type: 'success'
               });
               setTimeout(() => {
