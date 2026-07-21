@@ -872,9 +872,9 @@ CREATE TABLE IF NOT EXISTS public.assignments (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
 
--- Enable RLS
-ALTER TABLE public.materials ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.assignments ENABLE ROW LEVEL SECURITY;
+-- Disable RLS (agar selaras dengan tabel absensi lainnya)
+ALTER TABLE public.materials DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.assignments DISABLE ROW LEVEL SECURITY;
 
 -- Policies untuk Materials
 DROP POLICY IF EXISTS "Guru dapat mengelola materi sendiri" ON public.materials;
