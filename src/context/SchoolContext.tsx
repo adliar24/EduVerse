@@ -49,7 +49,7 @@ export function SchoolProvider({ children }: { children: ReactNode }) {
 
       if (teacherSchools && teacherSchools.length > 0) {
         const schoolList = teacherSchools
-          .map(ts => {
+          .map((ts): School | null => {
             // Support both direct object and array returns from Supabase joins
             const raw = (ts as any).schools || (ts as any).school;
             const s = Array.isArray(raw) ? raw[0] : raw;
@@ -58,7 +58,7 @@ export function SchoolProvider({ children }: { children: ReactNode }) {
             return {
               id: schoolId,
               name: s?.name || s?.nama || 'Sekolah',
-              address: s?.address || s?.alamat || ''
+              address: s?.address || s?.alamat || undefined
             };
           })
           .filter((s): s is School => s !== null);
