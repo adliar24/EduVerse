@@ -61,7 +61,7 @@ export function SchoolProvider({ children }: { children: ReactNode }) {
               address: s?.address || s?.alamat || ''
             };
           })
-          .filter((s): s is School => Boolean(s && s.id));
+          .filter((s): s is School => s !== null);
 
         // Remove duplicates just in case
         const uniqueSchools = Array.from(new Map(schoolList.map((s: School) => [s.id, s])).values());
