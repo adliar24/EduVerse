@@ -190,7 +190,7 @@ export const StudentReportDetailScreen: React.FC = () => {
                
                <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-10">
                   <div className="flex flex-col items-center md:items-start text-center md:text-left">
-                     <span className="inline-block px-4 py-1.5 bg-white/10 backdrop-blur-md rounded-full text-[9px] font-black uppercase tracking-[0.3em] mb-4 border border-white/10">Profil Siswa</span>
+                     <span className="inline-block px-4 py-1.5 bg-white/10 backdrop-blur-md rounded-full text-[9px] font-black uppercase tracking-[0.3em] mb-4 border border-white/10">Murid</span>
                      <h2 className="text-xl md:text-3xl font-black tracking-tighter uppercase leading-tight">{student.nama}</h2>
                      <div className="flex flex-wrap justify-center md:justify-start items-center gap-4 mt-6 opacity-80">
                         <div className="flex items-center gap-2">

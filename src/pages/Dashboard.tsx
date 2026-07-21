@@ -209,13 +209,13 @@ export default function Dashboard() {
       desc: 'Kelas Aktif Terdaftar'
     },
     { 
-      label: 'Manajemen Siswa', 
+      label: 'Manajemen Murid', 
       value: stats.totalStudents, 
       icon: Users, 
       color: 'text-purple-600', 
       bg: 'bg-purple-50',
       border: 'border-purple-100/50',
-      desc: 'Siswa Aktif Terdaftar'
+      desc: 'Murid Aktif Terdaftar'
     },
   ];
 

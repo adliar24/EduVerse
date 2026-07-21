@@ -107,12 +107,12 @@ export default function MateriTugasSiswa() {
       {studentInfo && (
         <div className="bg-indigo-50/50 rounded-2xl p-5 border border-indigo-100/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4 max-w-4xl">
           <div>
-            <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest block mb-0.5">Siswa Terdaftar</span>
+            <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest block mb-0.5">Murid Terdaftar</span>
             <span className="font-bold text-lg text-indigo-950 block leading-tight">{studentInfo.name}</span>
             <span className="text-xs font-semibold text-slate-500 mt-1 block">Kelas: {studentInfo.classes?.name || 'Tidak diketahui'}</span>
           </div>
           <div className="bg-indigo-950 text-white px-4 py-2.5 rounded-xl font-bold text-xs self-start sm:self-center">
-            Kode Siswa: {studentInfo.student_code}
+            Kode Murid: {studentInfo.student_code}
           </div>
         </div>
       )}

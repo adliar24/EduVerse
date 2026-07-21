@@ -210,7 +210,7 @@ export default function KelolaMateriTugas() {
     }
 
     if (formTargetType === 'students' && selectedStudentIds.length === 0) {
-      showAlert({ title: 'Siswa Belum Dipilih', message: 'Harap pilih minimal satu siswa jika memilih target Siswa Tertentu.', type: 'warning' });
+      showAlert({ title: 'Murid Belum Dipilih', message: 'Harap pilih minimal satu murid jika memilih target Murid Tertentu.', type: 'warning' });
       return;
     }
 
@@ -372,7 +372,7 @@ export default function KelolaMateriTugas() {
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
           <h2 className="text-3xl font-bold text-indigo-950 tracking-tight">Materi & Tugas</h2>
-          <p className="text-slate-500 mt-1 font-medium">Buat dan kelola materi pelajaran serta lembar tugas siswa.</p>
+          <p className="text-slate-500 mt-1 font-medium">Buat dan kelola materi pelajaran serta lembar tugas murid.</p>
         </div>
         <div className="flex gap-2">
           <button 
@@ -416,7 +416,7 @@ export default function KelolaMateriTugas() {
                 : 'text-slate-400 border-transparent hover:text-indigo-950'
             }`}
           >
-            Tugas Siswa
+            Tugas Murid
             {assignments.length > 0 && (
               <span className="ml-2 bg-slate-100 text-slate-700 text-xs font-bold px-2 py-0.5 rounded-full">
                 {assignments.length}
@@ -459,7 +459,7 @@ export default function KelolaMateriTugas() {
                       {m.target_type === 'students' && (
                         <span className="bg-amber-50 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1 border border-amber-100">
                           <Users className="w-3.5 h-3.5" />
-                          {m.student_ids?.length || 0} Siswa
+                          {m.student_ids?.length || 0} Murid
                         </span>
                       )}
                     </div>
@@ -525,7 +525,7 @@ export default function KelolaMateriTugas() {
                         {a.target_type === 'students' && (
                           <span className="bg-amber-50 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1 border border-amber-100">
                             <Users className="w-3.5 h-3.5" />
-                            {a.student_ids?.length || 0} Siswa
+                            {a.student_ids?.length || 0} Murid
                           </span>
                         )}
                         {hasDeadline && (
@@ -620,7 +620,7 @@ export default function KelolaMateriTugas() {
               className="bg-white rounded-[2.5rem] p-8 max-w-2xl w-full max-h-[85vh] overflow-y-auto relative z-10 shadow-2xl border border-slate-100"
             >
               <h3 className="text-2xl font-black text-indigo-950 mb-6 tracking-tight">
-                {editingId ? 'Edit' : 'Tambah'} {formType === 'material' ? 'Materi Pelajaran' : 'Tugas Siswa'}
+                {editingId ? 'Edit' : 'Tambah'} {formType === 'material' ? 'Materi Pelajaran' : 'Tugas Murid'}
               </h3>
 
               <form onSubmit={handleSave} className="space-y-5">
@@ -708,7 +708,7 @@ export default function KelolaMateriTugas() {
                           checked={formTargetType === 'students'} 
                           onChange={() => setFormTargetType('students')}
                         />
-                        Siswa Tertentu
+                        Murid Tertentu
                       </label>
                     </div>
                   </div>
@@ -724,12 +724,12 @@ export default function KelolaMateriTugas() {
                       className="space-y-3 bg-slate-50 p-5 rounded-2xl border border-slate-100 overflow-hidden"
                     >
                       <div className="flex items-center justify-between gap-4">
-                        <h4 className="text-xs font-black text-indigo-950 uppercase tracking-widest">Pilih Siswa Target ({selectedStudentIds.length})</h4>
+                        <h4 className="text-xs font-black text-indigo-950 uppercase tracking-widest">Pilih Murid Target ({selectedStudentIds.length})</h4>
                         <div className="relative max-w-[200px]">
                           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 w-3.5 h-3.5" />
                           <input 
                             type="text" 
-                            placeholder="Cari siswa..."
+                            placeholder="Cari murid..."
                             className="w-full pl-8 pr-3 py-1.5 rounded-lg border border-slate-200 bg-white outline-none focus:border-indigo-950 text-xs font-bold text-slate-700"
                             value={studentSearchTerm}
                             onChange={(e) => setStudentSearchTerm(e.target.value)}

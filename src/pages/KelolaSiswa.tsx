@@ -238,7 +238,7 @@ export default function KelolaSiswa() {
             password: updatedStudent.password || 'murid19'
           } as any);
         }
-        showAlert({ title: 'Berhasil', message: 'Data siswa diperbarui.', type: 'success' });
+        showAlert({ title: 'Berhasil', message: 'Data murid diperbarui.', type: 'success' });
       } else {
         if (!activeSchool?.id) {
           throw new Error('Pilih sekolah terlebih dahulu di header.');
@@ -277,7 +277,7 @@ export default function KelolaSiswa() {
             password: newStudent.password || 'murid19'
           } as any);
         }
-        showAlert({ title: 'Berhasil', message: 'Siswa baru ditambahkan.', type: 'success' });
+        showAlert({ title: 'Berhasil', message: 'Murid baru ditambahkan.', type: 'success' });
       }
       
       setShowForm(false);
@@ -294,7 +294,7 @@ export default function KelolaSiswa() {
 
   const handleDelete = async (id: string) => {
     showAlert({
-      title: 'Hapus Siswa?', message: 'Data siswa akan terhapus secara permanen.', type: 'confirm', confirmText: 'Ya, Hapus',
+      title: 'Hapus Murid?', message: 'Data murid akan terhapus secara permanen.', type: 'confirm', confirmText: 'Ya, Hapus',
       onConfirm: async () => {
         try {
           const { error } = await supabase.from('students').delete().eq('id', id);
@@ -307,7 +307,7 @@ export default function KelolaSiswa() {
             setSelectedStudentIds(prev => prev.filter(item => item !== id));
             fetchData();
           }
-          showAlert({ title: 'Terhapus', message: 'Siswa berhasil dihapus.', type: 'success' });
+          showAlert({ title: 'Terhapus', message: 'Murid berhasil dihapus.', type: 'success' });
         } catch (error: any) { if (isMountedRef.current) showAlert({ title: 'Gagal', message: error.message, type: 'error' }); }
       }
     });
@@ -366,8 +366,8 @@ export default function KelolaSiswa() {
   const handleBulkDelete = async () => {
     if (selectedStudentIds.length === 0) return;
     showAlert({
-      title: 'Hapus Siswa Terpilih?',
-      message: `Apakah Anda yakin ingin menghapus ${selectedStudentIds.length} siswa terpilih secara permanen?`,
+      title: 'Hapus Murid Terpilih?',
+      message: `Apakah Anda yakin ingin menghapus ${selectedStudentIds.length} murid terpilih secara permanen?`,
       type: 'confirm',
       confirmText: 'Ya, Hapus Semua',
       onConfirm: async () => {
@@ -384,7 +384,7 @@ export default function KelolaSiswa() {
             setSelectedStudentIds([]);
             fetchData();
           }
-          showAlert({ title: 'Terhapus', message: 'Siswa terpilih berhasil dihapus.', type: 'success' });
+          showAlert({ title: 'Terhapus', message: 'Murid terpilih berhasil dihapus.', type: 'success' });
         } catch (error: any) {
           if (isMountedRef.current) showAlert({ title: 'Gagal', message: error.message, type: 'error' });
         }
@@ -403,7 +403,7 @@ export default function KelolaSiswa() {
       return;
     }
     if (filteredStudents.length === 0) {
-      showAlert({ title: 'Kosong', message: 'Tidak ada data siswa untuk diekspor.', type: 'warning' });
+      showAlert({ title: 'Kosong', message: 'Tidak ada data murid untuk diekspor.', type: 'warning' });
       return;
     }
 
@@ -613,7 +613,7 @@ export default function KelolaSiswa() {
         
         showAlert({ 
           title: 'Impor Selesai', 
-          message: `${successCount} siswa berhasil diimpor.`, 
+          message: `${successCount} murid berhasil diimpor.`, 
           type: successCount > 0 ? 'success' : 'error' 
         });
         if (isMountedRef.current) fetchData();
@@ -650,8 +650,8 @@ export default function KelolaSiswa() {
     <div className="space-y-6 pb-10">
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-bold text-indigo-950 tracking-tight">Kelola Siswa</h2>
-          <p className="text-slate-500 mt-1 font-medium">Daftar nama siswa untuk rekapitulasi data pengerjaan ujian.</p>
+          <h2 className="text-3xl font-bold text-indigo-950 tracking-tight">Kelola Murid</h2>
+          <p className="text-slate-500 mt-1 font-medium">Daftar nama murid untuk rekapitulasi data pengerjaan ujian.</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <button onClick={handleDownloadTemplate} className="bg-white text-slate-600 border border-slate-200 px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 hover:bg-slate-50 transition-all">
@@ -661,7 +661,7 @@ export default function KelolaSiswa() {
             <Download className="w-4 h-4" /> Ekspor Excel
           </button>
           <button onClick={() => fileInputRef.current?.click()} disabled={importing} className="bg-indigo-50 text-indigo-700 px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 hover:bg-indigo-100 transition-all border border-indigo-100">
-            {importing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />} Impor Siswa
+            {importing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />} Impor Murid
           </button>
           <input type="file" ref={fileInputRef} className="hidden" accept=".xlsx, .xls" onChange={handleImportExcel} />
           {selectedStudentIds.length > 0 && (
@@ -672,7 +672,7 @@ export default function KelolaSiswa() {
           <button onClick={() => { setEditingId(null); setFormData({ name: '', class_id: '', student_code: '', password: '' }); setShowForm(true); }}
             className="bg-indigo-950 text-white px-5 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 hover:bg-indigo-900 transition-all shadow-lg shadow-slate-200/50 active:scale-[0.98]"
           >
-            <Plus className="w-4 h-4" /> Tambah Siswa
+            <Plus className="w-4 h-4" /> Tambah Murid
           </button>
         </div>
       </div>
@@ -680,7 +680,7 @@ export default function KelolaSiswa() {
       <div className="flex flex-col lg:flex-row gap-3">
         <div className="relative flex-1">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
-          <input type="text" placeholder="Cari berdasarkan nama siswa..."
+          <input type="text" placeholder="Cari berdasarkan nama murid..."
             className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 bg-white outline-none focus:ring-2 focus:ring-indigo-950/10 focus:border-indigo-950 transition-all text-sm font-medium text-slate-700"
             value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -719,7 +719,7 @@ export default function KelolaSiswa() {
                     }}
                   />
                 </th>
-                <th className="px-6 py-4 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Data Siswa</th>
+                <th className="px-6 py-4 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Data Murid</th>
                 <th className="px-6 py-4 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Username</th>
                 <th className="px-6 py-4 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Kelas</th>
                 <th className="px-6 py-4 text-[10px] font-semibold text-slate-400 uppercase tracking-wider text-right">Aksi</th>
@@ -795,7 +795,7 @@ export default function KelolaSiswa() {
               ) : (
                 <tr>
                   <td colSpan={5} className="px-6 py-20 text-center text-slate-400 text-sm font-medium">
-                    Tidak ada siswa ditemukan.
+                    Tidak ada murid ditemukan.
                   </td>
                 </tr>
               )}
@@ -810,7 +810,7 @@ export default function KelolaSiswa() {
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowForm(false)} className="absolute inset-0 bg-indigo-950/30 backdrop-blur-sm" />
             <motion.div initial={{ opacity: 0, scale: 0.97, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.97, y: 10 }} className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl p-7">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-bold text-indigo-950">{editingId ? 'Edit Data Siswa' : 'Tambah Siswa Baru'}</h3>
+                <h3 className="text-lg font-bold text-indigo-950">{editingId ? 'Edit Data Murid' : 'Tambah Murid Baru'}</h3>
                 <button onClick={() => setShowForm(false)} className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
                   <X className="w-5 h-5 text-slate-400" />
                 </button>
@@ -849,7 +849,7 @@ export default function KelolaSiswa() {
                 <div className="flex gap-3 pt-3">
                   <button type="button" onClick={() => setShowForm(false)} className="flex-1 py-3 text-sm font-medium text-slate-400 hover:bg-slate-50 rounded-xl transition-all">Batal</button>
                   <button type="submit" disabled={submitting} className="flex-[2] bg-indigo-950 text-white py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 hover:bg-indigo-900 shadow-sm active:scale-[0.98] transition-all">
-                    {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : editingId ? 'Perbarui Data' : 'Simpan Siswa'}
+                    {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : editingId ? 'Perbarui Data' : 'Simpan Murid'}
                   </button>
                 </div>
               </form>

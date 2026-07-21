@@ -760,7 +760,7 @@ export default function KelolaKelas() {
                   <p className="text-indigo-400 font-semibold text-[11px] uppercase tracking-widest mb-3">{cls.subject || 'Belum Ada Mapel'}</p>
                   <div className="flex items-center gap-1.5 text-slate-400 px-2 py-1 bg-slate-50 rounded-lg inline-flex">
                     <Users className="w-3.5 h-3.5" />
-                    <span className="text-[10px] font-semibold uppercase tracking-wider">{cls.students?.[0]?.count || 0} Siswa</span>
+                    <span className="text-[10px] font-semibold uppercase tracking-wider">{cls.students?.[0]?.count || 0} Murid</span>
                   </div>
                 </div>
                 <div className="flex flex-col gap-1">
@@ -782,7 +782,7 @@ export default function KelolaKelas() {
               </div>
 
               <div className="mt-6 pt-4 border-t border-slate-50 flex items-center justify-between relative z-10">
-                <span className="text-xs font-medium text-slate-400">Klik untuk Kelola Siswa</span>
+                <span className="text-xs font-medium text-slate-400">Klik untuk Kelola Murid</span>
                 <div className="bg-indigo-950 text-white p-2 rounded-lg group-hover:translate-x-0.5 transition-all">
                   <ChevronRight className="w-4 h-4" />
                 </div>
@@ -820,14 +820,14 @@ export default function KelolaKelas() {
               {/* Header */}
               <div className="p-6 sm:p-8 pb-4 shrink-0 flex items-start justify-between border-b border-slate-50">
                 <div>
-                  <h3 className="text-xl font-bold text-indigo-950">Kelola Siswa — {selectedClass.name}</h3>
-                  <p className="text-slate-400 text-sm mt-0.5">Daftar siswa dan manajemen akun/username ujian.</p>
+                  <h3 className="text-xl font-bold text-indigo-950">Kelola Murid — {selectedClass.name}</h3>
+                  <p className="text-slate-400 text-sm mt-0.5">Daftar murid dan manajemen akun/username ujian.</p>
                   <div className="flex items-center gap-2 mt-3">
                     <span className="bg-indigo-50 text-indigo-600 px-2.5 py-0.5 rounded-md text-[10px] font-semibold uppercase tracking-wider border border-indigo-100/50">
                       {selectedClass.subject || 'Mata Pelajaran'}
                     </span>
                     <span className="bg-slate-50 text-slate-400 px-2.5 py-0.5 rounded-md text-[10px] font-semibold uppercase tracking-wider border border-slate-100">
-                      {classStudents.length} Siswa
+                      {classStudents.length} Murid
                     </span>
                   </div>
                 </div>
@@ -849,7 +849,7 @@ export default function KelolaKelas() {
                   <Download className="w-3.5 h-3.5" /> Ekspor Excel
                 </button>
                 <button onClick={() => { setEditingStudentId(null); setNewStudentName(''); setShowAddStudentForm(true); }} className="px-4 py-2 bg-indigo-950 text-white rounded-lg font-semibold text-xs flex items-center gap-1.5 hover:bg-indigo-900 transition-all active:scale-95 shadow-sm">
-                  <Plus className="w-4 h-4" /> Tambah Siswa
+                  <Plus className="w-4 h-4" /> Tambah Murid
                 </button>
               </div>
 

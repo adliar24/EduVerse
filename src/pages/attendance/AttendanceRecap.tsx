@@ -817,7 +817,7 @@ const saveSessionChanges = async (sessionId: string) => {
   // --- RENDER ---
   return (
     <div className="space-y-6 pb-28">
-      <Header title="Rekapitulasi Absensi" subtitle="Rekap kehadiran siswa per kelas." />
+      <Header title="Rekapitulasi Absensi" subtitle="Rekap kehadiran murid per kelas." />
 
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-6">
         <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
@@ -841,11 +841,11 @@ const saveSessionChanges = async (sessionId: string) => {
           </div>
 
           <div className="w-full sm:w-72">
-            <label className="text-xs text-gray-500">Cari siswa</label>
+            <label className="text-xs text-gray-500">Cari murid</label>
             <Input
               value={studentSearch}
               onChange={(e) => setStudentSearch(e.target.value)}
-              placeholder="Cari nama siswa..."
+              placeholder="Cari nama murid..."
             />
           </div>
 
@@ -868,7 +868,7 @@ const saveSessionChanges = async (sessionId: string) => {
             variant={tab === 'siswa' ? 'primary' : 'secondary'}
             onClick={() => { setTab('siswa'); setSelectedSessionId(null); }}
           >
-            <Users className="w-4 h-4" /> Siswa
+            <Users className="w-4 h-4" /> Murid
           </Button>
           <Button
             variant={tab === 'pertemuan' ? 'primary' : 'secondary'}

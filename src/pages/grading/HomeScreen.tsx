@@ -292,7 +292,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ profile: propProfile, re
                 <div className="grid grid-cols-3 gap-3">
                     {[
                         { label: 'Kelas', val: stats.classes, color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-200' },
-                        { label: 'Siswa', val: stats.students, color: 'text-slate-600', bg: 'bg-slate-50', border: 'border-slate-100' },
+                        { label: 'Murid', val: stats.students, color: 'text-slate-600', bg: 'bg-slate-50', border: 'border-slate-100' },
                         { label: 'Nilai', val: stats.meetings, color: 'text-primary', bg: 'bg-blue-50', border: 'border-primary/20' }
                     ].map((stat, i) => (
                         <div key={i} className={`bg-white rounded-2xl p-4 border ${stat.border} shadow-sm flex flex-col items-center text-center transition-all hover:scale-105 ${stat.bg.replace('bg-', 'hover:bg-')}`}>

@@ -129,7 +129,7 @@ export default function Layout({ session }: LayoutProps) {
       label: 'Manajemen Kelola',
       subItems: [
         { label: 'Kelola Kelas', path: '/kelola-kelas' },
-        { label: 'Kelola Siswa', path: '/kelola-siswa' },
+        { label: 'Kelola Murid', path: '/kelola-siswa' },
         { label: 'Jadwal Mengajar', path: '/attendance/schedule' },
       ]
     },
@@ -617,7 +617,7 @@ export default function Layout({ session }: LayoutProps) {
                 <div className="text-left hidden sm:block">
                   <p className="text-sm font-semibold text-indigo-950 leading-none mb-0.5 group-hover:text-blue-600 transition-colors">{userName}</p>
                   <p className="text-[10px] uppercase tracking-wider font-medium text-slate-400 leading-none">
-                    {userRole === 'guru' ? 'Administrator' : 'Siswa'}
+                    {userRole === 'guru' ? 'Administrator' : 'Murid'}
                   </p>
                 </div>
               </Link>

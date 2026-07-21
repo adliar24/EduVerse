@@ -65,11 +65,11 @@ export const StudentListScreen: React.FC = () => {
     const schoolId = profile?.activeSchoolId || '';
     try {
       await db.saveStudent({ idSiswa: crypto.randomUUID(), schoolId, idKelas, nama: newStudentName.trim() });
-      showToast("Siswa berhasil ditambahkan");
+      showToast("Murid berhasil ditambahkan");
       refreshStudents();
       setNewStudentName('');
     } catch (err: any) {
-      showToast("Gagal menambah siswa: " + err.message, "error");
+      showToast("Gagal menambah murid: " + err.message, "error");
     }
   };
 
@@ -120,7 +120,7 @@ export const StudentListScreen: React.FC = () => {
             }
           }
           refreshStudents();
-          showToast("Siswa berhasil diimpor!");
+          showToast("Murid berhasil diimpor!");
         } catch (err) {
           showToast("Gagal membaca file Excel.", "error");
           console.error(err);
@@ -137,11 +137,11 @@ export const StudentListScreen: React.FC = () => {
     if (deleteConfirmation.id) {
       try {
         await db.deleteStudent(deleteConfirmation.id);
-        showToast("Siswa berhasil dihapus");
+        showToast("Murid berhasil dihapus");
         refreshStudents();
         setDeleteConfirmation({ isOpen: false, id: null });
       } catch (err: any) {
-        showToast("Gagal menghapus siswa: " + err.message, "error");
+        showToast("Gagal menghapus murid: " + err.message, "error");
       }
     }
   };
@@ -160,7 +160,7 @@ export const StudentListScreen: React.FC = () => {
                       : 'text-slate-400 hover:bg-slate-50'
                   }`}
               >
-                  <Users size={16} /> Siswa
+                  <Users size={16} /> Murid
               </button>
               <button 
                   onClick={() => setActiveTab('nilai')}
@@ -184,7 +184,7 @@ export const StudentListScreen: React.FC = () => {
               <div className="bg-white p-4 md:p-7 rounded-[2rem] md:rounded-[2.5rem] border-2 border-blue-50 shadow-md flex gap-3 md:gap-5 items-center">
                 <div className="flex-1">
                   <Input 
-                    placeholder="Masukkan nama siswa..." 
+                    placeholder="Masukkan nama murid..." 
                     value={newStudentName} 
                     onChange={e => setNewStudentName(e.target.value)} 
                     onKeyDown={e => e.key === 'Enter' && handleAddStudent()} 
@@ -209,7 +209,7 @@ export const StudentListScreen: React.FC = () => {
 
         <div className="bg-white rounded-[2rem] md:rounded-[3rem] no-box-border overflow-hidden">
               <div className="px-6 py-4 md:px-10 md:py-6 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
-                <h3 className="font-black text-slate-400 text-[10px] md:text-xs tracking-widest uppercase">Daftar Siswa ({students.length})</h3>
+                <h3 className="font-black text-slate-400 text-[10px] md:text-xs tracking-widest uppercase">Daftar Murid ({students.length})</h3>
               </div>
               <div className="divide-y divide-slate-100 max-h-[600px] overflow-y-auto">
                 {studentsLoading ? (
@@ -228,7 +228,7 @@ export const StudentListScreen: React.FC = () => {
                       <button 
                         onClick={() => confirmDeleteStudent(std.idSiswa)} 
                         className="w-10 h-10 flex items-center justify-center rounded-xl bg-red-50 text-red-400 hover:bg-red-500 hover:text-white transition-all active:scale-95 flex-shrink-0 shadow-sm"
-                        title="Hapus Siswa"
+                        title="Hapus Murid"
                       >
                         <Trash2 size={18} strokeWidth={2.5}/>
                       </button>
@@ -299,7 +299,7 @@ export const StudentListScreen: React.FC = () => {
            <div>
               <h3 className="text-xl font-black text-slate-800 uppercase mb-2">Hapus Penilaian</h3>
               <p className="text-sm text-slate-500 font-medium leading-relaxed">
-                 Seluruh <strong>Nilai Siswa</strong> yang telah diinput pada entri ini akan terhapus permanen.
+                 Seluruh <strong>Nilai Murid</strong> yang telah diinput pada entri ini akan terhapus permanen.
               </p>
            </div>
            <div className="flex gap-3 pt-4">
@@ -309,7 +309,7 @@ export const StudentListScreen: React.FC = () => {
         </div>
       </Modal>
 
-      <Modal isOpen={deleteConfirmation.isOpen} onClose={() => setDeleteConfirmation({ isOpen: false, id: null })} title="Hapus Siswa?">
+      <Modal isOpen={deleteConfirmation.isOpen} onClose={() => setDeleteConfirmation({ isOpen: false, id: null })} title="Hapus Murid?">
         <div className="py-2 text-center space-y-6">
            <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto text-red-500 mb-4 animate-pop">
               <User size={40} />
@@ -320,8 +320,8 @@ export const StudentListScreen: React.FC = () => {
            <div>
               <h3 className="text-xl font-black text-slate-800 uppercase mb-2">Konfirmasi Hapus</h3>
               <p className="text-sm text-slate-500 font-medium leading-relaxed">
-                 Yakin ingin menghapus siswa ini? <br/>
-                 Semua <strong>Nilai</strong> dan <strong>Poin</strong> siswa tersebut akan hilang permanen.
+                 Yakin ingin menghapus murid ini? <br/>
+                 Semua <strong>Nilai</strong> dan <strong>Poin</strong> murid tersebut akan hilang permanen.
               </p>
            </div>
            <div className="flex gap-3 pt-4">
@@ -504,7 +504,7 @@ export const StudentQRModal: React.FC<{
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Cetak Kartu QR Siswa" fullScreen>
+    <Modal isOpen={isOpen} onClose={onClose} title="Cetak Kartu QR Murid" fullScreen>
       <div className="space-y-8 pb-20">
         <div className="flex justify-between items-center bg-gradient-primary p-6 rounded-[2rem] border border-white/20 shadow-xl shadow-blue-900/10 no-print">
           <div>

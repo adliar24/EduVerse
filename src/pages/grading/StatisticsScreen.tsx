@@ -91,7 +91,7 @@ export const StatisticsScreen: React.FC = () => {
 
   return (
     <Layout>
-      <Header title="Statistik & Peringkat" subtitle="Analisis Performa Siswa & Kelas" backTo="/home" />
+      <Header title="Statistik & Peringkat" subtitle="Analisis Performa Murid & Kelas" backTo="/home" />
 
       <PageTransition className="space-y-6 pb-14">
         
@@ -102,7 +102,7 @@ export const StatisticsScreen: React.FC = () => {
                     activeTab === 'siswa' ? 'bg-white text-primary shadow-sm' : 'text-slate-400 hover:text-slate-600'
                 }`}
             >
-                Peringkat Siswa
+                Peringkat Murid
             </button>
             <button 
                 onClick={() => handleTabChange('kelas')}

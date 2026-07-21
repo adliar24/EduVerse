@@ -738,7 +738,7 @@ else if (fileExt === 'csv') {
                     <User className="w-5 h-5" />
                 </div>
                 <div>
-                   <span className="block text-xs text-gray-400 font-bold uppercase">Total Siswa</span>
+                   <span className="block text-xs text-gray-400 font-bold uppercase">Total Murid</span>
                    <span className="block font-bold text-xl text-gray-900 leading-none">{students.length}</span>
                 </div>
             </div>
@@ -763,7 +763,7 @@ else if (fileExt === 'csv') {
           className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-all ${activeTab === 'list' ? 'bg-white shadow text-blue-600' : 'text-gray-500'}`}
           onClick={() => setActiveTab('list')}
         >
-          Daftar Siswa
+          Daftar Murid
         </button>
         <button 
           className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-all ${activeTab === 'add' ? 'bg-white shadow text-blue-600' : 'text-gray-500'}`}
@@ -781,7 +781,7 @@ else if (fileExt === 'csv') {
             <div className="relative w-full">
                 <Search className="absolute left-4 top-3.5 w-5 h-5 text-gray-400" />
                 <Input 
-                    placeholder="Cari nama siswa..." 
+                    placeholder="Cari nama murid..." 
                     className="!pl-12 !py-3 w-full"
                     value={search} 
                     onChange={e => setSearch(e.target.value)} 
@@ -790,7 +790,7 @@ else if (fileExt === 'csv') {
 
             {/* MOBILE VIEW: CARDS */}
             <div className="md:hidden grid grid-cols-1 gap-3">
-                {filteredStudents.length === 0 && <div className="text-center text-gray-400 py-10">Tidak ada siswa.</div>}
+                {filteredStudents.length === 0 && <div className="text-center text-gray-400 py-10">Tidak ada murid.</div>}
                 {filteredStudents.map(s => (
                 <motion.div layout key={s.id} className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between cursor-pointer" onClick={() => handleStudentClick(s)}>
                     <div className="flex items-center gap-3">
@@ -812,13 +812,13 @@ else if (fileExt === 'csv') {
                 <thead className="bg-gray-50 text-gray-500 text-sm font-medium border-b border-gray-200">
                     <tr>
                     <th className="p-5 font-semibold w-20 text-center">No</th>
-                    <th className="p-5 font-semibold">Nama Siswa</th>
+                    <th className="p-5 font-semibold">Nama Murid</th>
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                     {filteredStudents.length === 0 && (
                     <tr>
-                        <td colSpan={2} className="p-10 text-center text-gray-400">Tidak ada data siswa.</td>
+                        <td colSpan={2} className="p-10 text-center text-gray-400">Tidak ada data murid.</td>
                     </tr>
                     )}
                     {filteredStudents.map((s, idx) => (
@@ -847,12 +847,12 @@ else if (fileExt === 'csv') {
                       <h3 className="font-bold text-gray-900 mb-4 text-lg">Input Manual</h3>
                       <form onSubmit={handleAdd} className="flex flex-col gap-3">
                          <Input 
-                           placeholder="Nama Siswa Lengkap" 
+                           placeholder="Nama Murid Lengkap" 
                            value={newName} 
                            onChange={e => setNewName(e.target.value)} 
                            className="w-full"
                          />
-                         <Button type="submit" disabled={!newName} className="w-full justify-center"><Plus className="w-5 h-5 mr-2" /> Tambah Siswa</Button>
+                         <Button type="submit" disabled={!newName} className="w-full justify-center"><Plus className="w-5 h-5 mr-2" /> Tambah Murid</Button>
                       </form>
                    </Card>
 
