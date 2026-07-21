@@ -54,7 +54,7 @@ export function SchoolProvider({ children }: { children: ReactNode }) {
             const s = (ts as any).schools || (ts as any).school;
             return Array.isArray(s) ? s[0] : s;
           })
-          .filter(Boolean);
+          .filter(s => s && s.id && s.name);
 
         // Remove duplicates just in case
         const uniqueSchools = Array.from(new Map(schoolList.map((s: any) => [s.id, s])).values()) as School[];
@@ -68,11 +68,11 @@ export function SchoolProvider({ children }: { children: ReactNode }) {
           const stored = uniqueSchools.find((s: School) => s.id === storedSchoolId);
           if (stored) {
             setActiveSchoolState(stored);
-          } else if (uniqueSchools.length > 0) {
+          } else if (uniqueSchools.length > 0 && uniqueSchools[0]) {
             setActiveSchoolState(uniqueSchools[0]);
             localStorage.setItem('active_school_id', uniqueSchools[0].id);
           }
-        } else if (uniqueSchools.length > 0) {
+        } else if (uniqueSchools.length > 0 && uniqueSchools[0]) {
           setActiveSchoolState(uniqueSchools[0]);
           localStorage.setItem('active_school_id', uniqueSchools[0].id);
         }

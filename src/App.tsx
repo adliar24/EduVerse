@@ -351,8 +351,14 @@ export default function App() {
     try {
       const sessionToUse = currentSession || session;
       const metadataCompleted = sessionToUse?.user?.user_metadata?.is_profile_completed === true;
+
+      // Optimistically resolve metadata status if present to eliminate lag
+      if (metadataCompleted) {
+        setProfileCompleted(true);
+        setLoading(false);
+      }
       
-      // Then check database
+      // Then check database to confirm
       const { data, error } = await supabase
         .from('profiles')
         .select('is_profile_completed')
@@ -379,10 +385,10 @@ export default function App() {
 
   const userRole = session ? (session.user?.user_metadata?.role || 'guru') : (studentSession ? 'siswa' : null);
 
-  if (loading && !studentSession) {
+  if ((loading || (session && profileCompleted === null)) && !studentSession) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-background">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      <div className="flex items-center justify-center min-h-screen bg-slate-50">
+        <Loader2 className="w-12 h-12 text-indigo-950 animate-spin" />
       </div>
     );
   }

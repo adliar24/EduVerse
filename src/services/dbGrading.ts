@@ -154,7 +154,7 @@ export const getTeacherProfile = async (): Promise<TeacherProfile | null> => {
       }
       
       // Validate activeSchoolId in local profile
-      if (local.schools.length > 0) {
+      if (local.schools && local.schools.length > 0 && local.schools[0]?.id) {
         const activeExists = local.schools.find(s => s.id === local.activeSchoolId);
         if (!activeExists) {
           local.activeSchoolId = local.schools[0].id;
@@ -193,7 +193,7 @@ export const getTeacherProfile = async (): Promise<TeacherProfile | null> => {
           }
           
           // CRITICAL FIX: If still no active school but we have schools, pick the first one
-          if (!finalActiveId && schools.length > 0) {
+          if (!finalActiveId && schools.length > 0 && schools[0]?.id) {
             finalActiveId = schools[0].id;
           }
 
@@ -906,7 +906,7 @@ export const syncCloudToLocal = async (existingProfile?: TeacherProfile | null):
             };
         });
         
-        const firstSchoolId = schools.length > 0 ? schools[0].id : (profile?.schools && profile.schools.length > 0 ? profile.schools[0].id : '');
+        const firstSchoolId = schools.length > 0 && schools[0]?.id ? schools[0].id : (profile?.schools && profile.schools.length > 0 && profile.schools[0]?.id ? profile.schools[0].id : '');
         const targetSchoolId = profile?.activeSchoolId || firstSchoolId;
 
         schools.forEach(s => tx.objectStore('schools').put(s));
@@ -1083,7 +1083,7 @@ export const performAutoSync = async (): Promise<void> => {
         const profile = await getTeacherProfile();
         if (!profile) return;
 
-        if (profile.schools && profile.schools.length > 0) {
+        if (profile.schools && profile.schools.length > 0 && profile.schools[0]?.id) {
             await migrateLegacyData(profile.schools[0].id);
         }
         await ensureUUIDCompliance();

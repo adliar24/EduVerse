@@ -599,11 +599,11 @@ export default function Layout({ session }: LayoutProps) {
               )}
 
               {/* Single school display */}
-              {userRole === 'guru' && schools.length === 1 && !schoolLoading && (
+              {userRole === 'guru' && schools.length === 1 && schools[0] && !schoolLoading && (
                 <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 rounded-lg">
                   <Building2 className="w-4 h-4 text-blue-600" />
                   <span className="text-sm font-medium text-blue-700 max-w-[150px] truncate">
-                    {schools[0].name}
+                    {schools[0]?.name || ''}
                   </span>
                 </div>
               )}
