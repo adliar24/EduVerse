@@ -1,5 +1,5 @@
 import { getSupabaseClient, supabase } from './supabase';
-import { getFullState, initDB, saveTeacherProfile } from './dbAttendance';
+import { getFullState, initDB, saveTeacherProfile, setSkipSync } from './dbAttendance';
 import { TeacherProfile } from '../types';
 
 // Tables to sync
@@ -337,92 +337,101 @@ export const syncService = {
       return { success: false, message: 'Silakan login untuk sinkronisasi' };
     }
 
-    const state = await getFullState();
-    console.log('[pushToCloud] State to push:', {
-      teacher: state.teacher?.teacherName,
-      classes: state.classes.length,
-      students: state.students.length
-    });
-    
-    // 1. Sync Teacher Profile
-    if (state.teacher) {
-      console.log('[pushToCloud] Syncing to ACTUAL schema (Strict Mode):', state.teacher);
-      
-      const teacherToPush = {
-        id: String(state.teacher.id || user.id),
-        user_id: user.id,
-        teacherName: state.teacher.teacherName || 'Guru',
-        schoolName: (state.teacher.schools && state.teacher.schools[state.teacher.currentSchoolIndex]) || 'Sekolah Belum Diatur',
-        schoolYear: state.teacher.schoolYear || '2024/2025',
-        subjects: Array.isArray(state.teacher.subjects) ? state.teacher.subjects : [],
-        customSubjects: Array.isArray(state.teacher.customSubjects) ? state.teacher.customSubjects : [],
-        notificationMinutes: Number(state.teacher.notificationMinutes) || 0,
-        lateSetting: state.teacher.lateSetting || { isEnabled: true, bufferMinutes: 15 },
-        createdAt: state.teacher.createdAt || new Date().toISOString()
-      };
+    setSkipSync(true);
 
-      const { error } = await client.from('teacher_profiles').upsert(teacherToPush, {
-        onConflict: 'user_id'
+    try {
+      const state = await getFullState();
+      console.log('[pushToCloud] State to push:', {
+        teacher: state.teacher?.teacherName,
+        classes: state.classes.length,
+        students: state.students.length
       });
-
-      if (error) {
-        console.error('[pushToCloud] GAGAL unggah profil:', error.message);
-      } else {
-        console.log('[pushToCloud] BERHASIL unggah profil ke Supabase.');
-      }
-    }
-
-    // 2. Sync all other tables (non-destructive sync)
-    for (const tableName of TABLES) {
-      const data = (state as any)[tableName] || [];
-      console.log(`[pushToCloud] ${tableName}:`, data.length, 'items');
       
-      const dataToSync = data.map((item: any) => {
-        return mapToCloud(tableName, item, user.id);
-      });
-
-      const cloudTableName = getCloudTableName(tableName);
-
-      // Step A: Upsert current local data
-      if (dataToSync.length > 0) {
-        // Break into chunks of 100 to avoid request size limits
-        const chunks = [];
-        for (let i = 0; i < dataToSync.length; i += 100) {
-          chunks.push(dataToSync.slice(i, i + 100));
-        }
-
-        for (const chunk of chunks) {
-          const { error: upsertError } = await client.from(cloudTableName).upsert(chunk);
-          if (upsertError) console.error(`Error upserting ${cloudTableName} chunk:`, upsertError);
-        }
-      }
-
-      // Step B: Remove data from cloud that no longer exists locally
-      const localIds = data.map((item: any) => item.id);
-      if (localIds.length > 0) {
-        const { error: cleanupError } = await client
-          .from(cloudTableName)
-          .delete()
-          .eq('teacher_id', user.id)
-          .not('id', 'in', `(${localIds.join(',')})`);
+      // 1. Sync Teacher Profile
+      if (state.teacher) {
+        console.log('[pushToCloud] Syncing to ACTUAL schema (Strict Mode):', state.teacher);
         
-        if (cleanupError) console.error(`Error cleaning up ${cloudTableName}:`, cleanupError);
-      } else {
-        // If local is empty, delete everything for this user
-        await client.from(cloudTableName).delete().eq('teacher_id', user.id);
-      }
-    }
-    
-    console.log('[pushToCloud] Complete');
-    
-    // Update last sync timestamp
-    const nowISO = new Date().toISOString();
-    if (state.teacher) {
-      const updatedProfile = { ...state.teacher, lastSyncTimestamp: nowISO };
-      await saveTeacherProfile(updatedProfile);
-    }
+        const teacherToPush = {
+          id: String(state.teacher.id || user.id),
+          user_id: user.id,
+          teacherName: state.teacher.teacherName || 'Guru',
+          schoolName: (state.teacher.schools && state.teacher.schools[state.teacher.currentSchoolIndex]) || 'Sekolah Belum Diatur',
+          schoolYear: state.teacher.schoolYear || '2024/2025',
+          subjects: Array.isArray(state.teacher.subjects) ? state.teacher.subjects : [],
+          customSubjects: Array.isArray(state.teacher.customSubjects) ? state.teacher.customSubjects : [],
+          notificationMinutes: Number(state.teacher.notificationMinutes) || 0,
+          lateSetting: state.teacher.lateSetting || { isEnabled: true, bufferMinutes: 15 },
+          createdAt: state.teacher.createdAt || new Date().toISOString()
+        };
 
-    return { success: true, message: 'Data berhasil disinkronisasi ke cloud' };
+        const { error } = await client.from('teacher_profiles').upsert(teacherToPush, {
+          onConflict: 'user_id'
+        });
+
+        if (error) {
+          console.error('[pushToCloud] GAGAL unggah profil:', error.message);
+        } else {
+          console.log('[pushToCloud] BERHASIL unggah profil ke Supabase.');
+        }
+      }
+
+      // 2. Sync all other tables (non-destructive sync)
+      for (const tableName of TABLES) {
+        const data = (state as any)[tableName] || [];
+        console.log(`[pushToCloud] ${tableName}:`, data.length, 'items');
+        
+        const dataToSync = data.map((item: any) => {
+          return mapToCloud(tableName, item, user.id);
+        });
+
+        const cloudTableName = getCloudTableName(tableName);
+
+        // Step A: Upsert current local data
+        if (dataToSync.length > 0) {
+          // Break into chunks of 100 to avoid request size limits
+          const chunks = [];
+          for (let i = 0; i < dataToSync.length; i += 100) {
+            chunks.push(dataToSync.slice(i, i + 100));
+          }
+
+          for (const chunk of chunks) {
+            const { error: upsertError } = await client.from(cloudTableName).upsert(chunk);
+            if (upsertError) console.error(`Error upserting ${cloudTableName} chunk:`, upsertError);
+          }
+        }
+
+        // Step B: Remove data from cloud that no longer exists locally
+        const localIds = data.map((item: any) => item.id);
+        if (localIds.length > 0) {
+          const { error: cleanupError } = await client
+            .from(cloudTableName)
+            .delete()
+            .eq('teacher_id', user.id)
+            .not('id', 'in', `(${localIds.join(',')})`);
+          
+          if (cleanupError) console.error(`Error cleaning up ${cloudTableName}:`, cleanupError);
+        } else {
+          // If local is empty, delete everything for this user
+          await client.from(cloudTableName).delete().eq('teacher_id', user.id);
+        }
+      }
+      
+      console.log('[pushToCloud] Complete');
+      
+      // Update last sync timestamp
+      const nowISO = new Date().toISOString();
+      if (state.teacher) {
+        const updatedProfile = { ...state.teacher, lastSyncTimestamp: nowISO };
+        await saveTeacherProfile(updatedProfile);
+      }
+
+      return { success: true, message: 'Data berhasil disinkronisasi ke cloud' };
+    } catch (e: any) {
+      console.error('[pushToCloud] Error during push:', e);
+      return { success: false, message: e.message || 'Gagal sinkronisasi' };
+    } finally {
+      setSkipSync(false);
+    }
   },
 
   /**
@@ -442,80 +451,89 @@ export const syncService = {
       return { success: false, message: 'Silakan login untuk sinkronisasi' };
     }
 
-    // Clear state cache before pulling to ensure fresh data
-    const { clearStateCache } = await import('./dbAttendance');
-    clearStateCache();
-    
-    const db = await initDB();
-    console.log('[pullFromCloud] Starting pull for user:', user.id);
+    setSkipSync(true);
 
-    // 1. Pull Teacher Profile (Dual-Search Strategy)
-    console.log('[pullFromCloud] Fetching profile for user_id:', user.id);
-    let { data: rawTeacher, error: teacherError } = await client.from('teacher_profiles').select('*').eq('user_id', user.id).maybeSingle();
-    
-    // Fallback: If not found by user_id, try by id (sometimes they are the same)
-    if (!rawTeacher && !teacherError) {
-      console.log('[pullFromCloud] Profile not found by user_id, trying by id...');
-      const { data: fallbackTeacher, error: fallbackError } = await client.from('teacher_profiles').select('*').eq('id', user.id).maybeSingle();
-      if (fallbackTeacher) {
-        rawTeacher = fallbackTeacher;
-        console.log('[pullFromCloud] Profile found using fallback id!');
-      }
-    }
-    
-    if (rawTeacher) {
-      console.log('[pullFromCloud] Processing based on ACTUAL schema:', rawTeacher);
+    try {
+      // Clear state cache before pulling to ensure fresh data
+      const { clearStateCache } = await import('./dbAttendance');
+      clearStateCache();
       
-      const normalizedTeacher: any = { 
-        id: rawTeacher.id || user.id,
-        teacherName: rawTeacher.teacherName || rawTeacher.teacher_name || 'Guru',
-        schoolYear: rawTeacher.schoolYear || rawTeacher.school_year || '2024/2025',
-        currentSchoolIndex: rawTeacher.current_school_index || 0,
-        subjects: Array.isArray(rawTeacher.subjects) ? rawTeacher.subjects : [],
-        customSubjects: Array.isArray(rawTeacher.customSubjects) ? rawTeacher.customSubjects : [],
-        notificationMinutes: rawTeacher.notificationMinutes || 0,
-        lateSetting: rawTeacher.lateSetting || { isEnabled: true, bufferMinutes: 15 }
-      };
+      const db = await initDB();
+      console.log('[pullFromCloud] Starting pull for user:', user.id);
+
+      // 1. Pull Teacher Profile (Dual-Search Strategy)
+      console.log('[pullFromCloud] Fetching profile for user_id:', user.id);
+      let { data: rawTeacher, error: teacherError } = await client.from('teacher_profiles').select('*').eq('user_id', user.id).maybeSingle();
       
-      // Schools mapping
-      let schools = rawTeacher.schools || [];
-      if (rawTeacher.schoolName && !schools.includes(rawTeacher.schoolName)) {
-        schools = [rawTeacher.schoolName, ...schools];
-      }
-      normalizedTeacher.schools = schools.length > 0 ? schools : ['Sekolah Belum Diatur'];
-
-      await saveTeacherProfile(normalizedTeacher as TeacherProfile);
-      console.log('[pullFromCloud] Final Match with Schema:', normalizedTeacher);
-    }
-    else {
-      console.warn('[pullFromCloud] WARNING: No teacher profile found in Supabase for this user ID.');
-    }
-
-    // 2. Pull all other tables
-    for (const tableName of TABLES) {
-      const cloudTableName = getCloudTableName(tableName);
-      const { data, error } = await client.from(cloudTableName).select('*').eq('teacher_id', user.id);
-      console.log(`[pullFromCloud] ${tableName}:`, { count: data?.length, error });
-      
-      if (error) {
-        console.error(`Error pulling ${cloudTableName}:`, error);
-        continue;
-      }
-
-      if (data && data.length > 0) {
-        // Bulk put in local IDB
-        const tx = db.transaction(tableName as any, 'readwrite');
-        const store = tx.objectStore(tableName as any);
-        for (const item of data) {
-          const localItem = mapToLocal(tableName, item);
-          await store.put(localItem);
+      // Fallback: If not found by user_id, try by id (sometimes they are the same)
+      if (!rawTeacher && !teacherError) {
+        console.log('[pullFromCloud] Profile not found by user_id, trying by id...');
+        const { data: fallbackTeacher, error: fallbackError } = await client.from('teacher_profiles').select('*').eq('id', user.id).maybeSingle();
+        if (fallbackTeacher) {
+          rawTeacher = fallbackTeacher;
+          console.log('[pullFromCloud] Profile found using fallback id!');
         }
-        await tx.done;
       }
+      
+      if (rawTeacher) {
+        console.log('[pullFromCloud] Processing based on ACTUAL schema:', rawTeacher);
+        
+        const normalizedTeacher: any = { 
+          id: rawTeacher.id || user.id,
+          teacherName: rawTeacher.teacherName || rawTeacher.teacher_name || 'Guru',
+          schoolYear: rawTeacher.schoolYear || rawTeacher.school_year || '2024/2025',
+          currentSchoolIndex: rawTeacher.current_school_index || 0,
+          subjects: Array.isArray(rawTeacher.subjects) ? rawTeacher.subjects : [],
+          customSubjects: Array.isArray(rawTeacher.customSubjects) ? rawTeacher.customSubjects : [],
+          notificationMinutes: rawTeacher.notificationMinutes || 0,
+          lateSetting: rawTeacher.lateSetting || { isEnabled: true, bufferMinutes: 15 }
+        };
+        
+        // Schools mapping
+        let schools = rawTeacher.schools || [];
+        if (rawTeacher.schoolName && !schools.includes(rawTeacher.schoolName)) {
+          schools = [rawTeacher.schoolName, ...schools];
+        }
+        normalizedTeacher.schools = schools.length > 0 ? schools : ['Sekolah Belum Diatur'];
+
+        await saveTeacherProfile(normalizedTeacher as TeacherProfile);
+        console.log('[pullFromCloud] Final Match with Schema:', normalizedTeacher);
+      }
+      else {
+        console.warn('[pullFromCloud] WARNING: No teacher profile found in Supabase for this user ID.');
+      }
+
+      // 2. Pull all other tables
+      for (const tableName of TABLES) {
+        const cloudTableName = getCloudTableName(tableName);
+        const { data, error } = await client.from(cloudTableName).select('*').eq('teacher_id', user.id);
+        console.log(`[pullFromCloud] ${tableName}:`, { count: data?.length, error });
+        
+        if (error) {
+          console.error(`Error pulling ${cloudTableName}:`, error);
+          continue;
+        }
+
+        if (data && data.length > 0) {
+          // Bulk put in local IDB
+          const tx = db.transaction(tableName as any, 'readwrite');
+          const store = tx.objectStore(tableName as any);
+          for (const item of data) {
+            const localItem = mapToLocal(tableName, item);
+            await store.put(localItem);
+          }
+          await tx.done;
+        }
+      }
+      
+      console.log('[pullFromCloud] Complete');
+      return { success: true, message: 'Data berhasil diambil dari cloud' };
+    } catch (e: any) {
+      console.error('[pullFromCloud] Error during pull:', e);
+      return { success: false, message: e.message || 'Gagal sinkronisasi' };
+    } finally {
+      setSkipSync(false);
     }
-    
-    console.log('[pullFromCloud] Complete');
-    return { success: true, message: 'Data berhasil diambil dari cloud' };
   },
 
   /**
