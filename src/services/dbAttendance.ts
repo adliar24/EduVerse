@@ -208,7 +208,7 @@ export const saveTeacherProfile = async (profile: TeacherProfile) => {
   const db = await initDB();
   const tx = db.transaction('teacher', 'readwrite');
   await tx.objectStore('teacher').clear();
-  await tx.objectStore('teacher').put(profile, 'teacher');
+  await tx.objectStore('teacher').put(profile);
   await tx.done;
   stateCache.data = null;
   autoSyncToCloud();
