@@ -497,7 +497,7 @@ export const autoSyncToCloud = async () => {
       
       lastSyncAttempt = now;
       const { syncService } = await import('./sync');
-      const result = await syncService.syncDrive();
+      const result = await syncService.pushToCloud();
       console.log('[Auto-sync] Result:', result);
     } catch (e) {
       console.error('[Auto-sync] Failed:', e);

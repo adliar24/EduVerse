@@ -98,7 +98,7 @@ const mapToCloud = (tableName: string, item: any, userId: string): any => {
   }
   
   if (tableName === 'schedules') {
-    syncItem.school_id = schoolId || null;
+    syncItem.school_id = item.schoolId || item.school_id || schoolId || null;
     syncItem.day_name = item.dayName;
     syncItem.class_id = item.classId || item.class_id;
     syncItem.start_time = item.startTime;

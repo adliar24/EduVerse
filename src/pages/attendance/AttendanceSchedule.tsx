@@ -7,6 +7,7 @@ import { Plus, Trash2, Calendar, Clock, BookOpen, CalendarOff, Briefcase, Thermo
 import { v4 as uuidv4 } from 'uuid';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Header } from '../Layout';
+import { useSchool } from '../../context/SchoolContext';
 
 interface Props {
   state: AppState;
@@ -60,6 +61,7 @@ const TimePicker = ({ label, value, onChange }: { label: string, value: string, 
 }
 
 export const Schedule: React.FC<Props> = ({ state, refresh, notify }) => {
+  const { activeSchool } = useSchool();
   const currentSchoolIndex = state.teacher?.currentSchoolIndex ?? 0;
   const schoolClasses = state.classes.filter(c => (c.schoolIndex ?? 0) === currentSchoolIndex);
   const schoolClassIds = new Set(schoolClasses.map(c => c.id));
@@ -123,7 +125,8 @@ export const Schedule: React.FC<Props> = ({ state, refresh, notify }) => {
       dayName: activeDay,
       classId: newClassId,
       startTime,
-      endTime
+      endTime,
+      schoolId: activeSchool?.id
     };
     await addSchedule(schedule);
     refresh();

@@ -161,6 +161,7 @@ export interface ScheduleItem {
   classId: string;
   startTime: string; // "07:00"
   endTime: string; // "08:30"
+  schoolId?: string;
 }
 
 export type EventType = 'Libur' | 'Sakit' | 'Dinas' | 'Lainnya';
