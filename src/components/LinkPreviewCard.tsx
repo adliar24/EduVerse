@@ -1,14 +1,23 @@
-import React, { useState } from 'react';
-import { ExternalLink, Play, Link2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ExternalLink, Play, Link2, Globe } from 'lucide-react';
 
 interface LinkPreviewCardProps {
   url: string;
   className?: string;
 }
 
+interface OGData {
+  title?: string;
+  description?: string;
+  image?: string;
+  logo?: string;
+  publisher?: string;
+}
+
 export const LinkPreviewCard: React.FC<LinkPreviewCardProps> = ({ url, className = '' }) => {
-  const [imgIndex, setImgIndex] = useState(0);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [ogData, setOgData] = useState<OGData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [imgFailed, setImgFailed] = useState(false);
 
   if (!url) return null;
 
@@ -47,27 +56,6 @@ export const LinkPreviewCard: React.FC<LinkPreviewCardProps> = ({ url, className
   // Favicon API from Google (High-res 128px)
   const faviconUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
 
-  // Multiple 16:9 High-Resolution Desktop Screenshot Sources (1280x720) configured to WAIT until page finishes loading completely
-  const imageSources: string[] = [];
-  if (youtubeId) {
-    imageSources.push(`https://img.youtube.com/vi/${youtubeId}/sddefault.jpg`);
-    imageSources.push(`https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg`);
-  } else if (isImage) {
-    imageSources.push(formattedUrl);
-  } else {
-    // 1. Microlink Screenshot API: force fresh live capture (ttl=0, force=true) + networkidle0 + 8s wait
-    imageSources.push(`https://api.microlink.io/?url=${encodeURIComponent(formattedUrl)}&screenshot=true&embed=screenshot.url&waitUntil=networkidle0&waitForTimeout=8000&ttl=0&force=true`);
-    
-    // 2. WordPress mShots 1280x720 (Force fresh refresh + wait 12s for full page load)
-    imageSources.push(`https://s0.wp.com/mshots/v1/${encodeURIComponent(formattedUrl)}?w=1280&h=720&vtype=desktop&wait=12&refresh=true`);
-
-    // 3. Thum.io 1280x720 (Force live refresh + wait 10s after DOM load)
-    imageSources.push(`https://image.thum.io/get/width/1280/crop/720/wait/10/noanimate/refresh/${formattedUrl}`);
-  }
-
-  const currentImgUrl = imageSources[imgIndex] || null;
-  const isMaxFallback = imgIndex >= imageSources.length;
-
   const siteBadge = youtubeId
     ? 'YouTube Video'
     : isGoogleForms
@@ -95,10 +83,62 @@ export const LinkPreviewCard: React.FC<LinkPreviewCardProps> = ({ url, className
     return 'from-indigo-900 via-slate-900 to-slate-950';
   };
 
-  const handleImageError = () => {
-    setIsLoaded(false);
-    setImgIndex((prev) => prev + 1);
-  };
+  useEffect(() => {
+    let isMounted = true;
+    setLoading(true);
+    setImgFailed(false);
+
+    if (youtubeId) {
+      setOgData({
+        title: 'YouTube Video',
+        image: `https://img.youtube.com/vi/${youtubeId}/sddefault.jpg`,
+        publisher: 'YouTube'
+      });
+      setLoading(false);
+      return;
+    }
+
+    if (isImage) {
+      setOgData({
+        title: domain,
+        image: formattedUrl
+      });
+      setLoading(false);
+      return;
+    }
+
+    // Fast Open Graph Metadata Fetcher (<200ms JSON parsing without heavy screenshot rendering)
+    fetch(`https://api.microlink.io/?url=${encodeURIComponent(formattedUrl)}`)
+      .then((res) => res.json())
+      .then((json) => {
+        if (!isMounted) return;
+        if (json.status === 'success' && json.data) {
+          const d = json.data;
+          setOgData({
+            title: d.title || domain,
+            description: d.description,
+            image: d.image?.url || d.logo?.url,
+            logo: d.logo?.url,
+            publisher: d.publisher
+          });
+        } else {
+          setOgData({ title: domain });
+        }
+      })
+      .catch((err) => {
+        console.warn('Failed to fetch OG metadata:', err);
+        if (isMounted) setOgData({ title: domain });
+      })
+      .finally(() => {
+        if (isMounted) setLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [formattedUrl, youtubeId, isImage, domain]);
+
+  const displayImage = ogData?.image && !imgFailed ? ogData.image : null;
 
   return (
     <a
@@ -107,29 +147,25 @@ export const LinkPreviewCard: React.FC<LinkPreviewCardProps> = ({ url, className
       rel="noopener noreferrer"
       className={`group block overflow-hidden rounded-2xl border border-slate-200/80 bg-white hover:border-indigo-400 hover:shadow-2xl hover:shadow-indigo-500/15 transition-all duration-300 ${className}`}
     >
-      {/* 16:9 Aspect Ratio Container */}
-      <div className="relative w-full aspect-[16/9] min-h-[160px] max-h-[280px] bg-slate-900 overflow-hidden flex items-center justify-center border-b border-slate-100">
-        {!isMaxFallback && currentImgUrl ? (
+      {/* 16:9 Banner Container */}
+      <div className="relative w-full aspect-[16/9] min-h-[160px] max-h-[260px] bg-slate-900 overflow-hidden flex items-center justify-center border-b border-slate-100">
+        {loading ? (
+          /* Sleek Pulse Skeleton */
+          <div className="absolute inset-0 bg-slate-800/90 flex flex-col items-center justify-center p-4 text-center animate-pulse">
+            <Globe className="w-8 h-8 text-indigo-400/60 mb-2 animate-bounce" />
+            <p className="text-xs font-semibold text-slate-300">Memuat pratinjau tautan...</p>
+            <p className="text-[10px] text-slate-400 mt-1 truncate max-w-[200px]">{domain}</p>
+          </div>
+        ) : displayImage ? (
           <>
-            {/* Loading Shimmer while screenshot is capturing on networkidle */}
-            {!isLoaded && (
-              <div className="absolute inset-0 bg-slate-800/90 backdrop-blur-sm z-10 flex flex-col items-center justify-center p-4 text-center animate-pulse">
-                <div className="w-10 h-10 rounded-full border-2 border-indigo-400 border-t-transparent animate-spin mb-3" />
-                <p className="text-xs font-semibold text-slate-200">Menunggu halaman web selesai dimuat...</p>
-                <p className="text-[10px] text-slate-400 mt-1 truncate max-w-[200px]">{domain}</p>
-              </div>
-            )}
             <img
-              src={currentImgUrl}
-              alt="16:9 Live Web Preview"
-              onLoad={() => setIsLoaded(true)}
-              onError={handleImageError}
-              className={`w-full h-full object-cover object-top group-hover:scale-105 transition-all duration-500 ${
-                isLoaded ? 'opacity-100' : 'opacity-0'
-              }`}
+              src={displayImage}
+              alt={ogData?.title || 'Web Preview'}
+              onError={() => setImgFailed(true)}
+              className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
               loading="lazy"
             />
-            {youtubeId && isLoaded && (
+            {youtubeId && (
               <div className="absolute inset-0 bg-black/25 flex items-center justify-center group-hover:bg-black/40 transition-colors z-10">
                 <div className="w-14 h-14 rounded-full bg-red-600 text-white flex items-center justify-center shadow-2xl group-hover:scale-110 transition-transform">
                   <Play className="w-7 h-7 fill-current ml-0.5" />
@@ -145,7 +181,7 @@ export const LinkPreviewCard: React.FC<LinkPreviewCardProps> = ({ url, className
             <div className="flex items-center gap-4 relative z-10">
               <div className="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center shrink-0 shadow-xl">
                 <img 
-                  src={faviconUrl} 
+                  src={ogData?.logo || faviconUrl} 
                   alt="" 
                   className="w-8 h-8 object-contain rounded-md"
                   onError={(e) => {
@@ -157,8 +193,8 @@ export const LinkPreviewCard: React.FC<LinkPreviewCardProps> = ({ url, className
                 <span className="text-[11px] font-black uppercase tracking-widest text-indigo-200 block opacity-90">
                   {siteBadge}
                 </span>
-                <p className="text-base font-extrabold truncate tracking-tight text-white/95 mt-0.5">
-                  {domain}
+                <p className="text-base font-extrabold truncate tracking-tight text-white/95 mt-0.5 max-w-[240px]">
+                  {ogData?.title || domain}
                 </p>
               </div>
             </div>
@@ -172,7 +208,7 @@ export const LinkPreviewCard: React.FC<LinkPreviewCardProps> = ({ url, className
         {/* Floating Domain Badge */}
         <div className="absolute top-3 left-3 bg-slate-900/85 backdrop-blur-md text-white text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-2 shadow-md border border-white/15 z-20">
           <img 
-            src={faviconUrl} 
+            src={ogData?.logo || faviconUrl} 
             alt="" 
             className="w-4 h-4 rounded-sm shrink-0" 
             onError={(e) => ((e.currentTarget as HTMLElement).style.display = 'none')} 
@@ -189,10 +225,10 @@ export const LinkPreviewCard: React.FC<LinkPreviewCardProps> = ({ url, className
           </div>
           <div className="min-w-0">
             <p className="text-xs font-bold text-slate-800 truncate group-hover:text-indigo-900 transition-colors">
-              {domain}
+              {ogData?.title || domain}
             </p>
-            <p className="text-[10px] font-medium text-slate-400 truncate">
-              {formattedUrl}
+            <p className="text-[10px] font-medium text-slate-400 truncate mt-0.5">
+              {ogData?.description || formattedUrl}
             </p>
           </div>
         </div>
