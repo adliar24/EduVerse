@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Material, Assignment } from '../../types';
+import LinkPreviewCard from '../../components/LinkPreviewCard';
 
 export default function MateriTugasSiswa() {
   const [loading, setLoading] = useState(true);
@@ -190,15 +191,8 @@ export default function MateriTugasSiswa() {
                 </div>
 
                 {m.link && (
-                  <div className="border-t border-slate-50 pt-4 flex items-center mt-2">
-                    <a 
-                      href={m.link} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1.5"
-                    >
-                      <Link2 className="w-4 h-4 text-blue-500" /> Buka Tautan Materi <ExternalLink className="w-3 h-3" />
-                    </a>
+                  <div className="border-t border-slate-50 pt-3 mt-2">
+                    <LinkPreviewCard url={m.link} />
                   </div>
                 )}
               </div>
@@ -267,15 +261,8 @@ export default function MateriTugasSiswa() {
                     )}
 
                     {a.link && (
-                      <div className="border-t border-slate-50 pt-3 flex items-center">
-                        <a 
-                          href={a.link} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1.5"
-                        >
-                          <Link2 className="w-4 h-4 text-blue-500" /> Lampiran Tugas <ExternalLink className="w-3 h-3" />
-                        </a>
+                      <div className="border-t border-slate-50 pt-2">
+                        <LinkPreviewCard url={a.link} />
                       </div>
                     )}
                   </div>

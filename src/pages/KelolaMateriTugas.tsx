@@ -23,6 +23,7 @@ import { useSchool } from '../context/SchoolContext';
 import { getFullState, addMaterial, deleteMaterial, addAssignment, deleteAssignment } from '../services/dbAttendance';
 import { ClassEntity, Student, Material, Assignment } from '../types';
 import { v4 as uuidv4 } from 'uuid';
+import LinkPreviewCard from '../components/LinkPreviewCard';
 
 export default function KelolaMateriTugas() {
   const { showAlert } = useAlert();
@@ -466,19 +467,13 @@ export default function KelolaMateriTugas() {
                     <p className="text-slate-500 text-sm leading-relaxed line-clamp-3 whitespace-pre-line">{m.description}</p>
                   </div>
 
-                  <div className="border-t border-slate-50 pt-4 flex items-center justify-between mt-2">
-                    <div className="flex items-center gap-2">
-                      {m.link && (
-                        <a 
-                          href={m.link} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1"
-                        >
-                          <Link2 className="w-3.5 h-3.5" /> Buka Materi <ExternalLink className="w-3 h-3" />
-                        </a>
-                      )}
+                  {m.link && (
+                    <div className="border-t border-slate-50 pt-3 mt-2">
+                      <LinkPreviewCard url={m.link} />
                     </div>
+                  )}
+
+                  <div className="border-t border-slate-50 pt-3 flex items-center justify-end mt-1">
                     <div className="flex gap-1.5">
                       <button 
                         onClick={() => handleOpenEditModal(m, 'material')}
@@ -567,19 +562,13 @@ export default function KelolaMateriTugas() {
                       </div>
                     )}
 
-                    <div className="border-t border-slate-50 pt-3 flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        {a.link && (
-                          <a 
-                            href={a.link} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1"
-                          >
-                            <Link2 className="w-3.5 h-3.5" /> Lampiran Tugas <ExternalLink className="w-3 h-3" />
-                          </a>
-                        )}
+                    {a.link && (
+                      <div className="pt-2">
+                        <LinkPreviewCard url={a.link} />
                       </div>
+                    )}
+
+                    <div className="border-t border-slate-50 pt-3 flex items-center justify-end">
                       <div className="flex gap-1.5">
                         <button 
                           onClick={() => handleOpenEditModal(a, 'assignment')}
