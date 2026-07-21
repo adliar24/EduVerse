@@ -55,14 +55,14 @@ export const LinkPreviewCard: React.FC<LinkPreviewCardProps> = ({ url, className
   } else if (isImage) {
     imageSources.push(formattedUrl);
   } else {
-    // 1. Microlink Screenshot API: waitUntil=networkidle0 waits until network connections stop (0 active requests for 500ms) + 8s JS timeout
-    imageSources.push(`https://api.microlink.io/?url=${encodeURIComponent(formattedUrl)}&screenshot=true&embed=screenshot.url&waitUntil=networkidle0&waitForTimeout=8000`);
+    // 1. Microlink Screenshot API: force fresh live capture (ttl=0, force=true) + networkidle0 + 8s wait
+    imageSources.push(`https://api.microlink.io/?url=${encodeURIComponent(formattedUrl)}&screenshot=true&embed=screenshot.url&waitUntil=networkidle0&waitForTimeout=8000&ttl=0&force=true`);
     
-    // 2. WordPress mShots 1280x720 (Wait 12s for full JS hydration & page rendering to finish)
-    imageSources.push(`https://s0.wp.com/mshots/v1/${encodeURIComponent(formattedUrl)}?w=1280&h=720&vtype=desktop&wait=12`);
+    // 2. WordPress mShots 1280x720 (Force fresh refresh + wait 12s for full page load)
+    imageSources.push(`https://s0.wp.com/mshots/v1/${encodeURIComponent(formattedUrl)}?w=1280&h=720&vtype=desktop&wait=12&refresh=true`);
 
-    // 3. Thum.io 1280x720 (Wait 10s after DOM load before snapshotting)
-    imageSources.push(`https://image.thum.io/get/width/1280/crop/720/wait/10/noanimate/${formattedUrl}`);
+    // 3. Thum.io 1280x720 (Force live refresh + wait 10s after DOM load)
+    imageSources.push(`https://image.thum.io/get/width/1280/crop/720/wait/10/noanimate/refresh/${formattedUrl}`);
   }
 
   const currentImgUrl = imageSources[imgIndex] || null;
