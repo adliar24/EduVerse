@@ -108,6 +108,10 @@ const AttendancePageWrapper = ({ Component }: { Component: React.ComponentType<a
     };
 
     autoPull();
+
+    // 3. Setup polling every 15 seconds
+    const interval = setInterval(autoPull, 15000);
+    return () => clearInterval(interval);
   }, []);
 
   const notify = (msg: string, type: 'success' | 'error' = 'success') => {
@@ -164,6 +168,10 @@ const GradingPageWrapper = ({ Component }: { Component: React.ComponentType<any>
     };
 
     autoPullGrading();
+
+    // 3. Setup polling every 15 seconds
+    const interval = setInterval(autoPullGrading, 15000);
+    return () => clearInterval(interval);
   }, []);
 
   if (loading) {

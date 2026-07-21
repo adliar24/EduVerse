@@ -458,7 +458,7 @@ export const resetAllData = async () => {
 let syncTimeout: ReturnType<typeof setTimeout> | null = null;
 let skipSync = false;
 let lastSyncAttempt = 0;
-const SYNC_COOLDOWN = 10000; // 10 seconds between actual syncs
+const SYNC_COOLDOWN = 1000; // 1 second between actual syncs
 
 export const setSkipSync = (value: boolean) => {
   skipSync = value;
@@ -499,5 +499,5 @@ export const autoSyncToCloud = async () => {
     } catch (e) {
       console.error('[Auto-sync] Failed:', e);
     }
-  }, 7500); // Wait 7.5 seconds of inactivity before syncing
+  }, 1000); // Wait 1 second of inactivity before syncing
 };
