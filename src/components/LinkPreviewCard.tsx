@@ -148,7 +148,7 @@ export const LinkPreviewCard: React.FC<LinkPreviewCardProps> = ({ url, className
       className={`group block overflow-hidden rounded-2xl border border-slate-200/80 bg-white hover:border-indigo-400 hover:shadow-2xl hover:shadow-indigo-500/15 transition-all duration-300 ${className}`}
     >
       {/* 16:9 Banner Container */}
-      <div className="relative w-full aspect-[16/9] min-h-[160px] max-h-[260px] bg-slate-900 overflow-hidden flex items-center justify-center border-b border-slate-100">
+      <div className="relative w-full aspect-[16/9] bg-slate-900 overflow-hidden flex items-center justify-center border-b border-slate-100">
         {loading ? (
           /* Sleek Pulse Skeleton */
           <div className="absolute inset-0 bg-slate-800/90 flex flex-col items-center justify-center p-4 text-center animate-pulse">
