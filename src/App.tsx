@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import React, { useEffect, useState, Suspense, lazy } from 'react';
+import React, { useEffect, useState, useRef, Suspense, lazy } from 'react';
 import { supabase } from './lib/supabase';
 import ErrorBoundary from './components/ErrorBoundary';
 
@@ -285,6 +285,29 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [profileCompleted, setProfileCompleted] = useState<boolean | null>(null);
 
+  const syncInProgressRef = useRef(false);
+  const triggerInitialSync = async () => {
+    if (syncInProgressRef.current) return;
+    syncInProgressRef.current = true;
+    try {
+      const { syncService } = await import('./services/sync');
+      if (syncService.isConfigured()) {
+        const user = await syncService.getUser();
+        if (user) {
+          console.log('[App] Session active, pulling data from Supabase...');
+          await syncService.pullFromCloud();
+          const dbGrading = await import('./services/dbGrading');
+          await dbGrading.syncCloudToLocal();
+          console.log('[App] Initial data pull complete.');
+        }
+      }
+    } catch (err) {
+      console.error('[App] Failed to pull initial data:', err);
+    } finally {
+      syncInProgressRef.current = false;
+    }
+  };
+
   useEffect(() => {
     const handleSync = () => {
       const savedStudent = localStorage.getItem('student_session');
@@ -299,6 +322,7 @@ export default function App() {
       if (session) {
         setLoading(true);
         checkProfileCompletion(session.user.id, session);
+        triggerInitialSync();
       } else {
         setLoading(false);
       }
@@ -309,6 +333,7 @@ export default function App() {
       if (session) {
         setLoading(true);
         checkProfileCompletion(session.user.id, session);
+        triggerInitialSync();
       } else {
         setProfileCompleted(null);
         setLoading(false);
