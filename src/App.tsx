@@ -75,9 +75,9 @@ const AttendancePageWrapper = ({ Component }: { Component: React.ComponentType<a
   const [loading, setLoading] = useState(true);
   const { showToast } = useAlert();
 
-  const loadState = async () => {
+  const loadState = async (forceRefresh = false) => {
     try {
-      const fullState = await getFullState();
+      const fullState = await getFullState(forceRefresh);
       setState(fullState);
     } catch (err) {
       console.error("Failed to load attendance state:", err);
@@ -87,7 +87,27 @@ const AttendancePageWrapper = ({ Component }: { Component: React.ComponentType<a
   };
 
   useEffect(() => {
+    // 1. Load local state instantly
     loadState();
+
+    // 2. Fetch updates from cloud in background
+    const autoPull = async () => {
+      try {
+        const { syncService } = await import('./services/sync');
+        if (syncService.isConfigured()) {
+          const user = await syncService.getUser();
+          if (user) {
+            await syncService.pullFromCloud();
+            // Force reload database to pick up new items
+            await loadState(true);
+          }
+        }
+      } catch (err) {
+        console.error("[AttendancePageWrapper] Auto-pull failed:", err);
+      }
+    };
+
+    autoPull();
   }, []);
 
   const notify = (msg: string, type: 'success' | 'error' = 'success') => {
