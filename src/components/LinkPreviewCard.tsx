@@ -241,16 +241,6 @@ export const LinkPreviewCard: React.FC<LinkPreviewCardProps> = ({ url, className
           </div>
         )}
 
-        {/* Floating Domain Badge */}
-        <div className="absolute top-3 left-3 bg-slate-900/85 backdrop-blur-md text-white text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-2 shadow-md border border-white/15 z-20">
-          <img 
-            src={ogData?.logo || faviconUrl} 
-            alt="" 
-            className="w-4 h-4 rounded-sm shrink-0" 
-            onError={(e) => ((e.currentTarget as HTMLElement).style.display = 'none')} 
-          />
-          <span className="capitalize">{siteBadge}</span>
-        </div>
       </div>
 
       {/* Card Info Footer */}
