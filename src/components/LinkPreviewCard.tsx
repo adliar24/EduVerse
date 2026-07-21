@@ -109,20 +109,16 @@ export const LinkPreviewCard: React.FC<LinkPreviewCardProps> = ({ url, className
       return;
     }
 
-    // Fast Open Graph Metadata Fetcher (<200ms JSON parsing without heavy screenshot rendering)
-    fetch(`https://api.microlink.io/?url=${encodeURIComponent(formattedUrl)}`)
+    // Fast Open Graph Metadata Fetcher (bypassing edge cache with ttl=0&force=true to fetch newly deployed og:image)
+    fetch(`https://api.microlink.io/?url=${encodeURIComponent(formattedUrl)}&ttl=0&force=true`)
       .then((res) => res.json())
       .then((json) => {
         if (!isMounted) return;
         if (json.status === 'success' && json.data) {
           const d = json.data;
-          // Filter out generic default title/description if placeholder
-          const titleToUse = d.title && !d.title.includes('Google AI Studio') ? d.title : domain;
-          const descToUse = d.description && !d.description.includes('menghubungkan ke basis data') ? d.description : formattedUrl;
-          
           setOgData({
-            title: titleToUse,
-            description: descToUse,
+            title: d.title || domain,
+            description: d.description || formattedUrl,
             image: d.image?.url,
             logo: d.logo?.url,
             publisher: d.publisher
