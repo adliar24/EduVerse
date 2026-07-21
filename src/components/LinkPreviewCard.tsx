@@ -46,8 +46,8 @@ export const LinkPreviewCard: React.FC<LinkPreviewCardProps> = ({ url, className
   // Favicon API from Google (High-res 128px)
   const faviconUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
 
-  // Hourly Cache Buster for auto-refreshing live web updates
-  const hourlyCacheTag = Math.floor(Date.now() / (1000 * 60 * 60));
+  // Real-time Cache Buster for instant browser cache bypass
+  const cacheBuster = Date.now();
 
   // Multiple 16:9 High-Resolution Desktop Screenshot Sources (1280x720) with Auto-Refresh & Delay
   const imageSources: string[] = [];
@@ -57,12 +57,12 @@ export const LinkPreviewCard: React.FC<LinkPreviewCardProps> = ({ url, className
   } else if (isImage) {
     imageSources.push(formattedUrl);
   } else {
-    // 1. WordPress mShots 1280x720 16:9 Desktop Engine (Auto-Refresh + 6s Wait for JS Hydration)
-    imageSources.push(`https://s0.wp.com/mshots/v1/${encodeURIComponent(formattedUrl)}?w=1280&h=720&vtype=desktop&wait=6&refresh=true&v=${hourlyCacheTag}`);
-    // 2. Microlink Screenshot API (Auto-Refresh + 5s Wait)
-    imageSources.push(`https://api.microlink.io/?url=${encodeURIComponent(formattedUrl)}&screenshot=true&embed=screenshot.url&waitForTimeout=5000&ttl=1h&v=${hourlyCacheTag}`);
+    // 1. WordPress mShots 1280x720 16:9 Desktop Engine (Force Fresh Live Capture + 6s Wait for JS Hydration)
+    imageSources.push(`https://s0.wp.com/mshots/v1/${encodeURIComponent(formattedUrl)}?w=1280&h=720&vtype=desktop&wait=6&refresh=true&_cb=${cacheBuster}`);
+    // 2. Microlink Screenshot API (Force Fresh Live Capture + 5s Wait)
+    imageSources.push(`https://api.microlink.io/?url=${encodeURIComponent(formattedUrl)}&screenshot=true&embed=screenshot.url&waitForTimeout=5000&_cb=${cacheBuster}`);
     // 3. Thum.io 1280x720 with Live Refresh & 6s Wait
-    imageSources.push(`https://image.thum.io/get/width/1280/crop/720/wait/6/noanimate/refresh/${formattedUrl}`);
+    imageSources.push(`https://image.thum.io/get/width/1280/crop/720/wait/6/noanimate/refresh/${formattedUrl}?_cb=${cacheBuster}`);
   }
 
   const currentImgUrl = imageSources[imgIndex] || null;
