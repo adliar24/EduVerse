@@ -46,7 +46,7 @@ export const LinkPreviewCard: React.FC<LinkPreviewCardProps> = ({ url, className
   // Favicon API from Google (High-res 128px)
   const faviconUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
 
-  // Multiple 16:9 High-Resolution Desktop Screenshot Sources (1280x720)
+  // Multiple 16:9 High-Resolution Desktop Screenshot Sources (1280x720) with Wait Time for JS Hydration
   const imageSources: string[] = [];
   if (youtubeId) {
     imageSources.push(`https://img.youtube.com/vi/${youtubeId}/sddefault.jpg`);
@@ -54,12 +54,12 @@ export const LinkPreviewCard: React.FC<LinkPreviewCardProps> = ({ url, className
   } else if (isImage) {
     imageSources.push(formattedUrl);
   } else {
-    // 1. WordPress mShots 1280x720 16:9 Desktop Engine
-    imageSources.push(`https://s0.wp.com/mshots/v1/${encodeURIComponent(formattedUrl)}?w=1280&h=720`);
-    // 2. Thum.io 1280x720 Desktop Engine
-    imageSources.push(`https://image.thum.io/get/width/1280/crop/720/noanimate/${formattedUrl}`);
-    // 3. Microlink Screenshot API
-    imageSources.push(`https://api.microlink.io/?url=${encodeURIComponent(formattedUrl)}&screenshot=true&embed=screenshot.url`);
+    // 1. WordPress mShots 1280x720 16:9 Desktop Engine (Wait 6 seconds for SPA hydration & loading screen)
+    imageSources.push(`https://s0.wp.com/mshots/v1/${encodeURIComponent(formattedUrl)}?w=1280&h=720&vtype=desktop&wait=6`);
+    // 2. Microlink Screenshot API with 5s delay
+    imageSources.push(`https://api.microlink.io/?url=${encodeURIComponent(formattedUrl)}&screenshot=true&embed=screenshot.url&waitForTimeout=5000`);
+    // 3. Thum.io 1280x720 with 6s wait
+    imageSources.push(`https://image.thum.io/get/width/1280/crop/720/wait/6/noanimate/${formattedUrl}`);
   }
 
   const currentImgUrl = imageSources[imgIndex] || null;
