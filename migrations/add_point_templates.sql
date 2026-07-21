@@ -12,7 +12,32 @@ CREATE TABLE IF NOT EXISTS public.point_templates (
 -- Matikan RLS untuk point_templates (agar kompatibel dengan skema tabel EduScore lainnya)
 ALTER TABLE public.point_templates DISABLE ROW LEVEL SECURITY;
 
--- Grant permissions
+-- Grant permissions untuk point_templates
 GRANT ALL ON public.point_templates TO authenticated;
 GRANT ALL ON public.point_templates TO anon;
 GRANT ALL ON public.point_templates TO service_role;
+
+-- Grant permissions untuk tabel EduScore & Classes yang bermasalah RLS/403
+GRANT ALL ON public.classes TO authenticated;
+GRANT ALL ON public.classes TO anon;
+GRANT ALL ON public.classes TO service_role;
+
+GRANT ALL ON public.learning_objectives TO authenticated;
+GRANT ALL ON public.learning_objectives TO anon;
+GRANT ALL ON public.learning_objectives TO service_role;
+
+GRANT ALL ON public.meetings TO authenticated;
+GRANT ALL ON public.meetings TO anon;
+GRANT ALL ON public.meetings TO service_role;
+
+GRANT ALL ON public.meeting_scores TO authenticated;
+GRANT ALL ON public.meeting_scores TO anon;
+GRANT ALL ON public.meeting_scores TO service_role;
+
+GRANT ALL ON public.student_points TO authenticated;
+GRANT ALL ON public.student_points TO anon;
+GRANT ALL ON public.student_points TO service_role;
+
+GRANT ALL ON public.final_grades TO authenticated;
+GRANT ALL ON public.final_grades TO anon;
+GRANT ALL ON public.final_grades TO service_role;
