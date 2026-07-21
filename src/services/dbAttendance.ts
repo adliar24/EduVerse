@@ -204,21 +204,24 @@ export const getFullState = async (forceRefresh = false): Promise<AppState> => {
   }
 };
 
-export const saveTeacherProfile = async (profile: TeacherProfile) => {
+export const saveTeacherProfile = async (profile: TeacherProfile, skipCloudPush = false) => {
   const db = await initDB();
   const tx = db.transaction('teacher', 'readwrite');
   await tx.objectStore('teacher').clear();
   await tx.objectStore('teacher').put(profile);
   await tx.done;
   stateCache.data = null;
-  autoSyncToCloud();
   
-  // Paksa sinkronisasi instan khusus untuk profil
-  try {
-    const { syncService } = await import('./sync');
-    syncService.pushToCloud();
-  } catch (e) {
-    console.error('[saveTeacherProfile] Instant sync failed:', e);
+  if (!skipCloudPush) {
+    autoSyncToCloud();
+    
+    // Paksa sinkronisasi instan khusus untuk profil
+    try {
+      const { syncService } = await import('./sync');
+      syncService.pushToCloud();
+    } catch (e) {
+      console.error('[saveTeacherProfile] Instant sync failed:', e);
+    }
   }
 };
 

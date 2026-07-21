@@ -1,5 +1,22 @@
 import {StrictMode} from 'react';
 import {createRoot} from 'react-dom/client';
+
+// Polyfill for crypto.randomUUID in non-secure contexts (e.g. testing via local IP address over HTTP)
+if (typeof window !== 'undefined') {
+  if (!window.crypto) {
+    (window as any).crypto = {} as any;
+  }
+  if (!(window.crypto as any).randomUUID) {
+    (window.crypto as any).randomUUID = function () {
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+        const r = Math.random() * 16 | 0;
+        const v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+      });
+    };
+  }
+}
+
 import App from './App.tsx';
 import './index.css';
 

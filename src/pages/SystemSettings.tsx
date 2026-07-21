@@ -27,7 +27,7 @@ const loadSyncService = async () => {
 
 export default function SystemSettings() {
   const { showAlert } = useAlert();
-  const { refreshSchools } = useSchool();
+  const { refreshSchools, activeSchool } = useSchool();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [user, setUser] = useState<any>(null);

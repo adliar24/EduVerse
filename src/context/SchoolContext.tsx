@@ -25,7 +25,12 @@ export function SchoolProvider({ children }: { children: ReactNode }) {
   const refreshSchools = async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
+      if (!session) {
+        setSchools([]);
+        setActiveSchoolState(null);
+        setLoading(false);
+        return;
+      }
 
       console.log('SchoolContext - User ID:', session.user.id);
       
@@ -85,6 +90,19 @@ export function SchoolProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     refreshSchools();
+
+    window.addEventListener('auth_state_change', refreshSchools);
+    window.addEventListener('storage', refreshSchools);
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
+      refreshSchools();
+    });
+
+    return () => {
+      subscription.unsubscribe();
+      window.removeEventListener('auth_state_change', refreshSchools);
+      window.removeEventListener('storage', refreshSchools);
+    };
   }, []);
 
   const setActiveSchool = async (school: School | null) => {

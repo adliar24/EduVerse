@@ -899,3 +899,12 @@ DROP POLICY IF EXISTS "Siswa dapat melihat tugas" ON public.assignments;
 CREATE POLICY "Siswa dapat melihat tugas" ON public.assignments
   FOR SELECT TO public
   USING (true);
+
+-- Grant permissions untuk Materials dan Assignments
+GRANT ALL ON public.materials TO authenticated;
+GRANT ALL ON public.materials TO anon;
+GRANT ALL ON public.materials TO service_role;
+
+GRANT ALL ON public.assignments TO authenticated;
+GRANT ALL ON public.assignments TO anon;
+GRANT ALL ON public.assignments TO service_role;

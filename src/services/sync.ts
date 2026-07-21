@@ -412,7 +412,10 @@ export const syncService = {
           if (cleanupError) console.error(`Error cleaning up ${cloudTableName}:`, cleanupError);
         } else {
           // If local is empty, delete everything for this user
-          await client.from(cloudTableName).delete().eq('teacher_id', user.id);
+          const { error: deleteError } = await client.from(cloudTableName).delete().eq('teacher_id', user.id);
+          if (deleteError) {
+            console.warn(`[pushToCloud] Error cleaning up empty ${cloudTableName}:`, deleteError.message);
+          }
         }
       }
       
@@ -422,7 +425,7 @@ export const syncService = {
       const nowISO = new Date().toISOString();
       if (state.teacher) {
         const updatedProfile = { ...state.teacher, lastSyncTimestamp: nowISO };
-        await saveTeacherProfile(updatedProfile);
+        await saveTeacherProfile(updatedProfile, true);
       }
 
       return { success: true, message: 'Data berhasil disinkronisasi ke cloud' };
@@ -496,7 +499,7 @@ export const syncService = {
         }
         normalizedTeacher.schools = schools.length > 0 ? schools : ['Sekolah Belum Diatur'];
 
-        await saveTeacherProfile(normalizedTeacher as TeacherProfile);
+        await saveTeacherProfile(normalizedTeacher as TeacherProfile, true);
         console.log('[pullFromCloud] Final Match with Schema:', normalizedTeacher);
       }
       else {
