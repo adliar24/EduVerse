@@ -347,6 +347,16 @@ export const syncService = {
         students: state.students.length
       });
       
+      // SMART PROTECTION: If local DB is empty, check if Cloud has data and restore it instantly!
+      if (!state.classes || state.classes.length === 0) {
+        const { count } = await client.from('classes').select('*', { count: 'exact', head: true }).eq('teacher_id', user.id);
+        if (count && count > 0) {
+          console.log(`[pushToCloud] Local DB is empty, but Cloud has ${count} classes. Auto-restoring from Cloud...`);
+          setSkipSync(false);
+          return await this.pullFromCloud();
+        }
+      }
+      
       // 1. Sync Teacher Profile
       if (state.teacher) {
         console.log('[pushToCloud] Syncing to ACTUAL schema (Strict Mode):', state.teacher);
