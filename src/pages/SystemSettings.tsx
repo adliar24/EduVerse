@@ -342,64 +342,11 @@ export default function SystemSettings() {
   return (
     <div className="space-y-6 pb-10">
       <div>
-        <h2 className="text-3xl font-bold text-indigo-950 tracking-tight">Sinkronisasi & Backup</h2>
-        <p className="text-slate-500 font-medium mt-1">Kelola pencadangan, pemulihan, dan sinkronisasi seluruh data sistem EduVerse.</p>
+        <h2 className="text-3xl font-bold text-indigo-950 tracking-tight">Cadangan & Pemulihan</h2>
+        <p className="text-slate-500 font-medium mt-1">Kelola pencadangan dan pemulihan data sistem EduVerse secara manual.</p>
       </div>
 
       <div className="max-w-5xl mx-auto space-y-6">
-        {/* Sync Card */}
-        <Card className="p-6 bg-white/70 backdrop-blur-xl border border-white/40 shadow-sm">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="bg-indigo-50 p-2.5 rounded-xl text-indigo-600">
-              <Cloud className="w-6 h-6" />
-            </div>
-            <div>
-              <h3 className="font-bold text-indigo-950 text-lg">Sinkronisasi Cloud</h3>
-              <p className="text-slate-400 text-xs mt-0.5 font-medium">Unggah dan unduh data dari server Supabase.</p>
-            </div>
-          </div>
-
-          {!user ? (
-            <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl text-center">
-              <p className="text-sm font-semibold text-slate-500">Akun belum terhubung ke Cloud Supabase.</p>
-              <p className="text-xs text-slate-400 mt-1">Silakan login sebagai guru untuk mengaktifkan sinkronisasi.</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <div className="flex items-center gap-3 p-4 bg-indigo-50/50 rounded-xl border border-indigo-100/50">
-                <div className="w-10 h-10 rounded-full bg-indigo-900/10 flex items-center justify-center text-indigo-950">
-                  <User className="w-5 h-5" />
-                </div>
-                <div>
-                  <p className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest">Akun Terhubung</p>
-                  <p className="font-bold text-indigo-950 text-sm">{user.email}</p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
-                <Button 
-                  onClick={handleSyncToCloud}
-                  isLoading={isSyncing}
-                  className="w-full !py-3 font-semibold text-sm shadow-sm flex items-center justify-center gap-2"
-                >
-                  {isSyncing ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
-                  Sinkronkan Sekarang
-                </Button>
-
-                <Button 
-                  onClick={handlePullFromCloud}
-                  disabled={isSyncing}
-                  variant="secondary"
-                  className="w-full !py-3 font-semibold text-sm border border-slate-200 flex items-center justify-center gap-2"
-                >
-                  <Download className="w-4 h-4 text-indigo-950" />
-                  Tarik Data dari Cloud
-                </Button>
-              </div>
-            </div>
-          )}
-        </Card>
-
         {/* Local Backup Card */}
         <Card className="p-6 bg-white/70 backdrop-blur-xl border border-white/40 shadow-sm">
           <div className="flex items-center gap-3 mb-6">

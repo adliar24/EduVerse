@@ -179,7 +179,7 @@ export default function Layout({ session }: LayoutProps) {
         { label: 'Profil Saya', path: '/profil' },
         { label: 'Pengaturan Absensi', path: '/attendance/settings' },
         { label: 'Pengaturan Nilai', path: '/grading/settings' },
-        { label: 'Sinkronisasi & Backup', path: '/settings/sync' },
+        { label: 'Cadangan & Pemulihan', path: '/settings/sync' },
       ]
     },
   ];
