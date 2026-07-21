@@ -399,24 +399,6 @@ export const syncService = {
             if (upsertError) console.error(`Error upserting ${cloudTableName} chunk:`, upsertError);
           }
         }
-
-        // Step B: Remove data from cloud that no longer exists locally
-        const localIds = data.map((item: any) => item.id);
-        if (localIds.length > 0) {
-          const { error: cleanupError } = await client
-            .from(cloudTableName)
-            .delete()
-            .eq('teacher_id', user.id)
-            .not('id', 'in', `(${localIds.join(',')})`);
-          
-          if (cleanupError) console.error(`Error cleaning up ${cloudTableName}:`, cleanupError);
-        } else {
-          // If local is empty, delete everything for this user
-          const { error: deleteError } = await client.from(cloudTableName).delete().eq('teacher_id', user.id);
-          if (deleteError) {
-            console.warn(`[pushToCloud] Error cleaning up empty ${cloudTableName}:`, deleteError.message);
-          }
-        }
       }
       
       console.log('[pushToCloud] Complete');
