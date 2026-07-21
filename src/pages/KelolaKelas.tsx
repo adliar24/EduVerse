@@ -176,9 +176,10 @@ export default function KelolaKelas() {
       const localState = await getFullState(true);
       const localStudents = localState.students || [];
       const classStudentsLocal = localStudents.filter(s => s.classId === classId || (s as any).class_id === classId || (s as any).idKelas === classId);
+      const sortedLocal = [...classStudentsLocal].sort((a, b) => a.name.localeCompare(b.name, 'id', { sensitivity: 'base' }));
       
       if (isMountedRef.current) {
-        setClassStudents(classStudentsLocal.map(s => ({
+        setClassStudents(sortedLocal.map(s => ({
           ...s,
           class_id: s.classId || (s as any).class_id || (s as any).idKelas
         })));
@@ -223,9 +224,10 @@ export default function KelolaKelas() {
           const updatedState = await getFullState(true);
           const updatedStudents = updatedState.students || [];
           const classStudentsUpdated = updatedStudents.filter(s => s.classId === classId || (s as any).class_id === classId || (s as any).idKelas === classId);
+          const sortedUpdated = [...classStudentsUpdated].sort((a, b) => a.name.localeCompare(b.name, 'id', { sensitivity: 'base' }));
           
           if (isMountedRef.current) {
-            setClassStudents(classStudentsUpdated.map(s => ({
+            setClassStudents(sortedUpdated.map(s => ({
               ...s,
               class_id: s.classId || (s as any).class_id || (s as any).idKelas
             })));
@@ -272,7 +274,7 @@ export default function KelolaKelas() {
             password: updatedStudent.password || 'murid19'
           } as any);
         }
-        showAlert({ title: 'Berhasil', message: 'Nama siswa berhasil diperbarui.', type: 'success' });
+        showAlert({ title: 'Berhasil', message: 'Nama murid berhasil diperbarui.', type: 'success' });
       } else {
         const { data: newStudent, error } = await supabase.from('students').insert([{ 
           name: newStudentName, 
@@ -307,7 +309,7 @@ export default function KelolaKelas() {
             password: newStudent.password || 'murid19'
           } as any);
         }
-        showAlert({ title: 'Berhasil', message: 'Siswa berhasil ditambahkan.', type: 'success' });
+        showAlert({ title: 'Berhasil', message: 'Murid berhasil ditambahkan.', type: 'success' });
       }
       setShowAddStudentForm(false);
       setNewStudentName('');
@@ -320,7 +322,7 @@ export default function KelolaKelas() {
 
   const handleDeleteStudent = async (id: string) => {
     showAlert({
-      title: 'Hapus Siswa?', message: 'Data siswa akan terhapus secara permanen.', type: 'confirm', confirmText: 'Ya, Hapus',
+      title: 'Hapus Murid?', message: 'Data murid akan terhapus secara permanen.', type: 'confirm', confirmText: 'Ya, Hapus',
       onConfirm: async () => {
         try {
           const { error } = await supabase.from('students').delete().eq('id', id);
@@ -331,7 +333,7 @@ export default function KelolaKelas() {
 
           fetchClassStudents(selectedClass.id);
           fetchClasses(); 
-          showAlert({ title: 'Terhapus', message: 'Siswa berhasil dihapus.', type: 'success' });
+          showAlert({ title: 'Terhapus', message: 'Murid berhasil dihapus.', type: 'success' });
         } catch (error: any) { showAlert({ title: 'Gagal', message: error.message, type: 'error' }); }
       }
     });
@@ -341,14 +343,14 @@ export default function KelolaKelas() {
     const template = [{ 'Nama Lengkap': 'Ahmad Fauzi' }, { 'Nama Lengkap': 'Siti Aminah' }];
     const worksheet = XLSX.utils.json_to_sheet(template);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Template");
-    XLSX.writeFile(workbook, `Template_Siswa_${selectedClass?.name || 'Kelas'}.xlsx`);
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Template Murid");
+    XLSX.writeFile(workbook, `Template_Murid_${selectedClass?.name || 'Kelas'}.xlsx`);
   };
 
   const handleExportExcel = () => {
     if (!selectedClass) return;
     if (classStudents.length === 0) {
-      showAlert({ title: 'Kosong', message: 'Tidak ada data siswa untuk diekspor.', type: 'warning' });
+      showAlert({ title: 'Kosong', message: 'Tidak ada data murid untuk diekspor.', type: 'warning' });
       return;
     }
 
@@ -431,8 +433,8 @@ export default function KelolaKelas() {
     }
 
     const workbook = XLSXStyle.utils.book_new();
-    XLSXStyle.utils.book_append_sheet(workbook, worksheet, "Data Siswa");
-    XLSXStyle.writeFile(workbook, `Data_Siswa_${selectedClass.name}.xlsx`.replace(/\s+/g, '_'));
+    XLSXStyle.utils.book_append_sheet(workbook, worksheet, "Data Murid");
+    XLSXStyle.writeFile(workbook, `Data_Murid_${selectedClass.name}.xlsx`.replace(/\s+/g, '_'));
   };
 
   const handleImportExcel = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -523,7 +525,7 @@ export default function KelolaKelas() {
           }
         }
         
-        let message = `${successCount} siswa diimpor ke kelas ${selectedClass.name}.`;
+        let message = `${successCount} murid diimpor ke kelas ${selectedClass.name}.`;
         if (skippedCount > 0) message += ` ${skippedCount} baris kosong dilewati.`;
         if (errorMessages.length > 0) {
           message += ` ${errorMessages.length} gagal. Cek console untuk detail.`;
@@ -551,11 +553,11 @@ export default function KelolaKelas() {
   const handleGenerateCodes = async () => {
     if (!selectedClass) return;
     showAlert({
-      title: 'Generate Username?', message: 'Siswa yang belum memiliki username akan mendapatkan username baru.', type: 'confirm', confirmText: 'Ya, Generate',
+      title: 'Generate Username?', message: 'Murid yang belum memiliki username akan mendapatkan username baru.', type: 'confirm', confirmText: 'Ya, Generate',
       onConfirm: async () => {
         try {
           const updates = classStudents.filter(s => !s.student_code).map(s => ({ id: s.id, student_code: generateStudentCode() }));
-          if (updates.length === 0) { showAlert({ title: 'Info', message: 'Semua siswa sudah memiliki username.', type: 'info' }); return; }
+          if (updates.length === 0) { showAlert({ title: 'Info', message: 'Semua murid sudah memiliki username.', type: 'info' }); return; }
           for (const s of updates) { 
             const { data: updatedStudent } = await supabase.from('students').update({ student_code: s.student_code }).eq('id', s.id).select().single(); 
             if (updatedStudent) {
@@ -858,7 +860,7 @@ export default function KelolaKelas() {
                 {loadingStudents ? (
                   <div className="py-16 flex flex-col items-center">
                     <Loader2 className="w-8 h-8 animate-spin text-indigo-950 opacity-20" />
-                    <p className="mt-3 text-slate-300 text-xs font-medium">Memuat data siswa...</p>
+                    <p className="mt-3 text-slate-300 text-xs font-medium">Memuat data murid...</p>
                   </div>
                 ) : classStudents.length > 0 ? (
                   <div className="space-y-4">
@@ -867,7 +869,7 @@ export default function KelolaKelas() {
                         <thead>
                           <tr className="bg-slate-50/50 border-b border-slate-100">
                             <th className="px-4 py-3 text-[10px] font-semibold text-slate-400 uppercase tracking-wider w-12">No</th>
-                            <th className="px-4 py-3 text-[10px] font-semibold text-slate-400 uppercase tracking-wider text-left">Nama Siswa</th>
+                            <th className="px-4 py-3 text-[10px] font-semibold text-slate-400 uppercase tracking-wider text-left">Nama Murid</th>
                             <th className="px-4 py-3 text-[10px] font-semibold text-slate-400 uppercase tracking-wider text-center w-36">Username</th>
                             <th className="px-4 py-3 text-[10px] font-semibold text-slate-400 uppercase tracking-wider text-center w-24">Status</th>
                             <th className="px-4 py-3 text-[10px] font-semibold text-slate-400 uppercase tracking-wider text-right w-24">Aksi</th>
@@ -895,11 +897,11 @@ export default function KelolaKelas() {
                               <td className="px-4 py-3 text-right">
                                 <div className="flex items-center justify-end gap-1">
                                   <button onClick={() => { setEditingStudentId(s.id); setNewStudentName(s.name); setShowAddStudentForm(true); }}
-                                    className="p-1.5 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50/80 rounded-lg transition-all" title="Edit Siswa"
+                                    className="p-1.5 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50/80 rounded-lg transition-all" title="Edit Murid"
                                   >
                                     <Edit3 className="w-3.5 h-3.5" />
                                   </button>
-                                  <button onClick={() => handleDeleteStudent(s.id)} className="p-1.5 text-rose-600 hover:text-rose-800 hover:bg-rose-50 rounded-lg transition-all" title="Hapus Siswa">
+                                  <button onClick={() => handleDeleteStudent(s.id)} className="p-1.5 text-rose-600 hover:text-rose-800 hover:bg-rose-50 rounded-lg transition-all" title="Hapus Murid">
                                     <Trash2 className="w-3.5 h-3.5" />
                                   </button>
                                 </div>
@@ -912,8 +914,8 @@ export default function KelolaKelas() {
 
                     <div className="bg-slate-50 p-5 rounded-xl border border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
                       <div className="text-center sm:text-left">
-                        <p className="font-semibold text-indigo-950 text-sm">Otomatisasi Username Siswa</p>
-                        <p className="text-slate-400 text-xs mt-0.5">Buat username untuk siswa yang belum punya secara otomatis.</p>
+                        <p className="font-semibold text-indigo-950 text-sm">Otomatisasi Username Murid</p>
+                        <p className="text-slate-400 text-xs mt-0.5">Buat username untuk murid yang belum punya secara otomatis.</p>
                       </div>
                       <button onClick={handleGenerateCodes} className="px-4 py-2.5 bg-white border border-slate-200 text-indigo-950 rounded-lg font-semibold text-xs hover:bg-indigo-950 hover:text-white transition-all active:scale-95 flex items-center gap-1.5">
                         Buat Username Massal <ArrowRight className="w-3.5 h-3.5" />
@@ -925,8 +927,8 @@ export default function KelolaKelas() {
                     <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4">
                       <Users className="w-7 h-7 text-slate-200" />
                     </div>
-                    <h4 className="text-base font-bold text-indigo-950">Belum Ada Siswa</h4>
-                    <p className="text-slate-400 text-sm max-w-xs mx-auto mt-1">Klik "Tambah Siswa" atau gunakan fitur "Impor Excel".</p>
+                    <h4 className="text-base font-bold text-indigo-950">Belum Ada Murid</h4>
+                    <p className="text-slate-400 text-sm max-w-xs mx-auto mt-1">Klik "Tambah Murid" atau gunakan fitur "Impor Excel".</p>
                   </div>
                 )}
               </div>
@@ -941,10 +943,10 @@ export default function KelolaKelas() {
           <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowAddStudentForm(false)} className="absolute inset-0 bg-indigo-900/30 backdrop-blur-sm" />
             <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.97 }} className="relative w-full max-w-sm bg-white rounded-2xl shadow-2xl p-6">
-              <h3 className="text-lg font-bold text-indigo-950 mb-5">{editingStudentId ? 'Edit Nama Siswa' : 'Tambah Siswa Manual'}</h3>
+              <h3 className="text-lg font-bold text-indigo-950 mb-5">{editingStudentId ? 'Edit Nama Murid' : 'Tambah Murid Manual'}</h3>
               <form onSubmit={handleAddStudent} className="space-y-4">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Nama Lengkap Siswa</label>
+                  <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Nama Lengkap Murid</label>
                   <input type="text" autoFocus required placeholder="Contoh: Budi Santoso"
                     className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 outline-none focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-950 text-sm font-medium text-indigo-950"
                     value={newStudentName} onChange={(e) => setNewStudentName(e.target.value)}
@@ -953,7 +955,7 @@ export default function KelolaKelas() {
                 <div className="flex gap-3 pt-2">
                   <button type="button" onClick={() => setShowAddStudentForm(false)} className="flex-1 py-3 text-sm font-medium text-slate-400 hover:bg-slate-50 rounded-xl transition-all">Batal</button>
                   <button type="submit" disabled={submitting} className="flex-[2] bg-indigo-950 text-white py-3 rounded-xl font-semibold text-sm hover:bg-indigo-900 transition-all shadow-sm flex items-center justify-center">
-                    {submitting ? 'Menyimpan...' : editingStudentId ? 'Perbarui Siswa' : 'Simpan Siswa'}
+                    {submitting ? 'Menyimpan...' : editingStudentId ? 'Perbarui Murid' : 'Simpan Murid'}
                   </button>
                 </div>
               </form>

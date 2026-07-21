@@ -210,7 +210,7 @@ export const parseCertificateExcel = async (file: File): Promise<BulkCertificate
 
           return {
             id: `cert-${index}`,
-            studentName: row['Nama Siswa'] || row['Nama'] || row['Name'] || '',
+            studentName: row['Nama Murid'] || row['Nama Siswa'] || row['Nama'] || row['Name'] || '',
             studentClass: row['Kelas'] || row['Class'] || '',
             grade: grade, 
             themeColor: themeColor,
@@ -235,7 +235,7 @@ export const parseCertificateExcel = async (file: File): Promise<BulkCertificate
 export const generateSampleCertificateExcel = () => {
   const ws = XLSX.utils.json_to_sheet([
     {
-      "Nama Siswa": "Budi Santoso",
+      "Nama Murid": "Budi Santoso",
       "Kelas": "XII IPA 1",
       "Warna (1-9)": 1,
       "Teks Grade": "Baik",
@@ -260,20 +260,20 @@ export const generateSampleCertificateExcel = () => {
 
 export const generateStudentListTemplate = () => {
   const ws = XLSX.utils.json_to_sheet([
-    { "Nama Siswa": "Andi Pratama", "Jenis Kelamin (L/P)": "L", "Kemampuan (Mahir/Cakap/Dasar/Intervensi)": "Mahir" },
-    { "Nama Siswa": "Siti Aminah", "Jenis Kelamin (L/P)": "P", "Kemampuan (Mahir/Cakap/Dasar/Intervensi)": "Cakap" },
-    { "Nama Siswa": "Budi Santoso", "Jenis Kelamin (L/P)": "L", "Kemampuan (Mahir/Cakap/Dasar/Intervensi)": "Dasar" },
-    { "Nama Siswa": "Dewi Sartika", "Jenis Kelamin (L/P)": "P", "Kemampuan (Mahir/Cakap/Dasar/Intervensi)": "Intervensi" },
+    { "Nama Murid": "Andi Pratama", "Jenis Kelamin (L/P)": "L", "Kemampuan (Mahir/Cakap/Dasar/Intervensi)": "Mahir" },
+    { "Nama Murid": "Siti Aminah", "Jenis Kelamin (L/P)": "P", "Kemampuan (Mahir/Cakap/Dasar/Intervensi)": "Cakap" },
+    { "Nama Murid": "Budi Santoso", "Jenis Kelamin (L/P)": "L", "Kemampuan (Mahir/Cakap/Dasar/Intervensi)": "Dasar" },
+    { "Nama Murid": "Dewi Sartika", "Jenis Kelamin (L/P)": "P", "Kemampuan (Mahir/Cakap/Dasar/Intervensi)": "Intervensi" },
   ]);
   
   ws['!cols'] = [{ wch: 30 }, { wch: 15 }, { wch: 40 }];
 
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Daftar Siswa");
+  XLSX.utils.book_append_sheet(wb, ws, "Daftar Murid");
   
   const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
   const blob = new Blob([wbout], { type: 'application/octet-stream' });
-  robustSaveAs(blob, "Template_Daftar_Siswa_Lengkap.xlsx");
+  robustSaveAs(blob, "Template_Daftar_Murid_Lengkap.xlsx");
 };
 
 export const processRawNames = (inputs: (string | ParsedStudent)[]): Student[] => {

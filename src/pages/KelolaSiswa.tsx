@@ -487,8 +487,8 @@ export default function KelolaSiswa() {
     }
 
     const workbook = XLSXStyle.utils.book_new();
-    XLSXStyle.utils.book_append_sheet(workbook, worksheet, "Data Siswa");
-    XLSXStyle.writeFile(workbook, `Data_Siswa_${className}.xlsx`.replace(/\s+/g, '_'));
+    XLSXStyle.utils.book_append_sheet(workbook, worksheet, "Data Murid");
+    XLSXStyle.writeFile(workbook, `Data_Murid_${className}.xlsx`.replace(/\s+/g, '_'));
   };
 
   const handleDownloadTemplate = () => {
@@ -498,8 +498,8 @@ export default function KelolaSiswa() {
     ];
     const worksheet = XLSX.utils.json_to_sheet(template);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Template Siswa");
-    XLSX.writeFile(workbook, "Template_Import_Siswa.xlsx");
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Template Murid");
+    XLSX.writeFile(workbook, "Template_Import_Murid.xlsx");
   };
 
   const handleImportExcel = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -628,11 +628,12 @@ export default function KelolaSiswa() {
   };
 
   const filteredStudents = useMemo(() => {
-    return students.filter(s => {
+    const list = students.filter(s => {
       const matchesSearch = s.name.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesClass = selectedClass === 'all' || s.class_id === selectedClass;
       return matchesSearch && matchesClass;
     });
+    return [...list].sort((a, b) => a.name.localeCompare(b.name, 'id', { sensitivity: 'base' }));
   }, [students, searchTerm, selectedClass]);
 
   const paginatedStudents = useMemo(() => {
