@@ -217,7 +217,7 @@ export default function Dashboard() {
         const filteredSchedules = allSchedules
           .filter((s: any) => s.dayName === todayName)
           .map((s: any) => {
-            const cls = allClasses.find((c: any) => c.id === s.classId);
+            const cls = allClasses.find((c: any) => c.id === s.classId) as any;
             return {
               ...s,
               className: cls ? (cls.name || cls.namaKelas) : 'Kelas',
