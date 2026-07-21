@@ -144,26 +144,7 @@ export const LinkPreviewCard: React.FC<LinkPreviewCardProps> = ({ url, className
     };
   }, [formattedUrl, youtubeId, isImage, domain]);
 
-  // Live screenshot fallbacks if Open Graph has no og:image specified
-  const screenshotSources = [
-    `https://image.thum.io/get/width/1280/crop/720/noanimate/${formattedUrl}`,
-    `https://s0.wp.com/mshots/v1/${encodeURIComponent(formattedUrl)}?w=1280&h=720&vtype=desktop&wait=5`,
-    `https://api.microlink.io/?url=${encodeURIComponent(formattedUrl)}&screenshot=true&embed=screenshot.url`
-  ];
-
-  const currentImage = (ogData?.image && !imgFailed)
-    ? ogData.image
-    : (screenshotSources[screenshotIndex] || null);
-
-  const isMaxFallback = !ogData?.image && screenshotIndex >= screenshotSources.length;
-
-  const handleImageError = () => {
-    if (ogData?.image && !imgFailed) {
-      setImgFailed(true);
-    } else {
-      setScreenshotIndex((prev) => prev + 1);
-    }
-  };
+  const displayImage = (ogData?.image && !imgFailed) ? ogData.image : null;
 
   return (
     <a
@@ -181,13 +162,13 @@ export const LinkPreviewCard: React.FC<LinkPreviewCardProps> = ({ url, className
             <p className="text-xs font-semibold text-slate-300">Memuat pratinjau tautan...</p>
             <p className="text-[10px] text-slate-400 mt-1 truncate max-w-[200px]">{domain}</p>
           </div>
-        ) : currentImage && !isMaxFallback ? (
+        ) : displayImage ? (
           <>
             <img
-              src={currentImage}
+              src={displayImage}
               alt={ogData?.title || 'Web Preview'}
-              onError={handleImageError}
-              className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500"
+              onError={() => setImgFailed(true)}
+              className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
               loading="lazy"
             />
             {youtubeId && (
@@ -199,7 +180,7 @@ export const LinkPreviewCard: React.FC<LinkPreviewCardProps> = ({ url, className
             )}
           </>
         ) : (
-          /* Vibrant Brand Banner Fallback (16:9 Ratio) */
+          /* Rich Brand Banner (16:9 Ratio - Notion/Slack Style) */
           <div className={`w-full h-full bg-gradient-to-br ${getBannerGradient()} p-6 flex items-center justify-between relative overflow-hidden`}>
             <div className="absolute -right-8 -bottom-8 w-44 h-44 bg-white/10 rounded-full blur-3xl pointer-events-none" />
             
@@ -218,7 +199,7 @@ export const LinkPreviewCard: React.FC<LinkPreviewCardProps> = ({ url, className
                 <span className="text-[11px] font-black uppercase tracking-widest text-indigo-200 block opacity-90">
                   {siteBadge}
                 </span>
-                <p className="text-base font-extrabold truncate tracking-tight text-white/95 mt-0.5 max-w-[240px]">
+                <p className="text-base font-extrabold truncate tracking-tight text-white/95 mt-0.5 max-w-[260px]">
                   {ogData?.title || domain}
                 </p>
               </div>
