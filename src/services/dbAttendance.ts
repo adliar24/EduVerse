@@ -501,3 +501,10 @@ export const autoSyncToCloud = async () => {
     }
   }, 1000); // Wait 1 second of inactivity before syncing
 };
+
+export const clearSyncTimeout = () => {
+  if (syncTimeout) {
+    clearTimeout(syncTimeout);
+    syncTimeout = null;
+  }
+};

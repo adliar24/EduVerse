@@ -213,6 +213,14 @@ export default function Layout({ session }: LayoutProps) {
     setIsLoggingOut(true);
     localStorage.removeItem('student_session');
     window.dispatchEvent(new Event('student_session_change'));
+    
+    try {
+      const { clearSyncTimeout } = await import('../services/dbAttendance');
+      clearSyncTimeout();
+    } catch (e) {
+      console.warn("Failed to clear sync timeout on logout:", e);
+    }
+
     await supabase.auth.signOut();
     setTimeout(() => {
       navigate('/login');

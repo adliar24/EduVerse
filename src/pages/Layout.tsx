@@ -366,6 +366,12 @@ export const Sidebar: React.FC<{ profile: TeacherProfile | null, refreshProfile:
         </button>
         <button onClick={async () => {
           if (confirm("Anda yakin ingin keluar?")) {
+            try {
+              const { clearSyncTimeout } = await import('../services/dbAttendance');
+              clearSyncTimeout();
+            } catch (e) {
+              console.warn("Failed to clear sync timeout on logout:", e);
+            }
             await supabase.auth.signOut();
             window.location.reload();
           }
@@ -470,6 +476,12 @@ export const BottomNav: React.FC = () => {
           <button 
             onClick={async () => {
               if (confirm("Anda yakin ingin keluar?")) {
+                try {
+                  const { clearSyncTimeout } = await import('../services/dbAttendance');
+                  clearSyncTimeout();
+                } catch (e) {
+                  console.warn("Failed to clear sync timeout on logout:", e);
+                }
                 await supabase.auth.signOut();
                 window.location.reload();
               }

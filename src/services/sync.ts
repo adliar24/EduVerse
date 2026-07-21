@@ -307,8 +307,8 @@ export const syncService = {
     if (!supabase) return null;
     try {
       const supabase = getSupabaseClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      return user;
+      const { data: { session } } = await supabase.auth.getSession();
+      return session?.user || null;
     } catch {
       return null;
     }
@@ -367,7 +367,6 @@ export const syncService = {
 
       if (error) {
         console.error('[pushToCloud] GAGAL unggah profil:', error.message);
-        window.alert("SUPABASE ERROR: " + error.message);
       } else {
         console.log('[pushToCloud] BERHASIL unggah profil ke Supabase.');
       }
