@@ -112,19 +112,53 @@ export const LinkPreviewCard: React.FC<LinkPreviewCardProps> = ({ url, className
     // Fast Open Graph Metadata Fetcher (bypassing edge cache with ttl=0&force=true to fetch newly deployed og:image)
     fetch(`https://api.microlink.io/?url=${encodeURIComponent(formattedUrl)}&ttl=0&force=true`)
       .then((res) => res.json())
-      .then((json) => {
+      .then(async (json) => {
         if (!isMounted) return;
-        if (json.status === 'success' && json.data) {
-          const d = json.data;
+        let foundTitle = json.data?.title;
+        let foundDesc = json.data?.description;
+        let foundImg = json.data?.image?.url;
+        let foundLogo = json.data?.logo?.url;
+
+        // Fallback: If Microlink didn't find og:image or returned generic title, fetch HTML directly to resolve relative image URLs (e.g. /og-image.png)
+        if (!foundImg || !foundTitle || foundTitle.includes('Google AI Studio')) {
+          try {
+            const htmlRes = await fetch(formattedUrl);
+            if (htmlRes.ok) {
+              const htmlText = await htmlRes.text();
+              const parser = new DOMParser();
+              const doc = parser.parseFromString(htmlText, 'text/html');
+
+              const ogImg = doc.querySelector('meta[property="og:image"]')?.getAttribute('content') ||
+                            doc.querySelector('meta[name="twitter:image"]')?.getAttribute('content');
+              const ogTitle = doc.querySelector('meta[property="og:title"]')?.getAttribute('content') ||
+                              doc.querySelector('title')?.textContent;
+              const ogDesc = doc.querySelector('meta[property="og:description"]')?.getAttribute('content') ||
+                             doc.querySelector('meta[name="description"]')?.getAttribute('content');
+
+              if (ogImg) {
+                // Convert relative URL (like /og-image.png) to absolute URL
+                try {
+                  foundImg = new URL(ogImg, formattedUrl).href;
+                } catch {
+                  foundImg = ogImg;
+                }
+              }
+              if (ogTitle) foundTitle = ogTitle;
+              if (ogDesc) foundDesc = ogDesc;
+            }
+          } catch (e) {
+            console.warn('[LinkPreviewCard] Direct HTML DOM parser fallback:', e);
+          }
+        }
+
+        if (isMounted) {
           setOgData({
-            title: d.title || domain,
-            description: d.description || formattedUrl,
-            image: d.image?.url,
-            logo: d.logo?.url,
-            publisher: d.publisher
+            title: foundTitle || domain,
+            description: foundDesc || formattedUrl,
+            image: foundImg,
+            logo: foundLogo,
+            publisher: json.data?.publisher
           });
-        } else {
-          setOgData({ title: domain });
         }
       })
       .catch((err) => {
