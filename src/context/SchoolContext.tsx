@@ -12,6 +12,7 @@ interface SchoolContextType {
   activeSchool: School | null;
   setActiveSchool: (school: School | null) => Promise<void>;
   loading: boolean;
+  isSchoolInitialized: boolean;
   refreshSchools: () => Promise<void>;
 }
 
@@ -21,6 +22,7 @@ export function SchoolProvider({ children }: { children: ReactNode }) {
   const [schools, setSchools] = useState<School[]>([]);
   const [activeSchool, setActiveSchoolState] = useState<School | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isSchoolInitialized, setIsSchoolInitialized] = useState(false);
 
   const refreshSchools = async () => {
     try {
@@ -102,10 +104,11 @@ export function SchoolProvider({ children }: { children: ReactNode }) {
         setSchools([]);
         setActiveSchoolState(null);
       }
-      setLoading(false);
     } catch (error) {
       console.error('Error loading schools:', error);
+    } finally {
       setLoading(false);
+      setIsSchoolInitialized(true);
     }
   };
 
@@ -136,7 +139,7 @@ export function SchoolProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <SchoolContext.Provider value={{ schools, activeSchool, setActiveSchool, loading, refreshSchools }}>
+    <SchoolContext.Provider value={{ schools, activeSchool, setActiveSchool, loading, isSchoolInitialized, refreshSchools }}>
       {children}
     </SchoolContext.Provider>
   );

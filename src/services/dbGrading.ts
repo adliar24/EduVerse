@@ -1089,6 +1089,21 @@ export const performAutoSync = async (): Promise<void> => {
         await ensureUUIDCompliance();
 
         // --- SMART SYNC LOGIC ---
+        // SMART PROTECTION FOR EDU-SCORE: If local DB has 0 classes, check if Cloud has data and pull first!
+        const localClasses = await getClasses();
+        if (!localClasses || localClasses.length === 0) {
+            const { count: cloudClassCount } = await supabase
+                .from('classes')
+                .select('*', { count: 'exact', head: true })
+                .eq('teacher_id', session.user.id);
+
+            if (cloudClassCount && cloudClassCount > 0) {
+                console.log(`[dbGrading] Local DB is empty, but Cloud has ${cloudClassCount} classes. Auto-restoring from Cloud...`);
+                await syncCloudToLocal(profile);
+                return;
+            }
+        }
+
         const { data: cloudProfile, error: cloudError } = await supabase
             .from('teacher_profiles')
             .select('updated_at')
@@ -1096,8 +1111,10 @@ export const performAutoSync = async (): Promise<void> => {
             .single();
 
         if (cloudError || !cloudProfile) {
-            // First time or error, push local to be safe
-            await syncLocalToCloud();
+            // First time or error, push local to be safe ONLY if local is not empty
+            if (localClasses && localClasses.length > 0) {
+                await syncLocalToCloud();
+            }
             return;
         }
 
@@ -1110,8 +1127,8 @@ export const performAutoSync = async (): Promise<void> => {
         if (!profile.lastUpdatedAt || cloudTime > localTime) {
             console.log("Cloud is newer (or local empty), pulling data...");
             await syncCloudToLocal(profile);
-        } else if (localTime > cloudTime) {
-            console.log("Local is newer, pushing data...");
+        } else if (localTime > cloudTime && localClasses && localClasses.length > 0) {
+            console.log("Local is newer and non-empty, pushing data...");
             await syncLocalToCloud();
         } else {
             console.log("Everything is in sync, skipping.");

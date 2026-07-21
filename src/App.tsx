@@ -284,6 +284,7 @@ export default function App() {
   });
   const [loading, setLoading] = useState(true);
   const [profileCompleted, setProfileCompleted] = useState<boolean | null>(null);
+  const [isInitialSyncComplete, setIsInitialSyncComplete] = useState(false);
 
   const syncInProgressRef = useRef(false);
   const triggerInitialSync = async () => {
@@ -305,6 +306,7 @@ export default function App() {
       console.error('[App] Failed to pull initial data:', err);
     } finally {
       syncInProgressRef.current = false;
+      setIsInitialSyncComplete(true);
     }
   };
 
@@ -324,6 +326,7 @@ export default function App() {
         checkProfileCompletion(session.user.id, session);
         triggerInitialSync();
       } else {
+        setIsInitialSyncComplete(true);
         setLoading(false);
       }
     });
@@ -336,6 +339,7 @@ export default function App() {
         triggerInitialSync();
       } else {
         setProfileCompleted(null);
+        setIsInitialSyncComplete(true);
         setLoading(false);
       }
     });
@@ -385,10 +389,20 @@ export default function App() {
 
   const userRole = session ? (session.user?.user_metadata?.role || 'guru') : (studentSession ? 'siswa' : null);
 
-  if ((loading || (session && profileCompleted === null)) && !studentSession) {
+  const isAppReady = !loading && (session ? (profileCompleted !== null && isInitialSyncComplete) : true);
+
+  if (!isAppReady && !studentSession) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-slate-50">
-        <Loader2 className="w-12 h-12 text-indigo-950 animate-spin" />
+      <div className="fixed inset-0 bg-indigo-950 z-[9999] flex flex-col items-center justify-center text-white">
+        <div className="flex flex-col items-center text-center space-y-6">
+          <div className="bg-white/10 p-5 rounded-[2rem] border border-white/10 shadow-2xl relative">
+            <Loader2 className="w-12 h-12 text-white animate-spin" />
+          </div>
+          <div className="space-y-1.5">
+            <h3 className="text-2xl font-black tracking-tight">Menyiapkan & Menyinkronkan Data</h3>
+            <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">EduVerse &bull; Memuat profil & data sekolah...</p>
+          </div>
+        </div>
       </div>
     );
   }
