@@ -11,16 +11,20 @@ interface Props {
 interface State {
   hasError: boolean;
   error: Error | null;
+  hasRetried: boolean;
 }
 
 export default class ErrorBoundary extends React.Component<Props, State> {
+  private retryTimeout: any = null;
+
   public state: State = {
     hasError: false,
-    error: null
+    error: null,
+    hasRetried: false
   };
 
   public static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, error };
+    return { hasError: true, error, hasRetried: false };
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
@@ -29,16 +33,37 @@ export default class ErrorBoundary extends React.Component<Props, State> {
     // Auto-reload for chunk load errors (Vite dynamic import failures)
     if (
       error.name === 'ChunkLoadError' || 
-      error.message.includes('fetch dynamically imported module') || 
-      error.message.includes('Failed to fetch') ||
-      error.message.includes('Importing a module script failed')
+      error.message?.includes('fetch dynamically imported module') || 
+      error.message?.includes('Failed to fetch') ||
+      error.message?.includes('Importing a module script failed')
     ) {
       window.location.reload();
+      return;
     }
+
+    // Auto-recover once silently for transient hydration / auth race condition errors
+    if (!this.state.hasRetried) {
+      this.retryTimeout = setTimeout(() => {
+        this.setState({ hasError: false, error: null, hasRetried: true });
+      }, 150);
+    }
+  }
+
+  public componentWillUnmount() {
+    if (this.retryTimeout) clearTimeout(this.retryTimeout);
   }
 
   public render() {
     if (this.state.hasError) {
+      // If we haven't retried yet, show a subtle loading spinner instead of a scary red box
+      if (!this.state.hasRetried) {
+        return (
+          <div className="flex items-center justify-center min-h-[50vh] w-full">
+            <div className="w-8 h-8 rounded-full border-2 border-indigo-950 border-t-transparent animate-spin" />
+          </div>
+        );
+      }
+
       if (this.props.fallback) {
         return this.props.fallback;
       }
@@ -60,7 +85,7 @@ export default class ErrorBoundary extends React.Component<Props, State> {
           )}
           <button 
             onClick={() => {
-              this.setState({ hasError: false, error: null });
+              this.setState({ hasError: false, error: null, hasRetried: false });
               if (this.props.onReset) this.props.onReset();
               else window.location.reload();
             }}

@@ -35,10 +35,7 @@ export default function Login() {
       }
       
       setIsRedirecting(true);
-      setTimeout(() => {
-        navigate('/dashboard');
-        setIsRedirecting(false);
-      }, 950);
+      navigate('/dashboard', { replace: true });
     } catch (err: any) {
       setError(err.message || 'Gagal masuk. Periksa kembali email dan password Anda.');
       setLoading(false);
