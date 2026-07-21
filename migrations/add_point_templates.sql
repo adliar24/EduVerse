@@ -42,6 +42,15 @@ GRANT ALL ON public.final_grades TO authenticated;
 GRANT ALL ON public.final_grades TO anon;
 GRANT ALL ON public.final_grades TO service_role;
 
+-- Grant permissions untuk materials & assignments
+GRANT ALL ON public.materials TO authenticated;
+GRANT ALL ON public.materials TO anon;
+GRANT ALL ON public.materials TO service_role;
+
+GRANT ALL ON public.assignments TO authenticated;
+GRANT ALL ON public.assignments TO anon;
+GRANT ALL ON public.assignments TO service_role;
+
 -- Matikan RLS untuk materials & assignments agar selaras dengan tabel absensi lainnya
 ALTER TABLE public.materials DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.assignments DISABLE ROW LEVEL SECURITY;
