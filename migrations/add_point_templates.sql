@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS public.point_templates (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
 
--- Matikan RLS untuk point_templates (agar kompatibel dengan skema tabel EduScore lainnya)
+-- Matikan RLS untuk point_templates
 ALTER TABLE public.point_templates DISABLE ROW LEVEL SECURITY;
 
 -- Grant permissions untuk point_templates
@@ -17,7 +17,7 @@ GRANT ALL ON public.point_templates TO authenticated;
 GRANT ALL ON public.point_templates TO anon;
 GRANT ALL ON public.point_templates TO service_role;
 
--- Grant permissions untuk tabel EduScore & Classes yang bermasalah RLS/403
+-- Grant permissions untuk tabel EduScore & Classes
 GRANT ALL ON public.classes TO authenticated;
 GRANT ALL ON public.classes TO anon;
 GRANT ALL ON public.classes TO service_role;
@@ -51,6 +51,32 @@ GRANT ALL ON public.assignments TO authenticated;
 GRANT ALL ON public.assignments TO anon;
 GRANT ALL ON public.assignments TO service_role;
 
--- Matikan RLS untuk materials & assignments agar selaras dengan tabel absensi lainnya
+-- Grant permissions untuk tabel Jadwal & Absensi (EduCheck)
+GRANT ALL ON public.schedules TO authenticated;
+GRANT ALL ON public.schedules TO anon;
+GRANT ALL ON public.schedules TO service_role;
+
+GRANT ALL ON public.attendance_sessions TO authenticated;
+GRANT ALL ON public.attendance_sessions TO anon;
+GRANT ALL ON public.attendance_sessions TO service_role;
+
+GRANT ALL ON public.attendance_records TO authenticated;
+GRANT ALL ON public.attendance_records TO anon;
+GRANT ALL ON public.attendance_records TO service_role;
+
+GRANT ALL ON public.events TO authenticated;
+GRANT ALL ON public.events TO anon;
+GRANT ALL ON public.events TO service_role;
+
+GRANT ALL ON public.cancellations TO authenticated;
+GRANT ALL ON public.cancellations TO anon;
+GRANT ALL ON public.cancellations TO service_role;
+
+-- Matikan RLS untuk seluruh tabel agar kompatibel tanpa blokir RLS 403
 ALTER TABLE public.materials DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.assignments DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.schedules DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.attendance_sessions DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.attendance_records DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.events DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.cancellations DISABLE ROW LEVEL SECURITY;

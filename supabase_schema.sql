@@ -952,3 +952,24 @@ GRANT ALL ON public.student_points TO service_role;
 GRANT ALL ON public.final_grades TO authenticated;
 GRANT ALL ON public.final_grades TO anon;
 GRANT ALL ON public.final_grades TO service_role;
+
+-- Grant permissions untuk tabel Jadwal & Absensi (EduCheck)
+GRANT ALL ON public.schedules TO authenticated;
+GRANT ALL ON public.schedules TO anon;
+GRANT ALL ON public.schedules TO service_role;
+
+GRANT ALL ON public.attendance_sessions TO authenticated;
+GRANT ALL ON public.attendance_sessions TO anon;
+GRANT ALL ON public.attendance_sessions TO service_role;
+
+GRANT ALL ON public.attendance_records TO authenticated;
+GRANT ALL ON public.attendance_records TO anon;
+GRANT ALL ON public.attendance_records TO service_role;
+
+GRANT ALL ON public.events TO authenticated;
+GRANT ALL ON public.events TO anon;
+GRANT ALL ON public.events TO service_role;
+
+GRANT ALL ON public.cancellations TO authenticated;
+GRANT ALL ON public.cancellations TO anon;
+GRANT ALL ON public.cancellations TO service_role;
