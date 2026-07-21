@@ -7,7 +7,7 @@ interface LinkPreviewCardProps {
 }
 
 export const LinkPreviewCard: React.FC<LinkPreviewCardProps> = ({ url, className = '' }) => {
-  const [imgError, setImgError] = useState(false);
+  const [imgIndex, setImgIndex] = useState(0);
 
   if (!url) return null;
 
@@ -35,8 +35,7 @@ export const LinkPreviewCard: React.FC<LinkPreviewCardProps> = ({ url, className
 
   const youtubeId = getYouTubeId(formattedUrl);
   const isImage = /\.(jpg|jpeg|png|webp|avif|gif|svg)(\?.*)?$/i.test(formattedUrl);
-  
-  // Specific domain checks for tailored rich cards
+
   const isGoogleDrive = domain.includes('drive.google.com') || domain.includes('docs.google.com');
   const isGoogleForms = domain.includes('forms.gle') || pathName.includes('/forms/');
   const isQuizizz = domain.includes('quizizz.com');
@@ -47,18 +46,25 @@ export const LinkPreviewCard: React.FC<LinkPreviewCardProps> = ({ url, className
   // Favicon API from Google (High-res 128px)
   const faviconUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
 
-  // Select optimal thumbnail source
-  let previewThumbnailUrl = '';
+  // Multiple 16:9 High-Resolution Desktop Screenshot Sources (1280x720)
+  const imageSources: string[] = [];
   if (youtubeId) {
-    previewThumbnailUrl = `https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg`;
+    imageSources.push(`https://img.youtube.com/vi/${youtubeId}/sddefault.jpg`);
+    imageSources.push(`https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg`);
   } else if (isImage) {
-    previewThumbnailUrl = formattedUrl;
-  } else if (!isGoogleDrive && !isGoogleForms && !isPdf) {
-    // Screenshot service using microlink API
-    previewThumbnailUrl = `https://api.microlink.io/?url=${encodeURIComponent(formattedUrl)}&embed=screenshot.url`;
+    imageSources.push(formattedUrl);
+  } else {
+    // 1. WordPress mShots 1280x720 16:9 Desktop Engine
+    imageSources.push(`https://s0.wp.com/mshots/v1/${encodeURIComponent(formattedUrl)}?w=1280&h=720`);
+    // 2. Thum.io 1280x720 Desktop Engine
+    imageSources.push(`https://image.thum.io/get/width/1280/crop/720/noanimate/${formattedUrl}`);
+    // 3. Microlink Screenshot API
+    imageSources.push(`https://api.microlink.io/?url=${encodeURIComponent(formattedUrl)}&screenshot=true&embed=screenshot.url`);
   }
 
-  // Determine site badge title
+  const currentImgUrl = imageSources[imgIndex] || null;
+  const isMaxFallback = imgIndex >= imageSources.length;
+
   const siteBadge = youtubeId
     ? 'YouTube Video'
     : isGoogleForms
@@ -75,7 +81,6 @@ export const LinkPreviewCard: React.FC<LinkPreviewCardProps> = ({ url, className
     ? 'Dokumen PDF'
     : domain;
 
-  // Custom Gradient Colors for Known Platforms
   const getBannerGradient = () => {
     if (youtubeId) return 'from-red-600 via-red-700 to-rose-900';
     if (isGoogleForms) return 'from-purple-700 via-indigo-800 to-slate-900';
@@ -87,84 +92,85 @@ export const LinkPreviewCard: React.FC<LinkPreviewCardProps> = ({ url, className
     return 'from-indigo-900 via-slate-900 to-slate-950';
   };
 
-  const showBanner = imgError || (!previewThumbnailUrl && (isGoogleDrive || isGoogleForms || isPdf));
+  const handleImageError = () => {
+    setImgIndex((prev) => prev + 1);
+  };
 
   return (
     <a
       href={formattedUrl}
       target="_blank"
       rel="noopener noreferrer"
-      className={`group block overflow-hidden rounded-2xl border border-slate-200/80 bg-white hover:border-indigo-400 hover:shadow-xl hover:shadow-indigo-500/10 transition-all duration-300 ${className}`}
+      className={`group block overflow-hidden rounded-2xl border border-slate-200/80 bg-white hover:border-indigo-400 hover:shadow-2xl hover:shadow-indigo-500/15 transition-all duration-300 ${className}`}
     >
-      {/* Top Media / Preview Container */}
-      <div className="relative w-full h-36 bg-slate-900 overflow-hidden flex items-center justify-center border-b border-slate-100">
-        {!showBanner && previewThumbnailUrl ? (
+      {/* 16:9 Aspect Ratio Container */}
+      <div className="relative w-full aspect-[16/9] min-h-[160px] max-h-[280px] bg-slate-900 overflow-hidden flex items-center justify-center border-b border-slate-100">
+        {!isMaxFallback && currentImgUrl ? (
           <>
             <img
-              src={previewThumbnailUrl}
-              alt="Preview"
-              onError={() => setImgError(true)}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              src={currentImgUrl}
+              alt="16:9 Web Preview"
+              onError={handleImageError}
+              className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500"
               loading="lazy"
             />
             {youtubeId && (
               <div className="absolute inset-0 bg-black/25 flex items-center justify-center group-hover:bg-black/40 transition-colors">
-                <div className="w-12 h-12 rounded-full bg-red-600 text-white flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform">
-                  <Play className="w-6 h-6 fill-current ml-0.5" />
+                <div className="w-14 h-14 rounded-full bg-red-600 text-white flex items-center justify-center shadow-2xl group-hover:scale-110 transition-transform">
+                  <Play className="w-7 h-7 fill-current ml-0.5" />
                 </div>
               </div>
             )}
           </>
         ) : (
-          /* Vibrant Custom Rich Brand Banner (Fallback / Google Workspace / PDFs) */
-          <div className={`w-full h-full bg-gradient-to-br ${getBannerGradient()} p-4 flex items-center justify-between relative overflow-hidden`}>
-            {/* Background Accent Shapes */}
-            <div className="absolute -right-6 -bottom-6 w-32 h-32 bg-white/10 rounded-full blur-2xl pointer-events-none" />
+          /* Vibrant Brand Banner Fallback (16:9 Ratio) */
+          <div className={`w-full h-full bg-gradient-to-br ${getBannerGradient()} p-6 flex items-center justify-between relative overflow-hidden`}>
+            <div className="absolute -right-8 -bottom-8 w-44 h-44 bg-white/10 rounded-full blur-3xl pointer-events-none" />
             
-            <div className="flex items-center gap-3.5 relative z-10">
-              <div className="w-12 h-12 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center shrink-0 shadow-lg">
+            <div className="flex items-center gap-4 relative z-10">
+              <div className="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center shrink-0 shadow-xl">
                 <img 
                   src={faviconUrl} 
                   alt="" 
-                  className="w-7 h-7 object-contain rounded-md"
+                  className="w-8 h-8 object-contain rounded-md"
                   onError={(e) => {
                     (e.currentTarget as HTMLElement).style.display = 'none';
                   }}
                 />
               </div>
               <div className="min-w-0 text-white">
-                <span className="text-[10px] font-black uppercase tracking-widest text-indigo-200 block opacity-90">
+                <span className="text-[11px] font-black uppercase tracking-widest text-indigo-200 block opacity-90">
                   {siteBadge}
                 </span>
-                <p className="text-sm font-bold truncate tracking-tight text-white/95 mt-0.5">
+                <p className="text-base font-extrabold truncate tracking-tight text-white/95 mt-0.5">
                   {domain}
                 </p>
               </div>
             </div>
 
-            <div className="w-9 h-9 rounded-xl bg-white/10 backdrop-blur-md border border-white/15 flex items-center justify-center text-white shrink-0 group-hover:scale-110 transition-transform">
-              <ExternalLink className="w-4 h-4" />
+            <div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-md border border-white/15 flex items-center justify-center text-white shrink-0 group-hover:scale-110 transition-transform shadow-lg">
+              <ExternalLink className="w-5 h-5" />
             </div>
           </div>
         )}
 
-        {/* Floating Domain Badge Overlay */}
-        <div className="absolute top-2.5 left-2.5 bg-slate-900/85 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1.5 shadow-md border border-white/10">
+        {/* Floating Domain Badge */}
+        <div className="absolute top-3 left-3 bg-slate-900/85 backdrop-blur-md text-white text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-2 shadow-md border border-white/15 z-20">
           <img 
             src={faviconUrl} 
             alt="" 
-            className="w-3.5 h-3.5 rounded-sm shrink-0" 
+            className="w-4 h-4 rounded-sm shrink-0" 
             onError={(e) => ((e.currentTarget as HTMLElement).style.display = 'none')} 
           />
           <span className="capitalize">{siteBadge}</span>
         </div>
       </div>
 
-      {/* Bottom Information */}
-      <div className="p-3.5 flex items-center justify-between gap-3 bg-white">
-        <div className="flex items-center gap-2.5 min-w-0">
-          <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 border border-indigo-100 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
-            <Link2 className="w-4 h-4" />
+      {/* Card Info Footer */}
+      <div className="p-4 flex items-center justify-between gap-3 bg-white">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 border border-indigo-100 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+            <Link2 className="w-4.5 h-4.5" />
           </div>
           <div className="min-w-0">
             <p className="text-xs font-bold text-slate-800 truncate group-hover:text-indigo-900 transition-colors">
@@ -176,7 +182,7 @@ export const LinkPreviewCard: React.FC<LinkPreviewCardProps> = ({ url, className
           </div>
         </div>
         <div className="flex items-center text-xs font-bold text-indigo-600 shrink-0 group-hover:translate-x-0.5 transition-transform">
-          Buka <ExternalLink className="w-3.5 h-3.5 ml-1" />
+          Buka Tautan <ExternalLink className="w-3.5 h-3.5 ml-1" />
         </div>
       </div>
     </a>
