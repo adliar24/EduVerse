@@ -197,7 +197,7 @@ export default function FaceScan({
           height={180}
           onFaceDetected={handleFaceDetected}
           showOverlay={true}
-          mirror={true}
+          mirror={false}
           autoStart={true}
         />
 

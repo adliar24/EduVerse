@@ -380,7 +380,7 @@ const FaceCamera = forwardRef<FaceCameraRef, FaceCameraProps>(({
             )}
             <video
               ref={videoRef}
-              className={`rounded-lg ${mirror ? 'scale-x-[-1]' : ''}`}
+              className="rounded-lg"
               style={{ width, height, objectFit: 'cover', filter: 'brightness(1.1) contrast(1.05)' }}
               playsInline
               muted
@@ -395,7 +395,6 @@ const FaceCamera = forwardRef<FaceCameraRef, FaceCameraProps>(({
                   width, 
                   height, 
                   objectFit: 'cover',
-                  transform: mirror ? 'scaleX(-1)' : 'none',
                 }}
               />
             )}

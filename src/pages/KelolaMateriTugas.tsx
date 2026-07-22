@@ -51,6 +51,7 @@ export default function KelolaMateriTugas() {
   const [formDeadline, setFormDeadline] = useState('');
   const [formIsGraded, setFormIsGraded] = useState(true);
   const [formClassId, setFormClassId] = useState('');
+  const [selectedClassIds, setSelectedClassIds] = useState<string[]>([]);
   const [formTargetType, setFormTargetType] = useState<'class' | 'students'>('class');
   const [selectedStudentIds, setSelectedStudentIds] = useState<string[]>([]);
   const [studentSearchTerm, setStudentSearchTerm] = useState('');
@@ -145,13 +146,14 @@ export default function KelolaMateriTugas() {
     }
   };
 
-  // Filter students by selected class for targeting
+  // Filter students by selected classes for targeting
   const targetClassStudents = useMemo(() => {
+    const activeClassIds = selectedClassIds.length > 0 ? selectedClassIds : (formClassId && formClassId !== 'all' ? [formClassId] : []);
     return students
-      .filter(s => formClassId === 'all' || s.classId === formClassId || (s as any).class_id === formClassId)
+      .filter(s => activeClassIds.length === 0 || activeClassIds.includes(s.classId || (s as any).class_id || ''))
       .filter(s => (s.name || '').toLowerCase().includes(studentSearchTerm.toLowerCase()))
       .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
-  }, [students, formClassId, studentSearchTerm]);
+  }, [students, formClassId, selectedClassIds, studentSearchTerm]);
 
   // Handle student select/deselect in the target checklist
   const handleToggleStudent = (studentId: string) => {
@@ -171,6 +173,7 @@ export default function KelolaMateriTugas() {
     setFormDeadline('');
     setFormIsGraded(true);
     setFormClassId(classes[0]?.id || 'all');
+    setSelectedClassIds([]);
     setFormTargetType('class');
     setSelectedStudentIds([]);
     setStudentSearchTerm('');
@@ -199,6 +202,7 @@ export default function KelolaMateriTugas() {
       }
     }
     setFormClassId(item.classId || item.class_id || 'all');
+    setSelectedClassIds(item.classId || item.class_id ? [item.classId || item.class_id] : []);
     setFormTargetType(item.targetType || item.target_type || 'class');
     setSelectedStudentIds(item.studentIds || item.student_ids || []);
     setStudentSearchTerm('');
@@ -207,8 +211,17 @@ export default function KelolaMateriTugas() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formTitle.trim() || !formDesc.trim() || !formClassId) {
-      showAlert({ title: 'Input Tidak Lengkap', message: 'Harap lengkapi judul, deskripsi, dan kelas target.', type: 'warning' });
+    if (!formTitle.trim() || !formDesc.trim()) {
+      showAlert({ title: 'Input Tidak Lengkap', message: 'Harap lengkapi judul dan deskripsi.', type: 'warning' });
+      return;
+    }
+
+    const effectiveClassIds = selectedClassIds.length > 0
+      ? selectedClassIds
+      : (formClassId && formClassId !== 'all' ? [formClassId] : []);
+
+    if (effectiveClassIds.length === 0) {
+      showAlert({ title: 'Kelas Belum Dipilih', message: 'Harap pilih minimal satu kelas target.', type: 'warning' });
       return;
     }
 
@@ -223,97 +236,96 @@ export default function KelolaMateriTugas() {
       if (!user) throw new Error('User session expired. Silakan login kembali.');
 
       const activeSchoolId = activeSchool?.id === 'legacy' ? null : (activeSchool?.id || null);
-      const uuid = editingId || uuidv4();
-
-      const targetClassId = formClassId === 'all' ? null : formClassId;
 
       if (formType === 'material') {
-        const payload = {
-          id: uuid,
-          teacher_id: user.id,
-          school_id: activeSchoolId,
-          class_id: targetClassId,
-          title: formTitle.trim(),
-          description: formDesc.trim(),
-          link: formLink.trim() || null,
-          target_type: formTargetType,
-          student_ids: formTargetType === 'students' ? selectedStudentIds : [],
-        };
+        for (const classId of effectiveClassIds) {
+          const uuid = editingId && effectiveClassIds.length === 1 ? editingId : uuidv4();
+          const payload = {
+            id: uuid,
+            teacher_id: user.id,
+            school_id: activeSchoolId,
+            class_id: classId,
+            title: formTitle.trim(),
+            description: formDesc.trim(),
+            link: formLink.trim() || null,
+            target_type: formTargetType,
+            student_ids: formTargetType === 'students' ? selectedStudentIds.filter(sid => {
+              const s = students.find(st => st.id === sid);
+              return s && (s.classId === classId || (s as any).class_id === classId);
+            }) : [],
+          };
 
-        // 1. Save directly to cloud
-        const { error } = await supabase
-          .from('materials')
-          .upsert(payload);
+          const { error } = await supabase.from('materials').upsert(payload);
+          if (error) throw error;
 
-        if (error) throw error;
-
-        // 2. Save locally
-        await addMaterial({
-          id: uuid,
-          teacherId: user.id,
-          teacher_id: user.id,
-          schoolId: activeSchoolId,
-          school_id: activeSchoolId,
-          classId: targetClassId,
-          class_id: targetClassId,
-          title: formTitle.trim(),
-          description: formDesc.trim(),
-          link: formLink.trim() || null,
-          targetType: formTargetType,
-          target_type: formTargetType,
-          studentIds: formTargetType === 'students' ? selectedStudentIds : [],
-          student_ids: formTargetType === 'students' ? selectedStudentIds : [],
-          created_at: new Date().toISOString()
-        });
+          await addMaterial({
+            id: uuid,
+            teacherId: user.id,
+            teacher_id: user.id,
+            schoolId: activeSchoolId,
+            school_id: activeSchoolId,
+            classId: classId,
+            class_id: classId,
+            title: formTitle.trim(),
+            description: formDesc.trim(),
+            link: formLink.trim() || null,
+            targetType: formTargetType,
+            target_type: formTargetType,
+            studentIds: payload.student_ids,
+            student_ids: payload.student_ids,
+            created_at: new Date().toISOString()
+          });
+        }
       } else {
         const deadlineISO = formDeadline ? new Date(formDeadline).toISOString() : null;
-        const payload = {
-          id: uuid,
-          teacher_id: user.id,
-          school_id: activeSchoolId,
-          class_id: targetClassId,
-          title: formTitle.trim(),
-          description: formDesc.trim(),
-          link: formLink.trim() || null,
-          deadline: deadlineISO,
-          target_type: formTargetType,
-          student_ids: formTargetType === 'students' ? selectedStudentIds : [],
-          is_graded: formIsGraded,
-        };
+        for (const classId of effectiveClassIds) {
+          const uuid = editingId && effectiveClassIds.length === 1 ? editingId : uuidv4();
+          const payload = {
+            id: uuid,
+            teacher_id: user.id,
+            school_id: activeSchoolId,
+            class_id: classId,
+            title: formTitle.trim(),
+            description: formDesc.trim(),
+            link: formLink.trim() || null,
+            deadline: deadlineISO,
+            target_type: formTargetType,
+            student_ids: formTargetType === 'students' ? selectedStudentIds.filter(sid => {
+              const s = students.find(st => st.id === sid);
+              return s && (s.classId === classId || (s as any).class_id === classId);
+            }) : [],
+            is_graded: formIsGraded,
+          };
 
-        // 1. Save directly to cloud
-        const { error } = await supabase
-          .from('assignments')
-          .upsert(payload);
+          const { error } = await supabase.from('assignments').upsert(payload);
+          if (error) throw error;
 
-        if (error) throw error;
-
-        // 2. Save locally
-        await addAssignment({
-          id: uuid,
-          teacherId: user.id,
-          teacher_id: user.id,
-          schoolId: activeSchoolId,
-          school_id: activeSchoolId,
-          classId: targetClassId,
-          class_id: targetClassId,
-          title: formTitle.trim(),
-          description: formDesc.trim(),
-          link: formLink.trim() || null,
-          deadline: deadlineISO || undefined,
-          targetType: formTargetType,
-          target_type: formTargetType,
-          studentIds: formTargetType === 'students' ? selectedStudentIds : [],
-          student_ids: formTargetType === 'students' ? selectedStudentIds : [],
-          isGraded: formIsGraded,
-          is_graded: formIsGraded,
-          created_at: new Date().toISOString()
-        });
+          await addAssignment({
+            id: uuid,
+            teacherId: user.id,
+            teacher_id: user.id,
+            schoolId: activeSchoolId,
+            school_id: activeSchoolId,
+            classId: classId,
+            class_id: classId,
+            title: formTitle.trim(),
+            description: formDesc.trim(),
+            link: formLink.trim() || null,
+            deadline: deadlineISO || undefined,
+            targetType: formTargetType,
+            target_type: formTargetType,
+            studentIds: payload.student_ids,
+            student_ids: payload.student_ids,
+            isGraded: formIsGraded,
+            is_graded: formIsGraded,
+            created_at: new Date().toISOString()
+          });
+        }
       }
 
       showAlert({ 
         title: 'Berhasil Disimpan', 
-        message: `${formType === 'material' ? 'Materi' : 'Tugas'} berhasil disimpan dan disinkronkan ke cloud.`, 
+        message: `${formType === 'material' ? 'Materi' : 'Tugas'} berhasil diposting ke ${effectiveClassIds.length} kelas.`, 
         type: 'success' 
       });
       setShowModal(false);
@@ -716,28 +728,64 @@ export default function KelolaMateriTugas() {
                   )}
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-slate-50 pt-4">
-                  <div className="space-y-1">
-                    <label className="text-[13px] font-bold text-slate-700 ml-0.5">Target Kelas</label>
-                    <select 
-                      value={formClassId}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        setFormClassId(val);
-                        if (val === 'all') {
-                          setFormTargetType('class');
-                        }
-                        setSelectedStudentIds([]);
-                      }}
-                      className="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-indigo-950 text-sm font-semibold text-slate-800 transition-colors cursor-pointer bg-white"
-                    >
-                      <option value="all">Semua Kelas</option>
-                      {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                    </select>
+                <div className="border-t border-slate-50 pt-4">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[13px] font-bold text-slate-700 ml-0.5">Target Kelas</label>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (selectedClassIds.length === classes.length) {
+                            setSelectedClassIds([]);
+                          } else {
+                            setSelectedClassIds(classes.map(c => c.id));
+                          }
+                        }}
+                        className="text-[11px] font-bold text-indigo-600 hover:text-indigo-800 transition-colors"
+                      >
+                        {selectedClassIds.length === classes.length ? 'Batal Pilih Semua' : 'Pilih Semua Kelas'}
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-[180px] overflow-y-auto pr-1">
+                      {classes.map(c => {
+                        const isChecked = selectedClassIds.includes(c.id);
+                        const studentCount = students.filter(s => s.classId === c.id || (s as any).class_id === c.id).length;
+                        return (
+                          <button
+                            type="button"
+                            key={c.id}
+                            onClick={() => {
+                              setSelectedClassIds(prev =>
+                                isChecked ? prev.filter(id => id !== c.id) : [...prev, c.id]
+                              );
+                            }}
+                            className={`flex items-center justify-between p-3 rounded-xl border text-left text-xs font-bold transition-all ${
+                              isChecked
+                                ? 'bg-indigo-950 border-indigo-950 text-white shadow-md'
+                                : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300'
+                            }`}
+                          >
+                            <span className="truncate pr-2">
+                              {c.name}
+                              <span className={`block text-[10px] font-semibold ${isChecked ? 'text-indigo-200' : 'text-slate-400'}`}>
+                                {studentCount} siswa
+                              </span>
+                            </span>
+                            {isChecked && <Check className="w-4 h-4 text-blue-400 shrink-0" />}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {selectedClassIds.length > 0 && (
+                      <p className="text-[11px] font-bold text-indigo-600 ml-0.5">
+                        {selectedClassIds.length} kelas dipilih
+                      </p>
+                    )}
                   </div>
+                </div>
 
-                  <div className="space-y-1">
-                    <label className="text-[13px] font-bold text-slate-700 ml-0.5">Target Penerima</label>
+                <div className="space-y-1 border-t border-slate-50 pt-4">
+                  <label className="text-[13px] font-bold text-slate-700 ml-0.5">Target Penerima</label>
                     <div className="flex gap-4 py-2.5">
                       <label className="flex items-center gap-2 text-sm font-bold text-slate-700 cursor-pointer">
                         <input 
@@ -758,7 +806,6 @@ export default function KelolaMateriTugas() {
                         Murid Tertentu
                       </label>
                     </div>
-                  </div>
                 </div>
 
                 {/* Target Checklist specific students */}

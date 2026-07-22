@@ -479,12 +479,12 @@ export default function FaceEnrollment({
           <div className="relative" style={{ paddingTop: '75%' }}>
             <video 
               ref={videoRef} 
-              className="absolute inset-0 w-full h-full object-cover scale-x-[-1]" 
+              className="absolute inset-0 w-full h-full object-cover" 
               playsInline 
               muted 
             />
             <canvas 
-              className="absolute inset-0 w-full h-full object-cover pointer-events-none scale-x-[-1]"
+              className="absolute inset-0 w-full h-full object-cover pointer-events-none"
             />
             
             <div className={`absolute inset-0 flex items-center justify-center ${filterStatus === 'no_face' ? 'bg-black/50' : ''}`}>
