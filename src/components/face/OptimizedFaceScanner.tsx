@@ -334,7 +334,7 @@ export default function FaceScanner({ classId, className, sessionTopic, onMatchS
 
   return (
     <div className="fixed inset-0 z-[100] bg-black flex flex-col">
-      <video ref={videoRef} className={`absolute inset-0 w-full h-full object-cover ${!isBackCamera ? 'scale-x-[-1]' : ''}`} playsInline muted />
+      <video ref={videoRef} className="absolute inset-0 w-full h-full object-cover" playsInline muted />
       <canvas ref={canvasRef} className="absolute inset-0 w-full h-full object-cover pointer-events-none" />
 
       <div className="absolute top-0 inset-x-0 p-4 z-30 bg-gradient-to-b from-black/80 to-transparent">

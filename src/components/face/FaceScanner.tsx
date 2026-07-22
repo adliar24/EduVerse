@@ -544,13 +544,13 @@ const playTone = (freq: number, type: OscillatorType, duration: number, vol: num
     <div className="fixed inset-0 z-[100] bg-gradient-to-b from-gray-900 via-gray-800 to-black flex flex-col">
       <video 
         ref={videoRef} 
-        className={`absolute inset-0 w-full h-full object-cover ${!isBackCamera ? 'scale-x-[-1]' : ''}`}
+        className="absolute inset-0 w-full h-full object-cover"
         playsInline 
         muted 
       />
       <canvas 
         ref={canvasRef} 
-        className={`absolute inset-0 w-full h-full object-cover pointer-events-none ${!isBackCamera ? 'scale-x-[-1]' : ''}`}
+        className="absolute inset-0 w-full h-full object-cover pointer-events-none"
       />
 
       <div className="absolute top-0 inset-x-0 z-30 bg-gradient-to-b from-black/90 via-black/60 to-transparent pt-6 pb-4 px-6 md:pt-8 md:px-12">
