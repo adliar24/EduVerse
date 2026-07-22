@@ -8,7 +8,7 @@ import React from 'react';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 export default function Login() {
-  useDocumentTitle('Masuk - EduTest');
+  useDocumentTitle('Masuk');
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
