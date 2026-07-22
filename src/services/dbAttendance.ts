@@ -459,9 +459,11 @@ export const resetAllData = async () => {
 
 // Auto-sync to cloud after data changes
 let syncTimeout: ReturnType<typeof setTimeout> | null = null;
+let retryTimeout: ReturnType<typeof setTimeout> | null = null;
 let skipSync = false;
 let lastSyncAttempt = 0;
 const SYNC_COOLDOWN = 1000; // 1 second between actual syncs
+const MAX_RETRIES = 3;
 
 export const setSkipSync = (value: boolean) => {
   skipSync = value;
@@ -469,6 +471,25 @@ export const setSkipSync = (value: boolean) => {
 
 export const clearStateCache = () => {
   stateCache = { data: null, timestamp: 0 };
+};
+
+const executeSync = async (retryCount = 0): Promise<boolean> => {
+  try {
+    const supabase = getSupabaseClientOrNull();
+    if (!supabase) return false;
+    
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return false;
+    
+    lastSyncAttempt = Date.now();
+    const { syncService } = await import('./sync');
+    const result = await syncService.pushToCloud();
+    console.log('[Auto-sync] Result:', result);
+    return result.success;
+  } catch (e) {
+    console.error('[Auto-sync] Failed:', e);
+    return false;
+  }
 };
 
 export const autoSyncToCloud = async () => {
@@ -480,34 +501,87 @@ export const autoSyncToCloud = async () => {
   }
   
   if (syncTimeout) clearTimeout(syncTimeout);
+  if (retryTimeout) clearTimeout(retryTimeout);
   
   syncTimeout = setTimeout(async () => {
     const now = Date.now();
     if (now - lastSyncAttempt < SYNC_COOLDOWN) {
-        console.log('[Auto-sync] Cooldown active, waiting for next change...');
+        // Reschedule instead of silently dropping
+        const waitMs = SYNC_COOLDOWN - (now - lastSyncAttempt);
+        console.log(`[Auto-sync] Cooldown active, rescheduling in ${waitMs}ms`);
+        retryTimeout = setTimeout(async () => {
+          const success = await executeSync(0);
+          if (!success) {
+            // Retry up to MAX_RETRIES with increasing delay
+            for (let i = 1; i <= MAX_RETRIES; i++) {
+              console.log(`[Auto-sync] Retry ${i}/${MAX_RETRIES}...`);
+              await new Promise(r => setTimeout(r, 2000 * i));
+              const retrySuccess = await executeSync(i);
+              if (retrySuccess) break;
+            }
+          }
+        }, waitMs);
         return;
     }
 
-    try {
-      const supabase = getSupabaseClientOrNull();
-      if (!supabase) return;
-      
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-      
-      lastSyncAttempt = now;
-      const { syncService } = await import('./sync');
-      const result = await syncService.pushToCloud();
-      console.log('[Auto-sync] Result:', result);
-    } catch (e) {
-      console.error('[Auto-sync] Failed:', e);
+    const success = await executeSync(0);
+    if (!success) {
+      // Retry with increasing delay
+      for (let i = 1; i <= MAX_RETRIES; i++) {
+        console.log(`[Auto-sync] Retry ${i}/${MAX_RETRIES}...`);
+        await new Promise(r => setTimeout(r, 2000 * i));
+        const retrySuccess = await executeSync(i);
+        if (retrySuccess) break;
+      }
     }
   }, 1000); // Wait 1 second of inactivity before syncing
+};
+
+// Force sync immediately (for use on app resume / network reconnect)
+export const forceSyncToCloud = async () => {
+  if (skipSync) return;
+  if (syncTimeout) clearTimeout(syncTimeout);
+  if (retryTimeout) clearTimeout(retryTimeout);
+  
+  const success = await executeSync(0);
+  if (!success) {
+    for (let i = 1; i <= MAX_RETRIES; i++) {
+      console.log(`[Force-sync] Retry ${i}/${MAX_RETRIES}...`);
+      await new Promise(r => setTimeout(r, 2000 * i));
+      const retrySuccess = await executeSync(i);
+      if (retrySuccess) break;
+    }
+  }
+};
+
+// Register global sync triggers (call once on app init)
+let syncListenersRegistered = false;
+export const registerSyncListeners = () => {
+  if (syncListenersRegistered || typeof window === 'undefined') return;
+  syncListenersRegistered = true;
+
+  // Sync when app comes back to foreground
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      console.log('[Sync] App resumed, triggering sync...');
+      forceSyncToCloud();
+    }
+  });
+
+  // Sync when network reconnects
+  window.addEventListener('online', () => {
+    console.log('[Sync] Network online, triggering sync...');
+    setTimeout(() => forceSyncToCloud(), 1000);
+  });
 };
 
 export const clearSyncTimeout = () => {
   if (syncTimeout) {
     clearTimeout(syncTimeout);
     syncTimeout = null;
+  }
+  if (retryTimeout) {
+    clearTimeout(retryTimeout);
+    retryTimeout = null;
   }
 };

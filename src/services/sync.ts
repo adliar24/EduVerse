@@ -418,7 +418,13 @@ export const syncService = {
 
           for (const chunk of chunks) {
             const { error: upsertError } = await client.from(cloudTableName).upsert(chunk);
-            if (upsertError) console.error(`Error upserting ${cloudTableName} chunk:`, upsertError);
+            if (upsertError) {
+              console.error(`[pushToCloud] Error upserting ${cloudTableName}:`, upsertError.message, upsertError.details, upsertError.hint);
+              // Log first failed item for debugging
+              if (chunk.length > 0) {
+                console.error(`[pushToCloud] Sample item that failed:`, JSON.stringify(chunk[0]).substring(0, 300));
+              }
+            }
           }
         }
       }

@@ -64,7 +64,7 @@ const GroupGeneratorPage = lazy(() => import('./pages/tools/GroupGeneratorPage')
 const RandomizerPage = lazy(() => import('./pages/tools/RandomizerPage'));
 const CertificateGeneratorPage = lazy(() => import('./pages/tools/CertificateGeneratorPage'));
 
-import { getFullState } from './services/dbAttendance';
+import { getFullState, registerSyncListeners } from './services/dbAttendance';
 import * as dbGrading from './services/dbGrading';
 import { useAlert } from './context/AlertContext';
 import { AppState, TeacherProfile } from './types';
@@ -318,6 +318,9 @@ export default function App() {
 
     window.addEventListener('student_session_change', handleSync);
     window.addEventListener('storage', handleSync);
+
+    // Register global sync listeners (visibilitychange, online)
+    registerSyncListeners();
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
