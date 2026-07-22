@@ -12,17 +12,21 @@ const getCloudTableName = (tableName: string): string => {
   return tableName;
 };
 
+const isValidUUID = (str: any): boolean => {
+  if (typeof str !== 'string') return false;
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+};
+
 // Helper to map local IndexedDB objects to Supabase snake_case schema format
 const mapToCloud = (tableName: string, item: any, userId: string): any => {
   const activeSchoolId = typeof window !== 'undefined' ? localStorage.getItem('active_school_id') : null;
   // Force activeSchoolId if it exists to prevent foreign key errors with legacy/backup school IDs
-  const schoolId = (activeSchoolId && activeSchoolId !== 'legacy') ? activeSchoolId : (item.school_id || item.schoolId || null);
+  const rawSchoolId = (activeSchoolId && activeSchoolId !== 'legacy') ? activeSchoolId : (item.school_id || item.schoolId || null);
+  const schoolId = isValidUUID(rawSchoolId) ? rawSchoolId : null;
   
   let syncItem: any = { ...item, teacher_id: userId };
   
-  if (schoolId) {
-    syncItem.school_id = schoolId;
-  }
+  syncItem.school_id = schoolId;
 
   if (tableName === 'classes') {
     syncItem.school_id = schoolId || null;
@@ -98,7 +102,8 @@ const mapToCloud = (tableName: string, item: any, userId: string): any => {
   }
   
   if (tableName === 'schedules') {
-    syncItem.school_id = item.schoolId || item.school_id || schoolId || null;
+    const rawSchedSchoolId = item.schoolId || item.school_id || schoolId || null;
+    syncItem.school_id = isValidUUID(rawSchedSchoolId) ? rawSchedSchoolId : null;
     syncItem.day_name = item.dayName;
     syncItem.class_id = item.classId || item.class_id;
     syncItem.start_time = item.startTime;
