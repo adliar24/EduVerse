@@ -148,7 +148,7 @@ export default function KelolaMateriTugas() {
   // Filter students by selected class for targeting
   const targetClassStudents = useMemo(() => {
     return students
-      .filter(s => s.classId === formClassId || (s as any).class_id === formClassId)
+      .filter(s => formClassId === 'all' || s.classId === formClassId || (s as any).class_id === formClassId)
       .filter(s => (s.name || '').toLowerCase().includes(studentSearchTerm.toLowerCase()))
       .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
   }, [students, formClassId, studentSearchTerm]);
@@ -738,30 +738,26 @@ export default function KelolaMateriTugas() {
 
                   <div className="space-y-1">
                     <label className="text-[13px] font-bold text-slate-700 ml-0.5">Target Penerima</label>
-                    {formClassId === 'all' ? (
-                      <p className="text-sm font-bold text-slate-400 py-2.5 ml-0.5">Semua Kelas (Otomatis)</p>
-                    ) : (
-                      <div className="flex gap-4 py-2.5">
-                        <label className="flex items-center gap-2 text-sm font-bold text-slate-700 cursor-pointer">
-                          <input 
-                            type="radio" 
-                            name="target_type" 
-                            checked={formTargetType === 'class'} 
-                            onChange={() => setFormTargetType('class')}
-                          />
-                          Seluruh Kelas
-                        </label>
-                        <label className="flex items-center gap-2 text-sm font-bold text-slate-700 cursor-pointer">
-                          <input 
-                            type="radio" 
-                            name="target_type" 
-                            checked={formTargetType === 'students'} 
-                            onChange={() => setFormTargetType('students')}
-                          />
-                          Murid Tertentu
-                        </label>
-                      </div>
-                    )}
+                    <div className="flex gap-4 py-2.5">
+                      <label className="flex items-center gap-2 text-sm font-bold text-slate-700 cursor-pointer">
+                        <input 
+                          type="radio" 
+                          name="target_type" 
+                          checked={formTargetType === 'class'} 
+                          onChange={() => setFormTargetType('class')}
+                        />
+                        Seluruh Kelas
+                      </label>
+                      <label className="flex items-center gap-2 text-sm font-bold text-slate-700 cursor-pointer">
+                        <input 
+                          type="radio" 
+                          name="target_type" 
+                          checked={formTargetType === 'students'} 
+                          onChange={() => setFormTargetType('students')}
+                        />
+                        Murid Tertentu
+                      </label>
+                    </div>
                   </div>
                 </div>
 
@@ -792,6 +788,9 @@ export default function KelolaMateriTugas() {
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[160px] overflow-y-auto pr-1">
                           {targetClassStudents.map(student => {
                             const isChecked = selectedStudentIds.includes(student.id!);
+                            const studentClassId = student.classId || (student as any).class_id;
+                            const studentClass = classes.find(c => c.id === studentClassId);
+                            const classLabel = studentClass ? ` (${studentClass.name})` : '';
                             return (
                               <button
                                 type="button"
@@ -803,7 +802,7 @@ export default function KelolaMateriTugas() {
                                     : 'bg-white border-slate-100 text-slate-700 hover:border-slate-200'
                                 }`}
                               >
-                                <span className="truncate pr-2">{student.name}</span>
+                                <span className="truncate pr-2">{student.name}{classLabel}</span>
                                 {isChecked && <Check className="w-4 h-4 text-blue-400 shrink-0" />}
                               </button>
                             );
