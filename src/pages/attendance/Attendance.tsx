@@ -142,6 +142,13 @@ export const Attendance: React.FC<Props> = ({ state, refresh, notify }) => {
   
   const [lastDetectedText, setLastDetectedText] = useState<string>('');
 
+  const isFrontCamera = useMemo(() => {
+    if (!selectedDeviceId) return true;
+    const activeDevice = videoDevices.find(d => d.deviceId === selectedDeviceId);
+    if (!activeDevice) return true;
+    return !/back|rear|environment/i.test(activeDevice.label.toLowerCase());
+  }, [selectedDeviceId, videoDevices]);
+
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -864,7 +871,7 @@ const switchCamera = async () => {
   if (isScanning) {
     return (
       <div className="fixed inset-0 z-[100] bg-gradient-to-b from-gray-900 via-gray-800 to-black flex flex-col">
-        <video ref={videoRef} muted playsInline className="absolute inset-0 w-full h-full object-cover" />
+        <video ref={videoRef} muted playsInline className={`absolute inset-0 w-full h-full object-cover ${isFrontCamera ? 'scale-x-[-1]' : ''}`} />
         <canvas ref={canvasRef} className="hidden" />
 
         <div className="absolute top-0 inset-x-0 z-30 bg-gradient-to-b from-black/90 via-black/60 to-transparent pt-6 pb-4 px-6 md:pt-8 md:px-12">
