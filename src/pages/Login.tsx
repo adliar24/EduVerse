@@ -57,7 +57,7 @@ export default function Login() {
 
       if (error) throw error;
       if (!data) {
-        throw new Error('Username (Kode Siswa) atau Password salah.');
+        throw new Error('Username (Kode Murid) atau Password salah.');
       }
 
       // Save student session in localStorage
@@ -128,7 +128,7 @@ export default function Login() {
             <span className="text-blue-400">Presensi Digital Terpadu</span>
           </h1>
           <p className="text-indigo-100/80 text-base leading-relaxed font-medium">
-            Kelola absensi siswa (QR & Wajah), buku nilai, rekapitulasi, dan perangkat mengajar Anda secara terpadu. Data tersimpan aman dan terkelola secara mandiri.
+            Kelola absensi murid (QR & Wajah), buku nilai, rekapitulasi, dan perangkat mengajar Anda secara terpadu. Data tersimpan aman dan terkelola secara mandiri.
           </p>
 
           <div className="grid grid-cols-2 gap-6 pt-6">
@@ -196,8 +196,8 @@ export default function Login() {
                       <GraduationCap className="w-7 h-7" />
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-lg font-bold text-indigo-950 mb-0.5">Saya Siswa</h3>
-                      <p className="text-slate-500 text-sm font-medium leading-snug">Masuk ke halaman ujian digital atau akses dashboard mandiri siswa.</p>
+                      <h3 className="text-lg font-bold text-indigo-950 mb-0.5">Saya Murid</h3>
+                      <p className="text-slate-500 text-sm font-medium leading-snug">Masuk ke halaman ujian digital atau akses dashboard mandiri murid.</p>
                     </div>
                   </button>
                 </div>
@@ -229,7 +229,7 @@ export default function Login() {
 
                 <div className="mb-8">
                   <h2 className="text-2xl sm:text-3xl font-black text-indigo-950 tracking-tight mb-2">Selamat Datang, Guru</h2>
-                  <p className="text-slate-500 font-medium text-[14px]">Masuk untuk mengelola ujian, absensi, dan pengolahan nilai siswa.</p>
+                  <p className="text-slate-500 font-medium text-[14px]">Masuk untuk mengelola ujian, absensi, dan pengolahan nilai murid.</p>
                 </div>
 
                 {error && (
@@ -292,8 +292,8 @@ export default function Login() {
                 </button>
 
                 <div className="mb-8">
-                  <h2 className="text-2xl sm:text-3xl font-black text-indigo-950 tracking-tight mb-2">Selamat Datang, Siswa</h2>
-                  <p className="text-slate-500 font-medium text-[14px]">Masuk menggunakan Kode Siswa (Username) dan password yang diberikan guru.</p>
+                  <h2 className="text-2xl sm:text-3xl font-black text-indigo-950 tracking-tight mb-2">Selamat Datang, Murid</h2>
+                  <p className="text-slate-500 font-medium text-[14px]">Masuk menggunakan Kode Murid (Username) dan password yang diberikan guru.</p>
                 </div>
 
                 {error && (
@@ -307,7 +307,7 @@ export default function Login() {
 
                 <form onSubmit={handleStudentLogin} className="space-y-5">
                   <div className="space-y-1.5">
-                    <label className="text-[13px] font-bold text-slate-700 ml-0.5">Username (Kode Siswa)</label>
+                    <label className="text-[13px] font-bold text-slate-700 ml-0.5">Username (Kode Murid)</label>
                     <div className="relative group">
                       <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 group-focus-within:text-indigo-950 transition-colors" />
                       <input type="text" required
