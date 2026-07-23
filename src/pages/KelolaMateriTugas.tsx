@@ -58,6 +58,14 @@ export default function KelolaMateriTugas() {
 
   // Class selection for filtering list
   const [selectedClassFilter, setSelectedClassFilter] = useState('all');
+  
+  // Selection States
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+
+  // Clear selection when tab or filter changes
+  useEffect(() => {
+    setSelectedIds([]);
+  }, [activeTab, selectedClassFilter]);
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -386,6 +394,77 @@ export default function KelolaMateriTugas() {
       .sort((a, b) => new Date(b.created_at || b.createdAt || '').getTime() - new Date(a.created_at || a.createdAt || '').getTime());
   }, [assignments, selectedClassFilter]);
 
+  const currentActiveList = useMemo(() => {
+    return activeTab === 'materials' ? filteredMaterialsList : filteredAssignmentsList;
+  }, [activeTab, filteredMaterialsList, filteredAssignmentsList]);
+
+  const handleToggleSelect = (id: string) => {
+    setSelectedIds(prev => 
+      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+    );
+  };
+
+  const handleSelectAll = () => {
+    const allActiveIds = currentActiveList.map(item => item.id);
+    const allSelected = allActiveIds.every(id => selectedIds.includes(id));
+    if (allSelected) {
+      setSelectedIds(prev => prev.filter(id => !allActiveIds.includes(id)));
+    } else {
+      setSelectedIds(prev => {
+        const newSelection = [...prev];
+        allActiveIds.forEach(id => {
+          if (!newSelection.includes(id)) newSelection.push(id);
+        });
+        return newSelection;
+      });
+    }
+  };
+
+  const handleDeleteBulk = (idsToDelete: string[], isAll: boolean) => {
+    if (idsToDelete.length === 0) return;
+    
+    const typeLabel = activeTab === 'materials' ? 'materi' : 'tugas';
+    const message = isAll
+      ? `Apakah Anda yakin ingin menghapus SEMUA ${typeLabel} (${idsToDelete.length} data) yang tampil saat ini secara permanen?`
+      : `Apakah Anda yakin ingin menghapus ${idsToDelete.length} ${typeLabel} terpilih secara permanen?`;
+
+    showAlert({
+      title: isAll ? 'Hapus Semua Data?' : 'Hapus Data Terpilih?',
+      message: message,
+      type: 'confirm',
+      confirmText: 'Ya, Hapus',
+      onConfirm: async () => {
+        try {
+          const tableName = activeTab === 'materials' ? 'materials' : 'assignments';
+          
+          // 1. Delete from Cloud
+          const { error } = await supabase
+            .from(tableName)
+            .delete()
+            .in('id', idsToDelete);
+
+          if (error) throw error;
+
+          // 2. Delete locally
+          for (const id of idsToDelete) {
+            if (activeTab === 'materials') {
+              await deleteMaterial(id);
+            } else {
+              await deleteAssignment(id);
+            }
+          }
+
+          showAlert({ title: 'Terhapus', message: `${idsToDelete.length} data berhasil dihapus dari cloud dan penyimpanan lokal.`, type: 'success' });
+          setSelectedIds([]);
+          fetchData();
+        } catch (err: any) {
+          console.error(err);
+          showAlert({ title: 'Gagal Menghapus', message: err.message || 'Gagal menghapus data.', type: 'error' });
+        }
+      }
+    });
+  };
+
   return (
     <div className="space-y-6 pb-10 font-sans">
       {/* Header */}
@@ -457,6 +536,45 @@ export default function KelolaMateriTugas() {
         </div>
       </div>
 
+      {/* Bulk Action Bar */}
+      {!loading && currentActiveList.length > 0 && (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-200/60">
+          <div className="flex items-center gap-3">
+            <label className="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer">
+              <input 
+                type="checkbox"
+                checked={currentActiveList.length > 0 && currentActiveList.every(item => selectedIds.includes(item.id))}
+                onChange={handleSelectAll}
+                className="w-4 h-4 rounded text-indigo-600 border-slate-300 focus:ring-indigo-500"
+              />
+              Pilih Semua ({currentActiveList.length} item)
+            </label>
+            {selectedIds.length > 0 && (
+              <span className="text-xs font-semibold text-slate-500 bg-white px-2 py-1 rounded-md border border-slate-100">
+                {selectedIds.length} Terpilih
+              </span>
+            )}
+          </div>
+          
+          <div className="flex items-center gap-2">
+            {selectedIds.length > 0 && (
+              <button
+                onClick={() => handleDeleteBulk(selectedIds.filter(id => currentActiveList.some(item => item.id === id)), false)}
+                className="bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 px-3 py-1.5 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-all active:scale-[0.98]"
+              >
+                <Trash2 className="w-3.5 h-3.5" /> Hapus Terpilih
+              </button>
+            )}
+            <button
+              onClick={() => handleDeleteBulk(currentActiveList.map(item => item.id), true)}
+              className="bg-white text-rose-600 hover:bg-rose-50 border border-slate-200 hover:border-rose-200 px-3 py-1.5 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-all active:scale-[0.98]"
+            >
+              <Trash2 className="w-3.5 h-3.5 text-rose-500" /> Hapus Semua
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Main List Area */}
       {loading ? (
         <div className="flex flex-col items-center justify-center py-20">
@@ -470,12 +588,22 @@ export default function KelolaMateriTugas() {
             {filteredMaterialsList.map((m) => {
               const cls = classes.find(c => c.id === m.classId || (c as any).class_id === m.classId);
               return (
-                <div key={m.id} className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col justify-between gap-4">
+                <div key={m.id} className={`bg-white p-6 rounded-2xl border transition-all flex flex-col justify-between gap-4 relative group ${
+                  selectedIds.includes(m.id) ? 'border-indigo-950 shadow-md bg-indigo-50/10' : 'border-slate-100 shadow-sm hover:shadow-md'
+                }`}>
                   <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="bg-blue-50 text-blue-700 text-xs font-bold px-3 py-1 rounded-md">
-                        {cls?.name || 'Semua Kelas'}
-                      </span>
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <input 
+                          type="checkbox"
+                          checked={selectedIds.includes(m.id)}
+                          onChange={() => handleToggleSelect(m.id)}
+                          className="w-4 h-4 rounded text-indigo-600 border-slate-300 focus:ring-indigo-500 cursor-pointer"
+                        />
+                        <span className="bg-blue-50 text-blue-700 text-xs font-bold px-3 py-1 rounded-md">
+                          {cls?.name || 'Semua Kelas'}
+                        </span>
+                      </div>
                       {m.target_type === 'students' && (
                         <span className="bg-amber-50 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1 border border-amber-100">
                           <Users className="w-3.5 h-3.5" />
@@ -535,12 +663,22 @@ export default function KelolaMateriTugas() {
               const isOverdue = deadlineDate ? deadlineDate.getTime() < Date.now() : false;
               
               return (
-                <div key={a.id} className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col justify-between gap-4">
+                <div key={a.id} className={`bg-white p-6 rounded-2xl border transition-all flex flex-col justify-between gap-4 relative group ${
+                  selectedIds.includes(a.id) ? 'border-indigo-950 shadow-md bg-indigo-50/10' : 'border-slate-100 shadow-sm hover:shadow-md'
+                }`}>
                   <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="bg-purple-50 text-purple-700 text-xs font-bold px-3 py-1 rounded-md">
-                        {cls?.name || 'Semua Kelas'}
-                      </span>
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <input 
+                          type="checkbox"
+                          checked={selectedIds.includes(a.id)}
+                          onChange={() => handleToggleSelect(a.id)}
+                          className="w-4 h-4 rounded text-indigo-600 border-slate-300 focus:ring-indigo-500 cursor-pointer"
+                        />
+                        <span className="bg-purple-50 text-purple-700 text-xs font-bold px-3 py-1 rounded-md">
+                          {cls?.name || 'Semua Kelas'}
+                        </span>
+                      </div>
                       <div className="flex gap-1 flex-wrap">
                         {a.isGraded !== false && a.is_graded !== false ? (
                           <span className="bg-emerald-50 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-md border border-emerald-100">

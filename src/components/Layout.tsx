@@ -520,7 +520,7 @@ export default function Layout({ session }: LayoutProps) {
       <main className="flex-1 flex flex-col min-w-0 h-screen overflow-y-scroll overflow-x-hidden relative z-10">
         {/* Navbar */}
         {!isFullScreenScanMode && (
-          <header className="h-16 shrink-0 bg-white/60 backdrop-blur-xl shadow-[0_1px_3px_rgba(0,0,0,0.04)] flex items-center justify-between px-4 lg:px-8 sticky top-0 z-30 border-b border-white/50">
+          <header className="h-16 shrink-0 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.04)] flex items-center justify-between px-4 lg:px-8 sticky top-0 z-30 border-b border-slate-200">
             <div className="flex items-center gap-3">
               <button 
                 onClick={() => setIsMobileMenuOpen(true)}
