@@ -563,15 +563,33 @@ export const registerSyncListeners = () => {
   // Sync when app comes back to foreground
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') {
-      console.log('[Sync] App resumed, triggering sync...');
-      forceSyncToCloud();
+      console.log('[Sync] App resumed, triggering sync pull and push...');
+      (async () => {
+        try {
+          const { syncService } = await import('./sync');
+          await syncService.pullFromCloud();
+          window.dispatchEvent(new Event('cloud_data_synced'));
+        } catch (e) {
+          console.warn('[Sync] Auto-pull on app resume failed:', e);
+        }
+        forceSyncToCloud();
+      })();
     }
   });
 
   // Sync when network reconnects
   window.addEventListener('online', () => {
     console.log('[Sync] Network online, triggering sync...');
-    setTimeout(() => forceSyncToCloud(), 1000);
+    setTimeout(async () => {
+      try {
+        const { syncService } = await import('./sync');
+        await syncService.pullFromCloud();
+        window.dispatchEvent(new Event('cloud_data_synced'));
+      } catch (e) {
+        console.warn('[Sync] Auto-pull on network online failed:', e);
+      }
+      forceSyncToCloud();
+    }, 1000);
   });
 };
 

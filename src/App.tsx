@@ -108,6 +108,17 @@ const AttendancePageWrapper = ({ Component }: { Component: React.ComponentType<a
     };
 
     autoPull();
+
+    // 3. Listen to realtime sync updates
+    const handleCloudSync = () => {
+      console.log('[AttendancePageWrapper] Realtime sync event received, reloading database state...');
+      loadState(true);
+    };
+    window.addEventListener('cloud_data_synced', handleCloudSync);
+
+    return () => {
+      window.removeEventListener('cloud_data_synced', handleCloudSync);
+    };
   }, []);
 
   const notify = (msg: string, type: 'success' | 'error' = 'success') => {
@@ -164,6 +175,17 @@ const GradingPageWrapper = ({ Component }: { Component: React.ComponentType<any>
     };
 
     autoPullGrading();
+
+    // 3. Listen to realtime sync updates
+    const handleCloudSync = () => {
+      console.log('[GradingPageWrapper] Realtime sync event received, refreshing profile...');
+      refreshProfile();
+    };
+    window.addEventListener('cloud_data_synced', handleCloudSync);
+
+    return () => {
+      window.removeEventListener('cloud_data_synced', handleCloudSync);
+    };
   }, []);
 
   if (loading) {
@@ -300,6 +322,21 @@ export default function App() {
           const dbGrading = await import('./services/dbGrading');
           await dbGrading.syncCloudToLocal();
           console.log('[App] Initial data pull complete.');
+          
+          // Subscribe to realtime changes
+          syncService.subscribeToRealtimeSync(user.id, async () => {
+            console.log('[App Realtime] Triggering sync pull due to changes on other device...');
+            try {
+              const { syncService: liveSync } = await import('./services/sync');
+              await liveSync.pullFromCloud();
+              const dbGrading = await import('./services/dbGrading');
+              await dbGrading.syncCloudToLocal();
+              // Dispatch event to reload UI in all screens
+              window.dispatchEvent(new Event('cloud_data_synced'));
+            } catch (err) {
+              console.error('[App Realtime] Auto-pull failed:', err);
+            }
+          });
         }
       }
     } catch (err) {

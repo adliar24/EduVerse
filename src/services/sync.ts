@@ -291,7 +291,42 @@ const mapToLocal = (tableName: string, cloudItem: any): any => {
   return item;
 };
 
+const deviceId = Math.random().toString(36).substring(2, 15);
+let syncSubscription: any = null;
+
 export const syncService = {
+  subscribeToRealtimeSync(userId: string, callback: () => void) {
+    if (syncSubscription) {
+      syncSubscription.unsubscribe();
+    }
+    
+    if (!supabase) return;
+    const client = getSupabaseClient();
+    
+    console.log('[Realtime Sync] Subscribing to sync channel for user:', userId);
+    
+    syncSubscription = client
+      .channel('eduverse-sync-channel')
+      .on('broadcast', { event: 'sync-event' }, (payload: any) => {
+        console.log('[Realtime Sync] Received broadcast payload:', payload);
+        if (payload.payload?.userId === userId && payload.payload?.senderId !== deviceId) {
+          console.log('[Realtime Sync] Broadcast trigger: new updates on another device!');
+          callback();
+        }
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'attendance_sessions' }, () => {
+        console.log('[Realtime Sync] Postgres changes on attendance_sessions table');
+        callback();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'attendance_records' }, () => {
+        console.log('[Realtime Sync] Postgres changes on attendance_records table');
+        callback();
+      })
+      .subscribe((status) => {
+        console.log('[Realtime Sync] Subscription status:', status);
+      });
+  },
+
   // --- AUTH ---
   async signUp(email: string, pass: string) {
     const supabase = getSupabaseClient();
@@ -436,6 +471,18 @@ export const syncService = {
       if (state.teacher) {
         const updatedProfile = { ...state.teacher, lastSyncTimestamp: nowISO };
         await saveTeacherProfile(updatedProfile, true);
+      }
+
+      // Broadcast sync event to other devices
+      try {
+        await client.channel('eduverse-sync-channel').send({
+          type: 'broadcast',
+          event: 'sync-event',
+          payload: { userId: user.id, senderId: deviceId }
+        });
+        console.log('[pushToCloud] Successfully broadcasted sync-event to other devices.');
+      } catch (broadcastErr) {
+        console.warn('[pushToCloud] Failed to send broadcast sync-event:', broadcastErr);
       }
 
       return { success: true, message: 'Data berhasil disinkronisasi ke cloud' };
