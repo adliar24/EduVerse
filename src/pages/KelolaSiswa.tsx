@@ -450,8 +450,12 @@ export default function KelolaSiswa() {
     }
 
     const className = classes.find(c => c.id === selectedClass)?.name || 'Kelas';
-    const header = ['NAMA LENGKAP', 'KODE UNIK'];
-    const rows = filteredStudents.map(s => [s.name, s.student_code || '-']);
+    const header = ['NAMA LENGKAP', 'JENIS KELAMIN', 'KODE UNIK'];
+    const rows = filteredStudents.map(s => [
+      s.name, 
+      s.gender === 'M' || s.gender === 'L' ? 'L' : s.gender === 'F' || s.gender === 'P' ? 'P' : '-',
+      s.student_code || '-'
+    ]);
 
     const worksheet = XLSXStyle.utils.aoa_to_sheet([header, ...rows]);
     
@@ -461,12 +465,13 @@ export default function KelolaSiswa() {
       ...rows.map(r => String(r[0] || '').length)
     );
     const maxCodeLen = Math.max(
-      header[1].length,
-      ...rows.map(r => String(r[1] || '').length)
+      header[2].length,
+      ...rows.map(r => String(r[2] || '').length)
     );
     
     worksheet['!cols'] = [
       { wch: Math.max(maxNameLen + 3, 18) },
+      { wch: 15 },
       { wch: Math.max(maxCodeLen + 3, 14) }
     ];
 
@@ -515,7 +520,7 @@ export default function KelolaSiswa() {
             },
             alignment: {
               vertical: "center",
-              horizontal: c === 1 ? "center" : "left" // Center align code, left align name
+              horizontal: c > 0 ? "center" : "left" // Center align gender & code, left align name
             },
             border: {
               top: { style: "thin", color: { rgb: "E2E8F0" } },
@@ -535,8 +540,8 @@ export default function KelolaSiswa() {
 
   const handleDownloadTemplate = () => {
     const template = [
-      { 'Nama Lengkap': 'Ahmad Fauzi', 'Nama Kelas': 'XII IPA 1' },
-      { 'Nama Lengkap': 'Siti Aminah', 'Nama Kelas': 'XII IPA 1' }
+      { 'Nama Lengkap': 'Ahmad Fauzi', 'Nama Kelas': 'XII IPA 1', 'Jenis Kelamin': 'L' },
+      { 'Nama Lengkap': 'Siti Aminah', 'Nama Kelas': 'XII IPA 1', 'Jenis Kelamin': 'P' }
     ];
     const worksheet = XLSX.utils.json_to_sheet(template);
     const workbook = XLSX.utils.book_new();
@@ -567,6 +572,7 @@ export default function KelolaSiswa() {
         const headers = rawData[0].map((h: any) => String(h || '').trim());
         const nameIdx = headers.findIndex(h => h === 'Nama Lengkap');
         const classIdx = headers.findIndex(h => h === 'Nama Kelas');
+        const genderIdx = headers.findIndex(h => ['Jenis Kelamin', 'Gender', 'L/P', 'Jenis_Kelamin'].includes(h));
         
         if (nameIdx === -1) throw new Error('Kolom "Nama Lengkap" tidak ditemukan.');
         
@@ -615,36 +621,60 @@ export default function KelolaSiswa() {
               }
             }
             
-            const { data: newStudent } = await supabase.from('students').insert([{ 
-              teacher_id: user.id, 
-              school_id: activeSchool?.id === 'legacy' ? null : activeSchool?.id,
-              name, 
-              class_id: classId,
-              student_code: generateStudentCode(),
-              password: 'murid19'
-            }]).select().single();
+            const rawGender = genderIdx !== -1 ? String(row[genderIdx] || '').trim().toUpperCase() : '';
+            let genderVal: 'M' | 'F' | null = null;
+            if (['L', 'M', 'LAKI', 'LAKI-LAKI', 'MALE', 'MAN', 'PRIA'].includes(rawGender)) {
+              genderVal = 'M';
+            } else if (['P', 'F', 'PEREMPUAN', 'FEMALE', 'WOMAN', 'WANITA'].includes(rawGender)) {
+              genderVal = 'F';
+            }
 
-            if (newStudent) {
+            const existingStudent = students.find(s => s.name.toLowerCase() === name.toLowerCase() && s.class_id === classId);
+            let studentData = null;
+            
+            if (existingStudent) {
+              const { data, error } = await supabase.from('students').update({ 
+                gender: genderVal
+              }).eq('id', existingStudent.id).select().single();
+              if (error) throw error;
+              studentData = data;
+            } else {
+              const { data, error } = await supabase.from('students').insert([{ 
+                teacher_id: user.id, 
+                school_id: activeSchool?.id === 'legacy' ? null : activeSchool?.id,
+                name, 
+                class_id: classId,
+                student_code: generateStudentCode(),
+                password: 'murid19',
+                gender: genderVal
+              }]).select().single();
+              if (error) throw error;
+              studentData = data;
+            }
+
+            if (studentData) {
               await addStudent({
-                id: newStudent.id,
-                teacher_id: newStudent.teacher_id,
-                school_id: newStudent.school_id,
-                schoolId: newStudent.school_id,
-                classId: newStudent.class_id,
-                class_id: newStudent.class_id,
-                name: newStudent.name,
-                student_code: newStudent.student_code,
-                password: newStudent.password || 'murid19',
-                createdAt: newStudent.created_at
+                id: studentData.id,
+                teacher_id: studentData.teacher_id,
+                school_id: studentData.school_id,
+                schoolId: studentData.school_id,
+                classId: studentData.class_id,
+                class_id: studentData.class_id,
+                name: studentData.name,
+                student_code: studentData.student_code,
+                password: studentData.password || 'murid19',
+                gender: studentData.gender,
+                createdAt: studentData.created_at
               } as any);
               await saveStudent({
-                idSiswa: newStudent.id,
-                teacherId: newStudent.teacher_id,
-                schoolId: newStudent.school_id,
-                idKelas: newStudent.class_id,
-                nama: newStudent.name,
-                student_code: newStudent.student_code,
-                password: newStudent.password || 'murid19'
+                idSiswa: studentData.id,
+                teacherId: studentData.teacher_id,
+                schoolId: studentData.school_id,
+                idKelas: studentData.class_id,
+                nama: studentData.name,
+                student_code: studentData.student_code,
+                password: studentData.password || 'murid19',
+                gender: studentData.gender
               } as any);
             }
             successCount++;
