@@ -27,39 +27,59 @@ import LinkPreviewCard from '../components/LinkPreviewCard';
 
 const CARD_STYLES = [
   {
-    bg: 'bg-indigo-50/40 hover:bg-indigo-50/70 border-indigo-100/70',
-    selectedBg: 'bg-indigo-50/70 border-indigo-400 shadow-[0_10px_25px_rgba(99,102,241,0.15)]',
-    text: 'text-indigo-950',
-    badge: 'bg-indigo-100 text-indigo-700 border-indigo-200/50',
-    accentLine: 'bg-indigo-500'
+    bg: 'bg-indigo-600 text-white border-indigo-500 hover:bg-indigo-550 shadow-lg shadow-indigo-600/10',
+    selectedBg: 'bg-indigo-650 text-white border-indigo-300 shadow-[0_12px_30px_rgba(99,102,241,0.35)]',
+    text: 'text-white',
+    textMuted: 'text-indigo-100/80',
+    badge: 'bg-white/20 text-white border-white/10',
+    divider: 'border-white/10',
+    btnEdit: 'text-white/70 hover:text-white hover:bg-white/10',
+    btnDelete: 'text-white/70 hover:text-red-200 hover:bg-red-500/25',
+    checkbox: 'border-white/30 text-indigo-600 focus:ring-offset-indigo-600'
   },
   {
-    bg: 'bg-blue-50/40 hover:bg-blue-50/70 border-blue-100/70',
-    selectedBg: 'bg-blue-50/70 border-blue-400 shadow-[0_10px_25px_rgba(59,130,246,0.15)]',
-    text: 'text-blue-950',
-    badge: 'bg-blue-100 text-blue-700 border-blue-200/50',
-    accentLine: 'bg-blue-500'
+    bg: 'bg-blue-600 text-white border-blue-500 hover:bg-blue-550 shadow-lg shadow-blue-600/10',
+    selectedBg: 'bg-blue-650 text-white border-blue-300 shadow-[0_12px_30px_rgba(59,130,246,0.35)]',
+    text: 'text-white',
+    textMuted: 'text-blue-100/80',
+    badge: 'bg-white/20 text-white border-white/10',
+    divider: 'border-white/10',
+    btnEdit: 'text-white/70 hover:text-white hover:bg-white/10',
+    btnDelete: 'text-white/70 hover:text-red-200 hover:bg-red-500/25',
+    checkbox: 'border-white/30 text-blue-600 focus:ring-offset-blue-600'
   },
   {
-    bg: 'bg-rose-50/40 hover:bg-rose-50/70 border-rose-100/70',
-    selectedBg: 'bg-rose-50/70 border-rose-400 shadow-[0_10px_25px_rgba(244,63,94,0.15)]',
-    text: 'text-rose-950',
-    badge: 'bg-rose-100 text-rose-700 border-rose-200/50',
-    accentLine: 'bg-rose-500'
+    bg: 'bg-purple-600 text-white border-purple-500 hover:bg-purple-550 shadow-lg shadow-purple-600/10',
+    selectedBg: 'bg-purple-650 text-white border-purple-300 shadow-[0_12px_30px_rgba(139,92,246,0.35)]',
+    text: 'text-white',
+    textMuted: 'text-purple-100/80',
+    badge: 'bg-white/20 text-white border-white/10',
+    divider: 'border-white/10',
+    btnEdit: 'text-white/70 hover:text-white hover:bg-white/10',
+    btnDelete: 'text-white/70 hover:text-red-200 hover:bg-red-500/25',
+    checkbox: 'border-white/30 text-purple-600 focus:ring-offset-purple-600'
   },
   {
-    bg: 'bg-amber-50/40 hover:bg-amber-50/70 border-amber-100/70',
-    selectedBg: 'bg-amber-50/70 border-amber-400 shadow-[0_10px_25px_rgba(245,158,11,0.15)]',
-    text: 'text-amber-950',
-    badge: 'bg-amber-100 text-amber-700 border-amber-200/50',
-    accentLine: 'bg-amber-500'
+    bg: 'bg-amber-600 text-white border-amber-500 hover:bg-amber-550 shadow-lg shadow-amber-600/10',
+    selectedBg: 'bg-amber-650 text-white border-amber-300 shadow-[0_12px_30px_rgba(245,158,11,0.35)]',
+    text: 'text-white',
+    textMuted: 'text-amber-100/80',
+    badge: 'bg-white/20 text-white border-white/10',
+    divider: 'border-white/10',
+    btnEdit: 'text-white/70 hover:text-white hover:bg-white/10',
+    btnDelete: 'text-white/70 hover:text-red-200 hover:bg-red-500/25',
+    checkbox: 'border-white/30 text-amber-600 focus:ring-offset-amber-600'
   },
   {
-    bg: 'bg-emerald-50/40 hover:bg-emerald-50/70 border-emerald-100/70',
-    selectedBg: 'bg-emerald-50/70 border-emerald-400 shadow-[0_10px_25px_rgba(16,185,129,0.15)]',
-    text: 'text-emerald-950',
-    badge: 'bg-emerald-100 text-emerald-700 border-emerald-200/50',
-    accentLine: 'bg-emerald-500'
+    bg: 'bg-rose-600 text-white border-rose-500 hover:bg-rose-550 shadow-lg shadow-rose-600/10',
+    selectedBg: 'bg-rose-650 text-white border-rose-300 shadow-[0_12px_30px_rgba(244,63,94,0.35)]',
+    text: 'text-white',
+    textMuted: 'text-rose-100/80',
+    badge: 'bg-white/20 text-white border-white/10',
+    divider: 'border-white/10',
+    btnEdit: 'text-white/70 hover:text-white hover:bg-white/10',
+    btnDelete: 'text-white/70 hover:text-red-200 hover:bg-red-500/25',
+    checkbox: 'border-white/30 text-rose-600 focus:ring-offset-rose-600'
   }
 ];
 
@@ -767,7 +787,7 @@ export default function KelolaMateriTugas() {
                           type="checkbox"
                           checked={selectedIds.includes(m.id)}
                           onChange={() => handleToggleSelect(m.id)}
-                          className="w-4 h-4 rounded text-indigo-600 border-slate-300 focus:ring-indigo-500 cursor-pointer"
+                          className="w-4 h-4 rounded text-indigo-600 border-white/20 focus:ring-indigo-500 cursor-pointer bg-white/10"
                         />
                         {(m.classIds || []).map((cid: string) => {
                           const cls = classes.find(c => c.id === cid);
@@ -779,34 +799,34 @@ export default function KelolaMateriTugas() {
                         })}
                       </div>
                       {m.target_type === 'students' && (
-                        <span className="bg-amber-50 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1 border border-amber-100">
+                        <span className="bg-white/20 text-white text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1 border border-white/10">
                           <Users className="w-3.5 h-3.5" />
                           {m.student_ids?.length || 0} Murid
                         </span>
                       )}
                     </div>
-                    <h3 className="text-lg font-bold text-indigo-950 leading-snug">{m.title}</h3>
-                    <p className="text-slate-500 text-sm leading-relaxed line-clamp-3 whitespace-pre-line">{m.description}</p>
+                    <h3 className="text-lg font-bold leading-snug">{m.title}</h3>
+                    <p className={`text-sm leading-relaxed line-clamp-3 whitespace-pre-line ${cardStyle.textMuted}`}>{m.description}</p>
                   </div>
 
                   {m.link && (
-                    <div className="border-t border-slate-50 pt-3 mt-2">
+                    <div className={`border-t ${cardStyle.divider} pt-3 mt-2`}>
                       <LinkPreviewCard url={m.link} />
                     </div>
                   )}
 
-                  <div className="border-t border-slate-50 pt-3 flex items-center justify-end mt-1">
+                  <div className={`border-t ${cardStyle.divider} pt-3 flex items-center justify-end mt-1`}>
                     <div className="flex gap-1.5">
                       <button 
                         onClick={() => handleOpenEditModal(m, 'material')}
-                        className="p-2 text-slate-400 hover:text-indigo-950 hover:bg-slate-100 rounded-lg transition-colors"
+                        className={`p-2 rounded-lg transition-colors ${cardStyle.btnEdit}`}
                         title="Edit Materi"
                       >
                         <Edit3 className="w-4 h-4" />
                       </button>
                       <button 
                         onClick={() => handleDelete(m.ids || [m.id], m.title, 'material')}
-                        className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                        className={`p-2 rounded-lg transition-colors ${cardStyle.btnDelete}`}
                         title="Hapus Materi"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -846,7 +866,7 @@ export default function KelolaMateriTugas() {
                           type="checkbox"
                           checked={selectedIds.includes(a.id)}
                           onChange={() => handleToggleSelect(a.id)}
-                          className="w-4 h-4 rounded text-indigo-600 border-slate-300 focus:ring-indigo-500 cursor-pointer"
+                          className="w-4 h-4 rounded text-indigo-600 border-white/20 focus:ring-indigo-500 cursor-pointer bg-white/10"
                         />
                         {(a.classIds || []).map((cid: string) => {
                           const cls = classes.find(c => c.id === cid);
@@ -859,16 +879,16 @@ export default function KelolaMateriTugas() {
                       </div>
                       <div className="flex gap-1 flex-wrap">
                         {a.isGraded !== false && a.is_graded !== false ? (
-                          <span className="bg-emerald-50 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-md border border-emerald-100">
+                          <span className="bg-white/25 text-white text-[10px] font-bold px-2 py-0.5 rounded-md border border-white/10">
                             Diberi Nilai
                           </span>
                         ) : (
-                          <span className="bg-slate-50 text-slate-500 text-[10px] font-bold px-2 py-0.5 rounded-md border border-slate-200/60">
+                          <span className="bg-white/10 text-white/70 text-[10px] font-bold px-2 py-0.5 rounded-md border border-white/5">
                             Tanpa Nilai
                           </span>
                         )}
                         {a.target_type === 'students' && (
-                          <span className="bg-amber-50 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1 border border-amber-100">
+                          <span className="bg-white/20 text-white text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1 border border-white/10">
                             <Users className="w-3.5 h-3.5" />
                             {a.student_ids?.length || 0} Murid
                           </span>
@@ -876,30 +896,30 @@ export default function KelolaMateriTugas() {
                         {hasDeadline ? (
                           <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1 border ${
                             isOverdue 
-                              ? 'bg-rose-50 text-rose-700 border-rose-100' 
-                              : 'bg-indigo-50 text-indigo-700 border-indigo-100'
+                              ? 'bg-rose-500/25 text-rose-100 border-rose-400/20' 
+                              : 'bg-white/20 text-white border-white/10'
                           }`}>
                             <Clock className="w-3.5 h-3.5" />
                             {isOverdue ? 'Selesai' : 'Aktif'}
                           </span>
                         ) : (
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1 border bg-emerald-50 text-emerald-700 border-emerald-100">
-                            <Clock className="w-3.5 h-3.5 text-emerald-600" />
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1 border bg-white/20 text-white border-white/10">
+                            <Clock className="w-3.5 h-3.5 text-white" />
                             Tanpa Tenggat
                           </span>
                         )}
                       </div>
                     </div>
                     
-                    <h3 className="text-lg font-bold text-indigo-950 leading-snug">{a.title}</h3>
-                    <p className="text-slate-500 text-sm leading-relaxed line-clamp-3 whitespace-pre-line">{a.description}</p>
+                    <h3 className="text-lg font-bold leading-snug">{a.title}</h3>
+                    <p className={`text-sm leading-relaxed line-clamp-3 whitespace-pre-line ${cardStyle.textMuted}`}>{a.description}</p>
                   </div>
 
                   <div className="space-y-3 mt-2">
                     {hasDeadline ? (
-                      <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                        <Calendar className="w-4 h-4 text-indigo-900" />
-                        Tenggat: <span className={isOverdue ? 'text-rose-600 font-bold' : 'text-slate-700 font-bold'}>
+                      <div className={`flex items-center gap-1.5 text-xs font-semibold bg-white/10 p-2.5 rounded-xl border border-white/10 text-white/90`}>
+                        <Calendar className="w-4 h-4 text-white" />
+                        Tenggat: <span className={isOverdue ? 'text-rose-200 font-bold' : 'text-white font-bold'}>
                           {new Date(a.deadline!).toLocaleDateString('id-ID', {
                             weekday: 'long',
                             year: 'numeric',
@@ -911,8 +931,8 @@ export default function KelolaMateriTugas() {
                         </span>
                       </div>
                     ) : (
-                      <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50/50 p-2.5 rounded-xl border border-emerald-100/50">
-                        <Calendar className="w-4 h-4 text-emerald-600" />
+                      <div className="flex items-center gap-1.5 text-xs font-semibold bg-white/10 p-2.5 rounded-xl border border-white/10 text-white/90">
+                        <Calendar className="w-4 h-4 text-white" />
                         Tenggat: <span className="font-bold">Tanpa Tenggat</span>
                       </div>
                     )}
@@ -923,18 +943,18 @@ export default function KelolaMateriTugas() {
                       </div>
                     )}
 
-                    <div className="border-t border-slate-50 pt-3 flex items-center justify-end">
+                    <div className={`border-t ${cardStyle.divider} pt-3 flex items-center justify-end`}>
                       <div className="flex gap-1.5">
                         <button 
                           onClick={() => handleOpenEditModal(a, 'assignment')}
-                          className="p-2 text-slate-400 hover:text-indigo-950 hover:bg-slate-100 rounded-lg transition-colors"
+                          className={`p-2 rounded-lg transition-colors ${cardStyle.btnEdit}`}
                           title="Edit Tugas"
                         >
                           <Edit3 className="w-4 h-4" />
                         </button>
                         <button 
                           onClick={() => handleDelete(a.ids || [a.id], a.title, 'assignment')}
-                          className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                          className={`p-2 rounded-lg transition-colors ${cardStyle.btnDelete}`}
                           title="Hapus Tugas"
                         >
                           <Trash2 className="w-4 h-4" />
