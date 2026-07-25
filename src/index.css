@@ -102,9 +102,9 @@
   transform: translateY(-2px);
 }
 
-/* Solid Sidebar Gradient */
+/* Solid Sidebar Gradient - Royal Violet Swatch */
 .sidebar-gradient {
-  background: linear-gradient(180deg, #0A0825 0%, #15104B 60%, #22134E 100%) !important;
+  background: linear-gradient(180deg, #5C53D4 0%, #5148C7 50%, #463CB8 100%) !important;
 }
 
 /* Glowing Solid Card */

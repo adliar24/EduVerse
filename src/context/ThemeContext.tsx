@@ -19,15 +19,15 @@ export interface ThemeConfig {
 export const THEME_CONFIGS: Record<ThemeName, ThemeConfig> = {
   royal: {
     id: 'royal',
-    name: 'Royal Indigo',
-    badge: '👑 Royal',
-    primary: '#4F46E5',
-    gradient: 'from-indigo-600 via-indigo-700 to-purple-800',
-    heroGradient: 'bg-gradient-to-br from-indigo-600 via-indigo-700 to-purple-800',
-    cardStyle: 'bg-gradient-to-br from-indigo-600 via-indigo-700 to-purple-800 text-white shadow-xl shadow-indigo-600/20',
-    accentColor: '#818CF8',
+    name: 'Royal Violet',
+    badge: '👑 Royal Violet',
+    primary: '#5C53D4',
+    gradient: 'from-[#685ECC] via-[#5C53D4] to-[#4F46E5]',
+    heroGradient: 'bg-gradient-to-br from-[#685ECC] via-[#5C53D4] to-[#4F46E5]',
+    cardStyle: 'bg-gradient-to-br from-[#685ECC] via-[#5C53D4] to-[#4F46E5] text-white shadow-xl shadow-[#5C53D4]/25',
+    accentColor: '#938CFA',
     bgSoft: '#F0F4F8',
-    sidebarActiveBg: 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30'
+    sidebarActiveBg: 'bg-[#5C53D4] text-white shadow-lg shadow-[#5C53D4]/30'
   },
   ocean: {
     id: 'ocean',
