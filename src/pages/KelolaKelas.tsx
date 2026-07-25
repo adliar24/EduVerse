@@ -28,6 +28,64 @@ import { useSchool } from '../context/SchoolContext';
 import { getFullState, addClass, deleteClassCascade, addStudent, deleteStudent } from '../services/dbAttendance';
 import { saveClass, deleteClass, saveStudent, deleteStudent as deleteStudentGrading } from '../services/dbGrading';
 
+const CARD_STYLES = [
+  {
+    bg: 'bg-indigo-600 text-white border-indigo-500 hover:bg-indigo-550 shadow-lg shadow-indigo-600/10',
+    selectedBg: 'bg-indigo-650 text-white border-indigo-300 shadow-[0_12px_30px_rgba(99,102,241,0.35)]',
+    text: 'text-white',
+    textMuted: 'text-indigo-100/80',
+    badge: 'bg-white/20 text-white border-white/10',
+    divider: 'border-white/10',
+    btnEdit: 'text-white/70 hover:text-white hover:bg-white/10',
+    btnDelete: 'text-white/70 hover:text-red-200 hover:bg-red-500/25',
+    checkbox: 'border-white/30 text-indigo-600 focus:ring-offset-indigo-650'
+  },
+  {
+    bg: 'bg-blue-600 text-white border-blue-500 hover:bg-blue-550 shadow-lg shadow-blue-600/10',
+    selectedBg: 'bg-blue-650 text-white border-blue-300 shadow-[0_12px_30px_rgba(59,130,246,0.35)]',
+    text: 'text-white',
+    textMuted: 'text-blue-100/80',
+    badge: 'bg-white/20 text-white border-white/10',
+    divider: 'border-white/10',
+    btnEdit: 'text-white/70 hover:text-white hover:bg-white/10',
+    btnDelete: 'text-white/70 hover:text-red-200 hover:bg-red-500/25',
+    checkbox: 'border-white/30 text-blue-600 focus:ring-offset-blue-650'
+  },
+  {
+    bg: 'bg-purple-600 text-white border-purple-500 hover:bg-purple-550 shadow-lg shadow-purple-600/10',
+    selectedBg: 'bg-purple-650 text-white border-purple-300 shadow-[0_12px_30px_rgba(139,92,246,0.35)]',
+    text: 'text-white',
+    textMuted: 'text-purple-100/80',
+    badge: 'bg-white/20 text-white border-white/10',
+    divider: 'border-white/10',
+    btnEdit: 'text-white/70 hover:text-white hover:bg-white/10',
+    btnDelete: 'text-white/70 hover:text-red-200 hover:bg-red-500/25',
+    checkbox: 'border-white/30 text-purple-600 focus:ring-offset-purple-650'
+  },
+  {
+    bg: 'bg-amber-600 text-white border-amber-500 hover:bg-amber-550 shadow-lg shadow-amber-600/10',
+    selectedBg: 'bg-amber-650 text-white border-amber-300 shadow-[0_12px_30px_rgba(245,158,11,0.35)]',
+    text: 'text-white',
+    textMuted: 'text-amber-100/80',
+    badge: 'bg-white/20 text-white border-white/10',
+    divider: 'border-white/10',
+    btnEdit: 'text-white/70 hover:text-white hover:bg-white/10',
+    btnDelete: 'text-white/70 hover:text-red-200 hover:bg-red-500/25',
+    checkbox: 'border-white/30 text-amber-600 focus:ring-offset-amber-650'
+  },
+  {
+    bg: 'bg-rose-600 text-white border-rose-500 hover:bg-rose-550 shadow-lg shadow-rose-600/10',
+    selectedBg: 'bg-rose-650 text-white border-rose-300 shadow-[0_12px_30px_rgba(244,63,94,0.35)]',
+    text: 'text-white',
+    textMuted: 'text-rose-100/80',
+    badge: 'bg-white/20 text-white border-white/10',
+    divider: 'border-white/10',
+    btnEdit: 'text-white/70 hover:text-white hover:bg-white/10',
+    btnDelete: 'text-white/70 hover:text-red-200 hover:bg-red-500/25',
+    checkbox: 'border-white/30 text-rose-600 focus:ring-offset-rose-650'
+  }
+];
+
 export default function KelolaKelas() {
   const [classes, setClasses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -765,54 +823,57 @@ export default function KelolaKelas() {
         {loading ? (
           [1,2,3].map(i => <div key={i} className="h-40 bg-slate-100 animate-pulse rounded-2xl"></div>)
         ) : filteredClasses.length > 0 ? (
-          filteredClasses.map((cls, index) => (
-            <motion.div 
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.03 }}
-              key={cls.id}
-              onClick={() => viewClass(cls)}
-              className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm hover:shadow-md hover:border-indigo-200 transition-all group flex flex-col justify-between cursor-pointer relative overflow-hidden"
-            >
-              <div className="absolute top-0 right-14 p-5 opacity-[0.03] group-hover:scale-110 transition-transform">
-                <School className="w-24 h-24 text-indigo-950" />
-              </div>
+          filteredClasses.map((cls, index) => {
+            const cardStyle = CARD_STYLES[index % CARD_STYLES.length];
+            return (
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.03 }}
+                key={cls.id}
+                onClick={() => viewClass(cls)}
+                className={`p-6 rounded-2xl border shadow-sm hover:shadow-lg transition-all group flex flex-col justify-between cursor-pointer relative overflow-hidden ${cardStyle.bg}`}
+              >
+                <div className="absolute top-0 right-14 p-5 opacity-[0.05] group-hover:scale-110 transition-transform">
+                  <School className="w-24 h-24 text-white" />
+                </div>
 
-              <div className="flex justify-between items-start relative z-10">
-                <div className="flex-1">
-                  <h3 className="text-xl font-bold text-indigo-950 mb-0.5 group-hover:text-indigo-600 transition-colors uppercase tracking-tight">{cls.name}</h3>
-                  <p className="text-indigo-400 font-semibold text-[11px] uppercase tracking-widest mb-3">{cls.subject || 'Belum Ada Mapel'}</p>
-                  <div className="flex items-center gap-1.5 text-slate-400 px-2 py-1 bg-slate-50 rounded-lg inline-flex">
-                    <Users className="w-3.5 h-3.5" />
-                    <span className="text-[10px] font-semibold uppercase tracking-wider">{cls.students?.[0]?.count || 0} Murid</span>
+                <div className="flex justify-between items-start relative z-10">
+                  <div className="flex-1">
+                    <h3 className="text-xl font-bold mb-0.5 uppercase tracking-tight text-white">{cls.name}</h3>
+                    <p className={`font-semibold text-[11px] uppercase tracking-widest mb-3 ${cardStyle.textMuted}`}>{cls.subject || 'Belum Ada Mapel'}</p>
+                    <div className="flex items-center gap-1.5 px-2 py-1 bg-white/20 border border-white/10 text-white rounded-lg inline-flex">
+                      <Users className="w-3.5 h-3.5 text-white" />
+                      <span className="text-[10px] font-semibold uppercase tracking-wider">{cls.students?.[0]?.count || 0} Murid</span>
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); handleEdit(cls); }} 
+                      className={`p-2 rounded-lg transition-colors ${cardStyle.btnEdit}`}
+                      title="Edit Kelas"
+                    >
+                      <Edit3 className="w-4 h-4" />
+                    </button>
+                    <button 
+                      onClick={(e) => handleDelete(cls, e)} 
+                      className={`p-2 rounded-lg transition-colors ${cardStyle.btnDelete}`}
+                      title="Hapus Kelas"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   </div>
                 </div>
-                <div className="flex flex-col gap-1">
-                  <button 
-                    onClick={(e) => { e.stopPropagation(); handleEdit(cls); }} 
-                    className="p-2 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50/80 rounded-lg transition-all"
-                    title="Edit Kelas"
-                  >
-                    <Edit3 className="w-4 h-4" />
-                  </button>
-                  <button 
-                    onClick={(e) => handleDelete(cls, e)} 
-                    className="p-2 text-rose-600 hover:text-rose-800 hover:bg-rose-50 rounded-lg transition-all"
-                    title="Hapus Kelas"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
 
-              <div className="mt-6 pt-4 border-t border-slate-50 flex items-center justify-between relative z-10">
-                <span className="text-xs font-medium text-slate-400">Klik untuk Kelola Murid</span>
-                <div className="bg-indigo-950 text-white p-2 rounded-lg group-hover:translate-x-0.5 transition-all">
-                  <ChevronRight className="w-4 h-4" />
+                <div className={`mt-6 pt-4 border-t ${cardStyle.divider} flex items-center justify-between relative z-10`}>
+                  <span className={`text-xs font-medium ${cardStyle.textMuted}`}>Klik untuk Kelola Murid</span>
+                  <div className="bg-white/20 text-white p-2 rounded-lg group-hover:translate-x-0.5 transition-all border border-white/10">
+                    <ChevronRight className="w-4 h-4" />
+                  </div>
                 </div>
-              </div>
-            </motion.div>
-          ))
+              </motion.div>
+            );
+          })
         ) : (
           <div className="col-span-full py-20 bg-white rounded-2xl border border-dashed border-slate-200 flex flex-col items-center">
             <div className="bg-slate-50 w-16 h-16 rounded-2xl flex items-center justify-center mb-5">
