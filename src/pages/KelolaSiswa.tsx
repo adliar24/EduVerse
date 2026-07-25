@@ -63,6 +63,15 @@ export default function KelolaSiswa() {
     setCurrentPage(1);
   }, [searchTerm, selectedClass]);
 
+  useEffect(() => {
+    if (showForm) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [showForm]);
+
   const fetchData = async () => {    
     setLoading(true);
     setError(null);

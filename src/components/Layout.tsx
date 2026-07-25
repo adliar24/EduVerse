@@ -97,6 +97,16 @@ export default function Layout({ session }: LayoutProps) {
     return () => window.removeEventListener('scan_mode_change', handleScanModeChange);
   }, []);
 
+  // Lock body scroll when mobile menu is open
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [isMobileMenuOpen]);
+
   // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -394,7 +404,7 @@ export default function Layout({ session }: LayoutProps) {
             <motion.aside 
               initial={{ x: '-100%' }} animate={{ x: 0 }} exit={{ x: '-100%' }}
               transition={{ type: 'tween', ease: 'easeInOut', duration: 0.2 }}
-              className="fixed inset-y-0 left-0 w-[260px] bg-indigo-950 z-50 lg:hidden flex flex-col shadow-xl overflow-y-auto"
+              className="fixed inset-y-0 left-0 w-[240px] bg-indigo-950 z-50 lg:hidden flex flex-col shadow-xl overflow-y-auto scrollbar-none"
             >
               <div className="p-6 flex items-center justify-between sticky top-0 bg-indigo-950 z-10 border-b border-white/5">
                 <div className="flex items-center gap-2.5">
@@ -405,7 +415,7 @@ export default function Layout({ session }: LayoutProps) {
                   <X className="w-4 h-4 text-slate-400" />
                 </button>
               </div>
-              <nav className="flex-1 px-4 py-4 space-y-1">
+              <nav className="flex-1 px-3 py-3 space-y-0.5">
                 {menuItems.map((item) => {
                   const hasSub = !!item.subItems;
                   const isSubOpen = openSubmenu === item.label;
@@ -418,7 +428,7 @@ export default function Layout({ session }: LayoutProps) {
                         <button
                           onClick={() => toggleSubmenu(item.label)}
                           className={cn(
-                            "flex items-center justify-between w-full px-3 py-3 rounded-xl transition-colors duration-150 text-sm font-medium text-left cursor-pointer",
+                            "flex items-center justify-between w-full px-3 py-2 rounded-lg transition-colors duration-150 text-xs font-semibold text-left cursor-pointer",
                             isActive
                               ? "bg-white text-indigo-950 shadow-md font-semibold"
                               : "text-slate-400 hover:bg-white/5 hover:text-white"
@@ -457,7 +467,7 @@ export default function Layout({ session }: LayoutProps) {
                                     if (prefetch) prefetch();
                                   }}
                                   className={cn(
-                                    "flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                                    "flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-colors",
                                     location.pathname === sub.path
                                       ? "text-blue-400 bg-white/5 font-semibold"
                                       : "text-slate-400 hover:text-white"
@@ -487,7 +497,7 @@ export default function Layout({ session }: LayoutProps) {
                         if (prefetch) prefetch();
                       }}
                       className={cn(
-                        "flex items-center gap-3 px-3 py-3 rounded-xl transition-all text-sm font-medium",
+                        "flex items-center gap-3 px-3 py-2 rounded-lg transition-colors duration-150 text-xs font-semibold",
                         location.pathname === item.path
                           ? "bg-white text-indigo-950 shadow-md font-semibold"
                           : "text-slate-400 hover:bg-white/5 hover:text-white"

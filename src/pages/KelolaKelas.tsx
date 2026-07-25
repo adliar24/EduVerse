@@ -71,6 +71,15 @@ export default function KelolaKelas() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    if (showForm || showStudents || showAddStudentForm) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [showForm, showStudents, showAddStudentForm]);
+
   const fetchTeacherSubjects = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -864,7 +873,8 @@ export default function KelolaKelas() {
               </div>
 
               {/* Content */}
-              <div className="flex-1 overflow-y-auto px-6 sm:px-8 py-4">
+              <div className="flex-1 overflow-y-auto custom-scrollbar">
+                <div className="px-6 sm:px-8 py-4">
                 {loadingStudents ? (
                   <div className="py-16 flex flex-col items-center">
                     <Loader2 className="w-8 h-8 animate-spin text-indigo-950 opacity-20" />
@@ -872,7 +882,7 @@ export default function KelolaKelas() {
                   </div>
                 ) : classStudents.length > 0 ? (
                   <div className="space-y-4">
-                    <div className="rounded-xl border border-slate-100 overflow-hidden bg-white">
+                    <div className="rounded-xl border border-slate-100 overflow-x-auto bg-white custom-scrollbar">
                       <table className="w-full border-collapse">
                         <thead>
                           <tr className="bg-slate-50/50 border-b border-slate-100">
@@ -954,6 +964,7 @@ export default function KelolaKelas() {
                     <p className="text-slate-400 text-sm max-w-xs mx-auto mt-1">Klik "Tambah Murid" atau gunakan fitur "Impor Excel".</p>
                   </div>
                 )}
+                </div>
               </div>
             </motion.div>
           </div>

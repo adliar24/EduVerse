@@ -212,8 +212,10 @@ export const Modal: React.FC<{ isOpen: boolean, onClose: () => void, title: Reac
           <div className="text-white font-black text-lg tracking-wide uppercase leading-tight">{title}</div>
           <button onClick={onClose} className="text-white/60 hover:text-white bg-white/10 hover:bg-white/20 rounded-full p-2 transition-colors">✕</button>
         </div>
-        <div className={`p-6 overflow-y-auto custom-scrollbar ${fullScreen ? 'flex-1' : 'max-h-[85vh]'}`}>
-          {children}
+        <div className={`overflow-y-auto custom-scrollbar ${fullScreen ? 'flex-1' : 'max-h-[85vh]'}`}>
+          <div className="p-6">
+            {children}
+          </div>
         </div>
       </div>
     </div>,
