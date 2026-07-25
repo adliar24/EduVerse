@@ -17,24 +17,67 @@ import { motion } from 'framer-motion';
 import React from 'react';
 import { cn } from '../../lib/utils';
 
-const UNIFIED_ROYAL_GRADIENT = {
-  bg: 'bg-gradient-to-br from-[#685ECC] via-[#5C53D4] to-[#4F46E5] text-white border-transparent hover:scale-[1.01] transition-all shadow-xl shadow-[#5C53D4]/25',
-  selectedBg: 'bg-gradient-to-br from-[#5C53D4] via-[#4F46E5] to-[#4338CA] text-white border-white/40 shadow-[0_15px_35px_rgba(92,83,212,0.4)] scale-[1.02]',
-  text: 'text-white',
-  textMuted: 'text-purple-100/85',
-  badge: 'bg-white/20 text-white border-white/10 rounded-full backdrop-blur-md',
-  divider: 'border-white/10',
-  btnEdit: 'text-white/80 hover:text-white hover:bg-white/15 rounded-full',
-  btnDelete: 'text-white/80 hover:text-red-200 hover:bg-red-500/30 rounded-full',
-  checkbox: 'border-white/30 text-[#5C53D4] focus:ring-offset-[#5C53D4]'
-};
-
 const CARD_STYLES = [
-  UNIFIED_ROYAL_GRADIENT,
-  UNIFIED_ROYAL_GRADIENT,
-  UNIFIED_ROYAL_GRADIENT,
-  UNIFIED_ROYAL_GRADIENT,
-  UNIFIED_ROYAL_GRADIENT
+  // 1. Midnight Royal Indigo (Top layer of palette image)
+  {
+    bg: 'bg-gradient-to-br from-[#312783] via-[#2A226F] to-[#1E1756] text-white border-transparent hover:scale-[1.01] transition-all shadow-xl shadow-[#312783]/25',
+    selectedBg: 'bg-gradient-to-br from-[#3B309A] via-[#312783] to-[#241B6B] text-white border-white/40 shadow-[0_15px_35px_rgba(49,39,131,0.4)] scale-[1.02]',
+    text: 'text-white',
+    textMuted: 'text-indigo-200/80',
+    badge: 'bg-white/20 text-white border-white/10 rounded-full backdrop-blur-md',
+    divider: 'border-white/10',
+    btnEdit: 'text-white/80 hover:text-white hover:bg-white/15 rounded-full',
+    btnDelete: 'text-white/80 hover:text-red-200 hover:bg-red-500/30 rounded-full',
+    checkbox: 'border-white/30 text-indigo-400 focus:ring-offset-indigo-950'
+  },
+  // 2. Ocean Sapphire Blue (Wave layer of palette image)
+  {
+    bg: 'bg-gradient-to-br from-[#2B5292] via-[#254780] to-[#1F3C6E] text-white border-transparent hover:scale-[1.01] transition-all shadow-xl shadow-[#2B5292]/25',
+    selectedBg: 'bg-gradient-to-br from-[#3561AA] via-[#2B5292] to-[#204076] text-white border-white/40 shadow-[0_15px_35px_rgba(43,82,146,0.4)] scale-[1.02]',
+    text: 'text-white',
+    textMuted: 'text-blue-100/80',
+    badge: 'bg-white/20 text-white border-white/10 rounded-full backdrop-blur-md',
+    divider: 'border-white/10',
+    btnEdit: 'text-white/80 hover:text-white hover:bg-white/15 rounded-full',
+    btnDelete: 'text-white/80 hover:text-red-200 hover:bg-red-500/30 rounded-full',
+    checkbox: 'border-white/30 text-blue-400 focus:ring-offset-blue-900'
+  },
+  // 3. Vibrant Indigo Violet (Middle wave of palette image)
+  {
+    bg: 'bg-gradient-to-br from-[#5649C0] via-[#4A3EB2] to-[#3F33A3] text-white border-transparent hover:scale-[1.01] transition-all shadow-xl shadow-[#5649C0]/25',
+    selectedBg: 'bg-gradient-to-br from-[#6456D7] via-[#5649C0] to-[#4538B5] text-white border-white/40 shadow-[0_15px_35px_rgba(86,73,192,0.4)] scale-[1.02]',
+    text: 'text-white',
+    textMuted: 'text-purple-100/80',
+    badge: 'bg-white/20 text-white border-white/10 rounded-full backdrop-blur-md',
+    divider: 'border-white/10',
+    btnEdit: 'text-white/80 hover:text-white hover:bg-white/15 rounded-full',
+    btnDelete: 'text-white/80 hover:text-red-200 hover:bg-red-500/30 rounded-full',
+    checkbox: 'border-white/30 text-purple-400 focus:ring-offset-purple-900'
+  },
+  // 4. Royal Lavender Violet (Bottom layer of palette image)
+  {
+    bg: 'bg-gradient-to-br from-[#6C62D0] via-[#5F55C3] to-[#5147B5] text-white border-transparent hover:scale-[1.01] transition-all shadow-xl shadow-[#6C62D0]/25',
+    selectedBg: 'bg-gradient-to-br from-[#7B71E4] via-[#6C62D0] to-[#5B50C5] text-white border-white/40 shadow-[0_15px_35px_rgba(108,98,208,0.4)] scale-[1.02]',
+    text: 'text-white',
+    textMuted: 'text-purple-100/80',
+    badge: 'bg-white/20 text-white border-white/10 rounded-full backdrop-blur-md',
+    divider: 'border-white/10',
+    btnEdit: 'text-white/80 hover:text-white hover:bg-white/15 rounded-full',
+    btnDelete: 'text-white/80 hover:text-red-200 hover:bg-red-500/30 rounded-full',
+    checkbox: 'border-white/30 text-indigo-300 focus:ring-offset-indigo-800'
+  },
+  // 5. Electric Sapphire Indigo
+  {
+    bg: 'bg-gradient-to-br from-[#3651A3] via-[#2D4590] to-[#24387E] text-white border-transparent hover:scale-[1.01] transition-all shadow-xl shadow-[#3651A3]/25',
+    selectedBg: 'bg-gradient-to-br from-[#4260BB] via-[#3651A3] to-[#2B428C] text-white border-white/40 shadow-[0_15px_35px_rgba(54,81,163,0.4)] scale-[1.02]',
+    text: 'text-white',
+    textMuted: 'text-indigo-100/80',
+    badge: 'bg-white/20 text-white border-white/10 rounded-full backdrop-blur-md',
+    divider: 'border-white/10',
+    btnEdit: 'text-white/80 hover:text-white hover:bg-white/15 rounded-full',
+    btnDelete: 'text-white/80 hover:text-red-200 hover:bg-red-500/30 rounded-full',
+    checkbox: 'border-white/30 text-indigo-400 focus:ring-offset-indigo-900'
+  }
 ];
 
 export default function StudentDashboard() {
