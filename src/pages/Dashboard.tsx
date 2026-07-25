@@ -306,7 +306,25 @@ export default function Dashboard() {
     }
   ];
 
-  if (loading) return <DashboardSkeleton />;
+  if (loading) return (
+    <div className="animate-pulse space-y-8">
+      {/* Banner Skeleton */}
+      <div className="h-44 bg-slate-100 rounded-3xl w-full"></div>
+      
+      {/* Cards Skeleton */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        {[1,2,3,4,5,6].map(i => (
+          <div key={i} className="h-32 bg-slate-100 rounded-3xl"></div>
+        ))}
+      </div>
+
+      {/* Grid Content Skeleton */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 h-80 bg-slate-100 rounded-3xl"></div>
+        <div className="h-80 bg-slate-100 rounded-3xl"></div>
+      </div>
+    </div>
+  );
 
   return (
     <motion.div 
