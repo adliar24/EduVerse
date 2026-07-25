@@ -43,6 +43,7 @@ export default function KelolaMateriTugas() {
   // Form States
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingGroupIds, setEditingGroupIds] = useState<string[]>([]);
   const [formType, setFormType] = useState<'material' | 'assignment'>('material');
   
   const [formTitle, setFormTitle] = useState('');
@@ -174,6 +175,7 @@ export default function KelolaMateriTugas() {
 
   const handleOpenCreateModal = (type: 'material' | 'assignment') => {
     setEditingId(null);
+    setEditingGroupIds([]);
     setFormType(type);
     setFormTitle('');
     setFormDesc('');
@@ -190,6 +192,7 @@ export default function KelolaMateriTugas() {
 
   const handleOpenEditModal = (item: any, type: 'material' | 'assignment') => {
     setEditingId(item.id);
+    setEditingGroupIds(item.ids || [item.id]);
     setFormType(type);
     setFormTitle(item.title);
     setFormDesc(item.description);
@@ -209,8 +212,9 @@ export default function KelolaMateriTugas() {
         setFormDeadline('');
       }
     }
-    setFormClassId(item.classId || item.class_id || 'all');
-    setSelectedClassIds(item.classId || item.class_id ? [item.classId || item.class_id] : []);
+    const itemClassIds = item.classIds || (item.classId || item.class_id ? [item.classId || item.class_id] : []);
+    setFormClassId(itemClassIds.length > 0 ? itemClassIds[0] : 'all');
+    setSelectedClassIds(itemClassIds);
     setFormTargetType(item.targetType || item.target_type || 'class');
     setSelectedStudentIds(item.studentIds || item.student_ids || []);
     setStudentSearchTerm('');
@@ -245,9 +249,48 @@ export default function KelolaMateriTugas() {
 
       const activeSchoolId = activeSchool?.id === 'legacy' ? null : (activeSchool?.id || null);
 
+      // Map class_id to the existing DB record ID
+      const classToRecordIdMap: { [classId: string]: string } = {};
+      if (editingId && editingGroupIds.length > 0) {
+        const list = formType === 'material' ? materials : assignments;
+        editingGroupIds.forEach(gid => {
+          const rec = list.find(r => r.id === gid);
+          if (rec) {
+            const cid = rec.classId || (rec as any).class_id;
+            if (cid) {
+              classToRecordIdMap[cid] = gid;
+            }
+          }
+        });
+      }
+
+      const classesToDelete = Object.keys(classToRecordIdMap).filter(cid => !effectiveClassIds.includes(cid));
+      const classesToUpsert = effectiveClassIds;
+
+      const tableName = formType === 'material' ? 'materials' : 'assignments';
+
+      // 1. Delete records for classes that were deselected
+      if (classesToDelete.length > 0) {
+        const idsToDelete = classesToDelete.map(cid => classToRecordIdMap[cid]);
+        const { error: deleteErr } = await supabase
+          .from(tableName)
+          .delete()
+          .in('id', idsToDelete);
+        if (deleteErr) throw deleteErr;
+
+        for (const id of idsToDelete) {
+          if (formType === 'material') {
+            await deleteMaterial(id);
+          } else {
+            await deleteAssignment(id);
+          }
+        }
+      }
+
+      // 2. Upsert (insert or update) records for classes in classesToUpsert
       if (formType === 'material') {
-        for (const classId of effectiveClassIds) {
-          const uuid = editingId && effectiveClassIds.length === 1 ? editingId : uuidv4();
+        for (const classId of classesToUpsert) {
+          const uuid = classToRecordIdMap[classId] || uuidv4();
           const payload = {
             id: uuid,
             teacher_id: user.id,
@@ -286,8 +329,8 @@ export default function KelolaMateriTugas() {
         }
       } else {
         const deadlineISO = formDeadline ? new Date(formDeadline).toISOString() : null;
-        for (const classId of effectiveClassIds) {
-          const uuid = editingId && effectiveClassIds.length === 1 ? editingId : uuidv4();
+        for (const classId of classesToUpsert) {
+          const uuid = classToRecordIdMap[classId] || uuidv4();
           const payload = {
             id: uuid,
             teacher_id: user.id,
@@ -346,7 +389,7 @@ export default function KelolaMateriTugas() {
     }
   };
 
-  const handleDelete = (id: string, title: string, type: 'material' | 'assignment') => {
+  const handleDelete = (ids: string[], title: string, type: 'material' | 'assignment') => {
     showAlert({
       title: 'Hapus Data?',
       message: `Apakah Anda yakin ingin menghapus ${type === 'material' ? 'materi' : 'tugas'} "${title}" secara permanen?`,
@@ -360,15 +403,17 @@ export default function KelolaMateriTugas() {
           const { error } = await supabase
             .from(tableName)
             .delete()
-            .eq('id', id);
+            .in('id', ids);
 
           if (error) throw error;
 
           // 2. Delete locally
-          if (type === 'material') {
-            await deleteMaterial(id);
-          } else {
-            await deleteAssignment(id);
+          for (const id of ids) {
+            if (type === 'material') {
+              await deleteMaterial(id);
+            } else {
+              await deleteAssignment(id);
+            }
           }
 
           showAlert({ title: 'Terhapus', message: 'Data berhasil dihapus dari cloud dan penyimpanan lokal.', type: 'success' });
@@ -381,17 +426,80 @@ export default function KelolaMateriTugas() {
     });
   };
 
-  // Filter lists based on selected class filter
+  // Filter and group lists based on selected class filter
   const filteredMaterialsList = useMemo(() => {
-    return materials
-      .filter(m => selectedClassFilter === 'all' || m.classId === selectedClassFilter || (m as any).class_id === selectedClassFilter)
-      .sort((a, b) => new Date(b.created_at || b.createdAt || '').getTime() - new Date(a.created_at || a.createdAt || '').getTime());
+    const groups: { [key: string]: any } = {};
+    materials.forEach(m => {
+      const classId = m.classId || (m as any).class_id;
+      const key = `${(m.title || '').trim()}_${(m.description || '').trim()}_${m.link || ''}_${m.target_type || m.targetType || ''}`;
+      if (!groups[key]) {
+        groups[key] = {
+          id: m.id,
+          ids: [m.id],
+          classIds: classId ? [classId] : [],
+          title: m.title,
+          description: m.description,
+          link: m.link,
+          target_type: m.target_type || m.targetType,
+          student_ids: m.student_ids || m.studentIds || [],
+          created_at: m.created_at || m.createdAt
+        };
+      } else {
+        groups[key].ids.push(m.id);
+        if (classId && !groups[key].classIds.includes(classId)) {
+          groups[key].classIds.push(classId);
+        }
+        if (new Date(m.created_at || m.createdAt || 0) > new Date(groups[key].created_at || 0)) {
+          groups[key].created_at = m.created_at || m.createdAt;
+        }
+      }
+    });
+
+    return Object.values(groups)
+      .filter((g: any) => {
+        if (selectedClassFilter === 'all') return true;
+        return g.classIds.includes(selectedClassFilter);
+      })
+      .sort((a: any, b: any) => new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime());
   }, [materials, selectedClassFilter]);
 
   const filteredAssignmentsList = useMemo(() => {
-    return assignments
-      .filter(a => selectedClassFilter === 'all' || a.classId === selectedClassFilter || (a as any).class_id === selectedClassFilter)
-      .sort((a, b) => new Date(b.created_at || b.createdAt || '').getTime() - new Date(a.created_at || a.createdAt || '').getTime());
+    const groups: { [key: string]: any } = {};
+    assignments.forEach(a => {
+      const classId = a.classId || (a as any).class_id;
+      const key = `${(a.title || '').trim()}_${(a.description || '').trim()}_${a.link || ''}_${a.target_type || a.targetType || ''}_${a.is_graded || a.isGraded || false}_${a.deadline || ''}`;
+      if (!groups[key]) {
+        groups[key] = {
+          id: a.id,
+          ids: [a.id],
+          classIds: classId ? [classId] : [],
+          title: a.title,
+          description: a.description,
+          link: a.link,
+          target_type: a.target_type || a.targetType,
+          student_ids: a.student_ids || a.studentIds || [],
+          is_graded: a.is_graded !== false && a.isGraded !== false,
+          isGraded: a.is_graded !== false && a.isGraded !== false,
+          deadline: a.deadline,
+          created_at: a.created_at || a.createdAt
+        };
+      } else {
+        groups[key].ids.push(a.id);
+        if (classId && !groups[key].classIds.includes(classId)) {
+          groups[key].classIds.push(classId);
+        }
+        if (new Date(a.created_at || a.createdAt || 0) > new Date(groups[key].created_at || 0)) {
+          groups[key].created_at = a.created_at || a.createdAt;
+        }
+      }
+    });
+
+    return Object.values(groups)
+      .filter((g: any) => {
+        if (selectedClassFilter === 'all') return true;
+        return g.classIds.includes(selectedClassFilter);
+      })
+      .sort((a: any, b: any) => new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime());
   }, [assignments, selectedClassFilter]);
 
   const currentActiveList = useMemo(() => {
@@ -422,11 +530,17 @@ export default function KelolaMateriTugas() {
 
   const handleDeleteBulk = (idsToDelete: string[], isAll: boolean) => {
     if (idsToDelete.length === 0) return;
+
+    // Convert representation IDs to all DB IDs
+    const dbIdsToDelete = idsToDelete.flatMap(repId => {
+      const group = currentActiveList.find(item => item.id === repId);
+      return group ? (group.ids || [group.id]) : [repId];
+    });
     
     const typeLabel = activeTab === 'materials' ? 'materi' : 'tugas';
     const message = isAll
-      ? `Apakah Anda yakin ingin menghapus SEMUA ${typeLabel} (${idsToDelete.length} data) yang tampil saat ini secara permanen?`
-      : `Apakah Anda yakin ingin menghapus ${idsToDelete.length} ${typeLabel} terpilih secara permanen?`;
+      ? `Apakah Anda yakin ingin menghapus SEMUA ${typeLabel} (${dbIdsToDelete.length} data) yang tampil saat ini secara permanen?`
+      : `Apakah Anda yakin ingin menghapus ${dbIdsToDelete.length} ${typeLabel} terpilih secara permanen?`;
 
     showAlert({
       title: isAll ? 'Hapus Semua Data?' : 'Hapus Data Terpilih?',
@@ -441,12 +555,12 @@ export default function KelolaMateriTugas() {
           const { error } = await supabase
             .from(tableName)
             .delete()
-            .in('id', idsToDelete);
+            .in('id', dbIdsToDelete);
 
           if (error) throw error;
 
           // 2. Delete locally
-          for (const id of idsToDelete) {
+          for (const id of dbIdsToDelete) {
             if (activeTab === 'materials') {
               await deleteMaterial(id);
             } else {
@@ -454,7 +568,7 @@ export default function KelolaMateriTugas() {
             }
           }
 
-          showAlert({ title: 'Terhapus', message: `${idsToDelete.length} data berhasil dihapus dari cloud dan penyimpanan lokal.`, type: 'success' });
+          showAlert({ title: 'Terhapus', message: `${dbIdsToDelete.length} data berhasil dihapus dari cloud dan penyimpanan lokal.`, type: 'success' });
           setSelectedIds([]);
           fetchData();
         } catch (err: any) {
@@ -586,23 +700,27 @@ export default function KelolaMateriTugas() {
         filteredMaterialsList.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {filteredMaterialsList.map((m) => {
-              const cls = classes.find(c => c.id === m.classId || (c as any).class_id === m.classId);
               return (
                 <div key={m.id} className={`bg-white p-6 rounded-2xl border transition-all flex flex-col justify-between gap-4 relative group ${
                   selectedIds.includes(m.id) ? 'border-indigo-950 shadow-md bg-indigo-50/10' : 'border-slate-100 shadow-sm hover:shadow-md'
                 }`}>
                   <div className="space-y-2">
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2">
+                    <div className="flex items-center justify-between gap-2 flex-wrap">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <input 
                           type="checkbox"
                           checked={selectedIds.includes(m.id)}
                           onChange={() => handleToggleSelect(m.id)}
                           className="w-4 h-4 rounded text-indigo-600 border-slate-300 focus:ring-indigo-500 cursor-pointer"
                         />
-                        <span className="bg-blue-50 text-blue-700 text-xs font-bold px-3 py-1 rounded-md">
-                          {cls?.name || 'Semua Kelas'}
-                        </span>
+                        {(m.classIds || []).map((cid: string) => {
+                          const cls = classes.find(c => c.id === cid);
+                          return (
+                            <span key={cid} className="bg-blue-50 text-blue-700 text-xs font-bold px-3 py-1 rounded-md">
+                              {cls?.name || 'Semua Kelas'}
+                            </span>
+                          );
+                        })}
                       </div>
                       {m.target_type === 'students' && (
                         <span className="bg-amber-50 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1 border border-amber-100">
@@ -631,7 +749,7 @@ export default function KelolaMateriTugas() {
                         <Edit3 className="w-4 h-4" />
                       </button>
                       <button 
-                        onClick={() => handleDelete(m.id, m.title, 'material')}
+                        onClick={() => handleDelete(m.ids || [m.id], m.title, 'material')}
                         className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
                         title="Hapus Materi"
                       >
@@ -655,8 +773,6 @@ export default function KelolaMateriTugas() {
         filteredAssignmentsList.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {filteredAssignmentsList.map((a) => {
-              const cls = classes.find(c => c.id === a.classId || (c as any).class_id === a.classId);
-              
               // Deadline check
               const hasDeadline = !!a.deadline;
               const deadlineDate = hasDeadline ? new Date(a.deadline!) : null;
@@ -667,17 +783,22 @@ export default function KelolaMateriTugas() {
                   selectedIds.includes(a.id) ? 'border-indigo-950 shadow-md bg-indigo-50/10' : 'border-slate-100 shadow-sm hover:shadow-md'
                 }`}>
                   <div className="space-y-2">
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2">
+                    <div className="flex items-center justify-between gap-2 flex-wrap">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <input 
                           type="checkbox"
                           checked={selectedIds.includes(a.id)}
                           onChange={() => handleToggleSelect(a.id)}
                           className="w-4 h-4 rounded text-indigo-600 border-slate-300 focus:ring-indigo-500 cursor-pointer"
                         />
-                        <span className="bg-purple-50 text-purple-700 text-xs font-bold px-3 py-1 rounded-md">
-                          {cls?.name || 'Semua Kelas'}
-                        </span>
+                        {(a.classIds || []).map((cid: string) => {
+                          const cls = classes.find(c => c.id === cid);
+                          return (
+                            <span key={cid} className="bg-purple-50 text-purple-700 text-xs font-bold px-3 py-1 rounded-md">
+                              {cls?.name || 'Semua Kelas'}
+                            </span>
+                          );
+                        })}
                       </div>
                       <div className="flex gap-1 flex-wrap">
                         {a.isGraded !== false && a.is_graded !== false ? (
@@ -695,7 +816,7 @@ export default function KelolaMateriTugas() {
                             {a.student_ids?.length || 0} Murid
                           </span>
                         )}
-                        {hasDeadline && (
+                        {hasDeadline ? (
                           <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1 border ${
                             isOverdue 
                               ? 'bg-rose-50 text-rose-700 border-rose-100' 
@@ -703,6 +824,11 @@ export default function KelolaMateriTugas() {
                           }`}>
                             <Clock className="w-3.5 h-3.5" />
                             {isOverdue ? 'Selesai' : 'Aktif'}
+                          </span>
+                        ) : (
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1 border bg-emerald-50 text-emerald-700 border-emerald-100">
+                            <Clock className="w-3.5 h-3.5 text-emerald-600" />
+                            Tanpa Tenggat
                           </span>
                         )}
                       </div>
@@ -713,7 +839,7 @@ export default function KelolaMateriTugas() {
                   </div>
 
                   <div className="space-y-3 mt-2">
-                    {hasDeadline && (
+                    {hasDeadline ? (
                       <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
                         <Calendar className="w-4 h-4 text-indigo-900" />
                         Tenggat: <span className={isOverdue ? 'text-rose-600 font-bold' : 'text-slate-700 font-bold'}>
@@ -726,6 +852,11 @@ export default function KelolaMateriTugas() {
                             minute: '2-digit'
                           })}
                         </span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50/50 p-2.5 rounded-xl border border-emerald-100/50">
+                        <Calendar className="w-4 h-4 text-emerald-600" />
+                        Tenggat: <span className="font-bold">Tanpa Tenggat</span>
                       </div>
                     )}
 
@@ -745,7 +876,7 @@ export default function KelolaMateriTugas() {
                           <Edit3 className="w-4 h-4" />
                         </button>
                         <button 
-                          onClick={() => handleDelete(a.id, a.title, 'assignment')}
+                          onClick={() => handleDelete(a.ids || [a.id], a.title, 'assignment')}
                           className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
                           title="Hapus Tugas"
                         >
@@ -830,10 +961,9 @@ export default function KelolaMateriTugas() {
                   {formType === 'assignment' && (
                     <>
                       <div className="space-y-1">
-                        <label className="text-[13px] font-bold text-slate-700 ml-0.5">Tenggat Waktu (Deadline)</label>
+                        <label className="text-[13px] font-bold text-slate-700 ml-0.5">Tenggat Waktu (Deadline) (Opsional)</label>
                         <input 
                           type="datetime-local" 
-                          required
                           className="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-indigo-950 text-sm font-semibold text-slate-800 transition-colors"
                           value={formDeadline}
                           onChange={(e) => setFormDeadline(e.target.value)}

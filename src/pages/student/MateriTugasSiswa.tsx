@@ -236,13 +236,17 @@ export default function MateriTugasSiswa() {
                             Khusus Anda
                           </span>
                         )}
-                        {hasDeadline && (
+                        {hasDeadline ? (
                           <span className={`text-[9px] font-bold px-2 py-0.5 rounded-md border ${
                             isOverdue 
                               ? 'bg-rose-50 text-rose-700 border-rose-100' 
                               : 'bg-indigo-50 text-indigo-700 border-indigo-100'
                           }`}>
                             {isOverdue ? 'Selesai' : 'Tersedia'}
+                          </span>
+                        ) : (
+                          <span className="text-[9px] font-bold px-2 py-0.5 rounded-md border bg-emerald-50 text-emerald-700 border-emerald-100">
+                            Tanpa Tenggat
                           </span>
                         )}
                       </div>
@@ -251,9 +255,9 @@ export default function MateriTugasSiswa() {
                     <h3 className="text-lg font-bold text-indigo-950 leading-snug">{a.title}</h3>
                     <p className="text-slate-500 text-sm leading-relaxed whitespace-pre-line">{a.description}</p>
                   </div>
-
+ 
                   <div className="space-y-3 mt-2">
-                    {hasDeadline && (
+                    {hasDeadline ? (
                       <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
                         <Calendar className="w-4 h-4 text-indigo-900" />
                         Tenggat: <span className={isOverdue ? 'text-rose-600 font-bold' : 'text-slate-700 font-bold'}>
@@ -266,6 +270,11 @@ export default function MateriTugasSiswa() {
                             minute: '2-digit'
                           })}
                         </span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50/50 p-2.5 rounded-xl border border-emerald-100/50">
+                        <Calendar className="w-4 h-4 text-emerald-600" />
+                        Tenggat: <span className="font-bold">Tanpa Tenggat</span>
                       </div>
                     )}
 

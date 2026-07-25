@@ -343,20 +343,29 @@ export default function StudentDashboard() {
                   <div key={a.id} className="p-4 rounded-2xl border border-slate-50 hover:border-slate-100 hover:bg-slate-50/50 transition-all space-y-2">
                     <div className="flex items-center justify-between gap-2">
                       <h4 className="font-bold text-indigo-950 text-sm truncate">{a.title}</h4>
-                      {a.deadline && (
+                      {a.deadline ? (
                         <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-md ${
                           isOverdue ? 'bg-rose-50 text-rose-600' : 'bg-indigo-50 text-indigo-700'
                         }`}>
                           {isOverdue ? 'Selesai' : 'Aktif'}
                         </span>
+                      ) : (
+                        <span className="text-[9px] font-black px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-700">
+                          Tanpa Tenggat
+                        </span>
                       )}
                     </div>
-                    {a.deadline && (
+                    {a.deadline ? (
                       <p className="text-[10px] text-slate-400 flex items-center gap-1 font-bold">
                         <Calendar className="w-3.5 h-3.5 text-indigo-905" />
                         Tenggat: {new Date(a.deadline).toLocaleDateString('id-ID', {
                           month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
                         })}
+                      </p>
+                    ) : (
+                      <p className="text-[10px] text-slate-400 flex items-center gap-1 font-bold">
+                        <Calendar className="w-3.5 h-3.5 text-emerald-600" />
+                        Tenggat: <span className="text-emerald-700 font-bold">Tanpa Tenggat</span>
                       </p>
                     )}
                   </div>
