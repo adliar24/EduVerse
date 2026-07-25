@@ -286,7 +286,7 @@ export default function Layout({ session }: LayoutProps) {
 
       {/* Sidebar Desktop */}
       {!isFullScreenScanMode && (
-        <aside className="w-[240px] glass-dark border-r border-white/5 hidden lg:flex flex-col sticky top-0 h-screen z-40 transition-all duration-300 shadow-2xl">
+        <aside className="w-[240px] sidebar-gradient border-r border-indigo-950/20 hidden lg:flex flex-col sticky top-0 h-screen z-40 transition-all duration-300 shadow-2xl">
           <div className="p-6 flex items-center gap-3 relative z-10 border-b border-white/5">
             <GraduationCap className="w-6 h-6 text-white" />
             <span className="text-xl font-bold tracking-tight text-white">Edu<span className="text-blue-400">Verse</span></span>
@@ -415,9 +415,9 @@ export default function Layout({ session }: LayoutProps) {
             <motion.aside 
               initial={{ x: '-100%' }} animate={{ x: 0 }} exit={{ x: '-100%' }}
               transition={{ type: 'tween', ease: 'easeInOut', duration: 0.2 }}
-              className="fixed inset-y-0 left-0 w-[240px] glass-dark z-50 lg:hidden flex flex-col shadow-xl overflow-y-auto scrollbar-none"
+              className="fixed inset-y-0 left-0 w-[240px] sidebar-gradient z-50 lg:hidden flex flex-col shadow-xl overflow-y-auto scrollbar-none"
             >
-              <div className="p-6 flex items-center justify-between sticky top-0 bg-indigo-950/20 z-10 border-b border-white/5">
+              <div className="p-6 flex items-center justify-between sticky top-0 bg-indigo-950/40 z-10 border-b border-white/5">
                 <div className="flex items-center gap-2.5">
                   <GraduationCap className="w-6 h-6 text-white" />
                   <span className="text-lg font-bold text-white">Edu<span className="text-blue-400">Verse</span></span>
@@ -541,7 +541,7 @@ export default function Layout({ session }: LayoutProps) {
       <main className="flex-1 flex flex-col min-w-0 h-screen overflow-y-scroll overflow-x-hidden relative z-10">
         {/* Navbar */}
         {!isFullScreenScanMode && (
-          <header className="h-16 shrink-0 bg-white/75 backdrop-blur-md shadow-sm flex items-center justify-between px-4 lg:px-8 sticky top-0 z-30 border-b border-slate-200/50">
+          <header className="h-16 shrink-0 bg-white shadow-sm flex items-center justify-between px-4 lg:px-8 sticky top-0 z-30 border-b border-slate-200">
             <div className="flex items-center gap-3">
               <button 
                 onClick={() => setIsMobileMenuOpen(true)}

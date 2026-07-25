@@ -26,7 +26,7 @@ export const Button: React.FC<ButtonProps> = ({
   const baseStyle = "relative inline-flex items-center justify-center gap-2 px-6 py-3 rounded-2xl font-semibold text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed";
   
   const variants = {
-    primary: "bg-indigo-950 hover:bg-indigo-900 text-white shadow-lg shadow-indigo-950/20 hover:shadow-glow-indigo transition-all duration-300 focus:ring-indigo-950",
+    primary: "bg-gradient-loading text-white shadow-glow-loading focus:ring-indigo-950",
     secondary: "bg-blue-50 hover:bg-blue-100 text-blue-800 hover:shadow-glow-blue transition-all duration-300 focus:ring-blue-200",
     danger: "bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-200 focus:ring-red-500",
     outline: "border-2 border-indigo-950 text-indigo-950 hover:bg-blue-50 focus:ring-indigo-950",
@@ -126,7 +126,7 @@ export const Modal: React.FC<ModalProps> = ({
               initial={{ opacity: 0, scale: 0.96, y: 15 }} 
               animate={{ opacity: 1, scale: 1, y: 0 }} 
               exit={{ opacity: 0, scale: 0.96, y: 15 }}
-              className={`w-full ${sizeClasses[size]} bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/60 z-50 overflow-hidden flex flex-col max-h-[85vh] sm:max-h-[90vh]`}
+              className={`w-full ${sizeClasses[size]} bg-white rounded-3xl shadow-glow-loading border border-slate-200/50 z-50 overflow-hidden flex flex-col max-h-[85vh] sm:max-h-[90vh]`}
               onClick={e => e.stopPropagation()}
             >
               <div className="flex items-center justify-between p-5 border-b border-gray-100/50 shrink-0">

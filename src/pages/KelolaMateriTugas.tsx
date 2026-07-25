@@ -719,7 +719,7 @@ export default function KelolaMateriTugas() {
             {filteredMaterialsList.map((m) => {
               return (
                  <div key={m.id} className={`p-6 rounded-2xl flex flex-col justify-between gap-4 relative group ${
-                  selectedIds.includes(m.id) ? 'glass border-indigo-500/50 shadow-glow-indigo bg-indigo-50/10' : 'glass-card'
+                  selectedIds.includes(m.id) ? 'bg-indigo-50/20 border-indigo-500/60 shadow-glow-loading' : 'glowing-card'
                 }`}>
                   <div className="space-y-2">
                     <div className="flex items-center justify-between gap-2 flex-wrap">
@@ -797,7 +797,7 @@ export default function KelolaMateriTugas() {
               
               return (
                  <div key={a.id} className={`p-6 rounded-2xl flex flex-col justify-between gap-4 relative group ${
-                  selectedIds.includes(a.id) ? 'glass border-indigo-500/50 shadow-glow-indigo bg-indigo-50/10' : 'glass-card'
+                  selectedIds.includes(a.id) ? 'bg-indigo-50/20 border-indigo-500/60 shadow-glow-loading' : 'glowing-card'
                 }`}>
                   <div className="space-y-2">
                     <div className="flex items-center justify-between gap-2 flex-wrap">
