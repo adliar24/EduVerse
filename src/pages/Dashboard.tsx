@@ -242,7 +242,7 @@ export default function Dashboard() {
       label: 'Ujian Digital', 
       value: stats.totalExams, 
       icon: FileText, 
-      cardClass: 'bg-blue-600 text-white border-transparent shadow-lg shadow-blue-600/15 hover:shadow-[0_12px_25px_rgba(59,130,246,0.3)]',
+      cardClass: 'bg-gradient-to-br from-blue-600 via-indigo-600 to-indigo-800 text-white border-transparent shadow-lg shadow-blue-600/15 hover:shadow-[0_12px_25px_rgba(59,130,246,0.3)]',
       iconBg: 'bg-white/20 text-white',
       badgeClass: 'bg-white/20 text-white border-white/10',
       mutedColor: 'text-blue-100/70',
@@ -253,7 +253,7 @@ export default function Dashboard() {
       label: 'Jumlah Kelas', 
       value: stats.totalClasses, 
       icon: BookOpen, 
-      cardClass: 'bg-emerald-600 text-white border-transparent shadow-lg shadow-emerald-600/15 hover:shadow-[0_12px_25px_rgba(16,185,129,0.3)]',
+      cardClass: 'bg-gradient-to-br from-emerald-500 via-teal-600 to-emerald-800 text-white border-transparent shadow-lg shadow-emerald-600/15 hover:shadow-[0_12px_25px_rgba(16,185,129,0.3)]',
       iconBg: 'bg-white/20 text-white',
       badgeClass: 'bg-white/20 text-white border-white/10',
       mutedColor: 'text-emerald-100/70',
@@ -264,7 +264,7 @@ export default function Dashboard() {
       label: 'Manajemen Murid', 
       value: stats.totalStudents, 
       icon: Users, 
-      cardClass: 'bg-purple-600 text-white border-transparent shadow-lg shadow-purple-600/15 hover:shadow-[0_12px_25px_rgba(139,92,246,0.3)]',
+      cardClass: 'bg-gradient-to-br from-purple-600 via-pink-600 to-rose-700 text-white border-transparent shadow-lg shadow-purple-600/15 hover:shadow-[0_12px_25px_rgba(139,92,246,0.3)]',
       iconBg: 'bg-white/20 text-white',
       badgeClass: 'bg-white/20 text-white border-white/10',
       mutedColor: 'text-purple-100/70',
@@ -275,7 +275,7 @@ export default function Dashboard() {
       label: 'Kehadiran Total', 
       value: `${overallAttendance}%`, 
       icon: CheckCircle, 
-      cardClass: 'bg-indigo-600 text-white border-transparent shadow-lg shadow-indigo-600/15 hover:shadow-[0_12px_25px_rgba(99,102,241,0.3)]',
+      cardClass: 'bg-gradient-to-br from-indigo-600 via-blue-600 to-indigo-800 text-white border-transparent shadow-lg shadow-indigo-600/15 hover:shadow-[0_12px_25px_rgba(99,102,241,0.3)]',
       iconBg: 'bg-white/20 text-white',
       badgeClass: 'bg-white/20 text-white border-white/10',
       mutedColor: 'text-indigo-100/70',
@@ -286,7 +286,7 @@ export default function Dashboard() {
       label: 'Rerata Nilai', 
       value: overallGradeAvg, 
       icon: TrendingUp, 
-      cardClass: 'bg-amber-600 text-white border-transparent shadow-lg shadow-amber-600/15 hover:shadow-[0_12px_25px_rgba(245,158,11,0.3)]',
+      cardClass: 'bg-gradient-to-br from-amber-500 via-orange-500 to-rose-700 text-white border-transparent shadow-lg shadow-amber-600/15 hover:shadow-[0_12px_25px_rgba(245,158,11,0.3)]',
       iconBg: 'bg-white/20 text-white',
       badgeClass: 'bg-white/20 text-white border-white/10',
       mutedColor: 'text-amber-100/70',
@@ -297,34 +297,16 @@ export default function Dashboard() {
       label: 'Rerata Ujian', 
       value: overallExamAvg, 
       icon: GraduationCap, 
-      cardClass: 'bg-rose-600 text-white border-transparent shadow-lg shadow-rose-600/15 hover:shadow-[0_12px_25px_rgba(244,63,94,0.3)]',
+      cardClass: 'bg-gradient-to-br from-rose-600 via-pink-600 to-rose-800 text-white border-transparent shadow-lg shadow-rose-600/15 hover:shadow-[0_12px_25px_rgba(244,63,94,0.3)]',
       iconBg: 'bg-white/20 text-white',
       badgeClass: 'bg-white/20 text-white border-white/10',
       mutedColor: 'text-rose-100/70',
       textColor: 'text-white',
       desc: 'Rerata nilai ujian digital'
-    },
+    }
   ];
 
-  if (loading) return (
-    <div className="animate-pulse space-y-8">
-      {/* Banner Skeleton */}
-      <div className="h-44 bg-slate-100 rounded-3xl w-full"></div>
-      
-      {/* Cards Skeleton */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        {[1,2,3,4,5,6].map(i => (
-          <div key={i} className="h-32 bg-slate-100 rounded-3xl"></div>
-        ))}
-      </div>
-
-      {/* Grid Content Skeleton */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 h-80 bg-slate-100 rounded-3xl"></div>
-        <div className="h-80 bg-slate-100 rounded-3xl"></div>
-      </div>
-    </div>
-  );
+  if (loading) return <DashboardSkeleton />;
 
   return (
     <motion.div 
@@ -335,12 +317,12 @@ export default function Dashboard() {
       className="space-y-4 pb-2"
     >
       {/* Banner Sambutan Guru */}
-      <div className="bg-indigo-950 text-white rounded-3xl p-4 md:p-5 relative overflow-hidden shadow-lg shadow-indigo-950/20">
+      <div className="bg-gradient-to-r from-indigo-950 via-purple-900 to-indigo-950 text-white rounded-3xl p-4 md:p-5 relative overflow-hidden shadow-xl border border-white/10">
         <div className="absolute right-0 top-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl"></div>
         <div className="absolute left-1/3 bottom-0 w-48 h-48 bg-emerald-500/5 rounded-full blur-2xl"></div>
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/10 rounded-full text-xs font-semibold tracking-wide text-blue-200 mb-2 backdrop-blur-md">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/10 rounded-full text-xs font-semibold tracking-wide text-blue-200 mb-2 backdrop-blur-md border border-white/10">
               <Sparkles className="w-3.5 h-3.5 text-amber-400" />
               Tahun Ajaran {activeSchool?.academic_year || '2026/2027'} • Semester {activeSchool?.semester || 'Ganjil'}
             </div>
@@ -357,9 +339,9 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <Link
             to="/attendance/scan"
-            className="flex items-center gap-3 p-3 bg-gradient-to-r from-blue-600 to-indigo-750 text-white rounded-2xl shadow-lg shadow-indigo-900/15 hover:shadow-[0_12px_25px_rgba(59,130,246,0.35)] hover:scale-[1.01] transition-all group cursor-pointer"
+            className="flex items-center gap-3 p-3 bg-gradient-to-r from-blue-600 via-indigo-600 to-indigo-700 text-white rounded-full shadow-lg shadow-blue-600/20 hover:shadow-[0_12px_25px_rgba(59,130,246,0.4)] hover:scale-[1.01] transition-all group cursor-pointer"
           >
-            <div className="bg-white/20 text-white p-2.5 rounded-xl group-hover:scale-105 transition-transform">
+            <div className="bg-white/20 text-white p-2.5 rounded-full group-hover:scale-105 transition-transform">
               <ClipboardCheck className="w-5 h-5" />
             </div>
             <div>
@@ -369,9 +351,9 @@ export default function Dashboard() {
 
           <Link
             to="/grading"
-            className="flex items-center gap-3 p-3 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-2xl shadow-lg shadow-orange-950/10 hover:shadow-[0_12px_25px_rgba(245,158,11,0.35)] hover:scale-[1.01] transition-all group cursor-pointer"
+            className="flex items-center gap-3 p-3 bg-gradient-to-r from-amber-500 via-orange-500 to-orange-600 text-white rounded-full shadow-lg shadow-orange-600/20 hover:shadow-[0_12px_25px_rgba(245,158,11,0.4)] hover:scale-[1.01] transition-all group cursor-pointer"
           >
-            <div className="bg-white/20 text-white p-2.5 rounded-xl group-hover:scale-105 transition-transform">
+            <div className="bg-white/20 text-white p-2.5 rounded-full group-hover:scale-105 transition-transform">
               <Activity className="w-5 h-5" />
             </div>
             <div>
@@ -381,9 +363,9 @@ export default function Dashboard() {
 
           <Link
             to="/buat-ujian"
-            className="flex items-center gap-3 p-3 bg-gradient-to-r from-purple-600 to-pink-650 text-white rounded-2xl shadow-lg shadow-purple-950/10 hover:shadow-[0_12px_25px_rgba(139,92,246,0.35)] hover:scale-[1.01] transition-all group cursor-pointer"
+            className="flex items-center gap-3 p-3 bg-gradient-to-r from-purple-600 via-pink-600 to-rose-600 text-white rounded-full shadow-lg shadow-purple-600/20 hover:shadow-[0_12px_25px_rgba(139,92,246,0.4)] hover:scale-[1.01] transition-all group cursor-pointer"
           >
-            <div className="bg-white/20 text-white p-2.5 rounded-xl group-hover:scale-105 transition-transform">
+            <div className="bg-white/20 text-white p-2.5 rounded-full group-hover:scale-105 transition-transform">
               <FileText className="w-5 h-5" />
             </div>
             <div>

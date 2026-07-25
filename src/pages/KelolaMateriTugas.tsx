@@ -27,8 +27,8 @@ import LinkPreviewCard from '../components/LinkPreviewCard';
 
 const CARD_STYLES = [
   {
-    bg: 'bg-gradient-to-br from-cyan-500 via-blue-500 to-indigo-650 text-white border-transparent hover:scale-[1.01] transition-all shadow-lg shadow-indigo-600/15',
-    selectedBg: 'bg-gradient-to-br from-cyan-550 via-blue-550 to-indigo-700 text-white border-white/40 shadow-[0_15px_35px_rgba(59,130,246,0.4)] scale-[1.02]',
+    bg: 'bg-gradient-to-br from-cyan-500 via-blue-600 to-indigo-800 text-white border-transparent hover:scale-[1.01] transition-all shadow-lg shadow-indigo-600/15',
+    selectedBg: 'bg-gradient-to-br from-cyan-600 via-blue-700 to-indigo-900 text-white border-white/40 shadow-[0_15px_35px_rgba(59,130,246,0.4)] scale-[1.02]',
     text: 'text-white',
     textMuted: 'text-blue-100/80',
     badge: 'bg-white/20 text-white border-white/10 rounded-full',
@@ -38,8 +38,8 @@ const CARD_STYLES = [
     checkbox: 'border-white/30 text-blue-600 focus:ring-offset-blue-600'
   },
   {
-    bg: 'bg-gradient-to-br from-amber-500 via-orange-500 to-rose-655 text-white border-transparent hover:scale-[1.01] transition-all shadow-lg shadow-orange-600/15',
-    selectedBg: 'bg-gradient-to-br from-amber-550 via-orange-550 to-rose-700 text-white border-white/40 shadow-[0_15px_35px_rgba(245,158,11,0.4)] scale-[1.02]',
+    bg: 'bg-gradient-to-br from-amber-500 via-orange-500 to-rose-700 text-white border-transparent hover:scale-[1.01] transition-all shadow-lg shadow-orange-600/15',
+    selectedBg: 'bg-gradient-to-br from-amber-600 via-orange-600 to-rose-800 text-white border-white/40 shadow-[0_15px_35px_rgba(245,158,11,0.4)] scale-[1.02]',
     text: 'text-white',
     textMuted: 'text-amber-100/80',
     badge: 'bg-white/20 text-white border-white/10 rounded-full',
@@ -49,8 +49,8 @@ const CARD_STYLES = [
     checkbox: 'border-white/30 text-orange-600 focus:ring-offset-orange-600'
   },
   {
-    bg: 'bg-gradient-to-br from-purple-600 via-pink-500 to-rose-550 text-white border-transparent hover:scale-[1.01] transition-all shadow-lg shadow-purple-600/15',
-    selectedBg: 'bg-gradient-to-br from-purple-650 via-pink-550 to-rose-600 text-white border-white/40 shadow-[0_15px_35px_rgba(139,92,246,0.4)] scale-[1.02]',
+    bg: 'bg-gradient-to-br from-purple-600 via-pink-600 to-rose-700 text-white border-transparent hover:scale-[1.01] transition-all shadow-lg shadow-purple-600/15',
+    selectedBg: 'bg-gradient-to-br from-purple-700 via-pink-700 to-rose-800 text-white border-white/40 shadow-[0_15px_35px_rgba(139,92,246,0.4)] scale-[1.02]',
     text: 'text-white',
     textMuted: 'text-purple-100/80',
     badge: 'bg-white/20 text-white border-white/10 rounded-full',
@@ -60,8 +60,8 @@ const CARD_STYLES = [
     checkbox: 'border-white/30 text-purple-600 focus:ring-offset-purple-600'
   },
   {
-    bg: 'bg-gradient-to-br from-emerald-400 via-teal-500 to-indigo-600 text-white border-transparent hover:scale-[1.01] transition-all shadow-lg shadow-teal-600/15',
-    selectedBg: 'bg-gradient-to-br from-emerald-450 via-teal-550 to-indigo-650 text-white border-white/40 shadow-[0_15px_35px_rgba(16,185,129,0.4)] scale-[1.02]',
+    bg: 'bg-gradient-to-br from-emerald-500 via-teal-600 to-indigo-800 text-white border-transparent hover:scale-[1.01] transition-all shadow-lg shadow-teal-600/15',
+    selectedBg: 'bg-gradient-to-br from-emerald-600 via-teal-700 to-indigo-900 text-white border-white/40 shadow-[0_15px_35px_rgba(16,185,129,0.4)] scale-[1.02]',
     text: 'text-white',
     textMuted: 'text-teal-100/80',
     badge: 'bg-white/20 text-white border-white/10 rounded-full',
@@ -71,15 +71,15 @@ const CARD_STYLES = [
     checkbox: 'border-white/30 text-teal-600 focus:ring-offset-teal-600'
   },
   {
-    bg: 'bg-gradient-to-br from-indigo-800 via-purple-800 to-pink-650 text-white border-transparent hover:scale-[1.01] transition-all shadow-lg shadow-pink-600/15',
-    selectedBg: 'bg-gradient-to-br from-indigo-850 via-purple-855 to-pink-700 text-white border-white/40 shadow-[0_15px_35px_rgba(236,72,153,0.4)] scale-[1.02]',
+    bg: 'bg-gradient-to-br from-indigo-800 via-purple-800 to-pink-800 text-white border-transparent hover:scale-[1.01] transition-all shadow-lg shadow-pink-600/15',
+    selectedBg: 'bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 text-white border-white/40 shadow-[0_15px_35px_rgba(236,72,153,0.4)] scale-[1.02]',
     text: 'text-white',
     textMuted: 'text-pink-100/80',
     badge: 'bg-white/20 text-white border-white/10 rounded-full',
     divider: 'border-white/10',
     btnEdit: 'text-white/70 hover:text-white hover:bg-white/15 rounded-full',
     btnDelete: 'text-white/70 hover:text-red-200 hover:bg-red-500/30 rounded-full',
-    checkbox: 'border-white/30 text-indigo-600 focus:ring-offset-indigo-600'
+    checkbox: 'border-white/30 text-indigo-600 focus:ring-offset-rose-600'
   }
 ];
 
@@ -665,13 +665,13 @@ export default function KelolaMateriTugas() {
         <div className="flex gap-2">
           <button 
             onClick={() => handleOpenCreateModal('material')}
-            className="bg-white text-indigo-950 border border-slate-200 px-4 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 hover:bg-slate-50 active:scale-[0.98] transition-all"
+            className="bg-gradient-to-r from-blue-600 via-indigo-600 to-indigo-700 text-white px-5 py-2.5 rounded-full font-bold text-sm flex items-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-blue-600/20 border border-white/10 cursor-pointer"
           >
-            <Plus className="w-4 h-4 text-blue-600" /> Tambah Materi
+            <Plus className="w-4 h-4 text-white" /> Tambah Materi
           </button>
           <button 
             onClick={() => handleOpenCreateModal('assignment')}
-            className="bg-indigo-950 text-white px-5 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 hover:bg-indigo-900 active:scale-[0.98] transition-all shadow-lg shadow-slate-200/50"
+            className="bg-gradient-to-r from-purple-600 via-pink-600 to-rose-600 text-white px-5 py-2.5 rounded-full font-bold text-sm flex items-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-purple-600/20 border border-white/10 cursor-pointer"
           >
             <Plus className="w-4 h-4 text-white" /> Tambah Tugas
           </button>
