@@ -27,59 +27,59 @@ import LinkPreviewCard from '../components/LinkPreviewCard';
 
 const CARD_STYLES = [
   {
-    bg: 'bg-indigo-600 text-white border-indigo-500 hover:bg-indigo-550 shadow-lg shadow-indigo-600/10',
-    selectedBg: 'bg-indigo-650 text-white border-indigo-300 shadow-[0_12px_30px_rgba(99,102,241,0.35)]',
-    text: 'text-white',
-    textMuted: 'text-indigo-100/80',
-    badge: 'bg-white/20 text-white border-white/10',
-    divider: 'border-white/10',
-    btnEdit: 'text-white/70 hover:text-white hover:bg-white/10',
-    btnDelete: 'text-white/70 hover:text-red-200 hover:bg-red-500/25',
-    checkbox: 'border-white/30 text-indigo-600 focus:ring-offset-indigo-600'
-  },
-  {
-    bg: 'bg-blue-600 text-white border-blue-500 hover:bg-blue-550 shadow-lg shadow-blue-600/10',
-    selectedBg: 'bg-blue-650 text-white border-blue-300 shadow-[0_12px_30px_rgba(59,130,246,0.35)]',
+    bg: 'bg-gradient-to-br from-cyan-500 via-blue-500 to-indigo-650 text-white border-transparent hover:scale-[1.01] transition-all shadow-lg shadow-indigo-600/15',
+    selectedBg: 'bg-gradient-to-br from-cyan-550 via-blue-550 to-indigo-700 text-white border-white/40 shadow-[0_15px_35px_rgba(59,130,246,0.4)] scale-[1.02]',
     text: 'text-white',
     textMuted: 'text-blue-100/80',
-    badge: 'bg-white/20 text-white border-white/10',
+    badge: 'bg-white/20 text-white border-white/10 rounded-full',
     divider: 'border-white/10',
-    btnEdit: 'text-white/70 hover:text-white hover:bg-white/10',
-    btnDelete: 'text-white/70 hover:text-red-200 hover:bg-red-500/25',
+    btnEdit: 'text-white/70 hover:text-white hover:bg-white/15 rounded-full',
+    btnDelete: 'text-white/70 hover:text-red-200 hover:bg-red-500/30 rounded-full',
     checkbox: 'border-white/30 text-blue-600 focus:ring-offset-blue-600'
   },
   {
-    bg: 'bg-purple-600 text-white border-purple-500 hover:bg-purple-550 shadow-lg shadow-purple-600/10',
-    selectedBg: 'bg-purple-650 text-white border-purple-300 shadow-[0_12px_30px_rgba(139,92,246,0.35)]',
+    bg: 'bg-gradient-to-br from-amber-500 via-orange-500 to-rose-655 text-white border-transparent hover:scale-[1.01] transition-all shadow-lg shadow-orange-600/15',
+    selectedBg: 'bg-gradient-to-br from-amber-550 via-orange-550 to-rose-700 text-white border-white/40 shadow-[0_15px_35px_rgba(245,158,11,0.4)] scale-[1.02]',
+    text: 'text-white',
+    textMuted: 'text-amber-100/80',
+    badge: 'bg-white/20 text-white border-white/10 rounded-full',
+    divider: 'border-white/10',
+    btnEdit: 'text-white/70 hover:text-white hover:bg-white/15 rounded-full',
+    btnDelete: 'text-white/70 hover:text-red-200 hover:bg-red-500/30 rounded-full',
+    checkbox: 'border-white/30 text-orange-600 focus:ring-offset-orange-600'
+  },
+  {
+    bg: 'bg-gradient-to-br from-purple-600 via-pink-500 to-rose-550 text-white border-transparent hover:scale-[1.01] transition-all shadow-lg shadow-purple-600/15',
+    selectedBg: 'bg-gradient-to-br from-purple-650 via-pink-550 to-rose-600 text-white border-white/40 shadow-[0_15px_35px_rgba(139,92,246,0.4)] scale-[1.02]',
     text: 'text-white',
     textMuted: 'text-purple-100/80',
-    badge: 'bg-white/20 text-white border-white/10',
+    badge: 'bg-white/20 text-white border-white/10 rounded-full',
     divider: 'border-white/10',
-    btnEdit: 'text-white/70 hover:text-white hover:bg-white/10',
-    btnDelete: 'text-white/70 hover:text-red-200 hover:bg-red-500/25',
+    btnEdit: 'text-white/70 hover:text-white hover:bg-white/15 rounded-full',
+    btnDelete: 'text-white/70 hover:text-red-200 hover:bg-red-500/30 rounded-full',
     checkbox: 'border-white/30 text-purple-600 focus:ring-offset-purple-600'
   },
   {
-    bg: 'bg-amber-600 text-white border-amber-500 hover:bg-amber-550 shadow-lg shadow-amber-600/10',
-    selectedBg: 'bg-amber-650 text-white border-amber-300 shadow-[0_12px_30px_rgba(245,158,11,0.35)]',
+    bg: 'bg-gradient-to-br from-emerald-400 via-teal-500 to-indigo-600 text-white border-transparent hover:scale-[1.01] transition-all shadow-lg shadow-teal-600/15',
+    selectedBg: 'bg-gradient-to-br from-emerald-450 via-teal-550 to-indigo-650 text-white border-white/40 shadow-[0_15px_35px_rgba(16,185,129,0.4)] scale-[1.02]',
     text: 'text-white',
-    textMuted: 'text-amber-100/80',
-    badge: 'bg-white/20 text-white border-white/10',
+    textMuted: 'text-teal-100/80',
+    badge: 'bg-white/20 text-white border-white/10 rounded-full',
     divider: 'border-white/10',
-    btnEdit: 'text-white/70 hover:text-white hover:bg-white/10',
-    btnDelete: 'text-white/70 hover:text-red-200 hover:bg-red-500/25',
-    checkbox: 'border-white/30 text-amber-600 focus:ring-offset-amber-600'
+    btnEdit: 'text-white/70 hover:text-white hover:bg-white/15 rounded-full',
+    btnDelete: 'text-white/70 hover:text-red-200 hover:bg-red-500/30 rounded-full',
+    checkbox: 'border-white/30 text-teal-600 focus:ring-offset-teal-600'
   },
   {
-    bg: 'bg-rose-600 text-white border-rose-500 hover:bg-rose-550 shadow-lg shadow-rose-600/10',
-    selectedBg: 'bg-rose-650 text-white border-rose-300 shadow-[0_12px_30px_rgba(244,63,94,0.35)]',
+    bg: 'bg-gradient-to-br from-indigo-800 via-purple-800 to-pink-650 text-white border-transparent hover:scale-[1.01] transition-all shadow-lg shadow-pink-600/15',
+    selectedBg: 'bg-gradient-to-br from-indigo-850 via-purple-855 to-pink-700 text-white border-white/40 shadow-[0_15px_35px_rgba(236,72,153,0.4)] scale-[1.02]',
     text: 'text-white',
-    textMuted: 'text-rose-100/80',
-    badge: 'bg-white/20 text-white border-white/10',
+    textMuted: 'text-pink-100/80',
+    badge: 'bg-white/20 text-white border-white/10 rounded-full',
     divider: 'border-white/10',
-    btnEdit: 'text-white/70 hover:text-white hover:bg-white/10',
-    btnDelete: 'text-white/70 hover:text-red-200 hover:bg-red-500/25',
-    checkbox: 'border-white/30 text-rose-600 focus:ring-offset-rose-600'
+    btnEdit: 'text-white/70 hover:text-white hover:bg-white/15 rounded-full',
+    btnDelete: 'text-white/70 hover:text-red-200 hover:bg-red-500/30 rounded-full',
+    checkbox: 'border-white/30 text-indigo-600 focus:ring-offset-indigo-600'
   }
 ];
 
@@ -819,14 +819,14 @@ export default function KelolaMateriTugas() {
                     <div className="flex gap-1.5">
                       <button 
                         onClick={() => handleOpenEditModal(m, 'material')}
-                        className={`p-2 rounded-lg transition-colors ${cardStyle.btnEdit}`}
+                        className={`p-2 rounded-full transition-colors ${cardStyle.btnEdit}`}
                         title="Edit Materi"
                       >
                         <Edit3 className="w-4 h-4" />
                       </button>
                       <button 
                         onClick={() => handleDelete(m.ids || [m.id], m.title, 'material')}
-                        className={`p-2 rounded-lg transition-colors ${cardStyle.btnDelete}`}
+                        className={`p-2 rounded-full transition-colors ${cardStyle.btnDelete}`}
                         title="Hapus Materi"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -947,14 +947,14 @@ export default function KelolaMateriTugas() {
                       <div className="flex gap-1.5">
                         <button 
                           onClick={() => handleOpenEditModal(a, 'assignment')}
-                          className={`p-2 rounded-lg transition-colors ${cardStyle.btnEdit}`}
+                          className={`p-2 rounded-full transition-colors ${cardStyle.btnEdit}`}
                           title="Edit Tugas"
                         >
                           <Edit3 className="w-4 h-4" />
                         </button>
                         <button 
                           onClick={() => handleDelete(a.ids || [a.id], a.title, 'assignment')}
-                          className={`p-2 rounded-lg transition-colors ${cardStyle.btnDelete}`}
+                          className={`p-2 rounded-full transition-colors ${cardStyle.btnDelete}`}
                           title="Hapus Tugas"
                         >
                           <Trash2 className="w-4 h-4" />

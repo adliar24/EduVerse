@@ -1234,7 +1234,7 @@ export default function StudentExam() {
         <button 
           onClick={() => setShowSubmitConfirm(true)}
           disabled={submitting}
-          className="bg-gradient-loading text-white px-6 sm:px-8 py-3 sm:py-3.5 rounded-2xl font-black text-sm hover:scale-[1.02] active:scale-[0.98] transition-all shadow-glow-loading flex items-center gap-2 sm:gap-3"
+          className="bg-gradient-loading text-white px-6 sm:px-8 py-3 sm:py-3.5 rounded-full font-black text-sm hover:scale-[1.02] active:scale-[0.98] transition-all shadow-glow-loading flex items-center gap-2 sm:gap-3"
         >
           <Send className="w-5 h-5" />
           <span className="hidden sm:inline">Kumpulkan</span>
@@ -1478,7 +1478,7 @@ export default function StudentExam() {
             <button 
               disabled={currentIndex === 0}
               onClick={() => setCurrentIndex(prev => prev - 1)}
-              className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 sm:gap-3 px-4 sm:px-10 py-3 sm:py-5 rounded-xl sm:rounded-[2rem] font-black text-xs sm:text-base text-slate-500 bg-white border-2 border-slate-100 hover:border-slate-300 disabled:opacity-30 transition-all group"
+              className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 sm:gap-3 px-4 sm:px-10 py-3 sm:py-5 rounded-full font-black text-xs sm:text-base text-slate-500 bg-white border-2 border-slate-100 hover:border-slate-300 disabled:opacity-30 transition-all group"
             >
               <ChevronLeft className="w-4 h-4 sm:w-6 sm:h-6 group-hover:-translate-x-1 transition-transform" />
               Sebelumnya
@@ -1499,7 +1499,7 @@ export default function StudentExam() {
             <button 
               disabled={currentIndex === questions.length - 1}
               onClick={() => setCurrentIndex(prev => prev + 1)}
-              className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 sm:gap-3 px-4 sm:px-10 py-3 sm:py-5 rounded-xl sm:rounded-[2rem] font-black text-xs sm:text-base text-slate-500 bg-white border-2 border-slate-100 hover:border-slate-300 disabled:opacity-30 transition-all group"
+              className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 sm:gap-3 px-4 sm:px-10 py-3 sm:py-5 rounded-full font-black text-xs sm:text-base text-slate-500 bg-white border-2 border-slate-100 hover:border-slate-300 disabled:opacity-30 transition-all group"
             >
               Selanjutnya
               <ChevronRight className="w-4 h-4 sm:w-6 sm:h-6 group-hover:translate-x-1 transition-transform" />
@@ -1539,7 +1539,7 @@ export default function StudentExam() {
                       localStorage.removeItem(`exam_session_${examCode}`);
                       navigate('/exam');
                     }}
-                    className="w-full bg-gradient-loading text-white py-4 rounded-2xl font-black hover:scale-[1.01] transition-all shadow-glow-loading flex items-center justify-center gap-2"
+                    className="w-full bg-gradient-loading text-white py-4 rounded-full font-black hover:scale-[1.01] transition-all shadow-glow-loading flex items-center justify-center gap-2"
                   >
                     Kembali ke Menu
                   </button>
