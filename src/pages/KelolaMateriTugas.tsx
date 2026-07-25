@@ -25,62 +25,24 @@ import { ClassEntity, Student, Material, Assignment } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 import LinkPreviewCard from '../components/LinkPreviewCard';
 
+const UNIFIED_ROYAL_GRADIENT = {
+  bg: 'bg-gradient-to-br from-[#685ECC] via-[#5C53D4] to-[#4F46E5] text-white border-transparent hover:scale-[1.01] transition-all shadow-xl shadow-[#5C53D4]/25',
+  selectedBg: 'bg-gradient-to-br from-[#5C53D4] via-[#4F46E5] to-[#4338CA] text-white border-white/40 shadow-[0_15px_35px_rgba(92,83,212,0.4)] scale-[1.02]',
+  text: 'text-white',
+  textMuted: 'text-purple-100/85',
+  badge: 'bg-white/20 text-white border-white/10 rounded-full backdrop-blur-md',
+  divider: 'border-white/10',
+  btnEdit: 'text-white/80 hover:text-white hover:bg-white/15 rounded-full',
+  btnDelete: 'text-white/80 hover:text-red-200 hover:bg-red-500/30 rounded-full',
+  checkbox: 'border-white/30 text-[#5C53D4] focus:ring-offset-[#5C53D4]'
+};
+
 const CARD_STYLES = [
-  {
-    bg: 'bg-gradient-to-br from-indigo-600 via-indigo-700 to-purple-800 text-white border-transparent hover:scale-[1.01] transition-all shadow-xl shadow-indigo-600/20',
-    selectedBg: 'bg-gradient-to-br from-indigo-700 via-indigo-800 to-purple-900 text-white border-white/40 shadow-[0_15px_35px_rgba(79,70,229,0.4)] scale-[1.02]',
-    text: 'text-white',
-    textMuted: 'text-indigo-100/80',
-    badge: 'bg-white/20 text-white border-white/10 rounded-full',
-    divider: 'border-white/10',
-    btnEdit: 'text-white/80 hover:text-white hover:bg-white/15 rounded-full',
-    btnDelete: 'text-white/80 hover:text-red-200 hover:bg-red-500/30 rounded-full',
-    checkbox: 'border-white/30 text-indigo-600 focus:ring-offset-indigo-600'
-  },
-  {
-    bg: 'bg-gradient-to-br from-blue-600 via-indigo-600 to-indigo-800 text-white border-transparent hover:scale-[1.01] transition-all shadow-xl shadow-blue-600/20',
-    selectedBg: 'bg-gradient-to-br from-blue-700 via-indigo-700 to-indigo-900 text-white border-white/40 shadow-[0_15px_35px_rgba(37,99,235,0.4)] scale-[1.02]',
-    text: 'text-white',
-    textMuted: 'text-blue-100/80',
-    badge: 'bg-white/20 text-white border-white/10 rounded-full',
-    divider: 'border-white/10',
-    btnEdit: 'text-white/80 hover:text-white hover:bg-white/15 rounded-full',
-    btnDelete: 'text-white/80 hover:text-red-200 hover:bg-red-500/30 rounded-full',
-    checkbox: 'border-white/30 text-blue-600 focus:ring-offset-blue-600'
-  },
-  {
-    bg: 'bg-gradient-to-br from-indigo-700 via-purple-700 to-indigo-900 text-white border-transparent hover:scale-[1.01] transition-all shadow-xl shadow-purple-600/20',
-    selectedBg: 'bg-gradient-to-br from-indigo-800 via-purple-800 to-indigo-950 text-white border-white/40 shadow-[0_15px_35px_rgba(126,34,206,0.4)] scale-[1.02]',
-    text: 'text-white',
-    textMuted: 'text-purple-100/80',
-    badge: 'bg-white/20 text-white border-white/10 rounded-full',
-    divider: 'border-white/10',
-    btnEdit: 'text-white/80 hover:text-white hover:bg-white/15 rounded-full',
-    btnDelete: 'text-white/80 hover:text-red-200 hover:bg-red-500/30 rounded-full',
-    checkbox: 'border-white/30 text-purple-600 focus:ring-offset-purple-600'
-  },
-  {
-    bg: 'bg-gradient-to-br from-indigo-800 via-indigo-900 to-slate-900 text-white border-transparent hover:scale-[1.01] transition-all shadow-xl shadow-indigo-900/20',
-    selectedBg: 'bg-gradient-to-br from-indigo-900 via-indigo-950 to-slate-950 text-white border-white/40 shadow-[0_15px_35px_rgba(30,27,75,0.4)] scale-[1.02]',
-    text: 'text-white',
-    textMuted: 'text-slate-200/80',
-    badge: 'bg-white/20 text-white border-white/10 rounded-full',
-    divider: 'border-white/10',
-    btnEdit: 'text-white/80 hover:text-white hover:bg-white/15 rounded-full',
-    btnDelete: 'text-white/80 hover:text-red-200 hover:bg-red-500/30 rounded-full',
-    checkbox: 'border-white/30 text-indigo-600 focus:ring-offset-indigo-600'
-  },
-  {
-    bg: 'bg-gradient-to-br from-purple-800 via-indigo-800 to-blue-900 text-white border-transparent hover:scale-[1.01] transition-all shadow-xl shadow-purple-900/20',
-    selectedBg: 'bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-950 text-white border-white/40 shadow-[0_15px_35px_rgba(88,28,135,0.4)] scale-[1.02]',
-    text: 'text-white',
-    textMuted: 'text-purple-100/80',
-    badge: 'bg-white/20 text-white border-white/10 rounded-full',
-    divider: 'border-white/10',
-    btnEdit: 'text-white/80 hover:text-white hover:bg-white/15 rounded-full',
-    btnDelete: 'text-white/80 hover:text-red-200 hover:bg-red-500/30 rounded-full',
-    checkbox: 'border-white/30 text-purple-600 focus:ring-offset-indigo-600'
-  }
+  UNIFIED_ROYAL_GRADIENT,
+  UNIFIED_ROYAL_GRADIENT,
+  UNIFIED_ROYAL_GRADIENT,
+  UNIFIED_ROYAL_GRADIENT,
+  UNIFIED_ROYAL_GRADIENT
 ];
 
 export default function KelolaMateriTugas() {
