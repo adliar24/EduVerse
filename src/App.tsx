@@ -17,6 +17,7 @@ import Layout from './components/Layout';
 import { ToastProvider } from './pages/Layout';
 import { AlertProvider } from './context/AlertContext';
 import { SchoolProvider } from './context/SchoolContext';
+import { ThemeProvider } from './context/ThemeContext';
 import { Loader2 } from 'lucide-react';
 
 // Eagerly loaded for student exam (prevents blank screen on navigation)
@@ -442,22 +443,24 @@ export default function App() {
   );
 
   return (
-    <AlertProvider>
-      <ToastProvider>
-        <SchoolProvider>
-          <Router>
-            <ErrorBoundary>
-              <Suspense fallback={
-                <div className="flex items-center justify-center min-h-screen bg-slate-50">
-                  <Loader2 className="w-12 h-12 text-indigo-950 animate-spin" />
-                </div>
-              }>
-                <AnimatedRoutes session={session} studentSession={studentSession} profileCompleted={profileCompleted} userRole={userRole} />
-              </Suspense>
-            </ErrorBoundary>
-          </Router>
-        </SchoolProvider>
-      </ToastProvider>
-    </AlertProvider>
+    <ThemeProvider>
+      <AlertProvider>
+        <ToastProvider>
+          <SchoolProvider>
+            <Router>
+              <ErrorBoundary>
+                <Suspense fallback={
+                  <div className="flex items-center justify-center min-h-screen bg-slate-50">
+                    <Loader2 className="w-12 h-12 text-indigo-950 animate-spin" />
+                  </div>
+                }>
+                  <AnimatedRoutes session={session} studentSession={studentSession} profileCompleted={profileCompleted} userRole={userRole} />
+                </Suspense>
+              </ErrorBoundary>
+            </Router>
+          </SchoolProvider>
+        </ToastProvider>
+      </AlertProvider>
+    </ThemeProvider>
   );
 }

@@ -23,8 +23,13 @@
   --radius-4xl: 2rem;
 }
 
+:root {
+  color-scheme: light !important;
+}
+
 @layer base {
-  body {
+  html, body {
+    color-scheme: light !important;
     @apply bg-background text-text-main font-sans antialiased selection:bg-accent selection:text-white;
   }
   
@@ -39,6 +44,25 @@
   button:hover, a:hover, [role="button"]:hover {
     @apply scale-[1.02] active:scale-[0.98];
   }
+}
+
+/* Soft Tactile Neumorphic Elevation Utilities */
+.shadow-tactile {
+  box-shadow: 0 10px 30px -5px rgba(148, 163, 184, 0.25), 0 4px 12px -2px rgba(148, 163, 184, 0.15) !important;
+}
+
+.shadow-tactile-lg {
+  box-shadow: 0 20px 40px -10px rgba(148, 163, 184, 0.3), 0 8px 16px -4px rgba(148, 163, 184, 0.2) !important;
+}
+
+.shadow-tactile-inset {
+  box-shadow: inset 0 2px 4px 0 rgba(148, 163, 184, 0.15) !important;
+}
+
+/* Abstract Graphic Motifs */
+.abstract-arc-bg {
+  background-image: radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 40%),
+                    radial-gradient(circle at 90% 80%, rgba(168, 85, 247, 0.15) 0%, transparent 40%);
 }
 
 @utility bg-gradient-primary {

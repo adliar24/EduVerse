@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
-import { GraduationCap, Mail, Lock, Loader2, AlertCircle, ArrowRight, User, ChevronLeft, Shield, Database } from 'lucide-react';
+import { GraduationCap, Mail, Lock, Loader2, AlertCircle, ArrowRight, User, ChevronLeft, Shield, Database, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import React from 'react';
+import FluidCanvas from '../components/FluidCanvas';
 
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
@@ -60,34 +61,35 @@ export default function Login() {
         throw new Error('Username (Kode Murid) atau Password salah.');
       }
 
-      // Save student session in localStorage
       localStorage.setItem('student_session', JSON.stringify({
         id: data.id,
+        student_code: data.student_code,
         name: data.name,
         class_id: data.class_id,
-        student_code: data.student_code,
-        role: 'siswa'
+        school_id: data.school_id,
+        gender: data.gender
       }));
+
       setIsRedirecting(true);
-      setTimeout(() => {
-        window.dispatchEvent(new Event('student_session_change'));
-        setIsRedirecting(false);
-      }, 950);
+      navigate('/student/dashboard', { replace: true });
     } catch (err: any) {
-      setError(err.message || 'Gagal masuk. Periksa kembali Username dan Password Anda.');
+      setError(err.message || 'Gagal masuk. Periksa kembali kode murid dan password Anda.');
       setLoading(false);
     }
   };
 
   return (
-    <div className="h-screen w-full flex flex-col lg:flex-row overflow-hidden font-sans">
-      {/* Redirect Transition Overlay */}
+    <div className="min-h-screen w-full flex flex-col lg:flex-row relative bg-slate-950 font-sans overflow-hidden">
+      {/* 60fps Fluid Loop Canvas Animation */}
+      <FluidCanvas />
+
+      {/* Redirecting Overlay */}
       <AnimatePresence>
         {isRedirecting && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="fixed inset-0 bg-indigo-950 z-[9999] flex flex-col items-center justify-center text-white"
+            className="fixed inset-0 bg-indigo-950/90 backdrop-blur-xl z-[9999] flex flex-col items-center justify-center text-white"
           >
             <motion.div
               initial={{ scale: 0.8, opacity: 0 }}
@@ -95,67 +97,69 @@ export default function Login() {
               transition={{ delay: 0.1, duration: 0.4 }}
               className="flex flex-col items-center text-center space-y-6"
             >
-              <div className="bg-white/10 p-5 rounded-[2rem] border border-white/10 shadow-2xl relative">
+              <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-5 rounded-full shadow-2xl shadow-indigo-600/30 border border-white/20">
                 <Loader2 className="w-12 h-12 text-white animate-spin" />
               </div>
               <div className="space-y-1">
                 <h3 className="text-2xl font-black tracking-tight">Menyiapkan Dashboard</h3>
-                <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">Selamat datang kembali...</p>
+                <p className="text-indigo-200 text-xs font-bold uppercase tracking-widest">Selamat datang kembali...</p>
               </div>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
-      {/* Left Panel - Branding */}
-      <div className="hidden lg:flex lg:w-1/2 bg-indigo-950 p-16 flex-col justify-between text-white relative overflow-hidden shrink-0">
-        {/* Rich Background Gradient & Glow Orbs */}
-        <div className="absolute inset-0 bg-gradient-to-tr from-[#0f0a3c] via-[#1B1464] to-[#2e1065] z-0" />
-        <div className="absolute top-[-10%] left-[-10%] w-[70%] h-[70%] bg-indigo-500/20 rounded-full blur-[120px] z-0" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[70%] h-[70%] bg-blue-500/15 rounded-full blur-[120px] z-0" />
-        
-        <div className="flex items-center gap-4 relative z-10">
-          <div className="bg-white/10 backdrop-blur-md w-14 h-14 rounded-2xl flex items-center justify-center border border-white/20 shrink-0 shadow-lg">
+
+      {/* Left Panel - Branding & Abstract Geometric Motif */}
+      <div className="hidden lg:flex lg:w-1/2 p-16 flex-col justify-between text-white relative z-10 shrink-0">
+        <div className="flex items-center gap-4">
+          <div className="bg-white/15 backdrop-blur-md w-14 h-14 rounded-2xl flex items-center justify-center border border-white/20 shrink-0 shadow-lg">
             <GraduationCap className="text-white w-8 h-8" />
           </div>
           <div className="flex items-baseline gap-1.5">
-            <span className="text-3xl font-black tracking-tight text-white">EduVerse <span className="text-xs text-blue-400 font-bold lowercase tracking-normal">drive</span></span>
+            <span className="text-3xl font-black tracking-tight text-white">EduVerse <span className="text-xs text-cyan-300 font-bold lowercase tracking-normal">drive</span></span>
           </div>
         </div>
 
-        <div className="space-y-6 relative z-10 max-w-lg">
-          <h1 className="text-4xl lg:text-[42px] font-black leading-[1.1] tracking-tight text-white mb-4">
+        {/* Abstract Geometric Graphic Motif (Matching Ref Image Screen 1) */}
+        <div className="my-auto py-8 relative max-w-lg">
+          <div className="w-64 h-64 mx-auto mb-8 relative flex items-center justify-center">
+            {/* Overlapping Circles & Waves Motif */}
+            <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/40 via-purple-500/30 to-cyan-500/40 rounded-[3rem] rotate-12 blur-xl animate-pulse" />
+            <div className="w-56 h-56 rounded-[2.5rem] bg-indigo-900/60 border border-white/20 backdrop-blur-md p-6 flex flex-col justify-between shadow-2xl relative overflow-hidden">
+              <div className="flex justify-between items-center">
+                <div className="w-10 h-10 rounded-full bg-cyan-400/80 flex items-center justify-center text-indigo-950 font-black">
+                  <Sparkles className="w-5 h-5" />
+                </div>
+                <div className="w-8 h-8 rounded-full bg-pink-500/60" />
+              </div>
+              <div className="space-y-2">
+                <div className="w-3/4 h-3 bg-white/40 rounded-full" />
+                <div className="w-1/2 h-2.5 bg-white/25 rounded-full" />
+              </div>
+              <div className="flex gap-2">
+                <div className="w-8 h-8 rounded-full bg-indigo-400" />
+                <div className="w-8 h-8 rounded-full bg-purple-400" />
+                <div className="w-8 h-8 rounded-full bg-cyan-400" />
+              </div>
+            </div>
+          </div>
+
+          <h1 className="text-4xl lg:text-[42px] font-black leading-[1.15] tracking-tight text-white mb-4 text-center lg:text-left">
             Aplikasi Manajemen Kelas &{' '}
-            <span className="text-blue-400">Presensi Digital Terpadu</span>
+            <span className="text-cyan-300">Presensi Digital Terpadu</span>
           </h1>
-          <p className="text-indigo-100/80 text-base leading-relaxed font-medium">
-            Kelola absensi murid (QR & Wajah), buku nilai, rekapitulasi, dan perangkat mengajar Anda secara terpadu. Data tersimpan aman dan terkelola secara mandiri.
+          <p className="text-indigo-100/90 text-base leading-relaxed font-medium text-center lg:text-left">
+            Kelola absensi murid (QR & Wajah), buku nilai, rekapitulasi, dan perangkat mengajar Anda secara terpadu.
           </p>
-
-          <div className="grid grid-cols-2 gap-6 pt-6">
-            <div className="flex items-start gap-3">
-              <Shield className="w-6 h-6 text-blue-400 shrink-0 mt-1" />
-              <div>
-                <h4 className="font-bold text-sm text-white">100% Aman & Privat</h4>
-                <p className="text-xs text-indigo-200/70 mt-1 leading-normal">Data siswa dan absensi tersimpan secara aman pada penyimpanan cloud pribadi Anda.</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <Database className="w-6 h-6 text-blue-400 shrink-0 mt-1" />
-              <div>
-                <h4 className="font-bold text-sm text-white">Tanpa Batas Kuota</h4>
-                <p className="text-xs text-indigo-200/70 mt-1 leading-normal">Penyimpanan kapasitas besar tanpa batasan limit database internal.</p>
-              </div>
-            </div>
-          </div>
         </div>
 
-        <div className="text-xs text-indigo-200/50 relative z-10 font-medium">
+        <div className="text-xs text-indigo-200/60 font-medium">
           &copy; {new Date().getFullYear()} EduVerse. Dikelola Secara Mandiri.
         </div>
       </div>
 
       {/* Right Panel - Interactive Area */}
-      <div className="flex-1 bg-white flex flex-col justify-center p-8 lg:p-24 overflow-y-auto">
+      <div className="flex-1 bg-white/95 backdrop-blur-3xl flex flex-col justify-center p-8 lg:p-24 overflow-y-auto relative z-10">
         <div className="w-full max-w-md mx-auto">
           <AnimatePresence mode="wait">
             {view === 'selection' && (
@@ -267,7 +271,7 @@ export default function Login() {
                   </div>
 
                   <button type="submit" disabled={loading}
-                    className="w-full bg-indigo-950 text-white py-4 rounded-xl font-bold text-[15px] hover:bg-indigo-900 active:scale-[0.99] transition-all shadow-xl shadow-indigo-100 flex items-center justify-center gap-2.5 disabled:opacity-50 mt-4"
+                    className="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white py-4 rounded-full font-bold text-sm hover:scale-[1.01] active:scale-[0.98] transition-all shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2.5 disabled:opacity-50 mt-4 cursor-pointer"
                   >
                     {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>Masuk Sekarang <ArrowRight className="w-4 h-4" /></>}
                   </button>
@@ -329,7 +333,7 @@ export default function Login() {
                   </div>
 
                   <button type="submit" disabled={loading}
-                    className="w-full bg-indigo-950 text-white py-4 rounded-xl font-bold text-[15px] hover:bg-indigo-900 active:scale-[0.99] transition-all shadow-xl shadow-indigo-100 flex items-center justify-center gap-2.5 disabled:opacity-50 mt-4"
+                    className="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white py-4 rounded-full font-bold text-sm hover:scale-[1.01] active:scale-[0.98] transition-all shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2.5 disabled:opacity-50 mt-4 cursor-pointer"
                   >
                     {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>Masuk Sekarang <ArrowRight className="w-4 h-4" /></>}
                   </button>
