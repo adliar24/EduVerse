@@ -110,3 +110,9 @@
 ::-webkit-scrollbar-thumb {
   @apply bg-slate-300 rounded-full hover:bg-slate-400 transition-colors;
 }
+
+/* Hide outer layout scrollbar when body scroll is locked (modals open) */
+body[style*="overflow: hidden"] main,
+body.modal-open main {
+  overflow-y: hidden !important;
+}

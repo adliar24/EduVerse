@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import React, { useEffect, useState, useRef, Suspense, lazy } from 'react';
 import { supabase } from './lib/supabase';
 import ErrorBoundary from './components/ErrorBoundary';
+import ModernLoader from './components/ModernLoader';
 
 // Prefetch helper
 const preloadComponent = (importFn: () => Promise<any>) => {
@@ -432,26 +433,12 @@ export default function App() {
   const isAppReady = !loading && (session ? (profileCompleted !== null && isInitialSyncComplete) : true);
 
   if (!isAppReady && !studentSession) {
-    return (
-      <div className="fixed inset-0 bg-indigo-950 z-[9999] flex flex-col items-center justify-center text-white">
-        <div className="flex flex-col items-center text-center space-y-6">
-          <div className="bg-white/10 p-5 rounded-[2rem] border border-white/10 shadow-2xl relative">
-            <Loader2 className="w-12 h-12 text-white animate-spin" />
-          </div>
-          <div className="space-y-1.5">
-            <h3 className="text-2xl font-black tracking-tight">Menyiapkan & Menyinkronkan Data</h3>
-            <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">EduVerse &bull; Memuat profil & data sekolah...</p>
-          </div>
-        </div>
-      </div>
-    );
+    return <ModernLoader />;
   }
 
   // Fallback Loading UI for Lazy Components
   const PageLoader = () => (
-    <div className="flex items-center justify-center min-h-[60vh] w-full">
-      <Loader2 className="w-10 h-10 text-indigo-950 animate-spin" />
-    </div>
+    <ModernLoader />
   );
 
   return (

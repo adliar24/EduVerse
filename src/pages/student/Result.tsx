@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '../../lib/utils';
+import ModernLoader from '../../components/ModernLoader';
 
 export default function StudentResult() {
   const { participantId } = useParams();
@@ -78,23 +79,7 @@ export default function StudentResult() {
     }
   };
 
-  if (loading) return (
-    <div className="min-h-screen bg-indigo-950 flex flex-col items-center justify-center p-6 relative overflow-hidden">
-      <div className="absolute inset-0 pointer-events-none z-0">
-        <div className="absolute top-[-5%] left-[-5%] w-[40%] h-[40%] bg-blue-500/10 rounded-full blur-[100px]" />
-        <div className="absolute bottom-[-5%] right-[-10%] w-[50%] h-[50%] bg-purple-500/10 rounded-full blur-[120px]" />
-      </div>
-      
-      <div className="bg-white/5 backdrop-blur-xl p-8 rounded-[2.5rem] border border-white/10 mb-8 shadow-2xl relative z-10 flex items-center justify-center">
-        <div className="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center">
-          <span className="text-2xl text-blue-400">⏳</span>
-        </div>
-      </div>
-      
-      <h2 className="text-3xl font-black text-white tracking-tight relative z-10 text-center">Menghitung Hasil...</h2>
-      <p className="text-indigo-300 font-medium mt-2 relative z-10 text-center">Mohon tunggu sebentar, sistem sedang memproses jawaban Anda.</p>
-    </div>
-  );
+  if (loading) return <ModernLoader />;
 
   if (!participant) return (
     <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center">
