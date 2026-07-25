@@ -25,6 +25,44 @@ import { ClassEntity, Student, Material, Assignment } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 import LinkPreviewCard from '../components/LinkPreviewCard';
 
+const CARD_STYLES = [
+  {
+    bg: 'bg-indigo-50/40 hover:bg-indigo-50/70 border-indigo-100/70',
+    selectedBg: 'bg-indigo-50/70 border-indigo-400 shadow-[0_10px_25px_rgba(99,102,241,0.15)]',
+    text: 'text-indigo-950',
+    badge: 'bg-indigo-100 text-indigo-700 border-indigo-200/50',
+    accentLine: 'bg-indigo-500'
+  },
+  {
+    bg: 'bg-blue-50/40 hover:bg-blue-50/70 border-blue-100/70',
+    selectedBg: 'bg-blue-50/70 border-blue-400 shadow-[0_10px_25px_rgba(59,130,246,0.15)]',
+    text: 'text-blue-950',
+    badge: 'bg-blue-100 text-blue-700 border-blue-200/50',
+    accentLine: 'bg-blue-500'
+  },
+  {
+    bg: 'bg-rose-50/40 hover:bg-rose-50/70 border-rose-100/70',
+    selectedBg: 'bg-rose-50/70 border-rose-400 shadow-[0_10px_25px_rgba(244,63,94,0.15)]',
+    text: 'text-rose-950',
+    badge: 'bg-rose-100 text-rose-700 border-rose-200/50',
+    accentLine: 'bg-rose-500'
+  },
+  {
+    bg: 'bg-amber-50/40 hover:bg-amber-50/70 border-amber-100/70',
+    selectedBg: 'bg-amber-50/70 border-amber-400 shadow-[0_10px_25px_rgba(245,158,11,0.15)]',
+    text: 'text-amber-950',
+    badge: 'bg-amber-100 text-amber-700 border-amber-200/50',
+    accentLine: 'bg-amber-500'
+  },
+  {
+    bg: 'bg-emerald-50/40 hover:bg-emerald-50/70 border-emerald-100/70',
+    selectedBg: 'bg-emerald-50/70 border-emerald-400 shadow-[0_10px_25px_rgba(16,185,129,0.15)]',
+    text: 'text-emerald-950',
+    badge: 'bg-emerald-100 text-emerald-700 border-emerald-200/50',
+    accentLine: 'bg-emerald-500'
+  }
+];
+
 export default function KelolaMateriTugas() {
   const { showAlert } = useAlert();
   const { activeSchool } = useSchool();
@@ -716,10 +754,11 @@ export default function KelolaMateriTugas() {
         // MATERIALS LIST
         filteredMaterialsList.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {filteredMaterialsList.map((m) => {
+            {filteredMaterialsList.map((m, index) => {
+              const cardStyle = CARD_STYLES[index % CARD_STYLES.length];
               return (
-                 <div key={m.id} className={`p-6 rounded-2xl flex flex-col justify-between gap-4 relative group ${
-                  selectedIds.includes(m.id) ? 'bg-indigo-50/20 border-indigo-500/60 shadow-glow-loading' : 'glowing-card'
+                 <div key={m.id} className={`p-6 rounded-2xl flex flex-col justify-between gap-4 relative transition-all duration-300 border ${
+                  selectedIds.includes(m.id) ? cardStyle.selectedBg : `${cardStyle.bg} shadow-sm`
                 }`}>
                   <div className="space-y-2">
                     <div className="flex items-center justify-between gap-2 flex-wrap">
@@ -733,7 +772,7 @@ export default function KelolaMateriTugas() {
                         {(m.classIds || []).map((cid: string) => {
                           const cls = classes.find(c => c.id === cid);
                           return (
-                            <span key={cid} className="bg-blue-50 text-blue-700 text-xs font-bold px-3 py-1 rounded-md">
+                            <span key={cid} className={`text-[11px] font-bold px-2.5 py-1 rounded-md border ${cardStyle.badge}`}>
                               {cls?.name || 'Semua Kelas'}
                             </span>
                           );
@@ -789,15 +828,16 @@ export default function KelolaMateriTugas() {
         // ASSIGNMENTS LIST
         filteredAssignmentsList.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {filteredAssignmentsList.map((a) => {
+            {filteredAssignmentsList.map((a, index) => {
+              const cardStyle = CARD_STYLES[(index + 2) % CARD_STYLES.length];
               // Deadline check
               const hasDeadline = !!a.deadline;
               const deadlineDate = hasDeadline ? new Date(a.deadline!) : null;
               const isOverdue = deadlineDate ? deadlineDate.getTime() < Date.now() : false;
               
               return (
-                 <div key={a.id} className={`p-6 rounded-2xl flex flex-col justify-between gap-4 relative group ${
-                  selectedIds.includes(a.id) ? 'bg-indigo-50/20 border-indigo-500/60 shadow-glow-loading' : 'glowing-card'
+                 <div key={a.id} className={`p-6 rounded-2xl flex flex-col justify-between gap-4 relative transition-all duration-300 border ${
+                  selectedIds.includes(a.id) ? cardStyle.selectedBg : `${cardStyle.bg} shadow-sm`
                 }`}>
                   <div className="space-y-2">
                     <div className="flex items-center justify-between gap-2 flex-wrap">
@@ -811,7 +851,7 @@ export default function KelolaMateriTugas() {
                         {(a.classIds || []).map((cid: string) => {
                           const cls = classes.find(c => c.id === cid);
                           return (
-                            <span key={cid} className="bg-purple-50 text-purple-700 text-xs font-bold px-3 py-1 rounded-md">
+                            <span key={cid} className={`text-[11px] font-bold px-2.5 py-1 rounded-md border ${cardStyle.badge}`}>
                               {cls?.name || 'Semua Kelas'}
                             </span>
                           );
