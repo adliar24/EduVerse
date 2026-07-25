@@ -182,18 +182,21 @@ export const Modal: React.FC<{ isOpen: boolean, onClose: () => void, title: Reac
       setShouldRender(true);
       setIsClosing(false);
       document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
     } else if (shouldRender) {
       setIsClosing(true);
       const timer = setTimeout(() => {
         setShouldRender(false);
         setIsClosing(false);
-        document.body.style.overflow = 'auto';
+        document.body.style.overflow = '';
+        document.documentElement.style.overflow = '';
       }, 300);
       return () => clearTimeout(timer);
     }
 
     return () => {
-      document.body.style.overflow = 'auto';
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
     };
   }, [isOpen, shouldRender]);
 
