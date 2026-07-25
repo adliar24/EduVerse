@@ -17,6 +17,64 @@ import { motion } from 'framer-motion';
 import React from 'react';
 import { cn } from '../../lib/utils';
 
+const CARD_STYLES = [
+  {
+    bg: 'bg-indigo-600 text-white border-indigo-500 hover:bg-indigo-550 shadow-lg shadow-indigo-600/10',
+    selectedBg: 'bg-indigo-650 text-white border-indigo-300 shadow-[0_12px_30px_rgba(99,102,241,0.35)]',
+    text: 'text-white',
+    textMuted: 'text-indigo-100/80',
+    badge: 'bg-white/20 text-white border-white/10',
+    divider: 'border-white/10',
+    btnEdit: 'text-white/70 hover:text-white hover:bg-white/10',
+    btnDelete: 'text-white/70 hover:text-red-200 hover:bg-red-500/25',
+    checkbox: 'border-white/30 text-indigo-600 focus:ring-offset-indigo-600'
+  },
+  {
+    bg: 'bg-blue-600 text-white border-blue-500 hover:bg-blue-550 shadow-lg shadow-blue-600/10',
+    selectedBg: 'bg-blue-650 text-white border-blue-300 shadow-[0_12px_30px_rgba(59,130,246,0.35)]',
+    text: 'text-white',
+    textMuted: 'text-blue-100/80',
+    badge: 'bg-white/20 text-white border-white/10',
+    divider: 'border-white/10',
+    btnEdit: 'text-white/70 hover:text-white hover:bg-white/10',
+    btnDelete: 'text-white/70 hover:text-red-200 hover:bg-red-500/25',
+    checkbox: 'border-white/30 text-blue-600 focus:ring-offset-blue-600'
+  },
+  {
+    bg: 'bg-purple-600 text-white border-purple-500 hover:bg-purple-550 shadow-lg shadow-purple-600/10',
+    selectedBg: 'bg-purple-650 text-white border-purple-300 shadow-[0_12px_30px_rgba(139,92,246,0.35)]',
+    text: 'text-white',
+    textMuted: 'text-purple-100/80',
+    badge: 'bg-white/20 text-white border-white/10',
+    divider: 'border-white/10',
+    btnEdit: 'text-white/70 hover:text-white hover:bg-white/10',
+    btnDelete: 'text-white/70 hover:text-red-200 hover:bg-red-500/25',
+    checkbox: 'border-white/30 text-purple-600 focus:ring-offset-purple-600'
+  },
+  {
+    bg: 'bg-amber-600 text-white border-amber-500 hover:bg-amber-550 shadow-lg shadow-amber-600/10',
+    selectedBg: 'bg-amber-650 text-white border-amber-300 shadow-[0_12px_30px_rgba(245,158,11,0.35)]',
+    text: 'text-white',
+    textMuted: 'text-amber-100/80',
+    badge: 'bg-white/20 text-white border-white/10',
+    divider: 'border-white/10',
+    btnEdit: 'text-white/70 hover:text-white hover:bg-white/10',
+    btnDelete: 'text-white/70 hover:text-red-200 hover:bg-red-500/25',
+    checkbox: 'border-white/30 text-amber-600 focus:ring-offset-amber-600'
+  },
+  {
+    bg: 'bg-rose-600 text-white border-rose-500 hover:bg-rose-550 shadow-lg shadow-rose-600/10',
+    selectedBg: 'bg-rose-650 text-white border-rose-300 shadow-[0_12px_30px_rgba(244,63,94,0.35)]',
+    text: 'text-white',
+    textMuted: 'text-rose-100/80',
+    badge: 'bg-white/20 text-white border-white/10',
+    divider: 'border-white/10',
+    btnEdit: 'text-white/70 hover:text-white hover:bg-white/10',
+    btnDelete: 'text-white/70 hover:text-red-200 hover:bg-red-500/25',
+    checkbox: 'border-white/30 text-rose-600 focus:ring-offset-rose-600'
+  }
+];
+
 export default function StudentDashboard() {
   const navigate = useNavigate();
   const [stats, setStats] = useState({
@@ -122,9 +180,33 @@ export default function StudentDashboard() {
   };
 
   const statCards = [
-    { label: 'Ujian Diikuti', value: stats.examsTaken, icon: FileText, color: 'text-blue-600', bg: 'bg-blue-50' },
-    { label: 'Rata-rata Nilai', value: `${stats.avgScore}%`, icon: TrendingUp, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-    { label: 'Ujian Berlangsung', value: stats.ongoingExams, icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50' },
+    { 
+      label: 'Ujian Diikuti', 
+      value: stats.examsTaken, 
+      icon: FileText, 
+      cardClass: 'bg-blue-600 text-white border-transparent shadow-lg shadow-blue-600/15 hover:shadow-[0_12px_25px_rgba(59,130,246,0.3)]',
+      iconBg: 'bg-white/20 text-white',
+      textColor: 'text-white',
+      mutedColor: 'text-blue-100/70'
+    },
+    { 
+      label: 'Rata-rata Nilai', 
+      value: `${stats.avgScore}%`, 
+      icon: TrendingUp, 
+      cardClass: 'bg-emerald-600 text-white border-transparent shadow-lg shadow-emerald-600/15 hover:shadow-[0_12px_25px_rgba(16,185,129,0.3)]',
+      iconBg: 'bg-white/20 text-white',
+      textColor: 'text-white',
+      mutedColor: 'text-emerald-100/70'
+    },
+    { 
+      label: 'Ujian Berlangsung', 
+      value: stats.ongoingExams, 
+      icon: Clock, 
+      cardClass: 'bg-amber-600 text-white border-transparent shadow-lg shadow-amber-600/15 hover:shadow-[0_12px_25px_rgba(245,158,11,0.3)]',
+      iconBg: 'bg-white/20 text-white',
+      textColor: 'text-white',
+      mutedColor: 'text-amber-100/70'
+    },
   ];
 
   if (loading) return (
@@ -146,9 +228,9 @@ export default function StudentDashboard() {
         </div>
         <Link 
           to="/daftar-ujian-siswa"
-          className="bg-indigo-950 text-white px-6 py-3.5 rounded-2xl font-bold flex items-center gap-2 hover:bg-indigo-900 transition-all shadow-xl shadow-slate-200"
+          className="bg-gradient-loading text-white px-6 py-3.5 rounded-2xl font-bold flex items-center gap-2 hover:scale-[1.02] transition-all shadow-glow-loading"
         >
-          <Zap className="w-5 h-5 text-amber-400" />
+          <Zap className="w-5 h-5 text-amber-300 animate-pulse" />
           Ikuti Ujian Baru
         </Link>
       </div>
@@ -185,16 +267,16 @@ export default function StudentDashboard() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
             key={stat.label}
-            className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-slate-200/50 transition-all group"
+            className={`p-6 rounded-3xl border hover:scale-[1.01] transition-all duration-300 group ${stat.cardClass}`}
           >
             <div className="flex items-center justify-between mb-5">
-              <div className={`${stat.bg} ${stat.color} p-3.5 rounded-2xl transition-transform group-hover:scale-110 duration-300`}>
+              <div className={`${stat.iconBg} p-3.5 rounded-2xl transition-transform group-hover:scale-110 duration-300`}>
                 <stat.icon className="w-6 h-6" />
               </div>
             </div>
             <div>
-              <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">{stat.label}</p>
-              <h3 className="text-3xl font-bold text-indigo-950 mt-1 tracking-tight">{stat.value}</h3>
+              <p className={`${stat.mutedColor} text-xs font-bold uppercase tracking-widest`}>{stat.label}</p>
+              <h3 className={`text-3xl font-bold mt-1 tracking-tight ${stat.textColor}`}>{stat.value}</h3>
             </div>
           </motion.div>
         ))}
@@ -303,15 +385,18 @@ export default function StudentDashboard() {
             </div>
 
             <div className="space-y-4">
-              {latestMaterials.length > 0 ? latestMaterials.map((m) => (
-                <div key={m.id} className="p-4 rounded-2xl border border-slate-50 hover:border-slate-100 hover:bg-slate-50/50 transition-all space-y-1">
-                  <div className="flex items-center justify-between">
-                    <h4 className="font-bold text-indigo-950 text-sm truncate">{m.title}</h4>
-                    {m.link && <Link2 className="w-3.5 h-3.5 text-blue-500 shrink-0" />}
+              {latestMaterials.length > 0 ? latestMaterials.map((m, index) => {
+                const cardStyle = CARD_STYLES[index % CARD_STYLES.length];
+                return (
+                  <div key={m.id} className={`p-4 rounded-2xl border transition-all space-y-1 ${cardStyle.bg}`}>
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-bold text-sm truncate">{m.title}</h4>
+                      {m.link && <Link2 className="w-3.5 h-3.5 text-white shrink-0" />}
+                    </div>
+                    <p className={`text-xs line-clamp-2 leading-relaxed ${cardStyle.textMuted}`}>{m.description}</p>
                   </div>
-                  <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">{m.description}</p>
-                </div>
-              )) : (
+                );
+              }) : (
                 <div className="text-center py-10 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
                   <BookOpen className="w-8 h-8 text-slate-300 mx-auto mb-2" />
                   <p className="text-xs text-slate-400 font-bold">Belum ada materi pelajaran.</p>
@@ -336,36 +421,37 @@ export default function StudentDashboard() {
             </div>
 
             <div className="space-y-4">
-              {latestAssignments.length > 0 ? latestAssignments.map((a) => {
+              {latestAssignments.length > 0 ? latestAssignments.map((a, index) => {
+                const cardStyle = CARD_STYLES[(index + 2) % CARD_STYLES.length];
                 const deadlineDate = a.deadline ? new Date(a.deadline) : null;
                 const isOverdue = deadlineDate ? deadlineDate.getTime() < Date.now() : false;
                 return (
-                  <div key={a.id} className="p-4 rounded-2xl border border-slate-50 hover:border-slate-100 hover:bg-slate-50/50 transition-all space-y-2">
+                  <div key={a.id} className={`p-4 rounded-2xl border transition-all space-y-2 ${cardStyle.bg}`}>
                     <div className="flex items-center justify-between gap-2">
-                      <h4 className="font-bold text-indigo-950 text-sm truncate">{a.title}</h4>
+                      <h4 className="font-bold text-sm truncate">{a.title}</h4>
                       {a.deadline ? (
-                        <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-md ${
-                          isOverdue ? 'bg-rose-50 text-rose-600' : 'bg-indigo-50 text-indigo-700'
+                        <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-md border ${
+                          isOverdue ? 'bg-rose-500/25 text-rose-100 border-rose-400/20' : 'bg-white/20 text-white border-white/10'
                         }`}>
                           {isOverdue ? 'Selesai' : 'Aktif'}
                         </span>
                       ) : (
-                        <span className="text-[9px] font-black px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-700">
+                        <span className="text-[9px] font-black px-1.5 py-0.5 rounded-md bg-white/20 text-white border border-white/10">
                           Tanpa Tenggat
                         </span>
                       )}
                     </div>
                     {a.deadline ? (
-                      <p className="text-[10px] text-slate-400 flex items-center gap-1 font-bold">
-                        <Calendar className="w-3.5 h-3.5 text-indigo-905" />
+                      <p className={`text-[10px] flex items-center gap-1 font-bold ${cardStyle.textMuted}`}>
+                        <Calendar className="w-3.5 h-3.5 text-white" />
                         Tenggat: {new Date(a.deadline).toLocaleDateString('id-ID', {
                           month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
                         })}
                       </p>
                     ) : (
-                      <p className="text-[10px] text-slate-400 flex items-center gap-1 font-bold">
-                        <Calendar className="w-3.5 h-3.5 text-emerald-600" />
-                        Tenggat: <span className="text-emerald-700 font-bold">Tanpa Tenggat</span>
+                      <p className={`text-[10px] flex items-center gap-1 font-bold ${cardStyle.textMuted}`}>
+                        <Calendar className="w-3.5 h-3.5 text-white" />
+                        Tenggat: <span>Tanpa Tenggat</span>
                       </p>
                     )}
                   </div>

@@ -1190,7 +1190,7 @@ export default function StudentExam() {
       </div>
 
       {/* Header */}
-      <header className="bg-indigo-950 border-b border-white/10 h-20 sticky top-0 z-30 px-6 sm:px-12 flex items-center justify-between shadow-lg">
+      <header className="bg-gradient-to-r from-indigo-950 via-purple-900 to-indigo-950 border-b border-white/10 h-20 sticky top-0 z-30 px-6 sm:px-12 flex items-center justify-between shadow-lg">
         <div className="flex items-center gap-6">
           <div className="hidden sm:flex bg-white/10 border border-white/20 w-12 h-12 rounded-2xl items-center justify-center text-white shadow-xl shadow-indigo-950/20">
             <Clock className="w-6 h-6" />
@@ -1234,7 +1234,7 @@ export default function StudentExam() {
         <button 
           onClick={() => setShowSubmitConfirm(true)}
           disabled={submitting}
-          className="bg-white text-indigo-950 px-6 sm:px-8 py-3 sm:py-3.5 rounded-2xl font-black text-sm hover:bg-slate-50 active:scale-[0.98] transition-all shadow-xl shadow-indigo-950/10 flex items-center gap-2 sm:gap-3 border border-slate-100"
+          className="bg-gradient-loading text-white px-6 sm:px-8 py-3 sm:py-3.5 rounded-2xl font-black text-sm hover:scale-[1.02] active:scale-[0.98] transition-all shadow-glow-loading flex items-center gap-2 sm:gap-3"
         >
           <Send className="w-5 h-5" />
           <span className="hidden sm:inline">Kumpulkan</span>
@@ -1329,14 +1329,14 @@ export default function StudentExam() {
       <div className="flex-1 flex flex-col lg:flex-row p-4 sm:p-12 gap-6 lg:gap-10 max-w-[1600px] mx-auto w-full relative z-10">
         {/* Sidebar Navigation - Moved to top on mobile */}
         <div className="w-full lg:w-96 space-y-6 lg:space-y-8 order-1 lg:order-2">
-          <div className="bg-white rounded-[3rem] border border-slate-100 shadow-xl shadow-slate-200/50 overflow-hidden">
-            <div className="bg-indigo-950 p-6 sm:p-8 flex items-center gap-3">
+          <div className="bg-indigo-900 rounded-[3rem] border border-indigo-500/30 shadow-2xl overflow-hidden text-white">
+            <div className="bg-indigo-950/50 p-6 sm:p-8 flex items-center gap-3 border-b border-indigo-500/20">
               <div className="bg-white/10 p-2.5 rounded-xl border border-white/10">
                 <LayoutGrid className="text-white w-5 h-5" />
               </div>
               <div>
                 <h3 className="text-sm font-black text-white uppercase tracking-widest leading-none mb-1">Navigasi Soal</h3>
-                <p className="text-[10px] font-bold text-indigo-300 uppercase tracking-widest">{questions.length} Pertanyaan</p>
+                <p className="text-[10px] font-bold text-indigo-200 uppercase tracking-widest">{questions.length} Pertanyaan</p>
               </div>
             </div>
             <div className="p-6 sm:p-10 grid grid-cols-6 sm:grid-cols-5 gap-2 sm:gap-3">
@@ -1345,24 +1345,24 @@ export default function StudentExam() {
                   key={q.id}
                   onClick={() => setCurrentIndex(i)}
                   className={cn(
-                    "h-10 sm:h-12 rounded-xl sm:rounded-2xl font-black text-xs sm:text-sm transition-all relative",
+                    "h-10 sm:h-12 rounded-xl sm:rounded-2xl font-black text-xs sm:text-sm transition-all relative border",
                     i === currentIndex 
-                      ? "bg-indigo-950 text-white shadow-xl shadow-indigo-950/20 scale-105 sm:scale-110 z-10" 
+                      ? "bg-gradient-loading text-white shadow-xl scale-105 sm:scale-110 z-10 border-transparent shadow-indigo-500/30" 
                       : answers[q.id] 
-                        ? "bg-blue-50 text-blue-600 border border-blue-100" 
-                        : "bg-slate-50 text-slate-300 border border-transparent hover:border-slate-200 hover:bg-white"
+                        ? "bg-blue-600/30 text-white border-blue-400/40" 
+                        : "bg-indigo-950/40 text-indigo-300 border-indigo-500/20 hover:border-indigo-400 hover:bg-indigo-950/60"
                   )}
                 >
                   {i + 1}
                   {answers[q.id] && i !== currentIndex && (
-                    <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-blue-600 rounded-full border-2 border-white" />
+                    <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-blue-400 rounded-full border-2 border-indigo-900" />
                   )}
                 </button>
               ))}
             </div>
           </div>
 
-          <div className="hidden lg:block bg-indigo-950 rounded-[3rem] p-10 text-white overflow-hidden relative group">
+          <div className="hidden lg:block bg-gradient-to-br from-indigo-950 via-purple-900 to-indigo-950 border border-indigo-500/20 rounded-[3rem] p-10 text-white overflow-hidden relative group shadow-lg">
             <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform duration-700">
               <HelpCircle className="w-32 h-32" />
             </div>
@@ -1425,14 +1425,14 @@ export default function StudentExam() {
                       className={cn(
                         "flex items-start gap-4 sm:gap-6 p-4 sm:p-6 rounded-2xl sm:rounded-3xl border-2 text-left transition-all group",
                         answers[currentQuestion.id] === opt.id
-                          ? "border-indigo-950 bg-slate-50 shadow-lg shadow-slate-100"
-                          : "border-slate-100 hover:border-slate-300 bg-white"
+                          ? "bg-gradient-to-r from-indigo-600 to-blue-600 border-indigo-400 text-white shadow-xl shadow-indigo-650/20"
+                          : "border-slate-200 bg-white hover:bg-slate-50/50 hover:border-slate-300"
                       )}
                     >
                       <div className={cn(
                         "w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-xl sm:rounded-2xl font-black text-base sm:text-lg transition-all shrink-0",
                         answers[currentQuestion.id] === opt.id
-                          ? "bg-indigo-950 text-white shadow-lg shadow-slate-200"
+                          ? "bg-white/25 text-white shadow-lg border border-white/25"
                           : "bg-slate-100 text-slate-400 group-hover:bg-slate-200"
                       )}>
                         {opt.option_label}
@@ -1441,12 +1441,12 @@ export default function StudentExam() {
                         <div className="flex items-start justify-between gap-3 w-full">
                           <span className={cn(
                             "font-bold text-base sm:text-lg leading-snug min-w-0 break-words",
-                            answers[currentQuestion.id] === opt.id ? "text-indigo-950" : "text-slate-600"
+                            answers[currentQuestion.id] === opt.id ? "text-white" : "text-slate-650"
                           )}>
                             {opt.option_text}
                           </span>
                           {answers[currentQuestion.id] === opt.id && (
-                            <CheckCircle2 className="w-6 h-6 text-indigo-950 shrink-0 flex-shrink-0" />
+                            <CheckCircle2 className="w-6 h-6 text-white shrink-0 flex-shrink-0" />
                           )}
                         </div>
                         {opt.image_url && (
@@ -1490,7 +1490,7 @@ export default function StudentExam() {
                   key={i}
                   className={cn(
                     "h-2 rounded-full transition-all duration-500",
-                    i === currentIndex ? "w-12 bg-indigo-950" : "w-2 bg-slate-200"
+                    i === currentIndex ? "w-12 bg-indigo-600" : "w-2 bg-slate-200"
                   )}
                 />
               ))}
@@ -1539,7 +1539,7 @@ export default function StudentExam() {
                       localStorage.removeItem(`exam_session_${examCode}`);
                       navigate('/exam');
                     }}
-                    className="w-full bg-indigo-950 hover:bg-indigo-900 text-white py-4 rounded-2xl font-black transition-all shadow-lg flex items-center justify-center gap-2"
+                    className="w-full bg-gradient-loading text-white py-4 rounded-2xl font-black hover:scale-[1.01] transition-all shadow-glow-loading flex items-center justify-center gap-2"
                   >
                     Kembali ke Menu
                   </button>

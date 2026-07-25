@@ -242,54 +242,66 @@ export default function Dashboard() {
       label: 'Ujian Digital', 
       value: stats.totalExams, 
       icon: FileText, 
-      color: 'text-blue-600', 
-      bg: 'bg-blue-50',
-      border: 'border-blue-100/50',
+      cardClass: 'bg-blue-600 text-white border-transparent shadow-lg shadow-blue-600/15 hover:shadow-[0_12px_25px_rgba(59,130,246,0.3)]',
+      iconBg: 'bg-white/20 text-white',
+      badgeClass: 'bg-white/20 text-white border-white/10',
+      mutedColor: 'text-blue-100/70',
+      textColor: 'text-white',
       desc: `${stats.totalQuestions} Soal di Bank Soal`
     },
     { 
       label: 'Jumlah Kelas', 
       value: stats.totalClasses, 
       icon: BookOpen, 
-      color: 'text-emerald-600', 
-      bg: 'bg-emerald-50',
-      border: 'border-emerald-100/50',
+      cardClass: 'bg-emerald-600 text-white border-transparent shadow-lg shadow-emerald-600/15 hover:shadow-[0_12px_25px_rgba(16,185,129,0.3)]',
+      iconBg: 'bg-white/20 text-white',
+      badgeClass: 'bg-white/20 text-white border-white/10',
+      mutedColor: 'text-emerald-100/70',
+      textColor: 'text-white',
       desc: 'Kelas Aktif Terdaftar'
     },
     { 
       label: 'Manajemen Murid', 
       value: stats.totalStudents, 
       icon: Users, 
-      color: 'text-purple-600', 
-      bg: 'bg-purple-50',
-      border: 'border-purple-100/50',
+      cardClass: 'bg-purple-600 text-white border-transparent shadow-lg shadow-purple-600/15 hover:shadow-[0_12px_25px_rgba(139,92,246,0.3)]',
+      iconBg: 'bg-white/20 text-white',
+      badgeClass: 'bg-white/20 text-white border-white/10',
+      mutedColor: 'text-purple-100/70',
+      textColor: 'text-white',
       desc: 'Murid Aktif Terdaftar'
     },
     { 
       label: 'Kehadiran Total', 
       value: `${overallAttendance}%`, 
       icon: CheckCircle, 
-      color: 'text-indigo-600', 
-      bg: 'bg-indigo-50',
-      border: 'border-indigo-100/50',
+      cardClass: 'bg-indigo-600 text-white border-transparent shadow-lg shadow-indigo-600/15 hover:shadow-[0_12px_25px_rgba(99,102,241,0.3)]',
+      iconBg: 'bg-white/20 text-white',
+      badgeClass: 'bg-white/20 text-white border-white/10',
+      mutedColor: 'text-indigo-100/70',
+      textColor: 'text-white',
       desc: 'Rata-rata absensi kelas'
     },
     { 
       label: 'Rerata Nilai', 
       value: overallGradeAvg, 
       icon: TrendingUp, 
-      color: 'text-amber-600', 
-      bg: 'bg-amber-50',
-      border: 'border-amber-100/50',
+      cardClass: 'bg-amber-600 text-white border-transparent shadow-lg shadow-amber-600/15 hover:shadow-[0_12px_25px_rgba(245,158,11,0.3)]',
+      iconBg: 'bg-white/20 text-white',
+      badgeClass: 'bg-white/20 text-white border-white/10',
+      mutedColor: 'text-amber-100/70',
+      textColor: 'text-white',
       desc: 'Rerata nilai formatif/sumatif'
     },
     { 
       label: 'Rerata Ujian', 
       value: overallExamAvg, 
       icon: GraduationCap, 
-      color: 'text-rose-600', 
-      bg: 'bg-rose-50',
-      border: 'border-rose-100/50',
+      cardClass: 'bg-rose-600 text-white border-transparent shadow-lg shadow-rose-600/15 hover:shadow-[0_12px_25px_rgba(244,63,94,0.3)]',
+      iconBg: 'bg-white/20 text-white',
+      badgeClass: 'bg-white/20 text-white border-white/10',
+      mutedColor: 'text-rose-100/70',
+      textColor: 'text-white',
       desc: 'Rerata nilai ujian digital'
     },
   ];
@@ -345,37 +357,37 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <Link
             to="/attendance/scan"
-            className="flex items-center gap-3 p-3 bg-white border border-slate-100 rounded-2xl hover:shadow-md hover:scale-[1.01] transition-all group cursor-pointer"
+            className="flex items-center gap-3 p-3 bg-gradient-to-r from-blue-600 to-indigo-750 text-white rounded-2xl shadow-lg shadow-indigo-900/15 hover:shadow-[0_12px_25px_rgba(59,130,246,0.35)] hover:scale-[1.01] transition-all group cursor-pointer"
           >
-            <div className="bg-indigo-50 text-indigo-950 p-2.5 rounded-xl group-hover:bg-indigo-950 group-hover:text-white transition-colors">
+            <div className="bg-white/20 text-white p-2.5 rounded-xl group-hover:scale-105 transition-transform">
               <ClipboardCheck className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="font-bold text-slate-800 text-xs group-hover:text-indigo-950 transition-colors uppercase tracking-tight">Scan Kehadiran</h4>
+              <h4 className="font-bold text-white text-xs uppercase tracking-tight">Scan Kehadiran</h4>
             </div>
           </Link>
 
           <Link
             to="/grading"
-            className="flex items-center gap-3 p-3 bg-white border border-slate-100 rounded-2xl hover:shadow-md hover:scale-[1.01] transition-all group cursor-pointer"
+            className="flex items-center gap-3 p-3 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-2xl shadow-lg shadow-orange-950/10 hover:shadow-[0_12px_25px_rgba(245,158,11,0.35)] hover:scale-[1.01] transition-all group cursor-pointer"
           >
-            <div className="bg-blue-50 text-blue-600 p-2.5 rounded-xl group-hover:bg-blue-600 group-hover:text-white transition-colors">
+            <div className="bg-white/20 text-white p-2.5 rounded-xl group-hover:scale-105 transition-transform">
               <Activity className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="font-bold text-slate-800 text-xs group-hover:text-blue-600 transition-colors uppercase tracking-tight">Input Nilai Baru</h4>
+              <h4 className="font-bold text-white text-xs uppercase tracking-tight">Input Nilai Baru</h4>
             </div>
           </Link>
 
           <Link
             to="/buat-ujian"
-            className="flex items-center gap-3 p-3 bg-white border border-slate-100 rounded-2xl hover:shadow-md hover:scale-[1.01] transition-all group cursor-pointer"
+            className="flex items-center gap-3 p-3 bg-gradient-to-r from-purple-600 to-pink-650 text-white rounded-2xl shadow-lg shadow-purple-950/10 hover:shadow-[0_12px_25px_rgba(139,92,246,0.35)] hover:scale-[1.01] transition-all group cursor-pointer"
           >
-            <div className="bg-purple-50 text-purple-600 p-2.5 rounded-xl group-hover:bg-purple-600 group-hover:text-white transition-colors">
+            <div className="bg-white/20 text-white p-2.5 rounded-xl group-hover:scale-105 transition-transform">
               <FileText className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="font-bold text-slate-800 text-xs group-hover:text-purple-600 transition-colors uppercase tracking-tight">Buat Ujian Baru</h4>
+              <h4 className="font-bold text-white text-xs uppercase tracking-tight">Buat Ujian Baru</h4>
             </div>
           </Link>
         </div>
@@ -389,20 +401,20 @@ export default function Dashboard() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.05, duration: 0.3 }}
-            className={`bg-white border ${stat.border} rounded-2xl p-3 shadow-sm hover:shadow-md hover:scale-[1.01] transition-all duration-300 group`}
+            className={`border rounded-2xl p-3 hover:scale-[1.01] transition-all duration-300 group ${stat.cardClass}`}
           >
             <div className="flex items-center justify-between mb-1.5">
-              <div className={`${stat.bg} ${stat.color} p-1.5 rounded-xl transition-transform duration-300 group-hover:scale-110`}>
+              <div className={`${stat.iconBg} p-1.5 rounded-xl transition-transform duration-300 group-hover:scale-110`}>
                 <stat.icon className="w-3.5 h-3.5" />
               </div>
-              <div className={`${stat.bg} ${stat.color} px-1 py-0.2 rounded text-[8px] font-bold flex items-center gap-0.5`}>
+              <div className={`${stat.badgeClass} px-1.5 py-0.5 rounded text-[8px] font-bold flex items-center gap-0.5 border`}>
                 <ArrowUpRight className="w-2 h-2" />
                 Info
               </div>
             </div>
             <div>
-              <p className="text-slate-400 text-[8px] font-black uppercase tracking-widest leading-none">{stat.label}</p>
-              <h3 className="text-lg font-extrabold text-indigo-950 mt-1 tracking-tight leading-none">{stat.value}</h3>
+              <p className={`${stat.mutedColor} text-[8px] font-black uppercase tracking-widest leading-none`}>{stat.label}</p>
+              <h3 className={`text-lg font-extrabold mt-1 tracking-tight leading-none ${stat.textColor}`}>{stat.value}</h3>
             </div>
           </motion.div>
         ))}
