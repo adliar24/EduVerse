@@ -284,7 +284,7 @@ export default function Layout({ session }: LayoutProps) {
                     <button
                       onClick={() => toggleSubmenu(item.label)}
                       className={cn(
-                        "flex items-center justify-between w-full px-3 py-2.5 rounded-xl transition-all duration-200 group text-left cursor-pointer",
+                        "flex items-center justify-between w-full px-3 py-2.5 rounded-xl transition-colors duration-150 group text-left cursor-pointer",
                         isActive
                           ? "bg-white text-indigo-950 shadow-lg shadow-white/5 font-semibold"
                           : "text-slate-400 hover:bg-white/5 hover:text-white"
@@ -351,7 +351,7 @@ export default function Layout({ session }: LayoutProps) {
                     if (prefetch) prefetch();
                   }}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group text-left cursor-pointer",
+                    "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors duration-150 group text-left cursor-pointer",
                     location.pathname === item.path
                       ? "bg-white text-indigo-950 shadow-lg shadow-white/5 font-semibold"
                       : "text-slate-400 hover:bg-white/5 hover:text-white"
@@ -393,7 +393,7 @@ export default function Layout({ session }: LayoutProps) {
             />
             <motion.aside 
               initial={{ x: '-100%' }} animate={{ x: 0 }} exit={{ x: '-100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 250 }}
+              transition={{ type: 'tween', ease: 'easeInOut', duration: 0.2 }}
               className="fixed inset-y-0 left-0 w-[260px] bg-indigo-950 z-50 lg:hidden flex flex-col shadow-xl overflow-y-auto"
             >
               <div className="p-6 flex items-center justify-between sticky top-0 bg-indigo-950 z-10 border-b border-white/5">
@@ -418,7 +418,7 @@ export default function Layout({ session }: LayoutProps) {
                         <button
                           onClick={() => toggleSubmenu(item.label)}
                           className={cn(
-                            "flex items-center justify-between w-full px-3 py-3 rounded-xl transition-all text-sm font-medium text-left cursor-pointer",
+                            "flex items-center justify-between w-full px-3 py-3 rounded-xl transition-colors duration-150 text-sm font-medium text-left cursor-pointer",
                             isActive
                               ? "bg-white text-indigo-950 shadow-md font-semibold"
                               : "text-slate-400 hover:bg-white/5 hover:text-white"
@@ -444,7 +444,7 @@ export default function Layout({ session }: LayoutProps) {
                               initial={{ height: 0, opacity: 0 }}
                               animate={{ height: 'auto', opacity: 1 }}
                               exit={{ height: 0, opacity: 0 }}
-                              transition={{ duration: 0.2 }}
+                              transition={{ duration: 0.15, ease: 'easeInOut' }}
                               className="overflow-hidden pl-7 pr-2 py-1 space-y-1"
                             >
                               {item.subItems!.map((sub) => (
