@@ -94,6 +94,7 @@ export interface Student {
   // Common
   id?: string; // mapped to idSiswa or studentId
   name?: string; // mapped to nama
+  gender?: 'M' | 'F' | 'L' | 'P' | null;
   createdAt?: string;
 
   // EduCheck

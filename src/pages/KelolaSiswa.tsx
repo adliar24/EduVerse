@@ -43,7 +43,7 @@ export default function KelolaSiswa() {
   const { activeSchool } = useSchool();
   const isMountedRef = useRef(true);
 
-  const [formData, setFormData] = useState({ name: '', class_id: '', student_code: '', password: '' });
+  const [formData, setFormData] = useState({ name: '', class_id: '', student_code: '', password: '', gender: '' });
 
   // 1. Generator Fungsi di Paling Atas (Mencegah Hoisting Error)
   const generateStudentCode = () => {
@@ -211,7 +211,8 @@ export default function KelolaSiswa() {
           name: formData.name, 
           class_id: formData.class_id || null,
           student_code: formData.student_code.trim() || null,
-          password: formData.password.trim() || 'murid19'
+          password: formData.password.trim() || 'murid19',
+          gender: formData.gender || null
         }).eq('id', editingId).select().single();
         if (error) throw error;
         
@@ -226,6 +227,7 @@ export default function KelolaSiswa() {
             name: updatedStudent.name,
             student_code: updatedStudent.student_code,
             password: updatedStudent.password || 'murid19',
+            gender: updatedStudent.gender,
             createdAt: updatedStudent.created_at
           } as any);
           await saveStudent({
@@ -235,7 +237,8 @@ export default function KelolaSiswa() {
             idKelas: updatedStudent.class_id,
             nama: updatedStudent.name,
             student_code: updatedStudent.student_code,
-            password: updatedStudent.password || 'murid19'
+            password: updatedStudent.password || 'murid19',
+            gender: updatedStudent.gender
           } as any);
         }
         showAlert({ title: 'Berhasil', message: 'Data murid diperbarui.', type: 'success' });
@@ -250,7 +253,8 @@ export default function KelolaSiswa() {
           name: formData.name, 
           class_id: formData.class_id || null,
           student_code: formData.student_code.trim() || generateStudentCode(),
-          password: formData.password.trim() || 'murid19'
+          password: formData.password.trim() || 'murid19',
+          gender: formData.gender || null
         }]).select().single();
         if (error) throw error;
 
@@ -265,6 +269,7 @@ export default function KelolaSiswa() {
             name: newStudent.name,
             student_code: newStudent.student_code,
             password: newStudent.password || 'murid19',
+            gender: newStudent.gender,
             createdAt: newStudent.created_at
           } as any);
           await saveStudent({
@@ -274,14 +279,15 @@ export default function KelolaSiswa() {
             idKelas: newStudent.class_id,
             nama: newStudent.name,
             student_code: newStudent.student_code,
-            password: newStudent.password || 'murid19'
+            password: newStudent.password || 'murid19',
+            gender: newStudent.gender
           } as any);
         }
         showAlert({ title: 'Berhasil', message: 'Murid baru ditambahkan.', type: 'success' });
       }
       
       setShowForm(false);
-      setFormData({ name: '', class_id: '', student_code: '', password: '' });
+      setFormData({ name: '', class_id: '', student_code: '', password: '', gender: '' });
       setEditingId(null);
       await fetchData();
     } catch (err: any) { 
@@ -670,7 +676,7 @@ export default function KelolaSiswa() {
               <Trash2 className="w-4 h-4" /> Hapus Terpilih ({selectedStudentIds.length})
             </button>
           )}
-          <button onClick={() => { setEditingId(null); setFormData({ name: '', class_id: '', student_code: '', password: '' }); setShowForm(true); }}
+          <button onClick={() => { setEditingId(null); setFormData({ name: '', class_id: '', student_code: '', password: '', gender: '' }); setShowForm(true); }}
             className="bg-indigo-950 text-white px-5 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 hover:bg-indigo-900 transition-all shadow-lg shadow-slate-200/50 active:scale-[0.98]"
           >
             <Plus className="w-4 h-4" /> Tambah Murid
@@ -721,6 +727,7 @@ export default function KelolaSiswa() {
                   />
                 </th>
                 <th className="px-6 py-4 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Data Murid</th>
+                <th className="px-6 py-4 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">L/P</th>
                 <th className="px-6 py-4 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Username</th>
                 <th className="px-6 py-4 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Kelas</th>
                 <th className="px-6 py-4 text-[10px] font-semibold text-slate-400 uppercase tracking-wider text-right">Aksi</th>
@@ -730,7 +737,7 @@ export default function KelolaSiswa() {
               {loading ? (
                 [1,2,3,4,5].map(i => (
                   <tr key={i} className="animate-pulse">
-                    <td colSpan={5} className="px-6 py-4"><div className="h-10 bg-slate-100 rounded-lg w-full"></div></td>
+                    <td colSpan={6} className="px-6 py-4"><div className="h-10 bg-slate-100 rounded-lg w-full"></div></td>
                   </tr>
                 ))
               ) : filteredStudents.length > 0 ? (
@@ -761,6 +768,15 @@ export default function KelolaSiswa() {
                       </div>
                     </td>
                     <td className="px-6 py-4">
+                      {s.gender === 'M' || s.gender === 'L' ? (
+                        <span className="bg-blue-50 text-blue-700 px-2.5 py-1 rounded-md text-xs font-bold border border-blue-100/50">L</span>
+                      ) : s.gender === 'F' || s.gender === 'P' ? (
+                        <span className="bg-pink-50 text-pink-700 px-2.5 py-1 rounded-md text-xs font-bold border border-pink-100/50">P</span>
+                      ) : (
+                        <span className="text-slate-400 text-xs font-semibold">-</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
                         <span className="bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-md font-mono font-semibold text-xs tracking-wider">{s.student_code || '-'}</span>
                         {s.student_code && (
@@ -781,7 +797,7 @@ export default function KelolaSiswa() {
                         >
                           <Key className="w-4 h-4" />
                         </button>
-                        <button onClick={() => { setEditingId(s.id); setFormData({ name: s.name, class_id: s.class_id || '', student_code: s.student_code || '', password: s.password || 'murid19' }); setShowForm(true); }}
+                        <button onClick={() => { setEditingId(s.id); setFormData({ name: s.name, class_id: s.class_id || '', student_code: s.student_code || '', password: s.password || 'murid19', gender: s.gender || '' }); setShowForm(true); }}
                           className="p-2 text-slate-400 hover:text-indigo-950 hover:bg-slate-100 rounded-lg transition-all"
                         >
                           <Edit3 className="w-4 h-4" />
@@ -795,7 +811,7 @@ export default function KelolaSiswa() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={5} className="px-6 py-20 text-center text-slate-400 text-sm font-medium">
+                  <td colSpan={6} className="px-6 py-20 text-center text-slate-400 text-sm font-medium">
                     Tidak ada murid ditemukan.
                   </td>
                 </tr>
@@ -831,6 +847,16 @@ export default function KelolaSiswa() {
                   >
                     <option value="">Tanpa Kelas</option>
                     {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  </select>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Jenis Kelamin</label>
+                  <select className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 outline-none focus:ring-2 focus:ring-indigo-950/10 focus:border-indigo-950 text-sm font-medium text-indigo-950"
+                    value={formData.gender || ''} onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+                  >
+                    <option value="">Pilih Jenis Kelamin</option>
+                    <option value="M">Laki-laki (L)</option>
+                    <option value="F">Perempuan (P)</option>
                   </select>
                 </div>
                 <div className="space-y-1.5">

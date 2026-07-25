@@ -85,6 +85,7 @@ CREATE TABLE IF NOT EXISTS public.students (
   class_id UUID REFERENCES public.classes(id) ON DELETE SET NULL,
   name TEXT NOT NULL,
   nisn TEXT,
+  gender TEXT,
   student_code TEXT UNIQUE,
   password TEXT DEFAULT 'murid19',
   created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
@@ -98,6 +99,9 @@ BEGIN
   END IF;
   IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'students' AND column_name = 'password') THEN
     ALTER TABLE public.students ADD COLUMN password TEXT DEFAULT 'murid19';
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'students' AND column_name = 'gender') THEN
+    ALTER TABLE public.students ADD COLUMN gender TEXT;
   END IF;
 END $$;
 
