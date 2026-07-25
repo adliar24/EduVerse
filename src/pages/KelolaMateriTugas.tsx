@@ -718,8 +718,8 @@ export default function KelolaMateriTugas() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {filteredMaterialsList.map((m) => {
               return (
-                <div key={m.id} className={`bg-white p-6 rounded-2xl border transition-all flex flex-col justify-between gap-4 relative group ${
-                  selectedIds.includes(m.id) ? 'border-indigo-950 shadow-md bg-indigo-50/10' : 'border-slate-100 shadow-sm hover:shadow-md'
+                 <div key={m.id} className={`p-6 rounded-2xl flex flex-col justify-between gap-4 relative group ${
+                  selectedIds.includes(m.id) ? 'glass border-indigo-500/50 shadow-glow-indigo bg-indigo-50/10' : 'glass-card'
                 }`}>
                   <div className="space-y-2">
                     <div className="flex items-center justify-between gap-2 flex-wrap">
@@ -796,8 +796,8 @@ export default function KelolaMateriTugas() {
               const isOverdue = deadlineDate ? deadlineDate.getTime() < Date.now() : false;
               
               return (
-                <div key={a.id} className={`bg-white p-6 rounded-2xl border transition-all flex flex-col justify-between gap-4 relative group ${
-                  selectedIds.includes(a.id) ? 'border-indigo-950 shadow-md bg-indigo-50/10' : 'border-slate-100 shadow-sm hover:shadow-md'
+                 <div key={a.id} className={`p-6 rounded-2xl flex flex-col justify-between gap-4 relative group ${
+                  selectedIds.includes(a.id) ? 'glass border-indigo-500/50 shadow-glow-indigo bg-indigo-50/10' : 'glass-card'
                 }`}>
                   <div className="space-y-2">
                     <div className="flex items-center justify-between gap-2 flex-wrap">

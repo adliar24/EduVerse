@@ -47,11 +47,35 @@
 
 /* Glassmorphism Classes */
 .glass {
-  @apply bg-white/70 backdrop-blur-xl border border-white/40 shadow-[0_8px_30px_rgb(0,0,0,0.04)];
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.04);
 }
 
 .glass-dark {
-  @apply bg-indigo-950/80 backdrop-blur-xl border border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.12)];
+  background: rgba(27, 20, 100, 0.65);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.15);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  box-shadow: 0 4px 20px 0 rgba(27, 20, 100, 0.02);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-card:hover {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(59, 130, 246, 0.25);
+  box-shadow: 0 10px 30px 0 rgba(59, 130, 246, 0.08);
+  transform: translateY(-2px);
 }
 
 /* Advanced Hover Effects */
@@ -115,4 +139,51 @@
 body[style*="overflow: hidden"] main,
 body.modal-open main {
   overflow-y: hidden !important;
+}
+
+@keyframes ambient-float {
+  0% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  33% {
+    transform: translate(30px, -50px) scale(1.08);
+  }
+  66% {
+    transform: translate(-20px, 20px) scale(0.96);
+  }
+  100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+}
+
+@keyframes ambient-float-reverse {
+  0% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  33% {
+    transform: translate(-40px, 40px) scale(0.92);
+  }
+  66% {
+    transform: translate(30px, -30px) scale(1.12);
+  }
+  100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+}
+
+.animate-float-slow {
+  animation: ambient-float 16s infinite ease-in-out;
+}
+
+.animate-float-reverse {
+  animation: ambient-float-reverse 20s infinite ease-in-out;
+}
+
+/* Glow highlights */
+.shadow-glow-blue {
+  box-shadow: 0 0 25px rgba(59, 130, 246, 0.18);
+}
+
+.shadow-glow-indigo {
+  box-shadow: 0 0 25px rgba(99, 102, 241, 0.18);
 }
