@@ -304,34 +304,45 @@ export default function KelolaSiswa() {
     else if (student.gender === 'M' || student.gender === 'L') nextGender = 'F';
     else nextGender = null;
 
-    try {
-      const { data: updatedStudent, error } = await supabase.from('students').update({ 
-        gender: nextGender
-      }).eq('id', student.id).select().single();
-      if (error) throw error;
-      
-      if (updatedStudent) {
-        await addStudent({
-          ...student,
-          gender: nextGender
-        } as any);
-        await saveStudent({
-          idSiswa: student.id,
-          teacherId: student.teacher_id || student.teacherId,
-          schoolId: student.school_id || student.schoolId,
-          idKelas: student.class_id,
-          nama: student.name,
-          student_code: student.student_code,
-          password: student.password || 'murid19',
-          gender: nextGender
-        } as any);
+    const genderLabel = nextGender === 'M' ? 'Laki-laki (L)' : nextGender === 'F' ? 'Perempuan (P)' : 'Kosong (-)';
+
+    showAlert({
+      title: 'Ubah Jenis Kelamin?',
+      message: `Apakah Anda yakin ingin mengubah jenis kelamin ${student.name} menjadi ${genderLabel}?`,
+      type: 'confirm',
+      confirmText: 'Ya, Ubah',
+      onConfirm: async () => {
+        try {
+          const { data: updatedStudent, error } = await supabase.from('students').update({ 
+            gender: nextGender
+          }).eq('id', student.id).select().single();
+          if (error) throw error;
+          
+          if (updatedStudent) {
+            await addStudent({
+              ...student,
+              gender: nextGender
+            } as any);
+            await saveStudent({
+              idSiswa: student.id,
+              teacherId: student.teacher_id || student.teacherId,
+              schoolId: student.school_id || student.schoolId,
+              idKelas: student.class_id,
+              nama: student.name,
+              student_code: student.student_code,
+              password: student.password || 'murid19',
+              gender: nextGender
+            } as any);
+          }
+          
+          setStudents(prev => prev.map(s => s.id === student.id ? { ...s, gender: nextGender } : s));
+          showAlert({ title: 'Berhasil', message: 'Jenis kelamin berhasil diubah.', type: 'success' });
+        } catch (err) {
+          console.error(err);
+          showAlert({ title: 'Gagal', message: 'Gagal memperbarui jenis kelamin.', type: 'error' });
+        }
       }
-      
-      setStudents(prev => prev.map(s => s.id === student.id ? { ...s, gender: nextGender } : s));
-    } catch (err) {
-      console.error(err);
-      showAlert({ title: 'Gagal', message: 'Gagal memperbarui jenis kelamin.', type: 'error' });
-    }
+    });
   };
 
   const handleDelete = async (id: string) => {
