@@ -428,7 +428,7 @@ export default function Layout({ session }: LayoutProps) {
                         <button
                           onClick={() => toggleSubmenu(item.label)}
                           className={cn(
-                            "flex items-center justify-between w-full px-3 py-2 rounded-lg transition-colors duration-150 text-xs font-semibold text-left cursor-pointer",
+                            "flex items-center justify-between w-full px-3 py-2.5 rounded-lg transition-colors duration-150 text-[13px] font-semibold text-left cursor-pointer",
                             isActive
                               ? "bg-white text-indigo-950 shadow-md font-semibold"
                               : "text-slate-400 hover:bg-white/5 hover:text-white"
@@ -467,7 +467,7 @@ export default function Layout({ session }: LayoutProps) {
                                     if (prefetch) prefetch();
                                   }}
                                   className={cn(
-                                    "flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-colors",
+                                    "flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] font-medium transition-colors",
                                     location.pathname === sub.path
                                       ? "text-blue-400 bg-white/5 font-semibold"
                                       : "text-slate-400 hover:text-white"
@@ -497,7 +497,7 @@ export default function Layout({ session }: LayoutProps) {
                         if (prefetch) prefetch();
                       }}
                       className={cn(
-                        "flex items-center gap-3 px-3 py-2 rounded-lg transition-colors duration-150 text-xs font-semibold",
+                        "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors duration-150 text-[13px] font-semibold",
                         location.pathname === item.path
                           ? "bg-white text-indigo-950 shadow-md font-semibold"
                           : "text-slate-400 hover:bg-white/5 hover:text-white"

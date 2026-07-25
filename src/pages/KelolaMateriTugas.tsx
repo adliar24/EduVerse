@@ -69,6 +69,15 @@ export default function KelolaMateriTugas() {
   }, [activeTab, selectedClassFilter]);
 
   useEffect(() => {
+    if (showModal) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [showModal]);
+
+  useEffect(() => {
     isMountedRef.current = true;
     fetchData();
     return () => {
@@ -915,11 +924,12 @@ export default function KelolaMateriTugas() {
               initial={{ scale: 0.95, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 20 }}
-              className="bg-white rounded-[2.5rem] p-8 max-w-2xl w-full max-h-[85vh] overflow-y-auto relative z-10 shadow-2xl border border-slate-100"
+              className="bg-white rounded-[2.5rem] max-w-2xl w-full max-h-[85vh] overflow-y-auto custom-scrollbar relative z-10 shadow-2xl border border-slate-100"
             >
-              <h3 className="text-2xl font-black text-indigo-950 mb-6 tracking-tight">
-                {editingId ? 'Edit' : 'Tambah'} {formType === 'material' ? 'Materi Pelajaran' : 'Tugas Murid'}
-              </h3>
+              <div className="p-8">
+                <h3 className="text-2xl font-black text-indigo-950 mb-6 tracking-tight">
+                  {editingId ? 'Edit' : 'Tambah'} {formType === 'material' ? 'Materi Pelajaran' : 'Tugas Murid'}
+                </h3>
 
               <form onSubmit={handleSave} className="space-y-5">
                 <div className="space-y-1">
@@ -1150,7 +1160,8 @@ export default function KelolaMateriTugas() {
                   </button>
                 </div>
               </form>
-            </motion.div>
+            </div>
+          </motion.div>
           </div>
         )}
       </AnimatePresence>
