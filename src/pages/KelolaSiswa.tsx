@@ -840,9 +840,9 @@ export default function KelolaSiswa() {
                         className="hover:scale-105 active:scale-95 transition-all outline-none"
                       >
                         {s.gender === 'M' || s.gender === 'L' ? (
-                          <span className="bg-blue-50 text-blue-755 px-2.5 py-1 rounded-md text-xs font-black border border-blue-200/60 cursor-pointer">L</span>
+                          <span className="bg-blue-50 text-blue-700 px-2.5 py-1 rounded-md text-xs font-black border border-blue-200/60 cursor-pointer">L</span>
                         ) : s.gender === 'F' || s.gender === 'P' ? (
-                          <span className="bg-pink-50 text-pink-755 px-2.5 py-1 rounded-md text-xs font-black border border-pink-200/60 cursor-pointer">P</span>
+                          <span className="bg-pink-50 text-pink-700 px-2.5 py-1 rounded-md text-xs font-black border border-pink-200/60 cursor-pointer">P</span>
                         ) : (
                           <span className="bg-slate-50 text-slate-400 hover:text-slate-600 hover:bg-slate-100/50 px-2.5 py-1 rounded-md text-xs font-black border border-slate-200/60 cursor-pointer">-</span>
                         )}
