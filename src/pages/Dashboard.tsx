@@ -357,7 +357,7 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <Link
             to="/attendance/scan"
-            className="flex items-center gap-3 p-3 bg-gradient-to-r from-blue-600 via-indigo-600 to-indigo-700 text-white rounded-full shadow-lg shadow-blue-600/20 hover:shadow-[0_12px_25px_rgba(59,130,246,0.4)] hover:scale-[1.01] transition-all group cursor-pointer"
+            className="flex items-center gap-3 p-3 bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-800 text-white rounded-full shadow-lg shadow-purple-600/25 hover:shadow-purple-600/40 hover:scale-[1.02] border border-white/10 transition-all group cursor-pointer"
           >
             <div className="bg-white/20 text-white p-2.5 rounded-full group-hover:scale-105 transition-transform">
               <ClipboardCheck className="w-5 h-5" />
@@ -369,7 +369,7 @@ export default function Dashboard() {
 
           <Link
             to="/grading"
-            className="flex items-center gap-3 p-3 bg-gradient-to-r from-amber-500 via-orange-500 to-orange-600 text-white rounded-full shadow-lg shadow-orange-600/20 hover:shadow-[0_12px_25px_rgba(245,158,11,0.4)] hover:scale-[1.01] transition-all group cursor-pointer"
+            className="flex items-center gap-3 p-3 bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-800 text-white rounded-full shadow-lg shadow-purple-600/25 hover:shadow-purple-600/40 hover:scale-[1.02] border border-white/10 transition-all group cursor-pointer"
           >
             <div className="bg-white/20 text-white p-2.5 rounded-full group-hover:scale-105 transition-transform">
               <Activity className="w-5 h-5" />
@@ -381,7 +381,7 @@ export default function Dashboard() {
 
           <Link
             to="/buat-ujian"
-            className="flex items-center gap-3 p-3 bg-gradient-to-r from-purple-600 via-pink-600 to-rose-600 text-white rounded-full shadow-lg shadow-purple-600/20 hover:shadow-[0_12px_25px_rgba(139,92,246,0.4)] hover:scale-[1.01] transition-all group cursor-pointer"
+            className="flex items-center gap-3 p-3 bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-800 text-white rounded-full shadow-lg shadow-purple-600/25 hover:shadow-purple-600/40 hover:scale-[1.02] border border-white/10 transition-all group cursor-pointer"
           >
             <div className="bg-white/20 text-white p-2.5 rounded-full group-hover:scale-105 transition-transform">
               <FileText className="w-5 h-5" />

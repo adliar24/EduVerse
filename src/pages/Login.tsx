@@ -120,30 +120,7 @@ export default function Login() {
           </div>
         </div>
 
-        {/* Abstract Geometric Graphic Motif (Matching Ref Image Screen 1) */}
         <div className="my-auto py-8 relative max-w-lg">
-          <div className="w-64 h-64 mx-auto mb-8 relative flex items-center justify-center">
-            {/* Overlapping Circles & Waves Motif */}
-            <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/40 via-purple-500/30 to-cyan-500/40 rounded-[3rem] rotate-12 blur-xl animate-pulse" />
-            <div className="w-56 h-56 rounded-[2.5rem] bg-indigo-900/60 border border-white/20 backdrop-blur-md p-6 flex flex-col justify-between shadow-2xl relative overflow-hidden">
-              <div className="flex justify-between items-center">
-                <div className="w-10 h-10 rounded-full bg-cyan-400/80 flex items-center justify-center text-indigo-950 font-black">
-                  <Sparkles className="w-5 h-5" />
-                </div>
-                <div className="w-8 h-8 rounded-full bg-pink-500/60" />
-              </div>
-              <div className="space-y-2">
-                <div className="w-3/4 h-3 bg-white/40 rounded-full" />
-                <div className="w-1/2 h-2.5 bg-white/25 rounded-full" />
-              </div>
-              <div className="flex gap-2">
-                <div className="w-8 h-8 rounded-full bg-indigo-400" />
-                <div className="w-8 h-8 rounded-full bg-purple-400" />
-                <div className="w-8 h-8 rounded-full bg-cyan-400" />
-              </div>
-            </div>
-          </div>
-
           <h1 className="text-4xl lg:text-[42px] font-black leading-[1.15] tracking-tight text-white mb-4 text-center lg:text-left">
             Aplikasi Manajemen Kelas &{' '}
             <span className="text-cyan-300">Presensi Digital Terpadu</span>
@@ -159,8 +136,8 @@ export default function Login() {
       </div>
 
       {/* Right Panel - Interactive Area */}
-      <div className="flex-1 bg-white/95 backdrop-blur-3xl flex flex-col justify-center p-8 lg:p-24 overflow-y-auto relative z-10">
-        <div className="w-full max-w-md mx-auto">
+      <div className="flex-1 flex flex-col justify-center p-4 sm:p-8 lg:p-24 overflow-y-auto relative z-10">
+        <div className="w-full max-w-md mx-auto bg-white/90 backdrop-blur-2xl p-6 sm:p-10 rounded-[2.5rem] shadow-tactile-lg border border-white/40">
           <AnimatePresence mode="wait">
             {view === 'selection' && (
               <motion.div
