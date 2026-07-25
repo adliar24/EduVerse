@@ -1,0 +1,147 @@
+================================================================================
+          CETAK BIRU (BLUEPRINT) PENGEMBANGAN EDUVERSE OFFLINE-FIRST
+================================================================================
+Dokumen ini berisi rancangan arsitektur, alur kerja, skema database, dan rencana
+implementasi untuk memodifikasi EduVerse menjadi aplikasi mandiri (standalone),
+sekali bayar (lifetime), dan 100% offline-first berbasis Google Drive Backup.
+
+Aplikasi utama yang menggunakan Supabase tetap dibiarkan utuh dan tidak diubah.
+
+--------------------------------------------------------------------------------
+1. PILAR UTAMA ARSITEKTUR OFFLINE
+--------------------------------------------------------------------------------
+- Client-Side Engine: Seluruh logika berjalan di sisi browser guru. Tidak ada
+  web server backend untuk database terpusat.
+- Database Lokal: Menggunakan IndexedDB (via pustaka 'idb') untuk menyimpan
+  seluruh data Kelas, Murid, Kehadiran, Nilai, dan Ujian.
+- Backup & Restore: Integrasi ke Google Drive API pribadi milik guru menggunakan
+  ruang penyimpanan tersembunyi (Google Drive App Data Folder).
+- Pengumpulan Nilai QR: Ujian dikerjakan oleh murid secara offline, dan hasil
+  akhirnya dikodekan menjadi QR Code di layar HP murid. Guru memindai QR tersebut
+  menggunakan kamera laptop/HP untuk mengimpor nilai langsung ke database lokal.
+
+--------------------------------------------------------------------------------
+2. DIAGRAM ALUR DATA (DATA FLOW DIAGRAM)
+--------------------------------------------------------------------------------
+
+[ SISI MURID ]
+Membuka Link Ujian Offline -> Masukkan Kode Unik Murid -> Mengerjakan Soal ->
+Kalkulasi Skor Lokal -> Hasilkan QR Code Hasil Ujian (Berisi Kode & Skor Terenkripsi)
+
+                                  |
+                                  | (Dipindai via Kamera Guru)
+                                  v
+
+[ SISI GURU (Aplikasi Utama) ]
+Scan QR Murid -> Dekripsi Data QR -> Simpan Nilai ke IndexedDB ->
+Tampilkan di Buku Nilai -> Cadangkan Database ke Google Drive Pribadi (Format JSON)
+
+--------------------------------------------------------------------------------
+3. SKEMA DATABASE LOKAL (INDEXEDDB - 'eduverse-db')
+--------------------------------------------------------------------------------
+IndexedDB akan menjadi satu-satunya sumber data (Single Source of Truth) aplikasi.
+
+a. Store: 'classes'
+   - id (KeyPath, UUID)
+   - name (string, contoh: "Kelas X-A")
+   - subject (string, contoh: "Seni Rupa")
+   - created_at (string)
+
+b. Store: 'students'
+   - id (KeyPath, UUID)
+   - class_id (string, indeks)
+   - name (string)
+   - student_code (string, indeks unik - digunakan murid untuk masuk ujian)
+   - gender (string: "M" | "F" | null)
+   - face_embedding (string/array | null - jika fitur deteksi wajah aktif)
+
+c. Store: 'exams' (Dibuat oleh Guru secara Offline)
+   - id (KeyPath, UUID)
+   - title (string)
+   - subject (string)
+   - date (string)
+   - status (string: "draft" | "active" | "archived")
+   - questions (array of objects: question, options, correct_option)
+
+d. Store: 'grades'
+   - id (KeyPath, UUID)
+   - student_id (string, indeks)
+   - exam_id (string, indeks)
+   - score (number)
+   - submitted_at (string)
+
+e. Store: 'attendance'
+   - id (KeyPath, UUID)
+   - student_id (string, indeks)
+   - class_id (string, indeks)
+   - date (string)
+   - status (string: "H" | "S" | "I" | "A")
+
+--------------------------------------------------------------------------------
+4. MEKANISME SUBMISSION OFFLINE VIA QR CODE
+--------------------------------------------------------------------------------
+Untuk keamanan agar murid tidak bisa memanipulasi nilai mereka sendiri di QR,
+data di dalam QR Code harus dikompresi dan ditandatangani secara enkripsi sederhana.
+
+a. Format Payload QR (Teks Mentah):
+   "EDU|{KODE_MURID}|{ID_UJIAN}|{NILAI}|{SIGNATURE}"
+
+b. Cara Pembuatan Signature Keamanan:
+   Signature dibuat dengan menggabungkan data ujian lalu di-hash sederhana 
+   menggunakan kunci rahasia (Secret Key) yang disematkan di file konfigurasi.
+   Contoh: SHA256(KODE_MURID + ID_UJIAN + NILAI + SECRET_KEY).
+
+c. Proses Pemindaian di HP Guru:
+   1. Guru membuka menu "Scan QR Nilai".
+   2. Kamera mendeteksi QR dan membaca teks: "EDU|S10280|EXAM-991|85|ab214f9d..."
+   3. Aplikasi Guru menghitung ulang Signature menggunakan kunci rahasia yang sama.
+   4. Jika Signature cocok, nilai "85" otomatis dimasukkan ke siswa "S10280" untuk
+      ujian "EXAM-991". Jika tidak cocok, tolak scan (mencegah kecurangan).
+
+--------------------------------------------------------------------------------
+5. MEKANISME CADANGAN GOOGLE DRIVE (GOOGLE DRIVE SYNC)
+--------------------------------------------------------------------------------
+Menggunakan Google API Client library (gapi) dan Google Identity Services (gis):
+
+1. Guru klik tombol "Hubungkan Akun Google".
+2. Aplikasi meminta otorisasi Oauth2 dengan scope:
+   "https://www.googleapis.com/auth/drive.appdata"
+   (Aman: Hanya mengizinkan aplikasi membaca/menulis file buatannya sendiri, 
+   guru tidak perlu khawatir aplikasi melihat file pribadi mereka yang lain).
+3. Tombol "Cadangkan Data":
+   - Ekspor seluruh isi IndexedDB menjadi file JSON tunggal.
+   - Unggah file JSON tersebut ke Google Drive App Data Folder dengan nama 
+     "eduverse_backup.json".
+4. Tombol "Pulihkan Data":
+   - Cari file "eduverse_backup.json" di Google Drive guru.
+   - Unduh file JSON tersebut.
+   - Bersihkan IndexedDB lokal, lalu impor seluruh data dari file JSON tersebut.
+
+--------------------------------------------------------------------------------
+6. PETA JALAN IMPLEMENTASI (IMPLEMENTATION ROADMAP)
+--------------------------------------------------------------------------------
+
+Fase 1: Persiapan Database Lokal & Isolasi
+- Buat modul 'dbLocal.ts' yang mengimplementasikan IndexedDB secara penuh.
+- Alihkan pemanggilan query API Supabase di komponen dashboard guru ke modul 'dbLocal.ts'.
+- Hapus ketergantungan supabase.auth dan ganti dengan autentikasi lokal sederhana atau login Google langsung.
+
+Fase 2: Pembuatan Modul Ujian Offline & QR Generator
+- Buat halaman khusus murid (contoh: '/student/exam-client') yang bisa dimuat
+  secara offline (PWA Service Worker cache).
+- Implementasikan fitur pengerjaan soal ujian secara mandiri di client-side.
+- Integrasikan pustaka QR Code Generator (contoh: 'qrcode.react' atau 'js-qr')
+  pada akhir halaman ujian siswa untuk menampilkan kode hasil enkripsi nilai.
+
+Fase 3: Scan QR Reader pada Guru
+- Sempurnakan halaman Scan Ujian Guru agar menggunakan kamera untuk membaca format
+  payload QR terenkripsi.
+- Tambahkan efek visual penambahan nilai instan di layar guru setelah berhasil scan.
+
+Fase 4: Integrasi Backup Google Drive & PWA
+- Daftarkan Client ID Google Console untuk integrasi otentikasi Google Drive API.
+- Tulis fungsi backup/restore JSON di setelan profil guru.
+- Daftarkan PWA Manifest agar aplikasi bisa dipasang di layar utama (Add to Home Screen)
+  dan berfungsi tanpa internet.
+
+================================================================================

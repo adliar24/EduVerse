@@ -310,7 +310,7 @@ export default function Layout({ session }: LayoutProps) {
                           initial={{ height: 0, opacity: 0 }}
                           animate={{ height: 'auto', opacity: 1 }}
                           exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.2 }}
+                          transition={{ duration: 0.15, ease: 'easeInOut' }}
                           className="overflow-hidden pl-7 pr-2 py-1 space-y-1"
                         >
                           {item.subItems!.map((sub) => (
@@ -642,9 +642,9 @@ export default function Layout({ session }: LayoutProps) {
           }>
             <motion.div
               key={location.pathname}
-              initial={{ opacity: 0, y: 8 }}
+              initial={{ opacity: 0, y: 4 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.22, ease: 'easeOut' }}
+              transition={{ duration: 0.15, ease: 'easeInOut' }}
               className="w-full h-full"
             >
               <Outlet />

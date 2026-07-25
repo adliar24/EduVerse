@@ -15,7 +15,8 @@ import {
   Download,
   Upload,
   BookOpen,
-  ChevronDown
+  ChevronDown,
+  Copy
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as XLSX from 'xlsx';
@@ -189,7 +190,7 @@ export default function KelolaKelas() {
       if (activeSchool?.id && activeSchool.id !== 'legacy') {
         const { data, error } = await supabase
           .from('students')
-          .select('id, name, nisn, student_code, class_id, teacher_id, created_at, school_id, password')
+          .select('id, name, nisn, student_code, class_id, teacher_id, created_at, school_id, password, gender')
           .eq('class_id', classId)
           .order('name', { ascending: true });
           
@@ -207,6 +208,7 @@ export default function KelolaKelas() {
               name: s.name,
               student_code: s.student_code,
               password: s.password || 'murid19',
+              gender: s.gender,
               createdAt: s.created_at
             } as any);
             await saveStudent({
@@ -216,7 +218,8 @@ export default function KelolaKelas() {
               idKelas: s.class_id,
               nama: s.name,
               student_code: s.student_code,
-              password: (s as any).password || 'murid19'
+              password: (s as any).password || 'murid19',
+              gender: s.gender
             } as any);
           }
           
@@ -337,6 +340,11 @@ export default function KelolaKelas() {
         } catch (error: any) { showAlert({ title: 'Gagal', message: error.message, type: 'error' }); }
       }
     });
+  };
+
+  const copyCode = (code: string) => {
+    navigator.clipboard.writeText(code);
+    showAlert({ title: 'Disalin!', message: 'Kode unik berhasil disalin.', type: 'success' });
   };
 
   const handleDownloadTemplate = () => {
@@ -870,6 +878,7 @@ export default function KelolaKelas() {
                           <tr className="bg-slate-50/50 border-b border-slate-100">
                             <th className="px-4 py-3 text-[10px] font-semibold text-slate-400 uppercase tracking-wider w-12">No</th>
                             <th className="px-4 py-3 text-[10px] font-semibold text-slate-400 uppercase tracking-wider text-left">Nama Murid</th>
+                            <th className="px-4 py-3 text-[10px] font-semibold text-slate-400 uppercase tracking-wider text-center w-16">L/P</th>
                             <th className="px-4 py-3 text-[10px] font-semibold text-slate-400 uppercase tracking-wider text-center w-36">Username</th>
                             <th className="px-4 py-3 text-[10px] font-semibold text-slate-400 uppercase tracking-wider text-center w-24">Status</th>
                             <th className="px-4 py-3 text-[10px] font-semibold text-slate-400 uppercase tracking-wider text-right w-24">Aksi</th>
@@ -883,8 +892,22 @@ export default function KelolaKelas() {
                                 <span className="font-semibold text-indigo-950 text-sm group-hover:text-indigo-600 transition-colors">{s.name}</span>
                               </td>
                               <td className="px-4 py-3 text-center">
+                                {s.gender === 'M' || s.gender === 'L' ? (
+                                  <span className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded text-[10px] font-extrabold border border-blue-100">L</span>
+                                ) : s.gender === 'F' || s.gender === 'P' ? (
+                                  <span className="bg-pink-50 text-pink-700 px-2 py-0.5 rounded text-[10px] font-extrabold border border-pink-100">P</span>
+                                ) : (
+                                  <span className="text-slate-300 text-xs font-semibold">-</span>
+                                )}
+                              </td>
+                              <td className="px-4 py-3 text-center">
                                 {s.student_code ? (
-                                  <span className="inline-block bg-white border border-slate-200 px-2.5 py-1 rounded-md font-mono font-semibold text-xs text-indigo-600 tracking-wider">{s.student_code}</span>
+                                  <div className="inline-flex items-center gap-1.5 bg-white border border-slate-200 px-2 py-1 rounded-md">
+                                    <span className="font-mono font-semibold text-xs text-indigo-600 tracking-wider">{s.student_code}</span>
+                                    <button onClick={() => copyCode(s.student_code)} className="p-0.5 text-slate-400 hover:text-indigo-600 transition-colors" title="Salin Kode">
+                                      <Copy className="w-3 h-3" />
+                                    </button>
+                                  </div>
                                 ) : (
                                   <span className="text-xs text-slate-300 italic">Belum Ada</span>
                                 )}

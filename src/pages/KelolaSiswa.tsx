@@ -59,6 +59,10 @@ export default function KelolaSiswa() {
     return () => { isMountedRef.current = false; };
   }, [activeSchool]);
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedClass]);
+
   const fetchData = async () => {    
     setLoading(true);
     setError(null);
@@ -902,6 +906,32 @@ export default function KelolaSiswa() {
             </tbody>
           </table>
         </div>
+        {filteredStudents.length > ITEMS_PER_PAGE && (
+          <div className="px-6 py-4 flex items-center justify-between border-t border-slate-100 bg-slate-50/50 rounded-b-2xl">
+            <span className="text-xs font-semibold text-slate-500">
+              Menampilkan {Math.min(filteredStudents.length, (currentPage - 1) * ITEMS_PER_PAGE + 1)} - {Math.min(filteredStudents.length, currentPage * ITEMS_PER_PAGE)} dari {filteredStudents.length} murid
+            </span>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+                className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs font-bold text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              >
+                Sebelumnya
+              </button>
+              <span className="text-xs font-bold text-slate-700 px-2">
+                Halaman {currentPage} dari {Math.ceil(filteredStudents.length / ITEMS_PER_PAGE)}
+              </span>
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(Math.ceil(filteredStudents.length / ITEMS_PER_PAGE), prev + 1))}
+                disabled={currentPage === Math.ceil(filteredStudents.length / ITEMS_PER_PAGE)}
+                className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs font-bold text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              >
+                Selanjutnya
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       <AnimatePresence>
