@@ -22,13 +22,18 @@ export const FluidCanvas: React.FC<{ className?: string }> = ({ className = "" }
 
     window.addEventListener('resize', handleResize);
 
-    // Wave parameters for liquid fluid motion
+    // Wave parameters for liquid fluid motion across top, center, and bottom
     let step = 0;
     const waves = [
-      { amplitude: 60, wavelength: 0.008, speed: 0.015, color: 'rgba(59, 102, 245, 0.45)' },   // Electric Royal Blue
-      { amplitude: 80, wavelength: 0.005, speed: 0.012, color: 'rgba(37, 99, 235, 0.35)' },    // Sapphire Blue
-      { amplitude: 50, wavelength: 0.01, speed: 0.02, color: 'rgba(56, 189, 248, 0.3)' },      // Sky Cyan
-      { amplitude: 90, wavelength: 0.004, speed: 0.008, color: 'rgba(96, 165, 250, 0.25)' }   // Soft Blue
+      // Upper & middle swells
+      { yRatio: 0.45, amplitude: 65, wavelength: 0.007, speed: 0.015, color: 'rgba(59, 102, 245, 0.4)' },   // Electric Royal Blue
+      { yRatio: 0.55, amplitude: 85, wavelength: 0.005, speed: 0.012, color: 'rgba(37, 99, 235, 0.35)' },    // Sapphire Blue
+      { yRatio: 0.65, amplitude: 55, wavelength: 0.009, speed: 0.018, color: 'rgba(56, 189, 248, 0.3)' },      // Sky Cyan
+      
+      // Bottom flowing liquid waves
+      { yRatio: 0.80, amplitude: 75, wavelength: 0.006, speed: 0.014, color: 'rgba(37, 99, 235, 0.45)' },    // Deep Sapphire Base
+      { yRatio: 0.88, amplitude: 45, wavelength: 0.011, speed: 0.022, color: 'rgba(96, 165, 250, 0.35)' },   // Soft Blue Base
+      { yRatio: 0.94, amplitude: 35, wavelength: 0.015, speed: 0.025, color: 'rgba(255, 255, 255, 0.15)' }    // White Highlight Crest
     ];
 
     const render = () => {
@@ -51,7 +56,7 @@ export const FluidCanvas: React.FC<{ className?: string }> = ({ className = "" }
 
         for (let x = 0; x <= width; x += 10) {
           const y =
-            height * 0.5 +
+            height * wave.yRatio +
             Math.sin(x * wave.wavelength + step * wave.speed) * wave.amplitude +
             Math.cos(x * wave.wavelength * 0.5 + step * wave.speed * 0.7) * (wave.amplitude * 0.5);
 

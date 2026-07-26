@@ -148,7 +148,7 @@ export default function Login() {
           <p className="text-[11px] text-indigo-100/90 font-medium max-w-xs">Aplikasi Manajemen Kelas & Presensi Digital</p>
         </div>
 
-        <div className="w-full max-w-[340px] sm:max-w-md mx-auto bg-white/95 backdrop-blur-2xl p-5 sm:p-8 rounded-3xl shadow-2xl border border-white/60 min-h-[390px] sm:min-h-[410px] flex flex-col justify-center">
+        <div className="relative z-30 w-full max-w-[340px] sm:max-w-md mx-auto bg-white/98 backdrop-blur-2xl p-5 sm:p-8 rounded-3xl shadow-2xl border border-white/80 min-h-[390px] sm:min-h-[410px] flex flex-col justify-center">
           <AnimatePresence mode="wait">
             {view === 'selection' && (
               <motion.div
@@ -325,56 +325,6 @@ export default function Login() {
             )}
           </AnimatePresence>
         </div>
-      </div>
-
-      {/* Animated Bottom Fluid Wave (Harmonized & Taller) */}
-      <div className="absolute bottom-0 inset-x-0 pointer-events-none overflow-hidden h-[35vh] sm:h-[42vh] z-10 opacity-80">
-        <svg className="w-full h-full" viewBox="0 0 1440 220" preserveAspectRatio="none">
-          <motion.path
-            animate={{
-              d: [
-                "M0,60 C320,160 480,-20 800,90 C1120,200 1300,30 1440,70 L1440,220 L0,220 Z",
-                "M0,110 C240,10 560,180 880,40 C1080,-10 1280,140 1440,60 L1440,220 L0,220 Z",
-                "M0,60 C320,160 480,-20 800,90 C1120,200 1300,30 1440,70 L1440,220 L0,220 Z"
-              ]
-            }}
-            transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
-            fill="rgba(59, 102, 245, 0.25)"
-          />
-          <motion.path
-            animate={{
-              d: [
-                "M0,120 C360,10 600,190 920,60 C1160,-20 1320,130 1440,90 L1440,220 L0,220 Z",
-                "M0,70 C280,180 520,30 800,140 C1040,10 1280,110 1440,40 L1440,220 L0,220 Z",
-                "M0,120 C360,10 600,190 920,60 C1160,-20 1320,130 1440,90 L1440,220 L0,220 Z"
-              ]
-            }}
-            transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
-            fill="rgba(37, 99, 235, 0.3)"
-          />
-          <motion.path
-            animate={{
-              d: [
-                "M0,150 C240,80 480,170 720,110 C960,50 1200,140 1440,100 L1440,220 L0,220 Z",
-                "M0,100 C280,160 520,70 760,130 C1000,70 1240,150 1440,110 L1440,220 L0,220 Z",
-                "M0,150 C240,80 480,170 720,110 C960,50 1200,140 1440,100 L1440,220 L0,220 Z"
-              ]
-            }}
-            transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
-            fill="rgba(56, 189, 248, 0.2)"
-          />
-          <motion.path
-            animate={{
-              d: [
-                "M0,170 C300,120 600,180 900,140 C1200,100 1350,160 1440,130 L1440,220 L0,220 Z",
-                "M0,130 C320,170 620,110 920,150 C1180,110 1320,170 1440,140 L1440,220 L0,220 Z",
-                "M0,170 C300,120 600,180 900,140 C1200,100 1350,160 1440,130 L1440,220 L0,220 Z"
-              ]
-            }}
-            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-            fill="rgba(255, 255, 255, 0.25)"
-          />
-        </svg>
       </div>
     </div>
   );
