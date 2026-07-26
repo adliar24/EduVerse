@@ -730,17 +730,17 @@ export default function KelolaMateriTugas() {
       {/* Main List Area */}
       {loading ? (
         <div className="flex flex-col items-center justify-center py-20">
-          <Loader2 className="w-8 h-8 text-indigo-950 animate-spin" />
+          <Loader2 className="w-8 h-8 text-[#3B66F5] animate-spin" />
           <p className="text-slate-500 mt-2 font-medium">Memuat data...</p>
         </div>
       ) : activeTab === 'materials' ? (
         // MATERIALS LIST
         filteredMaterialsList.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
             {filteredMaterialsList.map((m, index) => {
               const cardStyle = CARD_STYLES[index % CARD_STYLES.length];
               return (
-                 <div key={m.id} className={`p-6 rounded-2xl flex flex-col justify-between gap-4 relative transition-all duration-300 border ${
+                 <div key={m.id} className={`p-4 rounded-2xl flex flex-col justify-between gap-3 relative transition-all duration-300 border ${
                   selectedIds.includes(m.id) ? cardStyle.selectedBg : `${cardStyle.bg} shadow-sm`
                 }`}>
                   <div className="space-y-2">
@@ -810,7 +810,7 @@ export default function KelolaMateriTugas() {
       ) : (
         // ASSIGNMENTS LIST
         filteredAssignmentsList.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
             {filteredAssignmentsList.map((a, index) => {
               const cardStyle = CARD_STYLES[(index + 2) % CARD_STYLES.length];
               // Deadline check

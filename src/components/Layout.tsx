@@ -258,7 +258,7 @@ export default function Layout({ session }: LayoutProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-indigo-950 z-[9999] flex flex-col items-center justify-center text-white"
+            className="fixed inset-0 bg-gradient-to-br from-[#2563EB] via-[#1D4ED8] to-[#1E40AF] z-[9999] flex flex-col items-center justify-center text-white"
           >
             <motion.div
               initial={{ scale: 0.8, opacity: 0 }}

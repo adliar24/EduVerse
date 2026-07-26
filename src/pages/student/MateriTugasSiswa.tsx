@@ -172,26 +172,26 @@ export default function MateriTugasSiswa() {
       ) : activeTab === 'materials' ? (
         // MATERIALS VIEW
         filteredMaterials.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
             {filteredMaterials.map((m) => (
-              <div key={m.id} className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col justify-between gap-4">
+              <div key={m.id} className="bg-gradient-to-br from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white p-4 rounded-2xl border border-white/20 shadow-md hover:scale-[1.01] transition-all flex flex-col justify-between gap-3">
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="bg-blue-50 text-blue-700 text-[10px] font-black px-2.5 py-0.5 rounded-md uppercase tracking-wider">
+                    <span className="bg-white/20 text-white text-[10px] font-black px-2.5 py-0.5 rounded-md uppercase tracking-wider border border-white/10">
                       Materi Belajar
                     </span>
                     {m.target_type === 'students' && (
-                      <span className="bg-amber-50 text-amber-700 text-[9px] font-bold px-2 py-0.5 rounded-md border border-amber-100">
+                      <span className="bg-white/20 text-white text-[9px] font-bold px-2 py-0.5 rounded-md border border-white/10">
                         Khusus Anda
                       </span>
                     )}
                   </div>
-                  <h3 className="text-lg font-bold text-indigo-950 leading-snug">{m.title}</h3>
-                  <p className="text-slate-500 text-sm leading-relaxed whitespace-pre-line">{m.description}</p>
+                  <h3 className="text-base font-extrabold text-white leading-snug">{m.title}</h3>
+                  <p className="text-white/85 text-xs sm:text-sm leading-relaxed whitespace-pre-line">{m.description}</p>
                 </div>
 
                 {m.link && (
-                  <div className="border-t border-slate-50 pt-3 mt-2">
+                  <div className="border-t border-white/15 pt-3 mt-2">
                     <LinkPreviewCard url={m.link} />
                   </div>
                 )}
@@ -208,52 +208,51 @@ export default function MateriTugasSiswa() {
       ) : (
         // ASSIGNMENTS VIEW
         filteredAssignments.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
             {filteredAssignments.map((a) => {
               const hasDeadline = !!a.deadline;
               const deadlineDate = hasDeadline ? new Date(a.deadline!) : null;
               const isOverdue = deadlineDate ? deadlineDate.getTime() < Date.now() : false;
               
               return (
-                <div key={a.id} className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col justify-between gap-4">
+                <div key={a.id} className="bg-gradient-to-br from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white p-4 rounded-2xl border border-white/20 shadow-md hover:scale-[1.01] transition-all flex flex-col justify-between gap-3">
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="bg-purple-50 text-purple-700 text-[10px] font-black px-2.5 py-0.5 rounded-md uppercase tracking-wider">
+                      <span className="bg-white/20 text-white text-[10px] font-black px-2.5 py-0.5 rounded-md uppercase tracking-wider border border-white/10">
                         Tugas Sekolah
                       </span>
                       <div className="flex gap-1.5 flex-wrap">
                         {a.isGraded !== false && a.is_graded !== false ? (
-                          <span className="bg-emerald-50 text-emerald-700 text-[9px] font-bold px-2 py-0.5 rounded-md border border-emerald-100">
+                          <span className="bg-white/25 text-white text-[9px] font-bold px-2 py-0.5 rounded-md border border-white/10">
                             Diberi Nilai
                           </span>
                         ) : (
-                          <span className="bg-slate-50 text-slate-500 text-[9px] font-bold px-2 py-0.5 rounded-md border border-slate-200/60">
+                          <span className="bg-white/10 text-white/70 text-[9px] font-bold px-2 py-0.5 rounded-md border border-white/5">
                             Tanpa Nilai
                           </span>
                         )}
                         {a.target_type === 'students' && (
-                          <span className="bg-amber-50 text-amber-700 text-[9px] font-bold px-2 py-0.5 rounded-md border border-amber-100">
+                          <span className="bg-white/20 text-white text-[9px] font-bold px-2 py-0.5 rounded-md border border-white/10">
                             Khusus Anda
                           </span>
                         )}
                         {hasDeadline ? (
                           <span className={`text-[9px] font-bold px-2 py-0.5 rounded-md border ${
                             isOverdue 
-                              ? 'bg-rose-50 text-rose-700 border-rose-100' 
-                              : 'bg-indigo-50 text-indigo-700 border-indigo-100'
+                              ? 'bg-rose-500/30 text-rose-100 border-rose-300/30' 
+                              : 'bg-white/20 text-white border-white/10'
                           }`}>
                             {isOverdue ? 'Selesai' : 'Tersedia'}
                           </span>
                         ) : (
-                          <span className="text-[9px] font-bold px-2 py-0.5 rounded-md border bg-emerald-50 text-emerald-700 border-emerald-100">
+                          <span className="text-[9px] font-bold px-2 py-0.5 rounded-md border bg-white/20 text-white border-white/10">
                             Tanpa Tenggat
                           </span>
                         )}
                       </div>
                     </div>
-                    
-                    <h3 className="text-lg font-bold text-indigo-950 leading-snug">{a.title}</h3>
-                    <p className="text-slate-500 text-sm leading-relaxed whitespace-pre-line">{a.description}</p>
+                    <h3 className="text-base font-extrabold text-white leading-snug">{a.title}</h3>
+                    <p className="text-white/85 text-xs sm:text-sm leading-relaxed whitespace-pre-line">{a.description}</p>
                   </div>
  
                   <div className="space-y-3 mt-2">

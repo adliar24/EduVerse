@@ -157,48 +157,41 @@ export default function Login() {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.98 }}
                 transition={{ duration: 0.2 }}
-                className="space-y-8"
+                className="space-y-5"
               >
                 <div>
-                  <h2 className="text-3xl sm:text-4xl font-black text-indigo-950 tracking-tight mb-2">Pilih Peran Anda</h2>
-                  <p className="text-slate-500 text-base font-medium leading-relaxed">Selamat datang di EduVerse. Silakan pilih kategori peran Anda untuk masuk.</p>
+                  <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight mb-1">Pilih Peran Anda</h2>
+                  <p className="text-slate-500 text-xs sm:text-sm font-medium leading-relaxed">Selamat datang di EduVerse. Silakan pilih kategori peran Anda untuk masuk.</p>
                 </div>
 
-                <div className="grid gap-4">
+                <div className="grid gap-3">
                   {/* Teacher Option */}
                   <button
                     onClick={() => setView('login')}
-                    className="group flex items-center gap-5 p-6 bg-white border border-slate-200 rounded-3xl text-left hover:border-indigo-950 hover:shadow-2xl hover:shadow-indigo-950/5 transition-all duration-300 active:scale-[0.98]"
+                    className="group flex items-center gap-3.5 p-4 bg-white border border-slate-200 rounded-2xl text-left hover:border-[#3B66F5] hover:shadow-lg hover:shadow-[#3B66F5]/10 transition-all duration-300 active:scale-[0.98]"
                   >
-                    <div className="w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-950 group-hover:bg-indigo-950 group-hover:text-white transition-colors shrink-0">
-                      <User className="w-7 h-7" />
+                    <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-[#3B66F5] group-hover:bg-[#3B66F5] group-hover:text-white transition-colors shrink-0">
+                      <User className="w-5 h-5" />
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-lg font-bold text-indigo-950 mb-0.5">Saya Guru / Admin</h3>
-                      <p className="text-slate-500 text-sm font-medium leading-snug">Masuk ke dashboard untuk mengelola ujian, absensi, dan rekapitulasi nilai rapor.</p>
+                      <h3 className="text-sm font-bold text-slate-900 mb-0.5">Saya Guru / Admin</h3>
+                      <p className="text-slate-500 text-xs font-medium leading-snug">Masuk ke dashboard untuk mengelola ujian, absensi, dan rekapitulasi nilai.</p>
                     </div>
                   </button>
 
                   {/* Student Option */}
                   <button
                     onClick={() => setView('student-login')}
-                    className="group flex items-center gap-5 p-6 bg-white border border-slate-200 rounded-3xl text-left hover:border-indigo-950 hover:shadow-2xl hover:shadow-indigo-950/5 transition-all duration-300 active:scale-[0.98]"
+                    className="group flex items-center gap-3.5 p-4 bg-white border border-slate-200 rounded-2xl text-left hover:border-[#3B66F5] hover:shadow-lg hover:shadow-[#3B66F5]/10 transition-all duration-300 active:scale-[0.98]"
                   >
-                    <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center text-indigo-600 group-hover:bg-indigo-950 group-hover:text-white transition-colors shrink-0">
-                      <GraduationCap className="w-7 h-7" />
+                    <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-[#3B66F5] group-hover:bg-[#3B66F5] group-hover:text-white transition-colors shrink-0">
+                      <GraduationCap className="w-5 h-5" />
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-lg font-bold text-indigo-950 mb-0.5">Saya Murid</h3>
-                      <p className="text-slate-500 text-sm font-medium leading-snug">Masuk ke halaman ujian digital atau akses dashboard mandiri murid.</p>
+                      <h3 className="text-sm font-bold text-slate-900 mb-0.5">Saya Murid</h3>
+                      <p className="text-slate-500 text-xs font-medium leading-snug">Masuk ke halaman ujian digital atau akses dashboard mandiri murid.</p>
                     </div>
                   </button>
-                </div>
-
-
-                <div className="pt-6 text-center">
-                  <p className="text-slate-400 text-[11px] font-bold uppercase tracking-[0.2em] opacity-60">
-                    EduVerse &bull; Integrated School Platform
-                  </p>
                 </div>
               </motion.div>
             )}
@@ -213,55 +206,55 @@ export default function Login() {
               >
                 <button 
                   onClick={() => setView('selection')}
-                  className="inline-flex items-center gap-2 text-slate-400 font-bold text-[12px] hover:text-indigo-950 transition-colors mb-8 group"
+                  className="inline-flex items-center gap-1.5 text-slate-400 font-bold text-[11px] hover:text-[#3B66F5] transition-colors mb-5 group"
                 >
-                  <ChevronLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+                  <ChevronLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
                   Kembali ke Pilihan
                 </button>
 
-                <div className="mb-8">
-                  <h2 className="text-2xl sm:text-3xl font-black text-indigo-950 tracking-tight mb-2">Selamat Datang, Guru</h2>
-                  <p className="text-slate-500 font-medium text-[14px]">Masuk untuk mengelola ujian, absensi, dan pengolahan nilai murid.</p>
+                <div className="mb-5">
+                  <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight mb-1">Selamat Datang, Guru</h2>
+                  <p className="text-slate-500 font-medium text-xs">Masuk untuk mengelola ujian, absensi, dan pengolahan nilai murid.</p>
                 </div>
 
                 {error && (
                   <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                    className="mb-6 p-4 bg-red-50 border border-red-100 rounded-xl flex items-start gap-3 text-red-600 text-[13px] font-bold"
+                    className="mb-4 p-3 bg-red-50 border border-red-100 rounded-xl flex items-start gap-2.5 text-red-600 text-xs font-bold"
                   >
-                    <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+                    <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                     <p>{error}</p>
                   </motion.div>
                 )}
 
-                <form onSubmit={handleLogin} className="space-y-5">
-                  <div className="space-y-1.5">
-                    <label className="text-[13px] font-bold text-slate-700 ml-0.5">Email Akun</label>
+                <form onSubmit={handleLogin} className="space-y-4">
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-700 ml-0.5">Email Akun</label>
                     <div className="relative group">
-                      <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 group-focus-within:text-indigo-950 transition-colors" />
+                      <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4 group-focus-within:text-[#3B66F5] transition-colors" />
                       <input type="email" required
-                        className="w-full pl-12 pr-4 py-3.5 rounded-xl border border-slate-200 bg-slate-50 outline-none focus:bg-white focus:border-indigo-950 transition-all font-semibold text-sm"
+                        className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 outline-none focus:bg-white focus:border-[#3B66F5] focus:ring-2 focus:ring-[#3B66F5]/20 transition-all font-semibold text-xs sm:text-sm"
                         placeholder="Masukkan email Anda" value={email} onChange={(e) => setEmail(e.target.value)}
                       />
                     </div>
                   </div>
 
-                  <div className="space-y-1.5">
+                  <div className="space-y-1">
                     <div className="flex items-center justify-between px-0.5">
-                      <label className="text-[13px] font-bold text-slate-700">Password</label>
+                      <label className="text-xs font-bold text-slate-700">Password</label>
                     </div>
                     <div className="relative group">
-                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 group-focus-within:text-indigo-950 transition-colors" />
+                      <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4 group-focus-within:text-[#3B66F5] transition-colors" />
                       <input type="password" required
-                        className="w-full pl-12 pr-4 py-3.5 rounded-xl border border-slate-200 bg-slate-50 outline-none focus:bg-white focus:border-indigo-950 transition-all font-semibold text-sm"
+                        className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 outline-none focus:bg-white focus:border-[#3B66F5] focus:ring-2 focus:ring-[#3B66F5]/20 transition-all font-semibold text-xs sm:text-sm"
                         placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)}
                       />
                     </div>
                   </div>
 
                   <button type="submit" disabled={loading}
-                    className="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white py-4 rounded-full font-bold text-sm hover:scale-[1.01] active:scale-[0.98] transition-all shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2.5 disabled:opacity-50 mt-4 cursor-pointer"
+                    className="w-full bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white py-3 rounded-full font-bold text-xs sm:text-sm hover:scale-[1.01] active:scale-[0.98] transition-all shadow-lg shadow-[#3B66F5]/25 flex items-center justify-center gap-2 disabled:opacity-50 mt-3 cursor-pointer"
                   >
-                    {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>Masuk Sekarang <ArrowRight className="w-4 h-4" /></>}
+                    {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <>Masuk Sekarang <ArrowRight className="w-4 h-4" /></>}
                   </button>
                 </form>
               </motion.div>
@@ -277,53 +270,53 @@ export default function Login() {
               >
                 <button 
                   onClick={() => setView('selection')}
-                  className="inline-flex items-center gap-2 text-slate-400 font-bold text-[12px] hover:text-indigo-950 transition-colors mb-8 group"
+                  className="inline-flex items-center gap-1.5 text-slate-400 font-bold text-[11px] hover:text-[#3B66F5] transition-colors mb-5 group"
                 >
-                  <ChevronLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+                  <ChevronLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
                   Kembali ke Pilihan
                 </button>
 
-                <div className="mb-8">
-                  <h2 className="text-2xl sm:text-3xl font-black text-indigo-950 tracking-tight mb-2">Selamat Datang, Murid</h2>
-                  <p className="text-slate-500 font-medium text-[14px]">Masuk menggunakan Kode Murid (Username) dan password yang diberikan guru.</p>
+                <div className="mb-5">
+                  <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight mb-1">Selamat Datang, Murid</h2>
+                  <p className="text-slate-500 font-medium text-xs">Masuk menggunakan Kode Murid (Username) dan password dari guru.</p>
                 </div>
 
                 {error && (
                   <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                    className="mb-6 p-4 bg-red-50 border border-red-100 rounded-xl flex items-start gap-3 text-red-600 text-[13px] font-bold"
+                    className="mb-4 p-3 bg-red-50 border border-red-100 rounded-xl flex items-start gap-2.5 text-red-600 text-xs font-bold"
                   >
-                    <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+                    <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                     <p>{error}</p>
                   </motion.div>
                 )}
 
-                <form onSubmit={handleStudentLogin} className="space-y-5">
-                  <div className="space-y-1.5">
-                    <label className="text-[13px] font-bold text-slate-700 ml-0.5">Username (Kode Murid)</label>
+                <form onSubmit={handleStudentLogin} className="space-y-4">
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-700 ml-0.5">Username (Kode Murid)</label>
                     <div className="relative group">
-                      <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 group-focus-within:text-indigo-950 transition-colors" />
+                      <User className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4 group-focus-within:text-[#3B66F5] transition-colors" />
                       <input type="text" required
-                        className="w-full pl-12 pr-4 py-3.5 rounded-xl border border-slate-200 bg-slate-50 outline-none focus:bg-white focus:border-indigo-950 transition-all font-semibold text-sm"
+                        className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 outline-none focus:bg-white focus:border-[#3B66F5] focus:ring-2 focus:ring-[#3B66F5]/20 transition-all font-semibold text-xs sm:text-sm"
                         placeholder="Contoh: exz815" value={studentCode} onChange={(e) => setStudentCode(e.target.value)}
                       />
                     </div>
                   </div>
 
-                  <div className="space-y-1.5">
-                    <label className="text-[13px] font-bold text-slate-700 ml-0.5">Password</label>
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-700 ml-0.5">Password</label>
                     <div className="relative group">
-                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 group-focus-within:text-indigo-950 transition-colors" />
+                      <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4 group-focus-within:text-[#3B66F5] transition-colors" />
                       <input type="password" required
-                        className="w-full pl-12 pr-4 py-3.5 rounded-xl border border-slate-200 bg-slate-50 outline-none focus:bg-white focus:border-indigo-950 transition-all font-semibold text-sm"
+                        className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 outline-none focus:bg-white focus:border-[#3B66F5] focus:ring-2 focus:ring-[#3B66F5]/20 transition-all font-semibold text-xs sm:text-sm"
                         placeholder="••••••••" value={studentPassword} onChange={(e) => setStudentPassword(e.target.value)}
                       />
                     </div>
                   </div>
 
                   <button type="submit" disabled={loading}
-                    className="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white py-4 rounded-full font-bold text-sm hover:scale-[1.01] active:scale-[0.98] transition-all shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2.5 disabled:opacity-50 mt-4 cursor-pointer"
+                    className="w-full bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white py-3 rounded-full font-bold text-xs sm:text-sm hover:scale-[1.01] active:scale-[0.98] transition-all shadow-lg shadow-[#3B66F5]/25 flex items-center justify-center gap-2 disabled:opacity-50 mt-3 cursor-pointer"
                   >
-                    {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>Masuk Sekarang <ArrowRight className="w-4 h-4" /></>}
+                    {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <>Masuk Sekarang <ArrowRight className="w-4 h-4" /></>}
                   </button>
                 </form>
               </motion.div>
