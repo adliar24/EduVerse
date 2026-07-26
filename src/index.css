@@ -102,9 +102,9 @@
   transform: translateY(-2px);
 }
 
-/* Solid Sidebar Gradient - Royal Violet Swatch */
+/* Dark Midnight Indigo Sidebar Gradient - Palette Top Layer */
 .sidebar-gradient {
-  background: linear-gradient(180deg, #5C53D4 0%, #5148C7 50%, #463CB8 100%) !important;
+  background: linear-gradient(180deg, #1C174D 0%, #161240 60%, #110E33 100%) !important;
 }
 
 /* Glowing Solid Card */

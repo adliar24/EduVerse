@@ -313,20 +313,20 @@ export default function Layout({ session }: LayoutProps) {
                       className={cn(
                         "flex items-center justify-between w-full px-3 py-2.5 rounded-xl transition-colors duration-150 group text-left cursor-pointer",
                         isActive
-                          ? "bg-white text-[#5C53D4] shadow-lg shadow-black/10 font-bold"
-                          : "text-purple-100/75 hover:bg-white/10 hover:text-white"
+                          ? "bg-white text-[#1C174D] shadow-lg font-bold"
+                          : "text-indigo-200/70 hover:bg-white/10 hover:text-white"
                       )}
                     >
                       <div className="flex items-center gap-3">
                         <item.icon className={cn(
                           "w-[18px] h-[18px] transition-transform duration-200 group-hover:scale-105",
-                          isActive ? "text-[#5C53D4]" : "text-purple-200/60 group-hover:text-white"
+                          isActive ? "text-[#1C174D]" : "text-indigo-300/60 group-hover:text-white"
                         )} />
                         <span className="font-medium text-[13px]">{item.label}</span>
                       </div>
                       <ChevronDown className={cn(
                         "w-4 h-4 transition-transform duration-200",
-                        isActive ? "text-[#5C53D4]" : "text-purple-200/60 group-hover:text-white",
+                        isActive ? "text-[#1C174D]" : "text-indigo-300/60 group-hover:text-white",
                         isSubOpen ? "transform rotate-180" : ""
                       )} />
                     </button>
@@ -352,12 +352,12 @@ export default function Layout({ session }: LayoutProps) {
                                 "flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] font-medium transition-colors",
                                 location.pathname === sub.path
                                   ? "text-white bg-white/20 font-bold"
-                                  : "text-purple-100/75 hover:text-white hover:bg-white/10"
+                                  : "text-indigo-200/70 hover:text-white hover:bg-white/10"
                               )}
                             >
                               <div className={cn(
                                 "w-1.5 h-1.5 rounded-full transition-colors",
-                                location.pathname === sub.path ? "bg-white" : "bg-purple-200/40 group-hover:bg-white"
+                                location.pathname === sub.path ? "bg-white" : "bg-indigo-300/40 group-hover:bg-white"
                               )} />
                               {sub.label}
                             </Link>
@@ -380,11 +380,11 @@ export default function Layout({ session }: LayoutProps) {
                   className={cn(
                     "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors duration-150 group text-left cursor-pointer",
                     location.pathname === item.path
-                      ? "bg-white text-[#5C53D4] shadow-lg shadow-black/10 font-bold"
-                      : "text-purple-100/75 hover:bg-white/10 hover:text-white"
+                      ? "bg-white text-[#1C174D] shadow-lg font-bold"
+                      : "text-indigo-200/70 hover:bg-white/10 hover:text-white"
                   )}
                 >
-                  <item.icon className={cn("w-[18px] h-[18px]", location.pathname === item.path ? "text-[#5C53D4]" : "text-purple-200/60 group-hover:text-white")} />
+                  <item.icon className={cn("w-[18px] h-[18px]", location.pathname === item.path ? "text-[#1C174D]" : "text-indigo-300/60 group-hover:text-white")} />
                   <span className="font-medium text-[13px]">{item.label}</span>
                 </Link>
               );
