@@ -187,7 +187,7 @@ export default function Analisis() {
           <button 
             onClick={() => document.getElementById('btn-export-hasil')?.click()}
             className={cn(
-              "flex items-center gap-2 bg-indigo-950 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-indigo-900 transition-all shadow-sm shrink-0 whitespace-nowrap transition-opacity duration-200",
+              "flex items-center gap-2 bg-[#3B66F5] text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-[#2563EB] transition-all shadow-md shadow-[#3B66F5]/25 shrink-0 whitespace-nowrap transition-opacity duration-200",
               activeTab === 'nilai' ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none absolute"
             )}
           >

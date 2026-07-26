@@ -1261,7 +1261,7 @@ export default function BankSoal() {
 
           <button 
             onClick={() => setShowAddForm(true)}
-            className="bg-indigo-950 text-white px-5 py-2.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 shadow-lg shadow-slate-200/50 transition-all hover:bg-indigo-900 active:scale-[0.98]"
+            className="bg-[#3B66F5] text-white px-5 py-2.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 shadow-lg shadow-slate-200/50 transition-all hover:bg-indigo-900 active:scale-[0.98]"
           >
             <Plus className="w-4 h-4" />
             Tambah Baru
@@ -1644,7 +1644,7 @@ export default function BankSoal() {
             initial={{ y: 100, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 100, opacity: 0 }}
-            className="fixed bottom-6 md:bottom-10 left-1/2 -translate-x-1/2 z-40 bg-indigo-950 text-white px-4 py-3 md:px-8 md:py-4 rounded-2xl md:rounded-3xl shadow-2xl flex items-center gap-4 md:gap-8 backdrop-blur-xl border border-white/10 w-[92%] sm:w-auto justify-between sm:justify-start max-w-full md:max-w-2xl lg:max-w-4xl"
+            className="fixed bottom-6 md:bottom-10 left-1/2 -translate-x-1/2 z-40 bg-[#3B66F5] text-white px-4 py-3 md:px-8 md:py-4 rounded-2xl md:rounded-3xl shadow-2xl flex items-center gap-4 md:gap-8 backdrop-blur-xl border border-white/10 w-[92%] sm:w-auto justify-between sm:justify-start max-w-full md:max-w-2xl lg:max-w-4xl"
           >
             <div className="flex items-center gap-2 md:gap-4 border-r border-white/10 pr-3 md:pr-8 shrink-0">
               <div className="bg-blue-600 w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center font-bold text-xs md:text-sm">
@@ -1980,7 +1980,7 @@ export default function BankSoal() {
                   </button>
                   <button 
                     type="submit"
-                    className="flex-1 py-3.5 rounded-xl font-bold text-sm text-white bg-indigo-950 hover:bg-indigo-900 transition-all shadow-lg shadow-slate-200 cursor-pointer button-hover"
+                    className="flex-1 py-3.5 rounded-xl font-bold text-sm text-white bg-[#3B66F5] hover:bg-[#2563EB] transition-all shadow-lg shadow-[#3B66F5]/25 cursor-pointer button-hover"
                   >
                     Simpan Pertanyaan
                   </button>

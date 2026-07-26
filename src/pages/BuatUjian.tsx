@@ -222,7 +222,7 @@ export default function BuatUjian() {
             <div className="flex flex-col items-center gap-2">
               <div className={cn(
                 "w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center transition-all duration-500 shadow-lg",
-                step >= s.id ? "bg-indigo-950 text-white shadow-slate-200" : "bg-white border-2 border-slate-100 text-slate-300"
+                step >= s.id ? "bg-[#3B66F5] text-white shadow-slate-200" : "bg-white border-2 border-slate-100 text-slate-300"
               )}>
                 {step > s.id ? <Check className="w-5 h-5" /> : <s.icon className="w-5 h-5" />}
               </div>
@@ -390,7 +390,7 @@ export default function BuatUjian() {
                             className={cn(
                               "py-2.5 px-3 rounded-xl text-xs font-bold border transition-all text-center",
                               formData.strict_limit === opt.value
-                                ? "bg-indigo-950 text-white border-indigo-950 shadow-sm"
+                                ? "bg-[#3B66F5] text-white border-indigo-950 shadow-sm"
                                 : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
                             )}
                           >
@@ -470,7 +470,7 @@ export default function BuatUjian() {
               <button 
                 onClick={() => setStep(2)}
                 disabled={!formData.title}
-                className="w-full bg-indigo-950 text-white py-3 px-6 rounded-xl font-bold hover:bg-indigo-900 active:scale-[0.98] transition-all shadow-lg shadow-slate-200 disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2"
+                className="w-full bg-[#3B66F5] text-white py-3 px-6 rounded-xl font-bold hover:bg-indigo-900 active:scale-[0.98] transition-all shadow-lg shadow-slate-200 disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2"
               >
                 Lanjut Pilih Pertanyaan
                 <ChevronRight className="w-5 h-5" />
@@ -689,7 +689,7 @@ export default function BuatUjian() {
                         !isCurrentMonth && "text-slate-200",
                         isCurrentMonth && !isPast && "text-slate-700 hover:bg-blue-50",
                         isPast && "text-slate-200 cursor-not-allowed",
-                        isSelected && "bg-indigo-950 text-white hover:bg-indigo-900",
+                        isSelected && "bg-[#3B66F5] text-white hover:bg-indigo-900",
                         isToday && !isSelected && "bg-blue-50 text-blue-600 font-bold"
                       )}
                     >
@@ -746,7 +746,7 @@ export default function BuatUjian() {
                     setFormData(prev => ({ ...prev, start_time: selectedDate.toISOString().slice(0, 16) }));
                     setShowDatePicker(false);
                   }}
-                  className="flex-1 py-3 rounded-xl font-semibold text-sm text-white bg-indigo-950 hover:bg-indigo-900 transition-all shadow-lg shadow-slate-200"
+                  className="flex-1 py-3 rounded-xl font-semibold text-sm text-white bg-[#3B66F5] hover:bg-[#2563EB] transition-all shadow-lg shadow-[#3B66F5]/25"
                 >
                   Simpan
                 </button>

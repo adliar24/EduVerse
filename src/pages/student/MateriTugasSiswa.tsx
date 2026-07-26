@@ -111,7 +111,7 @@ export default function MateriTugasSiswa() {
             <span className="font-bold text-lg text-indigo-950 block leading-tight">{studentInfo.name}</span>
             <span className="text-xs font-semibold text-slate-500 mt-1 block">Kelas: {studentInfo.classes?.name || 'Tidak diketahui'}</span>
           </div>
-          <div className="bg-indigo-950 text-white px-4 py-2.5 rounded-xl font-bold text-xs self-start sm:self-center">
+          <div className="bg-[#3B66F5] text-white px-4 py-2.5 rounded-xl font-bold text-xs self-start sm:self-center">
             Kode Murid: {studentInfo.student_code}
           </div>
         </div>

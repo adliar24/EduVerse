@@ -412,7 +412,7 @@ export default function DaftarUjian() {
         </div>
         <button 
           onClick={() => navigate('/buat-ujian')}
-          className="bg-indigo-950 text-white px-5 py-2.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 hover:bg-indigo-900 active:scale-[0.98] transition-all shadow-lg shadow-slate-200"
+          className="bg-[#3B66F5] text-white px-5 py-2.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 hover:bg-indigo-900 active:scale-[0.98] transition-all shadow-lg shadow-slate-200"
         >
           <Plus className="w-4 h-4" />
           Buat Ujian Baru
@@ -502,7 +502,7 @@ export default function DaftarUjian() {
                       )}
                     </button>
                     <div className={cn(
-                      "absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-indigo-950 text-white text-[10px] font-bold rounded-xl transition-all duration-200 shadow-xl whitespace-nowrap z-50 pointer-events-none",
+                      "absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-[#3B66F5] text-white text-[10px] font-bold rounded-xl transition-all duration-200 shadow-xl whitespace-nowrap z-50 pointer-events-none",
                       activeTooltip?.examId === exam.id && activeTooltip?.type === 'strict'
                         ? "opacity-100 translate-y-0 scale-100"
                         : "opacity-0 translate-y-1 scale-95"
@@ -528,7 +528,7 @@ export default function DaftarUjian() {
                       <Shuffle className={cn("w-4.5 h-4.5 shrink-0 transition-transform", exam.random_answer && "rotate-180")} />
                     </button>
                     <div className={cn(
-                      "absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-indigo-950 text-white text-[10px] font-bold rounded-xl transition-all duration-200 shadow-xl whitespace-nowrap z-50 pointer-events-none",
+                      "absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-[#3B66F5] text-white text-[10px] font-bold rounded-xl transition-all duration-200 shadow-xl whitespace-nowrap z-50 pointer-events-none",
                       activeTooltip?.examId === exam.id && activeTooltip?.type === 'random'
                         ? "opacity-100 translate-y-0 scale-100"
                         : "opacity-0 translate-y-1 scale-95"
@@ -558,7 +558,7 @@ export default function DaftarUjian() {
                       )}
                     </button>
                     <div className={cn(
-                      "absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-indigo-950 text-white text-[10px] font-bold rounded-xl transition-all duration-200 shadow-xl whitespace-nowrap z-50 pointer-events-none",
+                      "absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-[#3B66F5] text-white text-[10px] font-bold rounded-xl transition-all duration-200 shadow-xl whitespace-nowrap z-50 pointer-events-none",
                       activeTooltip?.examId === exam.id && activeTooltip?.type === 'score'
                         ? "opacity-100 translate-y-0 scale-100"
                         : "opacity-0 translate-y-1 scale-95"
@@ -588,7 +588,7 @@ export default function DaftarUjian() {
                       )}
                     </button>
                     <div className={cn(
-                      "absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-indigo-950 text-white text-[10px] font-bold rounded-xl transition-all duration-200 shadow-xl whitespace-nowrap z-50 pointer-events-none",
+                      "absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-[#3B66F5] text-white text-[10px] font-bold rounded-xl transition-all duration-200 shadow-xl whitespace-nowrap z-50 pointer-events-none",
                       activeTooltip?.examId === exam.id && activeTooltip?.type === 'offline'
                         ? "opacity-100 translate-y-0 scale-100"
                         : "opacity-0 translate-y-1 scale-95"
@@ -614,7 +614,7 @@ export default function DaftarUjian() {
                       <QrCode className="w-4.5 h-4.5 shrink-0" />
                     </button>
                     <div className={cn(
-                      "absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-indigo-950 text-white text-[10px] font-bold rounded-xl transition-all duration-200 shadow-xl whitespace-nowrap z-50 pointer-events-none",
+                      "absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-[#3B66F5] text-white text-[10px] font-bold rounded-xl transition-all duration-200 shadow-xl whitespace-nowrap z-50 pointer-events-none",
                       activeTooltip?.examId === exam.id && activeTooltip?.type === 'qr'
                         ? "opacity-100 translate-y-0 scale-100"
                         : "opacity-0 translate-y-1 scale-95"
@@ -680,7 +680,7 @@ export default function DaftarUjian() {
                 )}
                 <button 
                   onClick={() => navigate('/hasil-ujian', { state: { examId: exam.id } })}
-                  className="w-full bg-indigo-950 text-white py-3 rounded-xl font-bold text-xs hover:bg-indigo-900 transition-all shadow-md flex items-center justify-center gap-2 group/btn button-hover cursor-pointer"
+                  className="w-full bg-[#3B66F5] text-white py-3 rounded-xl font-bold text-xs hover:bg-indigo-900 transition-all shadow-md flex items-center justify-center gap-2 group/btn button-hover cursor-pointer"
                 >
                   <BarChart3 className="w-4 h-4 shrink-0" />
                   <span>Analisis & Nilai</span>
@@ -698,7 +698,7 @@ export default function DaftarUjian() {
             <p className="text-slate-400 font-medium max-w-sm mx-auto">Anda belum menerbitkan ujian apapun. Mulai buat ujian pertama Anda sekarang.</p>
             <button 
               onClick={() => navigate('/buat-ujian')}
-              className="mt-8 bg-indigo-950 text-white px-6 py-3 rounded-xl font-semibold text-sm hover:bg-indigo-900 transition-all shadow-lg shadow-slate-200 flex items-center gap-2 mx-auto"
+              className="mt-8 bg-[#3B66F5] text-white px-6 py-3 rounded-xl font-semibold text-sm hover:bg-indigo-900 transition-all shadow-lg shadow-slate-200 flex items-center gap-2 mx-auto"
             >
               <Plus className="w-4 h-4" />
               Buat Ujian Sekarang

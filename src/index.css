@@ -102,9 +102,10 @@
   transform: translateY(-2px);
 }
 
-/* Dark Midnight Indigo Sidebar Gradient - Palette Top Layer */
+/* Electric Royal Blue Sidebar */
 .sidebar-gradient {
-  background: linear-gradient(180deg, #1C174D 0%, #161240 60%, #110E33 100%) !important;
+  background: linear-gradient(180deg, #2563EB 0%, #1D4ED8 60%, #1E40AF 100%) !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.1) !important;
 }
 
 /* Glowing Solid Card */

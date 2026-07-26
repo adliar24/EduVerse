@@ -632,10 +632,11 @@ export default function KelolaMateriTugas() {
             <Plus className="w-4 h-4 text-white" /> Tambah Materi
           </button>
           <button 
-            onClick={() => handleOpenCreateModal('assignment')}
-            className="bg-gradient-to-r from-purple-600 via-pink-600 to-rose-600 text-white px-5 py-2.5 rounded-full font-bold text-sm flex items-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-purple-600/20 border border-white/10 cursor-pointer"
+            onClick={() => handleOpenModal('assignment')}
+            className="bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white px-5 py-2.5 rounded-full font-bold text-sm flex items-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-[#3B66F5]/25 border border-white/10 cursor-pointer"
           >
-            <Plus className="w-4 h-4 text-white" /> Tambah Tugas
+            <Plus className="w-4 h-4" />
+            Tugas Baru
           </button>
         </div>
       </div>
@@ -767,8 +768,8 @@ export default function KelolaMateriTugas() {
                         </span>
                       )}
                     </div>
-                    <h3 className="text-lg font-bold leading-snug">{m.title}</h3>
-                    <p className={`text-sm leading-relaxed line-clamp-3 whitespace-pre-line ${cardStyle.textMuted}`}>{m.description}</p>
+                    <h3 className="text-base font-extrabold text-white leading-snug">{m.title}</h3>
+                    <p className="text-xs sm:text-sm text-white/80 leading-relaxed line-clamp-3 whitespace-pre-line">{m.description}</p>
                   </div>
 
                   {m.link && (
@@ -818,7 +819,7 @@ export default function KelolaMateriTugas() {
               const isOverdue = deadlineDate ? deadlineDate.getTime() < Date.now() : false;
               
               return (
-                 <div key={a.id} className={`p-6 rounded-2xl flex flex-col justify-between gap-4 relative transition-all duration-300 border ${
+                 <div key={a.id} className={`p-4 sm:p-5 rounded-2xl flex flex-col justify-between gap-3 relative transition-all duration-300 border ${
                   selectedIds.includes(a.id) ? cardStyle.selectedBg : `${cardStyle.bg} shadow-sm`
                 }`}>
                   <div className="space-y-2">
@@ -873,8 +874,8 @@ export default function KelolaMateriTugas() {
                       </div>
                     </div>
                     
-                    <h3 className="text-lg font-bold leading-snug">{a.title}</h3>
-                    <p className={`text-sm leading-relaxed line-clamp-3 whitespace-pre-line ${cardStyle.textMuted}`}>{a.description}</p>
+                    <h3 className="text-base font-extrabold text-white leading-snug">{a.title}</h3>
+                    <p className="text-xs sm:text-sm text-white/80 leading-relaxed line-clamp-3 whitespace-pre-line">{a.description}</p>
                   </div>
 
                   <div className="space-y-3 mt-2">
