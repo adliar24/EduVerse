@@ -137,12 +137,12 @@ export default function Login() {
 
       {/* Right Panel - Interactive Area */}
       <div className="flex-1 flex flex-col justify-center items-center p-3 py-6 sm:p-8 lg:p-24 overflow-y-auto relative z-10">
-        {/* Mobile Header Branding (Visible on mobile/tablet <lg) */}
-        <div className="lg:hidden flex flex-col items-center text-center mb-4 text-white space-y-1">
+        {/* Mobile Header Branding (Fixed Top Layer on mobile <lg) */}
+        <div className="lg:hidden absolute top-4 sm:top-6 left-0 right-0 z-20 flex flex-col items-center text-center text-white space-y-1">
           <div className="bg-white/15 backdrop-blur-md p-2 rounded-2xl border border-white/20 shadow-xl inline-flex items-center justify-center">
             <GraduationCap className="text-white w-6 h-6" />
           </div>
-          <div className="flex items-baseline justify-center gap-1.5 mt-1">
+          <div className="flex items-baseline justify-center gap-1.5 mt-0.5">
             <span className="text-2xl font-black tracking-tight text-white">EduVerse</span>
           </div>
           <p className="text-[11px] text-indigo-100/90 font-medium max-w-xs">Aplikasi Manajemen Kelas & Presensi Digital</p>
@@ -325,6 +325,34 @@ export default function Login() {
             )}
           </AnimatePresence>
         </div>
+      </div>
+
+      {/* Animated Bottom Fluid Wave */}
+      <div className="absolute bottom-0 inset-x-0 pointer-events-none overflow-hidden h-20 sm:h-32 z-10 opacity-70">
+        <svg className="w-full h-full" viewBox="0 0 1440 120" preserveAspectRatio="none">
+          <motion.path
+            animate={{
+              d: [
+                "M0,32L48,42.7C96,53,192,75,288,80C384,85,480,75,576,64C672,53,768,43,864,48C960,53,1056,75,1152,80C1248,85,1344,75,1392,70L1440,64L1440,120L1392,120C1344,120,1248,120,1152,120C1056,120,960,120,864,120C768,120,672,120,576,120C480,120,384,120,288,120C192,120,96,120,48,120L0,120Z",
+                "M0,64L48,58.7C96,53,192,43,288,48C384,53,480,75,576,80C672,85,768,75,864,64C960,53,1056,43,1152,48C1248,53,1344,75,1392,80L1440,85L1440,120L1392,120C1344,120,1248,120,1152,120C1056,120,960,120,864,120C768,120,672,120,576,120C480,120,384,120,288,120C192,120,96,120,48,120L0,120Z",
+                "M0,32L48,42.7C96,53,192,75,288,80C384,85,480,75,576,64C672,53,768,43,864,48C960,53,1056,75,1152,80C1248,85,1344,75,1392,70L1440,64L1440,120L1392,120C1344,120,1248,120,1152,120C1056,120,960,120,864,120C768,120,672,120,576,120C480,120,384,120,288,120C192,120,96,120,48,120L0,120Z"
+              ]
+            }}
+            transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+            fill="rgba(255, 255, 255, 0.15)"
+          />
+          <motion.path
+            animate={{
+              d: [
+                "M0,64L48,74.7C96,85,192,107,288,101.3C384,96,480,64,576,53.3C672,43,768,53,864,64C960,75,1056,85,1152,80C1248,75,1344,53,1392,42.7L1440,32L1440,120L1392,120C1344,120,1248,120,1152,120C1056,120,960,120,864,120C768,120,672,120,576,120C480,120,384,120,288,120C192,120,96,120,48,120L0,120Z",
+                "M0,32L48,42.7C96,53,192,75,288,64C384,53,480,43,576,53.3C672,64,768,85,864,80C960,75,1056,53,1152,48C1248,43,1344,64,1392,74.7L1440,85L1440,120L1392,120C1344,120,1248,120,1152,120C1056,120,960,120,864,120C768,120,672,120,576,120C480,120,384,120,288,120C192,120,96,120,48,120L0,120Z",
+                "M0,64L48,74.7C96,85,192,107,288,101.3C384,96,480,64,576,53.3C672,43,768,53,864,64C960,75,1056,85,1152,80C1248,75,1344,53,1392,42.7L1440,32L1440,120L1392,120C1344,120,1248,120,1152,120C1056,120,960,120,864,120C768,120,672,120,576,120C480,120,384,120,288,120C192,120,96,120,48,120L0,120Z"
+              ]
+            }}
+            transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
+            fill="rgba(255, 255, 255, 0.25)"
+          />
+        </svg>
       </div>
     </div>
   );
