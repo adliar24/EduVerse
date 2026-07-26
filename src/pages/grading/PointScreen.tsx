@@ -244,9 +244,9 @@ export const PointScreen: React.FC = () => {
             <div className="bg-white p-2 rounded-[2rem] flex border border-slate-200 shadow-sm w-full md:w-auto md:min-w-[340px] shrink-0 self-start">
                 <button 
                     onClick={() => setActiveTab('manual')}
-                    className={`flex-1 py-5 px-6 rounded-[1.5rem] font-black uppercase tracking-widest text-xs transition-all cursor-pointer ${
+                    className={`flex-1 py-5 px-6 rounded-full font-black uppercase tracking-widest text-xs transition-all cursor-pointer ${
                         activeTab === 'manual' 
-                        ? 'bg-[#3B66F5] text-white shadow-lg shadow-indigo-950/20 transform scale-[1.02]' 
+                        ? 'bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white shadow-lg shadow-[#3B66F5]/25 transform scale-[1.02]' 
                         : 'text-slate-400 hover:bg-slate-50'
                     }`}
                 >
@@ -254,9 +254,9 @@ export const PointScreen: React.FC = () => {
                 </button>
                 <button 
                     onClick={() => setActiveTab('qr')}
-                    className={`flex-1 py-5 px-6 rounded-[1.5rem] font-black uppercase tracking-widest text-xs transition-all cursor-pointer ${
+                    className={`flex-1 py-5 px-6 rounded-full font-black uppercase tracking-widest text-xs transition-all cursor-pointer ${
                         activeTab === 'qr' 
-                        ? 'bg-[#3B66F5] text-white shadow-lg shadow-indigo-950/20 transform scale-[1.02]' 
+                        ? 'bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white shadow-lg shadow-[#3B66F5]/25 transform scale-[1.02]' 
                         : 'text-slate-400 hover:bg-slate-50'
                     }`}
                 >
@@ -276,13 +276,13 @@ export const PointScreen: React.FC = () => {
                      <div className="flex gap-2">
                         <button 
                             onClick={() => { setPointForm({...pointForm, mode: 'add', source: 'manual'}); setShowModal(true); }}
-                            className="bg-[#3B66F5] hover:bg-indigo-900 text-white h-14 px-6 rounded-[1.5rem] font-black uppercase tracking-widest text-xs transition-all flex items-center gap-2 shadow-lg shadow-indigo-950/20 active:scale-95 group cursor-pointer"
+                            className="bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] hover:brightness-110 text-white h-14 px-6 rounded-full font-black uppercase tracking-widest text-xs transition-all flex items-center gap-2 shadow-lg shadow-indigo-950/20 border border-white/10 active:scale-95 group cursor-pointer"
                         >
                             <Plus size={18} strokeWidth={3} className="group-hover:scale-110 transition-transform" /> <span className="hidden sm:inline">Tambah</span>
                         </button>
                         <button 
                             onClick={() => { setPointForm({...pointForm, mode: 'deduct', source: 'manual'}); setShowModal(true); }}
-                            className="bg-red-500 hover:bg-red-400 text-white h-14 px-6 rounded-[1.5rem] font-black uppercase tracking-widest text-xs transition-all flex items-center gap-2 shadow-lg shadow-red-900/20 active:scale-95 group cursor-pointer"
+                            className="bg-red-500 hover:bg-red-400 text-white h-14 px-6 rounded-full font-black uppercase tracking-widest text-xs transition-all flex items-center gap-2 shadow-lg shadow-red-900/20 active:scale-95 group cursor-pointer"
                         >
                             <Minus size={18} strokeWidth={3} className="group-hover:scale-110 transition-transform" /> <span className="hidden sm:inline">Kurang</span>
                         </button>
@@ -378,7 +378,7 @@ export const PointScreen: React.FC = () => {
             <div className="py-10">
                 <button 
                     onClick={() => setIsScanning(true)}
-                    className="w-full max-w-sm mx-auto aspect-square rounded-[3rem] border-4 border-dashed border-slate-200 flex flex-col items-center justify-center gap-6 hover:bg-white hover:border-primary hover:scale-105 active:scale-95 transition-all group bg-slate-50"
+                    className="w-full max-w-sm mx-auto aspect-square rounded-full border-4 border-dashed border-slate-200 flex flex-col items-center justify-center gap-6 hover:bg-white hover:border-primary hover:scale-105 active:scale-95 transition-all group bg-slate-50"
                 >
                     <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center shadow-lg group-hover:shadow-glow transition-all">
                         <QrCode size={48} className="text-slate-400 group-hover:text-primary transition-colors" />
@@ -441,7 +441,7 @@ export const PointScreen: React.FC = () => {
            <Button 
              variant="secondary" 
              onClick={() => setIsScanning(false)}
-             className="mt-12 !bg-slate-100 !text-slate-600 !border-none hover:!bg-slate-200 !rounded-2xl !px-12 !py-4 font-black uppercase tracking-widest text-xs transition-all"
+             className="mt-12 !bg-slate-100 !text-slate-600 !border-none hover:!bg-slate-200 !px-12 !py-4 font-black uppercase tracking-widest text-xs transition-all"
            >
              Batalkan Pemindaian
            </Button>
@@ -469,7 +469,7 @@ export const PointScreen: React.FC = () => {
                    placeholder="0" 
                    value={pointForm.amount} 
                    onChange={e => setPointForm({...pointForm, amount: e.target.value})}
-                   className={`!text-center !text-5xl !py-8 !h-auto !font-black !rounded-[2rem] ${pointForm.mode === 'add' ? 'text-blue-600 border-blue-100 focus:border-blue-300 focus:ring-blue-100' : 'text-red-600 border-red-100 focus:border-red-300 focus:ring-red-100'}`}
+                   className={`!text-center !text-5xl !py-8 !h-auto !font-black ${pointForm.mode === 'add' ? 'text-blue-600 border-blue-100 focus:border-blue-300 focus:ring-blue-100' : 'text-red-600 border-red-100 focus:border-red-300 focus:ring-red-100'}`}
                 />
             </div>
 
@@ -487,7 +487,7 @@ export const PointScreen: React.FC = () => {
                                         note: t.title
                                     });
                                 }}
-                                className={`px-4 py-2.5 rounded-xl border-2 font-bold text-[11px] uppercase tracking-wide transition-all active:scale-95 ${pointForm.mode === 'add' ? 'border-blue-100 text-blue-600 bg-blue-50/30 hover:bg-blue-50' : 'border-red-100 text-red-600 bg-red-50/30 hover:bg-red-50'}`}
+                                className={`px-4 py-2.5 rounded-full border-2 font-bold text-[11px] uppercase tracking-wide transition-all active:scale-95 ${pointForm.mode === 'add' ? 'border-blue-100 text-blue-600 bg-blue-50/30 hover:bg-blue-50' : 'border-red-100 text-red-600 bg-red-50/30 hover:bg-red-50'}`}
                             >
                                 {t.title} ({t.amount > 0 ? `+${t.amount}` : t.amount})
                             </button>
@@ -501,7 +501,7 @@ export const PointScreen: React.FC = () => {
               value={pointForm.note}
               onChange={e => setPointForm({...pointForm, note: e.target.value})}
             />
-            <Button onClick={handleSubmitPoint} className={`w-full py-5 !rounded-2xl font-black uppercase tracking-widest shadow-lg ${pointForm.mode === 'add' ? 'bg-[#3B66F5] hover:bg-indigo-900 shadow-indigo-950/20' : 'bg-red-500 hover:bg-red-600 shadow-red-200'}`}>
+            <Button onClick={handleSubmitPoint} className={`w-full py-5 font-black uppercase tracking-widest shadow-lg ${pointForm.mode === 'add' ? 'bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] hover:brightness-110 shadow-indigo-950/20 border border-white/10' : 'bg-red-500 hover:bg-red-600 shadow-red-200'}`}>
                SIMPAN
             </Button>
          </div>

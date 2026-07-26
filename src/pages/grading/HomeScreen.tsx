@@ -168,7 +168,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ profile: propProfile, re
                </div>
             </div>
             
-            <Link to="/profile" className="shrink-0 w-14 h-14 bg-white/10 border-2 border-white/20 rounded-[1.2rem] flex items-center justify-center overflow-hidden shadow-lg active:scale-95 transition-transform hover:bg-white/20">
+            <Link to="/profile" className="shrink-0 w-14 h-14 bg-white/10 border-2 border-white/20 rounded-full flex items-center justify-center overflow-hidden shadow-lg active:scale-95 transition-transform hover:bg-white/20">
                {profile?.fotoUrl ? (
                  <img src={profile.fotoUrl} alt="Avatar" className="w-full h-full object-cover" />
                ) : (
@@ -200,7 +200,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ profile: propProfile, re
                         <TrendingUp className="text-primary" size={18} /> Tren Nilai
                     </h3>
                     <Link to="/statistics">
-                        <Button variant="secondary" className="!rounded-2xl !py-2 !px-4 text-[10px] font-black uppercase tracking-widest shadow-sm hover:text-primary transition-all">
+                        <Button variant="secondary" className="!py-2 !px-4 text-[10px] font-black uppercase tracking-widest shadow-sm hover:text-primary transition-all">
                            Statistik <ChevronRight size={14} className="ml-1" />
                         </Button>
                     </Link>

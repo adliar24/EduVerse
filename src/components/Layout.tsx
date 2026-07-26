@@ -399,7 +399,7 @@ export default function Layout({ session }: LayoutProps) {
                 title: 'Yakin Ingin Keluar?', message: 'Anda harus login kembali untuk mengakses data ujian.',
                 type: 'confirm', confirmText: 'Ya, Keluar', onConfirm: handleLogout
               })}
-              className="flex items-center gap-3 w-full px-4 py-3 bg-rose-500/20 border border-rose-500/30 text-rose-100 rounded-xl hover:bg-rose-600 hover:text-white transition-all duration-200 group"
+              className="flex items-center gap-3 w-full px-4 py-3 bg-rose-500/20 border border-rose-500/30 text-rose-100 rounded-full hover:bg-rose-600 hover:text-white transition-all duration-200 group"
             >
               <LogOut className="w-[18px] h-[18px] transition-transform group-hover:-translate-x-0.5" />
               <span className="font-bold text-[13px]">Keluar</span>
@@ -427,7 +427,7 @@ export default function Layout({ session }: LayoutProps) {
                   <GraduationCap className="w-6 h-6 text-white" />
                   <span className="text-lg font-bold text-white">Edu<span className="text-blue-400">Verse</span></span>
                 </div>
-                <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 hover:bg-white/5 rounded-lg transition-colors bg-white/5">
+                <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 hover:bg-white/5 rounded-full transition-colors bg-white/5">
                   <X className="w-4 h-4 text-slate-400" />
                 </button>
               </div>
@@ -531,7 +531,7 @@ export default function Layout({ session }: LayoutProps) {
                     title: 'Yakin Ingin Keluar?', message: 'Anda harus login kembali untuk mengakses data ujian.',
                     type: 'confirm', confirmText: 'Ya, Keluar', onConfirm: handleLogout
                   })}
-                  className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-rose-500/20 border border-rose-500/30 text-rose-100 font-bold text-sm rounded-xl hover:bg-rose-600 hover:text-white transition-all group"
+                  className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-rose-500/20 border border-rose-500/30 text-rose-100 font-bold text-sm rounded-full hover:bg-rose-600 hover:text-white transition-all group"
                 >
                   <LogOut className="w-[18px] h-[18px]" />
                   <span>Keluar</span>
@@ -550,7 +550,7 @@ export default function Layout({ session }: LayoutProps) {
             <div className="flex items-center gap-3">
               <button 
                 onClick={() => setIsMobileMenuOpen(true)}
-                className="lg:hidden p-2 hover:bg-white rounded-lg text-slate-600 border border-slate-200/50 transition-all active:scale-95 bg-white/50"
+                className="lg:hidden p-2 hover:bg-white rounded-full text-slate-600 border border-slate-200/50 transition-all active:scale-95 bg-white/50"
               >
                 <Menu className="w-5 h-5" />
               </button>
@@ -566,7 +566,7 @@ export default function Layout({ session }: LayoutProps) {
                       e.stopPropagation();
                       setIsSchoolDropdownOpen(!isSchoolDropdownOpen);
                     }}
-                    className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+                    className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 rounded-full transition-colors"
                   >
                     <Building2 className="w-4 h-4 text-blue-600" />
                     <span className="text-sm font-medium text-blue-700 max-w-[120px] truncate">

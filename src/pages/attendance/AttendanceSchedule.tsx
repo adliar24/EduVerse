@@ -221,7 +221,7 @@ export const Schedule: React.FC<Props> = ({ state, refresh, notify }) => {
           {/* Day Tabs */}
           <div className="flex justify-between items-center mb-4">
              <h3 className="font-bold text-gray-700 text-lg">Jadwal Pelajaran</h3>
-             <Button onClick={handleOpenAddSchedule} className="!px-3 !py-2 text-xs rounded-xl">
+             <Button onClick={handleOpenAddSchedule} className="!px-3 !py-2 text-xs rounded-full">
                <Plus className="w-4 h-4 mr-1" /> Tambah Jam
              </Button>
           </div>
@@ -230,7 +230,7 @@ export const Schedule: React.FC<Props> = ({ state, refresh, notify }) => {
               <button
                 key={day}
                 onClick={() => setActiveDay(day)}
-                className={`flex-1 min-w-[80px] px-3 py-2 rounded-xl text-sm font-semibold transition-all text-center ${
+                className={`flex-1 min-w-[80px] px-3 py-2 rounded-full text-sm font-semibold transition-all text-center ${
                   activeDay === day 
                     ? 'bg-white text-blue-600 shadow-sm ring-1 ring-black/5' 
                     : 'text-gray-500 hover:text-gray-700'
@@ -309,7 +309,7 @@ export const Schedule: React.FC<Props> = ({ state, refresh, notify }) => {
       <div className="flex flex-col h-full">
           <div className="flex justify-between items-center mb-4">
              <h3 className="font-bold text-gray-700 text-lg">Kalender Sekolah</h3>
-             <Button onClick={() => setIsEventModalOpen(true)} className="!px-3 !py-2 text-xs rounded-xl bg-gray-800 hover:bg-gray-900 shadow-gray-300">
+             <Button onClick={() => setIsEventModalOpen(true)} className="!px-3 !py-2 text-xs rounded-full bg-gray-800 hover:bg-gray-900 shadow-gray-300">
                <Plus className="w-4 h-4 mr-1" /> Catatan
              </Button>
           </div>

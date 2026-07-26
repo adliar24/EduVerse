@@ -173,10 +173,10 @@ export const StudentReportDetailScreen: React.FC = () => {
                 const wb = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(wb, ws, 'Detail');
                 XLSX.writeFile(wb, `Laporan_${student.nama}.xlsx`);
-            }} className="!py-3 !px-6 !text-[13px] !rounded-xl !bg-white/50 backdrop-blur-md border-slate-200 hidden md:flex">
+            }} className="!py-3 !px-6 !text-[13px] !bg-white/50 backdrop-blur-md border-slate-200 hidden md:flex">
                 <FileSpreadsheet size={18} className="mr-2 text-emerald-600"/> Excel
             </Button>
-            <Button variant="accent" onClick={exportPDF} className="!py-3 !px-6 !text-[13px] !rounded-xl shadow-glow-gold hidden md:flex">
+            <Button variant="accent" onClick={exportPDF} className="!py-3 !px-6 !text-[13px] shadow-glow-gold hidden md:flex">
                 <FileText size={18} className="mr-2 text-primaryDark/60"/> Export PDF
             </Button>
           </div>
@@ -215,10 +215,10 @@ export const StudentReportDetailScreen: React.FC = () => {
                     const wb = XLSX.utils.book_new();
                     XLSX.utils.book_append_sheet(wb, ws, 'Detail');
                     XLSX.writeFile(wb, `Laporan_${student.nama}.xlsx`);
-                }} className="flex-1 !rounded-2xl h-14 text-[13px] uppercase font-black tracking-widest shadow-sm">
+                }} className="flex-1 h-14 text-[13px] uppercase font-black tracking-widest shadow-sm">
                     <FileSpreadsheet size={18} className="mr-2 text-emerald-600" /> Excel
                 </Button>
-                <Button variant="accent" onClick={exportPDF} className="flex-1 !rounded-2xl h-14 text-[13px] uppercase font-black tracking-widest shadow-glow-gold">
+                <Button variant="accent" onClick={exportPDF} className="flex-1 h-14 text-[13px] uppercase font-black tracking-widest shadow-glow-gold">
                     <FileText size={18} className="mr-2 text-red-500" /> PDF
                 </Button>
             </div>

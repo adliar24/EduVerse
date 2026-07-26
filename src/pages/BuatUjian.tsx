@@ -470,7 +470,7 @@ export default function BuatUjian() {
               <button 
                 onClick={() => setStep(2)}
                 disabled={!formData.title}
-                className="w-full bg-[#3B66F5] text-white py-3 px-6 rounded-xl font-bold hover:bg-indigo-900 active:scale-[0.98] transition-all shadow-lg shadow-slate-200 disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2"
+                className="w-full bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white py-3 px-6 rounded-xl font-bold hover:brightness-110 active:scale-[0.98] transition-all border border-white/10 shadow-lg shadow-slate-200 disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2"
               >
                 Lanjut Pilih Pertanyaan
                 <ChevronRight className="w-5 h-5" />
@@ -532,7 +532,7 @@ export default function BuatUjian() {
                   </button>
                   <button 
                     onClick={handleCreateExam}
-                    className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl font-semibold text-sm text-white bg-indigo-950 hover:bg-indigo-900 transition-all shadow-lg shadow-slate-200/50 flex items-center justify-center gap-1.5 cursor-pointer"
+                    className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl font-semibold text-sm text-white bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] hover:brightness-110 transition-all border border-white/10 shadow-lg shadow-slate-200/50 flex items-center justify-center gap-1.5 cursor-pointer"
                   >
                     <span>Terbitkan</span>
                     <CheckCircle2 className="w-4 h-4" />
@@ -689,7 +689,7 @@ export default function BuatUjian() {
                         !isCurrentMonth && "text-slate-200",
                         isCurrentMonth && !isPast && "text-slate-700 hover:bg-blue-50",
                         isPast && "text-slate-200 cursor-not-allowed",
-                        isSelected && "bg-[#3B66F5] text-white hover:bg-indigo-900",
+                        isSelected && "bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white hover:brightness-110",
                         isToday && !isSelected && "bg-blue-50 text-blue-600 font-bold"
                       )}
                     >

@@ -168,7 +168,7 @@ export default function Login() {
                   {/* Teacher Option */}
                   <button
                     onClick={() => setView('login')}
-                    className="group flex items-center gap-3.5 p-4 bg-white border border-slate-200 rounded-2xl text-left hover:border-[#3B66F5] hover:shadow-lg hover:shadow-[#3B66F5]/10 transition-all duration-300 active:scale-[0.98]"
+                    className="group flex items-center gap-3.5 p-4 bg-white border border-slate-200 rounded-full text-left hover:border-[#3B66F5] hover:shadow-lg hover:shadow-[#3B66F5]/10 transition-all duration-300 active:scale-[0.98]"
                   >
                     <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-[#3B66F5] group-hover:bg-[#3B66F5] group-hover:text-white transition-colors shrink-0">
                       <User className="w-5 h-5" />
@@ -182,7 +182,7 @@ export default function Login() {
                   {/* Student Option */}
                   <button
                     onClick={() => setView('student-login')}
-                    className="group flex items-center gap-3.5 p-4 bg-white border border-slate-200 rounded-2xl text-left hover:border-[#3B66F5] hover:shadow-lg hover:shadow-[#3B66F5]/10 transition-all duration-300 active:scale-[0.98]"
+                    className="group flex items-center gap-3.5 p-4 bg-white border border-slate-200 rounded-full text-left hover:border-[#3B66F5] hover:shadow-lg hover:shadow-[#3B66F5]/10 transition-all duration-300 active:scale-[0.98]"
                   >
                     <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-[#3B66F5] group-hover:bg-[#3B66F5] group-hover:text-white transition-colors shrink-0">
                       <GraduationCap className="w-5 h-5" />

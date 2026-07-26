@@ -798,7 +798,7 @@ export default function Profil() {
             <button 
               onClick={downloadStudentCard}
               disabled={saving}
-              className="w-[320px] bg-[#3B66F5] text-white py-4 rounded-2xl font-bold text-sm hover:bg-indigo-900 active:scale-[0.98] transition-all shadow-lg flex items-center justify-center gap-2"
+              className="w-[320px] bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white py-4 rounded-full font-bold text-sm hover:brightness-110 active:scale-[0.98] transition-all border border-white/10 shadow-lg flex items-center justify-center gap-2"
             >
               Unduh Kartu Pelajar (PNG)
             </button>
@@ -848,7 +848,7 @@ export default function Profil() {
                 <button 
                   type="submit" 
                   disabled={saving}
-                  className="bg-[#3B66F5] text-white px-8 py-3.5 rounded-xl font-bold text-sm hover:bg-indigo-900 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white px-8 py-3.5 rounded-full font-bold text-sm hover:brightness-110 active:scale-[0.98] transition-all border border-white/10 disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {saving ? 'Menyimpan...' : 'Simpan Perubahan Akun'}
                 </button>
@@ -865,7 +865,7 @@ export default function Profil() {
                   confirmText: 'Ya, Keluar', 
                   onConfirm: handleLogout
                 })}
-                className="w-full flex items-center justify-center gap-2 p-4 rounded-xl text-slate-500 bg-slate-50 hover:bg-slate-100 hover:text-rose-600 active:scale-[0.98] transition-all font-bold text-sm border border-dashed border-slate-200"
+                className="w-full flex items-center justify-center gap-2 p-4 rounded-full text-slate-500 bg-slate-50 hover:bg-slate-100 hover:text-rose-600 active:scale-[0.98] transition-all font-bold text-sm border border-dashed border-slate-200"
               >
                 <LogOut className="w-4 h-4" />
                 Keluar Sesi Sekarang
@@ -892,7 +892,7 @@ export default function Profil() {
             <div className="w-20 h-20 rounded-2xl bg-white p-1 shadow-lg">
               <div className="w-full h-full rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 relative group overflow-hidden">
                 <User className="w-8 h-8" />
-                <button className="absolute inset-0 bg-indigo-950/60 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center text-white backdrop-blur-sm">
+                <button className="absolute inset-0 bg-[#3B66F5]/60 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center text-white backdrop-blur-sm">
                   <Camera className="w-5 h-5" />
                 </button>
               </div>
@@ -1069,7 +1069,7 @@ export default function Profil() {
                             placeholder="Alamat sekolah (opsional)..."
                           />
                           <button type="button" onClick={handleAddSchool} disabled={!newSchoolName.trim()}
-                            className="w-full px-4 py-2.5 bg-[#3B66F5] text-white rounded-xl hover:bg-indigo-900 disabled:opacity-50 transition-colors shadow-sm font-medium text-sm"
+                            className="w-full px-4 py-2.5 bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white rounded-full hover:brightness-110 disabled:opacity-50 transition-colors border border-white/10 shadow-sm font-medium text-sm"
                           >
                             + Tambah & Pilih
                           </button>
@@ -1151,7 +1151,7 @@ export default function Profil() {
                           placeholder="Tambah mata pelajaran manual..."
                         />
                         <button type="button" onClick={handleAddCustomSubject} disabled={!newCustomSubject.trim()}
-                          className="px-4 py-2.5 bg-[#3B66F5] text-white rounded-xl hover:bg-indigo-900 disabled:opacity-50 transition-colors shadow-sm"
+                          className="px-4 py-2.5 bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white rounded-xl hover:brightness-110 disabled:opacity-50 transition-colors border border-white/10 shadow-sm"
                         >
                           <Plus className="w-4 h-4" />
                         </button>
@@ -1177,7 +1177,7 @@ export default function Profil() {
 
               <div className="pt-4">
                 <button type="submit" disabled={saving}
-                  className="bg-[#3B66F5] text-white px-6 py-3 rounded-xl font-semibold text-sm hover:bg-indigo-900 transition-all shadow-sm flex items-center gap-2 disabled:opacity-50 active:scale-[0.98]"
+                  className="bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white px-6 py-3 rounded-full font-semibold text-sm hover:brightness-110 transition-all border border-white/10 shadow-sm flex items-center gap-2 disabled:opacity-50 active:scale-[0.98]"
                 >
                   {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Simpan Perubahan'}
                 </button>
@@ -1190,7 +1190,7 @@ export default function Profil() {
                 {formData.role === 'guru' && (
                   <button 
                     onClick={handleResetData}
-                    className="w-full flex items-center justify-center gap-2 p-4 rounded-xl text-red-600 bg-red-50 hover:bg-red-100 active:scale-[0.98] transition-all font-semibold text-sm border border-red-100 group"
+                    className="w-full flex items-center justify-center gap-2 p-4 rounded-full text-red-600 bg-red-50 hover:bg-red-100 active:scale-[0.98] transition-all font-semibold text-sm border border-red-100 group"
                   >
                     <Trash2 className="w-4 h-4" />
                     Hapus Semua Data
@@ -1200,7 +1200,7 @@ export default function Profil() {
                   onClick={() => showAlert({
                     title: 'Yakin Ingin Keluar?', message: 'Sesi Anda akan berakhir dan harus login kembali.', type: 'confirm', confirmText: 'Ya, Keluar', onConfirm: handleLogout
                   })}
-                  className="w-full flex items-center justify-center gap-2 p-4 rounded-xl text-slate-500 bg-slate-50 hover:bg-slate-100 active:scale-[0.98] transition-all font-semibold text-sm border border-transparent group"
+                  className="w-full flex items-center justify-center gap-2 p-4 rounded-full text-slate-500 bg-slate-50 hover:bg-slate-100 active:scale-[0.98] transition-all font-semibold text-sm border border-transparent group"
                 >
                   <LogOut className="w-4 h-4" />
                   Keluar Sesi Sekarang

@@ -1136,13 +1136,13 @@ export default function StudentExam() {
         <div className="space-y-3">
           <button 
             onClick={() => window.location.reload()}
-            className="w-full bg-gradient-to-r from-[#685ECC] via-[#5C53D4] to-[#4F46E5] text-white py-4 rounded-2xl font-black hover:scale-[1.01] transition-all shadow-xl shadow-[#5C53D4]/25 border border-white/10"
+            className="w-full bg-gradient-to-r from-[#685ECC] via-[#5C53D4] to-[#4F46E5] text-white py-4 rounded-full font-black hover:scale-[1.01] transition-all shadow-xl shadow-[#5C53D4]/25 border border-white/10"
           >
             Coba Lagi
           </button>
           <button 
             onClick={() => navigate('/exam')}
-            className="w-full py-4 px-4 rounded-2xl font-black text-indigo-300 bg-white/5 hover:bg-white/10 border border-white/5 transition-all"
+            className="w-full py-4 px-4 rounded-full font-black text-indigo-300 bg-white/5 hover:bg-white/10 border border-white/5 transition-all"
           >
             Kembali ke Daftar Ujian
           </button>
@@ -1271,7 +1271,7 @@ export default function StudentExam() {
               </p>
               <button 
                 onClick={() => setShowViolationWarning(false)}
-                className="w-full bg-indigo-950 text-white py-4 rounded-2xl font-black hover:bg-indigo-900 transition-all shadow-xl shadow-slate-200"
+                className="w-full bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white py-4 rounded-full font-black hover:brightness-110 transition-all border border-white/10 shadow-xl shadow-slate-200"
               >
                 Saya Mengerti
               </button>
@@ -1309,14 +1309,14 @@ export default function StudentExam() {
                 <button 
                   onClick={() => setShowSubmitConfirm(false)}
                   disabled={submitting}
-                  className="flex-1 py-3 px-4 rounded-xl font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors"
+                  className="flex-1 py-3 px-4 rounded-full font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors"
                 >
                   Tidak, Cek Lagi
                 </button>
                 <button 
                   onClick={() => handleSubmit(false)}
                   disabled={submitting}
-                  className="flex-1 py-3 px-4 rounded-xl font-bold text-white bg-blue-600 hover:bg-blue-700 active:scale-95 transition-all flex items-center justify-center"
+                  className="flex-1 py-3 px-4 rounded-full font-bold text-white bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] hover:brightness-110 active:scale-95 transition-all border border-white/10 flex items-center justify-center"
                 >
                   {submitting ? 'Mengirim...' : 'Ya, Kumpulkan'}
                 </button>
@@ -1345,12 +1345,12 @@ export default function StudentExam() {
                   key={q.id}
                   onClick={() => setCurrentIndex(i)}
                   className={cn(
-                    "h-10 sm:h-12 rounded-xl sm:rounded-2xl font-black text-xs sm:text-sm transition-all relative border",
+                    "h-10 sm:h-12 rounded-full font-black text-xs sm:text-sm transition-all relative border",
                     i === currentIndex 
-                      ? "bg-gradient-loading text-white shadow-xl scale-105 sm:scale-110 z-10 border-transparent shadow-indigo-500/30" 
+                      ? "bg-gradient-loading text-white shadow-xl scale-105 sm:scale-110 z-10 border-transparent shadow-[#3B66F5]/30" 
                       : answers[q.id] 
-                        ? "bg-blue-600/30 text-white border-blue-400/40" 
-                        : "bg-indigo-950/40 text-indigo-300 border-indigo-500/20 hover:border-indigo-400 hover:bg-indigo-950/60"
+                        ? "bg-[#3B66F5]/30 text-white border-blue-400/40" 
+                        : "bg-[#1D4ED8]/40 text-[#3B66F5] border-[#3B66F5]/20 hover:border-[#3B66F5]/40 hover:bg-[#3B66F5]/20"
                   )}
                 >
                   {i + 1}
@@ -1374,7 +1374,7 @@ export default function StudentExam() {
               <p className="text-sm text-slate-400 font-medium leading-relaxed">
                 Jika Anda mengalami kendala teknis atau gangguan koneksi, segera hubungi pengawas ujian.
               </p>
-              <button className="mt-8 text-xs font-black uppercase tracking-widest text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-2">
+              <button className="mt-8 text-xs font-black uppercase tracking-widest text-[#3B66F5] hover:text-[#2563EB] transition-colors flex items-center gap-2">
                 Hubungi Pengawas <ChevronRight className="w-3 h-3" />
               </button>
             </div>
@@ -1423,7 +1423,7 @@ export default function StudentExam() {
                         handleAnswer(currentQuestion.id, opt.id);
                       }}
                       className={cn(
-                        "flex items-start gap-4 sm:gap-6 p-4 sm:p-6 rounded-2xl sm:rounded-3xl border-2 text-left transition-all group",
+                        "flex items-start gap-4 sm:gap-6 p-4 sm:p-6 rounded-full border-2 text-left transition-all group",
                         answers[currentQuestion.id] === opt.id
                           ? "bg-gradient-to-r from-indigo-600 to-blue-600 border-indigo-400 text-white shadow-xl shadow-indigo-650/20"
                           : "border-slate-200 bg-white hover:bg-slate-50/50 hover:border-slate-300"
@@ -1578,7 +1578,7 @@ export default function StudentExam() {
                     
                     <button 
                       onClick={handleBypassUnlock}
-                      className="w-full bg-red-500 hover:bg-red-600 text-white py-4 rounded-2xl font-black transition-all shadow-lg shadow-red-500/20 flex items-center justify-center gap-2 mt-4"
+                      className="w-full bg-red-500 hover:bg-red-600 text-white py-4 rounded-full font-black transition-all shadow-lg shadow-red-500/20 flex items-center justify-center gap-2 mt-4"
                     >
                       <Unlock className="w-5 h-5" />
                       Buka Kunci Ujian
@@ -1629,7 +1629,7 @@ export default function StudentExam() {
                     console.warn('Failed to enter fullscreen:', err);
                   }
                 }}
-                className="w-full bg-gradient-to-r from-[#685ECC] via-[#5C53D4] to-[#4F46E5] text-white py-4 rounded-2xl font-black transition-all shadow-lg shadow-[#5C53D4]/25 hover:scale-[1.01] border border-white/10 flex items-center justify-center gap-2"
+                className="w-full bg-gradient-to-r from-[#685ECC] via-[#5C53D4] to-[#4F46E5] text-white py-4 rounded-full font-black transition-all shadow-lg shadow-[#5C53D4]/25 hover:scale-[1.01] border border-white/10 flex items-center justify-center gap-2"
               >
                 Masuk Mode Layar Penuh
               </button>

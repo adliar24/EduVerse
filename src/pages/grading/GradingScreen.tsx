@@ -376,7 +376,7 @@ export const GradingScreen: React.FC = () => {
                         <Button 
                             onClick={handleApplyBulkScore}
                             variant="primary" 
-                            className="!py-2 !px-4 !rounded-xl !text-[10px] font-black uppercase tracking-widest whitespace-nowrap"
+                            className="!py-2 !px-4 !text-[10px] font-black uppercase tracking-widest whitespace-nowrap"
                             disabled={selectedStudentIds.size === 0}
                         >
                             Isi Cepat
@@ -387,22 +387,22 @@ export const GradingScreen: React.FC = () => {
                 <div className="flex items-center gap-2 flex-wrap justify-center md:justify-end w-full md:w-auto">
                    <button 
                       onClick={toggleListening}
-                      className={`flex items-center gap-2 px-3 py-2 rounded-xl border-2 transition-all ${isListening ? 'bg-red-500 border-red-400 text-white' : 'bg-white border-slate-200 text-slate-600 hover:border-primary'}`}
+                      className={`flex items-center gap-2 px-3 py-2 rounded-full border-2 transition-all ${isListening ? 'bg-red-500 border-red-400 text-white' : 'bg-white border-slate-200 text-slate-600 hover:border-primary'}`}
                    >
                       {isListening ? <MicOff size={14} /> : <Mic size={14} />}
                       <span className="text-[10px] font-black uppercase tracking-widest">{isListening ? 'Stop' : 'Suara'}</span>
                    </button>
                    <button 
                       onClick={() => ocrMode === 'manual' ? setOcrMode('none') : setOcrMode('manual')}
-                      className={`flex items-center gap-2 px-3 py-2 rounded-xl border-2 transition-all ${ocrMode !== 'none' ? 'bg-purple-500 border-purple-400 text-white' : 'bg-white border-slate-200 text-slate-600 hover:border-purple-400'}`}
+                      className={`flex items-center gap-2 px-3 py-2 rounded-full border-2 transition-all ${ocrMode !== 'none' ? 'bg-purple-500 border-purple-400 text-white' : 'bg-white border-slate-200 text-slate-600 hover:border-purple-400'}`}
                    >
                       <FileText size={14} />
                       <span className="text-[10px] font-black uppercase tracking-widest">OCR</span>
                    </button>
-                   <button onClick={handleDownloadTemplate} className="text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-primary flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-slate-200">
+                   <button onClick={handleDownloadTemplate} className="text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-primary flex items-center gap-2 bg-white px-3 py-2 rounded-full border border-slate-200">
                       <Download size={14} /> Template
                    </button>
-                   <label className="text-[10px] font-black uppercase tracking-widest text-primary hover:text-primaryDark cursor-pointer flex items-center gap-2 bg-blue-50 px-3 py-2 rounded-lg border border-blue-100">
+                   <label className="text-[10px] font-black uppercase tracking-widest text-primary hover:text-primaryDark cursor-pointer flex items-center gap-2 bg-blue-50 px-3 py-2 rounded-full border border-blue-100">
                       <Upload size={14} /> Import
                       <input type="file" ref={fileInputRef} className="hidden" accept=".xlsx,.xls" onChange={handleImportExcel} disabled={isImporting} />
                    </label>
@@ -420,8 +420,8 @@ export const GradingScreen: React.FC = () => {
                <div className="relative bg-black rounded-2xl overflow-hidden mx-8 mt-4">
                   <video ref={videoRef} autoPlay playsInline className="w-full" />
                   <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-4">
-                     <button onClick={() => { setOcrMode('none'); stopCamera(); }} className="px-6 py-3 bg-red-500 text-white rounded-xl font-black text-[10px] uppercase">Batal</button>
-                     <button onClick={captureImage} className="px-6 py-3 bg-white text-purple-600 rounded-xl font-black text-[10px] uppercase">
+                     <button onClick={() => { setOcrMode('none'); stopCamera(); }} className="px-6 py-3 bg-red-500 text-white rounded-full font-black text-[10px] uppercase">Batal</button>
+                     <button onClick={captureImage} className="px-6 py-3 bg-white text-purple-600 rounded-full font-black text-[10px] uppercase">
                         <Camera size={18} className="inline mr-2" />Ambil Foto
                      </button>
                   </div>

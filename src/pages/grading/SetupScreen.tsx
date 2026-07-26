@@ -245,7 +245,7 @@ export const SetupScreen: React.FC<{ onSuccess?: () => void }> = ({ onSuccess })
 
           <Button 
             variant="accent" 
-            className="w-full py-5 text-lg shadow-xl mt-6 !rounded-2xl font-black uppercase tracking-widest bg-accent !bg-none border-none" 
+            className="w-full py-5 text-lg shadow-xl mt-6 font-black uppercase tracking-widest bg-accent !bg-none border-none" 
             onClick={handleSaveProfile}
           >
             Simpan Profil Guru

@@ -88,7 +88,7 @@ export default function StudentResult() {
       </div>
       <h1 className="text-3xl font-black text-indigo-950 tracking-tight">Hasil Tidak Ditemukan</h1>
       <p className="text-slate-500 font-medium mt-2 max-w-xs mx-auto">Maaf, kami tidak dapat menemukan data hasil ujian untuk ID ini.</p>
-      <Link to="/exam" className="mt-8 inline-flex items-center gap-2 bg-indigo-950 text-white px-10 py-4 rounded-2xl font-black hover:bg-indigo-900 transition-all shadow-xl shadow-slate-200">
+      <Link to="/exam" className="mt-8 inline-flex items-center gap-2 bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white px-10 py-4 rounded-full font-black hover:brightness-110 transition-all border border-white/10 shadow-xl shadow-[#3B66F5]/25">
         Kembali ke Beranda
         <ArrowRight className="w-5 h-5" />
       </Link>
@@ -259,7 +259,7 @@ export default function StudentResult() {
 
           <Link 
             to="/exam"
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-3 bg-indigo-950 text-white px-10 sm:px-16 py-4 sm:py-6 rounded-2xl sm:rounded-[2rem] font-black text-base sm:text-lg hover:bg-indigo-900 active:scale-[0.98] transition-all shadow-2xl shadow-slate-200 group"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-3 bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white px-10 sm:px-16 py-4 sm:py-6 rounded-full font-black text-base sm:text-lg hover:brightness-110 active:scale-[0.98] transition-all border border-white/10 shadow-2xl shadow-[#3B66F5]/25 group"
           >
             Keluar Halaman
             <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 group-hover:translate-x-1 transition-transform" />

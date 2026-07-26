@@ -756,23 +756,23 @@ export default function KelolaSiswa() {
           <p className="text-slate-500 mt-1 font-medium">Daftar nama murid untuk rekapitulasi data pengerjaan ujian.</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <button onClick={handleDownloadTemplate} className="bg-white text-slate-600 border border-slate-200 px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 hover:bg-slate-50 transition-all">
+          <button onClick={handleDownloadTemplate} className="bg-white text-slate-600 border border-slate-200 px-4 py-2.5 rounded-full font-semibold text-sm flex items-center gap-2 hover:bg-slate-50 transition-all">
             <Download className="w-4 h-4" /> Template
           </button>
-          <button onClick={handleExportExcel} className="bg-emerald-50 text-emerald-700 px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 hover:bg-emerald-100 transition-all border border-emerald-100">
+          <button onClick={handleExportExcel} className="bg-emerald-50 text-emerald-700 px-4 py-2.5 rounded-full font-semibold text-sm flex items-center gap-2 hover:bg-emerald-100 transition-all border border-emerald-100">
             <Download className="w-4 h-4" /> Ekspor Excel
           </button>
-          <button onClick={() => fileInputRef.current?.click()} disabled={importing} className="bg-indigo-50 text-indigo-700 px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 hover:bg-indigo-100 transition-all border border-indigo-100">
+          <button onClick={() => fileInputRef.current?.click()} disabled={importing} className="bg-indigo-50 text-indigo-700 px-4 py-2.5 rounded-full font-semibold text-sm flex items-center gap-2 hover:bg-indigo-100 transition-all border border-indigo-100">
             {importing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />} Impor Murid
           </button>
           <input type="file" ref={fileInputRef} className="hidden" accept=".xlsx, .xls" onChange={handleImportExcel} />
           {selectedStudentIds.length > 0 && (
-            <button onClick={handleBulkDelete} className="bg-rose-50 text-rose-700 px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 hover:bg-rose-100 transition-all border border-rose-100">
+            <button onClick={handleBulkDelete} className="bg-rose-50 text-rose-700 px-4 py-2.5 rounded-full font-semibold text-sm flex items-center gap-2 hover:bg-rose-100 transition-all border border-rose-100">
               <Trash2 className="w-4 h-4" /> Hapus Terpilih ({selectedStudentIds.length})
             </button>
           )}
           <button onClick={() => { setEditingId(null); setFormData({ name: '', class_id: '', student_code: '', password: '', gender: '' }); setShowForm(true); }}
-            className="bg-[#3B66F5] text-white px-5 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 hover:bg-indigo-900 transition-all shadow-lg shadow-slate-200/50 active:scale-[0.98]"
+            className="bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white px-5 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 hover:brightness-110 transition-all shadow-lg shadow-slate-200/50 active:scale-[0.98] border border-white/10"
           >
             <Plus className="w-4 h-4" /> Tambah Murid
           </button>
@@ -903,7 +903,7 @@ export default function KelolaSiswa() {
                         >
                           <Edit3 className="w-4 h-4" />
                         </button>
-                        <button onClick={() => handleDelete(s.id)} className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all">
+                        <button onClick={() => handleDelete(s.id)} className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-full transition-all">
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
@@ -955,7 +955,7 @@ export default function KelolaSiswa() {
             <motion.div initial={{ opacity: 0, scale: 0.97, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.97, y: 10 }} className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl p-7">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-lg font-bold text-indigo-950">{editingId ? 'Edit Data Murid' : 'Tambah Murid Baru'}</h3>
-                <button onClick={() => setShowForm(false)} className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
+                <button onClick={() => setShowForm(false)} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
                   <X className="w-5 h-5 text-slate-400" />
                 </button>
               </div>
@@ -1001,8 +1001,8 @@ export default function KelolaSiswa() {
                   />
                 </div>
                 <div className="flex gap-3 pt-3">
-                  <button type="button" onClick={() => setShowForm(false)} className="flex-1 py-3 text-sm font-medium text-slate-400 hover:bg-slate-50 rounded-xl transition-all">Batal</button>
-                  <button type="submit" disabled={submitting} className="flex-[2] bg-[#3B66F5] text-white py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 hover:bg-indigo-900 shadow-sm active:scale-[0.98] transition-all">
+                  <button type="button" onClick={() => setShowForm(false)} className="flex-1 py-3 text-sm font-medium text-slate-400 hover:bg-slate-50 rounded-full transition-all">Batal</button>
+                  <button type="submit" disabled={submitting} className="flex-[2] bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white py-3 rounded-full font-semibold text-sm flex items-center justify-center gap-2 hover:brightness-110 shadow-sm active:scale-[0.98] transition-all border border-white/10">
                     {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : editingId ? 'Perbarui Data' : 'Simpan Murid'}
                   </button>
                 </div>

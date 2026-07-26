@@ -143,7 +143,7 @@ export default function FaceScan({
         )}
         <button
           onClick={initScanner}
-          className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+          className="px-4 py-2 bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white rounded-full hover:brightness-110"
         >
           Coba Lagi
         </button>
@@ -240,7 +240,7 @@ export default function FaceScan({
         Tips: Lepas topi/kacamata, pastikan cahaya cukup
       </div>
 
-      <button onClick={initScanner} className="w-full py-2 text-sm text-blue-500 hover:text-blue-600">
+      <button onClick={initScanner} className="w-full py-2 text-sm text-[#3B66F5] hover:text-[#2563EB]">
         Refresh Data
       </button>
     </div>

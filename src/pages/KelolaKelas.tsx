@@ -843,7 +843,7 @@ export default function KelolaKelas() {
             </div>
             <h3 className="text-lg font-bold text-indigo-950 mb-2">Belum Ada Kelas</h3>
             <p className="text-slate-400 text-sm font-medium max-w-sm text-center">Mulai kelola kelas Anda dengan menambahkan kelas pertama.</p>
-            <button onClick={() => setShowForm(true)} className="mt-6 px-6 py-3 bg-indigo-950 text-white rounded-xl font-semibold text-sm flex items-center gap-2 hover:bg-indigo-900 transition-all">
+            <button onClick={() => setShowForm(true)} className="mt-6 px-6 py-3 bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white rounded-full font-semibold text-sm flex items-center gap-2 hover:brightness-110 border border-white/10 transition-all">
               <Plus className="w-4 h-4" />
               Tambah Sekarang
             </button>
@@ -878,24 +878,24 @@ export default function KelolaKelas() {
                     </span>
                   </div>
                 </div>
-                <button onClick={() => setShowStudents(false)} className="p-2 bg-slate-50 text-slate-400 hover:text-indigo-950 hover:bg-slate-100 rounded-lg transition-all">
+                <button onClick={() => setShowStudents(false)} className="p-2 bg-slate-50 text-slate-400 hover:text-indigo-950 hover:bg-slate-100 rounded-full transition-all">
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
               {/* Toolbar */}
               <div className="px-6 sm:px-8 py-3 flex flex-wrap items-center gap-2 shrink-0 border-b border-slate-50">
-                <button onClick={handleDownloadTemplate} className="px-3.5 py-2 bg-white text-slate-600 border border-slate-200 rounded-lg font-semibold text-xs flex items-center gap-1.5 hover:bg-slate-50 transition-all">
+                <button onClick={handleDownloadTemplate} className="px-3.5 py-2 bg-white text-slate-600 border border-slate-200 rounded-full font-semibold text-xs flex items-center gap-1.5 hover:bg-slate-50 transition-all">
                   <Download className="w-3.5 h-3.5 text-indigo-500" /> Template
                 </button>
-                <button onClick={() => fileInputRef.current?.click()} disabled={importing} className="px-3.5 py-2 bg-white text-slate-600 border border-slate-200 rounded-lg font-semibold text-xs flex items-center gap-1.5 hover:bg-slate-50 transition-all disabled:opacity-50">
+                <button onClick={() => fileInputRef.current?.click()} disabled={importing} className="px-3.5 py-2 bg-white text-slate-600 border border-slate-200 rounded-full font-semibold text-xs flex items-center gap-1.5 hover:bg-slate-50 transition-all disabled:opacity-50">
                   {importing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5 text-indigo-500" />} Impor Excel
                 </button>
                 <input type="file" ref={fileInputRef} className="hidden" accept=".xlsx, .xls" onChange={handleImportExcel} />
-                <button onClick={handleExportExcel} className="px-3.5 py-2 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-lg font-semibold text-xs flex items-center gap-1.5 hover:bg-emerald-100 transition-all">
+                <button onClick={handleExportExcel} className="px-3.5 py-2 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-full font-semibold text-xs flex items-center gap-1.5 hover:bg-emerald-100 transition-all">
                   <Download className="w-3.5 h-3.5" /> Ekspor Excel
                 </button>
-                <button onClick={() => { setEditingStudentId(null); setNewStudentName(''); setShowAddStudentForm(true); }} className="px-4 py-2 bg-indigo-950 text-white rounded-lg font-semibold text-xs flex items-center gap-1.5 hover:bg-indigo-900 transition-all active:scale-95 shadow-sm">
+                <button onClick={() => { setEditingStudentId(null); setNewStudentName(''); setShowAddStudentForm(true); }} className="px-4 py-2 bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white rounded-full font-semibold text-xs flex items-center gap-1.5 hover:brightness-110 border border-white/10 transition-all active:scale-95 shadow-sm">
                   <Plus className="w-4 h-4" /> Tambah Murid
                 </button>
               </div>
@@ -962,7 +962,7 @@ export default function KelolaKelas() {
                                   >
                                     <Edit3 className="w-3.5 h-3.5" />
                                   </button>
-                                  <button onClick={() => handleDeleteStudent(s.id)} className="p-1.5 text-rose-600 hover:text-rose-800 hover:bg-rose-50 rounded-lg transition-all" title="Hapus Murid">
+                                  <button onClick={() => handleDeleteStudent(s.id)} className="p-1.5 text-rose-600 hover:text-rose-800 hover:bg-rose-50 rounded-full transition-all" title="Hapus Murid">
                                     <Trash2 className="w-3.5 h-3.5" />
                                   </button>
                                 </div>
@@ -978,7 +978,7 @@ export default function KelolaKelas() {
                         <p className="font-semibold text-indigo-950 text-sm">Otomatisasi Username Murid</p>
                         <p className="text-slate-400 text-xs mt-0.5">Buat username untuk murid yang belum punya secara otomatis.</p>
                       </div>
-                      <button onClick={handleGenerateCodes} className="px-4 py-2.5 bg-white border border-slate-200 text-indigo-950 rounded-lg font-semibold text-xs hover:bg-indigo-950 hover:text-white transition-all active:scale-95 flex items-center gap-1.5">
+                      <button onClick={handleGenerateCodes} className="px-4 py-2.5 bg-white border border-slate-200 text-indigo-950 rounded-full font-semibold text-xs hover:bg-indigo-950 hover:text-white transition-all active:scale-95 flex items-center gap-1.5">
                         Buat Username Massal <ArrowRight className="w-3.5 h-3.5" />
                       </button>
                     </div>
@@ -1015,8 +1015,8 @@ export default function KelolaKelas() {
                   />
                 </div>
                 <div className="flex gap-3 pt-2">
-                  <button type="button" onClick={() => setShowAddStudentForm(false)} className="flex-1 py-3 text-sm font-medium text-slate-400 hover:bg-slate-50 rounded-xl transition-all">Batal</button>
-                  <button type="submit" disabled={submitting} className="flex-[2] bg-indigo-950 text-white py-3 rounded-xl font-semibold text-sm hover:bg-indigo-900 transition-all shadow-sm flex items-center justify-center">
+                  <button type="button" onClick={() => setShowAddStudentForm(false)} className="flex-1 py-3 text-sm font-medium text-slate-400 hover:bg-slate-50 rounded-full transition-all">Batal</button>
+                  <button type="submit" disabled={submitting} className="flex-[2] bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white py-3 rounded-full font-semibold text-sm hover:brightness-110 border border-white/10 transition-all shadow-sm flex items-center justify-center">
                     {submitting ? 'Menyimpan...' : editingStudentId ? 'Perbarui Murid' : 'Simpan Murid'}
                   </button>
                 </div>
@@ -1039,7 +1039,7 @@ export default function KelolaKelas() {
                   </div>
                   <h3 className="text-lg font-bold text-indigo-950">{editingId ? 'Edit Kelas' : 'Kelas Baru'}</h3>
                 </div>
-                <button onClick={() => setShowForm(false)} className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
+                <button onClick={() => setShowForm(false)} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
                   <X className="w-5 h-5 text-slate-400" />
                 </button>
               </div>
@@ -1110,8 +1110,8 @@ export default function KelolaKelas() {
                   </div>
                 </div>
                 <div className="flex gap-3 pt-2">
-                  <button type="button" onClick={() => setShowForm(false)} className="flex-1 py-3 rounded-xl font-medium text-sm text-slate-400 hover:bg-slate-50 transition-all">Batal</button>
-                  <button type="submit" disabled={submitting} className="flex-[2] py-3 rounded-xl font-semibold text-sm text-white bg-indigo-950 hover:bg-indigo-900 transition-all shadow-sm flex items-center justify-center gap-2">
+                  <button type="button" onClick={() => setShowForm(false)} className="flex-1 py-3 rounded-full font-medium text-sm text-slate-400 hover:bg-slate-50 transition-all">Batal</button>
+                  <button type="submit" disabled={submitting} className="flex-[2] py-3 rounded-full font-semibold text-sm text-white bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] hover:brightness-110 border border-white/10 transition-all shadow-sm flex items-center justify-center gap-2">
                     {submitting ? 'Menyimpan...' : editingId ? 'Perbarui' : 'Simpan'} {!submitting && <ArrowRight className="w-4 h-4" />}
                   </button>
                 </div>

@@ -101,13 +101,13 @@ const ConfigSection: React.FC<ConfigSectionProps> = ({ config, setConfig, totalS
           <div className="flex bg-slate-100 p-1 rounded-xl mb-4">
              <button
                onClick={() => handleModeChange(GroupingMode.BY_COUNT)}
-               className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all duration-300 cursor-pointer ${config.mode === GroupingMode.BY_COUNT ? `${themeClasses.activeTab}` : 'text-slate-500 hover:text-slate-700'}`}
+               className={`flex-1 py-2 text-sm font-bold rounded-full transition-all duration-300 cursor-pointer ${config.mode === GroupingMode.BY_COUNT ? `${themeClasses.activeTab}` : 'text-slate-500 hover:text-slate-700'}`}
              >
                Jumlah Kelompok
              </button>
              <button
                onClick={() => handleModeChange(GroupingMode.BY_SIZE)}
-               className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all duration-300 cursor-pointer ${config.mode === GroupingMode.BY_SIZE ? `${themeClasses.activeTab}` : 'text-slate-500 hover:text-slate-700'}`}
+               className={`flex-1 py-2 text-sm font-bold rounded-full transition-all duration-300 cursor-pointer ${config.mode === GroupingMode.BY_SIZE ? `${themeClasses.activeTab}` : 'text-slate-500 hover:text-slate-700'}`}
              >
                Siswa per Kelompok
              </button>
@@ -141,7 +141,7 @@ const ConfigSection: React.FC<ConfigSectionProps> = ({ config, setConfig, totalS
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
              <button
                onClick={() => handleStrategyChange(DistributionStrategy.RANDOM)}
-               className={`p-4 rounded-2xl border text-left transition-all cursor-pointer ${config.strategy === DistributionStrategy.RANDOM ? 'border-indigo-950 bg-indigo-50/50 ring-1 ring-indigo-950' : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'}`}
+                className={`p-4 rounded-full border text-left transition-all cursor-pointer ${config.strategy === DistributionStrategy.RANDOM ? 'border-indigo-950 bg-indigo-50/50 ring-1 ring-indigo-950' : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'}`}
              >
                <div className="flex items-center gap-2 font-bold text-slate-800 text-sm">
                  <div className="p-1.5 rounded-lg bg-slate-100 text-indigo-950"><Shuffle className="w-4 h-4 text-indigo-950" /></div>
@@ -152,7 +152,7 @@ const ConfigSection: React.FC<ConfigSectionProps> = ({ config, setConfig, totalS
 
              <button
                onClick={() => handleStrategyChange(DistributionStrategy.GENDER_BALANCE)}
-               className={`p-4 rounded-2xl border text-left transition-all cursor-pointer ${config.strategy === DistributionStrategy.GENDER_BALANCE ? 'border-indigo-950 bg-indigo-50/50 ring-1 ring-indigo-950' : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'}`}
+                className={`p-4 rounded-full border text-left transition-all cursor-pointer ${config.strategy === DistributionStrategy.GENDER_BALANCE ? 'border-indigo-950 bg-indigo-50/50 ring-1 ring-indigo-950' : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'}`}
              >
                <div className="flex items-center gap-2 font-bold text-slate-800 text-sm">
                  <div className="p-1.5 rounded-lg bg-slate-100 text-indigo-950"><Scale className="w-4 h-4 text-indigo-950" /></div>
@@ -163,7 +163,7 @@ const ConfigSection: React.FC<ConfigSectionProps> = ({ config, setConfig, totalS
 
              <button
                onClick={() => handleStrategyChange(DistributionStrategy.ABILITY_HETEROGENEOUS)}
-               className={`p-4 rounded-2xl border text-left transition-all cursor-pointer ${config.strategy === DistributionStrategy.ABILITY_HETEROGENEOUS ? 'border-indigo-950 bg-indigo-50/50 ring-1 ring-indigo-950' : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'}`}
+                className={`p-4 rounded-full border text-left transition-all cursor-pointer ${config.strategy === DistributionStrategy.ABILITY_HETEROGENEOUS ? 'border-indigo-950 bg-indigo-50/50 ring-1 ring-indigo-950' : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'}`}
              >
                <div className="flex items-center gap-2 font-bold text-slate-800 text-sm">
                  <div className="p-1.5 rounded-lg bg-slate-100 text-indigo-950"><UserCheck className="w-4 h-4 text-indigo-950" /></div>
@@ -174,7 +174,7 @@ const ConfigSection: React.FC<ConfigSectionProps> = ({ config, setConfig, totalS
 
              <button
                onClick={() => handleStrategyChange(DistributionStrategy.GENDER_AND_ABILITY_HETEROGENEOUS)}
-               className={`p-4 rounded-2xl border text-left transition-all cursor-pointer ${config.strategy === DistributionStrategy.GENDER_AND_ABILITY_HETEROGENEOUS ? 'border-indigo-950 bg-indigo-50/50 ring-1 ring-indigo-950' : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'}`}
+                className={`p-4 rounded-full border text-left transition-all cursor-pointer ${config.strategy === DistributionStrategy.GENDER_AND_ABILITY_HETEROGENEOUS ? 'border-indigo-950 bg-indigo-50/50 ring-1 ring-indigo-950' : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'}`}
              >
                <div className="flex items-center gap-2 font-bold text-slate-800 text-sm">
                  <div className="p-1.5 rounded-lg bg-slate-100 text-indigo-950"><Layers className="w-4 h-4 text-indigo-950" /></div>

@@ -60,14 +60,14 @@ const ResultsSection: React.FC<ResultsSectionProps> = ({ groups }) => {
         <div className="flex flex-col sm:flex-row gap-3">
           <button
             onClick={() => exportToTxt(groups)}
-            className="flex items-center justify-center gap-2 px-4 py-2 bg-white border border-slate-350 hover:bg-slate-50 text-slate-700 rounded-lg shadow-sm transition-colors text-sm font-semibold cursor-pointer"
+            className="flex items-center justify-center gap-2 px-4 py-2 bg-white border border-slate-350 hover:bg-slate-50 text-slate-700 rounded-full shadow-sm transition-colors text-sm font-semibold cursor-pointer"
           >
             <FileText className="w-4 h-4 text-slate-500" />
             Ekspor .TXT
           </button>
           <button
             onClick={() => exportToDocx(groups)}
-            className="flex items-center justify-center gap-2 px-4 py-2 bg-[#3B66F5] hover:bg-[#2563EB] text-white rounded-lg shadow-md transition-colors text-sm font-semibold cursor-pointer"
+            className="flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] hover:brightness-110 border border-white/10 text-white rounded-full shadow-md transition-colors text-sm font-semibold cursor-pointer"
             title="Download DOCX"
           >
             <Download className="w-4 h-4" />

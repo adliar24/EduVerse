@@ -272,7 +272,7 @@ export const QuickInputModal: React.FC<{ isOpen: boolean, onClose: () => void }>
                             </Select>
                         </div>
                         <div className="flex-none w-full lg:w-auto">
-                            <Button variant="primary" className="w-full lg:w-48 !rounded-2xl py-3.5 md:py-4 shadow-xl uppercase tracking-widest text-[10px] md:text-[11px] font-black" onClick={handleSave} isLoading={isLoading}>
+                            <Button variant="primary" className="w-full lg:w-48 py-3.5 md:py-4 shadow-xl uppercase tracking-widest text-[10px] md:text-[11px] font-black" onClick={handleSave} isLoading={isLoading}>
                                 Simpan <Save size={16} className="ml-2" />
                             </Button>
                         </div>
@@ -291,11 +291,11 @@ export const QuickInputModal: React.FC<{ isOpen: boolean, onClose: () => void }>
                                 )}
                             </div>
                             <div className="flex items-center gap-1.5 md:gap-2">
-                                <button onClick={toggleListening} className={`flex items-center gap-1.5 px-3 py-2 rounded-2xl border-2 transition-all ${isListening ? 'bg-red-500 border-red-400 text-white shadow-xl scale-105' : 'bg-white border-slate-200 text-slate-600 hover:border-primary shadow-sm'}`}>
+                                <button onClick={toggleListening} className={`flex items-center gap-1.5 px-3 py-2 rounded-full border-2 transition-all ${isListening ? 'bg-red-500 border-red-400 text-white shadow-xl scale-105' : 'bg-white border-slate-200 text-slate-600 hover:border-primary shadow-sm'}`}>
                                     {isListening ? <MicOff size={14} /> : <Mic size={14} />}
                                     <span className="text-[8px] font-black uppercase tracking-widest">{isListening ? 'Stop' : 'Suara'}</span>
                                 </button>
-                                <button onClick={() => ocrMode === 'manual' ? setOcrMode('none') : setOcrMode('manual')} className={`flex items-center gap-1.5 px-3 py-2 rounded-2xl border-2 transition-all ${ocrMode !== 'none' ? 'bg-purple-500 border-purple-400 text-white shadow-xl' : 'bg-white border-slate-200 text-slate-600 hover:border-purple-400 shadow-sm'}`}>
+                                <button onClick={() => ocrMode === 'manual' ? setOcrMode('none') : setOcrMode('manual')} className={`flex items-center gap-1.5 px-3 py-2 rounded-full border-2 transition-all ${ocrMode !== 'none' ? 'bg-purple-500 border-purple-400 text-white shadow-xl' : 'bg-white border-slate-200 text-slate-600 hover:border-purple-400 shadow-sm'}`}>
                                     <FileText size={14} />
                                     <span className="text-[8px] font-black uppercase tracking-widest">OCR</span>
                                 </button>
@@ -305,8 +305,8 @@ export const QuickInputModal: React.FC<{ isOpen: boolean, onClose: () => void }>
                             <div className="relative bg-black rounded-2xl overflow-hidden mx-8 mt-4">
                                 <video ref={videoRef} autoPlay playsInline className="w-full" />
                                 <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-4">
-                                    <button onClick={() => { setOcrMode('none'); stopCamera(); }} className="px-6 py-3 bg-red-500 text-white rounded-xl font-black text-[10px] uppercase">Batal</button>
-                                    <button onClick={captureImage} className="px-6 py-3 bg-white text-purple-600 rounded-xl font-black text-[10px] uppercase"><Camera size={18} className="inline mr-2" />Ambil Foto</button>
+                                    <button onClick={() => { setOcrMode('none'); stopCamera(); }} className="px-6 py-3 bg-red-500 text-white rounded-full font-black text-[10px] uppercase">Batal</button>
+                                    <button onClick={captureImage} className="px-6 py-3 bg-white text-purple-600 rounded-full font-black text-[10px] uppercase"><Camera size={18} className="inline mr-2" />Ambil Foto</button>
                                 </div>
                                 <canvas ref={canvasRef} className="hidden" />
                             </div>

@@ -234,14 +234,14 @@ export const MeetingListScreen: React.FC = () => {
                      </div>
                      <div className="flex items-center gap-3 relative z-10">
                          <Link to={`/grading/score/${m.idPertemuan}`}>
-                           <button className={`h-14 px-8 rounded-2xl flex items-center justify-center gap-2 font-black uppercase tracking-widest text-[11px] transition-all active:scale-95 shadow-md cursor-pointer ${m.assessmentCategory === 'Sumatif' ? 'bg-[#3B66F5] text-white shadow-[#3B66F5]/25' : 'bg-[#3B66F5] text-white shadow-[#3B66F5]/25'}`}>
+                            <button className={`h-14 px-8 rounded-full flex items-center justify-center gap-2 font-black uppercase tracking-widest text-[11px] transition-all active:scale-95 shadow-md cursor-pointer ${m.assessmentCategory === 'Sumatif' ? 'bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white shadow-[#3B66F5]/25' : 'bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white shadow-[#3B66F5]/25'}`}>
                                <ClipboardCheck size={20} />
                                <span>Input Nilai</span>
                            </button>
                          </Link>
                          <button 
                            onClick={() => confirmDeleteMeeting(m.idPertemuan)} 
-                           className="h-14 w-14 flex items-center justify-center rounded-2xl bg-red-50 text-red-500 hover:bg-red-500 hover:text-white transition-all border border-red-100 shadow-sm active:scale-95 cursor-pointer"
+                           className="h-14 w-14 flex items-center justify-center rounded-full bg-red-50 text-red-500 hover:bg-red-500 hover:text-white transition-all border border-red-100 shadow-sm active:scale-95 cursor-pointer"
                          >
                            <Trash2 size={20} />
                          </button>
@@ -269,8 +269,8 @@ export const MeetingListScreen: React.FC = () => {
               </p>
            </div>
            <div className="flex gap-3 pt-4">
-              <Button variant="secondary" onClick={() => setDeleteConfirmation({ isOpen: false, id: null })} className="flex-1 !py-4 !rounded-2xl">Batal</Button>
-              <Button variant="danger" onClick={executeDeleteMeeting} className="flex-1 !py-4 !rounded-2xl shadow-lg shadow-red-500/20">Hapus Nilai</Button>
+              <Button variant="secondary" onClick={() => setDeleteConfirmation({ isOpen: false, id: null })} className="flex-1 !py-4">Batal</Button>
+              <Button variant="danger" onClick={executeDeleteMeeting} className="flex-1 !py-4 shadow-lg shadow-red-500/20">Hapus Nilai</Button>
            </div>
         </div>
       </Modal>

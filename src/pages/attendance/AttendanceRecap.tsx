@@ -74,10 +74,10 @@ export const Recap: React.FC<RecapProps> = ({ state, refresh, notify }) => {
   const getStatusChipClass = (status: AttendanceStatus, active: boolean) => {
     if (!active) {
       // outline for non-active
-      return 'min-w-[72px] sm:min-w-[84px] px-3 sm:px-4 py-2 rounded-lg text-[11px] sm:text-xs font-semibold border-2 bg-white text-gray-600 border-gray-200 hover:border-gray-300 transition';
+      return 'min-w-[72px] sm:min-w-[84px] px-3 sm:px-4 py-2 rounded-full text-[11px] sm:text-xs font-semibold border-2 bg-white text-gray-600 border-gray-200 hover:border-gray-300 transition';
     }
     const s = STATUS_CHIP[status];
-    return `min-w-[72px] sm:min-w-[84px] px-3 sm:px-4 py-2 rounded-lg text-[11px] sm:text-xs font-semibold border-2 ${s.bg} ${s.text} ${s.border} shadow-md ${s.shadow} transition`;
+    return `min-w-[72px] sm:min-w-[84px] px-3 sm:px-4 py-2 rounded-full text-[11px] sm:text-xs font-semibold border-2 ${s.bg} ${s.text} ${s.border} shadow-md ${s.shadow} transition`;
   };
 
   const getCountPillClass = (variant: AttendanceStatus, count: number) => {
@@ -966,8 +966,8 @@ const saveSessionChanges = async (sessionId: string) => {
 
               <div className="flex items-center gap-2 justify-start sm:justify-end overflow-x-auto whitespace-nowrap pb-1">
                 <button
-                  className="shrink-0 px-3 py-1.5 text-xs rounded-lg border border-gray-200 hover:border-blue-200 hover:bg-blue-50 disabled:opacity-40 disabled:hover:bg-transparent"
-                  onClick={() => setStudentPage(p => Math.max(1, p - 1))}
+                   className="shrink-0 px-3 py-1.5 text-xs rounded-full border border-gray-200 hover:border-blue-200 hover:bg-blue-50 disabled:opacity-40 disabled:hover:bg-transparent"
+                   onClick={() => setStudentPage(p => Math.max(1, p - 1))}
                   disabled={studentPage <= 1}
                 >
                   Sebelumnya
@@ -988,7 +988,7 @@ const saveSessionChanges = async (sessionId: string) => {
                       {showFirst && (
                         <>
                           <button
-                            className={`w-9 h-9 text-xs rounded-lg border ${studentPage === 1 ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-200 hover:border-blue-200 hover:bg-blue-50'}`}
+                            className={`w-9 h-9 text-xs rounded-full border ${studentPage === 1 ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-200 hover:border-blue-200 hover:bg-blue-50'}`}
                             onClick={() => setStudentPage(1)}
                           >
                             1
@@ -1000,7 +1000,7 @@ const saveSessionChanges = async (sessionId: string) => {
                       {pages.map(p => (
                         <button
                           key={p}
-                          className={`w-9 h-9 text-xs rounded-lg border ${studentPage === p ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-200 hover:border-blue-200 hover:bg-blue-50'}`}
+                          className={`w-9 h-9 text-xs rounded-full border ${studentPage === p ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-200 hover:border-blue-200 hover:bg-blue-50'}`}
                           onClick={() => setStudentPage(p)}
                         >
                           {p}
@@ -1011,7 +1011,7 @@ const saveSessionChanges = async (sessionId: string) => {
                         <>
                           {end < totalStudentPages - 1 && <span className="px-1 text-gray-400">…</span>}
                           <button
-                            className={`w-9 h-9 text-xs rounded-lg border ${studentPage === totalStudentPages ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-200 hover:border-blue-200 hover:bg-blue-50'}`}
+                             className={`w-9 h-9 text-xs rounded-full border ${studentPage === totalStudentPages ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-200 hover:border-blue-200 hover:bg-blue-50'}`}
                             onClick={() => setStudentPage(totalStudentPages)}
                           >
                             {totalStudentPages}
@@ -1023,8 +1023,8 @@ const saveSessionChanges = async (sessionId: string) => {
                 })()}
 
                 <button
-                  className="shrink-0 px-3 py-1.5 text-xs rounded-lg border border-gray-200 hover:border-blue-200 hover:bg-blue-50 disabled:opacity-40 disabled:hover:bg-transparent"
-                  onClick={() => setStudentPage(p => Math.min(totalStudentPages, p + 1))}
+                   className="shrink-0 px-3 py-1.5 text-xs rounded-full border border-gray-200 hover:border-blue-200 hover:bg-blue-50 disabled:opacity-40 disabled:hover:bg-transparent"
+                   onClick={() => setStudentPage(p => Math.min(totalStudentPages, p + 1))}
                   disabled={studentPage >= totalStudentPages}
                 >
                   Berikutnya
@@ -1118,7 +1118,7 @@ const saveSessionChanges = async (sessionId: string) => {
                     e.stopPropagation();
                     await exportSessionExcel(sess.id);
                   }}
-                  className="flex items-center gap-2 px-3 py-2 text-xs font-bold text-blue-700 bg-blue-100 hover:bg-blue-200 rounded-xl transition-colors border border-blue-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                   className="flex items-center gap-2 px-3 py-2 text-xs font-bold text-blue-700 bg-blue-100 hover:bg-blue-200 rounded-full transition-colors border border-blue-200 disabled:opacity-50 disabled:cursor-not-allowed"
                   title={hasAnyDraft ? 'Simpan perubahan dulu agar export sesuai' : 'Ekspor Excel pertemuan ini'}
                   disabled={hasAnyDraft}
                 >
@@ -1130,7 +1130,7 @@ const saveSessionChanges = async (sessionId: string) => {
                     e.stopPropagation();
                     setDeleteId(sess.id);
                   }}
-                  className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors"
+                   className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
                   title="Hapus Pertemuan"
                 >
                   <Trash2 className="w-5 h-5" />
@@ -1346,7 +1346,7 @@ const saveSessionChanges = async (sessionId: string) => {
                 <button
                   key={p.id}
                   onClick={() => setExportPeriod(p.id as any)}
-                  className={`py-2 px-1 rounded-lg text-[10px] sm:text-xs font-medium border-2 transition-colors ${
+                  className={`py-2 px-1 rounded-full text-[10px] sm:text-xs font-medium border-2 transition-colors ${
                     exportPeriod === p.id 
                       ? 'border-blue-500 bg-blue-50 text-blue-700' 
                       : 'border-gray-200 text-gray-600 hover:border-gray-300'
@@ -1369,7 +1369,7 @@ const saveSessionChanges = async (sessionId: string) => {
                 <button
                   key={f.id}
                   onClick={() => setExportFormat(f.id as any)}
-                  className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-sm font-medium border-2 transition-colors ${
+                   className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-full text-sm font-medium border-2 transition-colors ${
                     exportFormat === f.id 
                       ? 'border-blue-500 bg-blue-50 text-blue-700' 
                       : 'border-gray-200 text-gray-600 hover:border-gray-300'
@@ -1444,7 +1444,7 @@ const saveSessionChanges = async (sessionId: string) => {
             <div className="flex gap-2">
               <button
                 onClick={() => setExportMonth(0)}
-                className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium border-2 transition-colors ${
+                className={`flex-1 py-2 px-3 rounded-full text-sm font-medium border-2 transition-colors ${
                   exportMonth === 0 
                     ? 'border-blue-500 bg-blue-50 text-blue-700' 
                     : 'border-gray-200 text-gray-600 hover:border-gray-300'
@@ -1454,7 +1454,7 @@ const saveSessionChanges = async (sessionId: string) => {
               </button>
               <button
                 onClick={() => setExportMonth(6)}
-                className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium border-2 transition-colors ${
+                className={`flex-1 py-2 px-3 rounded-full text-sm font-medium border-2 transition-colors ${
                   exportMonth === 6 
                     ? 'border-blue-500 bg-blue-50 text-blue-700' 
                     : 'border-gray-200 text-gray-600 hover:border-gray-300'

@@ -150,7 +150,7 @@ export const TPManagerScreen: React.FC = () => {
                         </div>
                         <Button 
                             onClick={handleSaveTP} 
-                            className="w-full !rounded-2xl py-5 uppercase tracking-widest font-black"
+                            className="w-full py-5 uppercase tracking-widest font-black"
                         >
                             {editingTP ? "Simpan Perubahan" : "Simpan TP"}
                         </Button>

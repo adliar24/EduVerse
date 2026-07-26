@@ -86,7 +86,7 @@ export const CreateMeetingScreen: React.FC = () => {
       <Header title="Pertemuan Baru" subtitle="Setup Aktivitas & Penilaian" backTo="/grading" />
       
       <PageTransition className="max-w-3xl mx-auto py-6">
-         <Card className="p-8 md:p-12 !rounded-[3rem] shadow-2xl border-2 border-blue-50 relative overflow-hidden">
+         <Card className="p-8 md:p-12 shadow-2xl border-2 border-blue-50 relative overflow-hidden">
             {/* Background Accent */}
             <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50/50 rounded-bl-[5rem] -mr-10 -mt-10 pointer-events-none"></div>
             
@@ -190,8 +190,8 @@ export const CreateMeetingScreen: React.FC = () => {
                </section>
 
                 <div className="pt-8 flex flex-col md:flex-row gap-4">
-                   <Button variant="secondary" onClick={() => navigate('/grading')} className="flex-1 !py-5 !rounded-2xl text-xs uppercase tracking-widest font-black cursor-pointer">Batal</Button>
-                   <Button onClick={handleSubmit} className="flex-[2] !py-5 !rounded-2xl text-xs uppercase tracking-widest font-black shadow-glow cursor-pointer">Mulai Input Nilai</Button>
+                   <Button variant="secondary" onClick={() => navigate('/grading')} className="flex-1 !py-5 text-xs uppercase tracking-widest font-black cursor-pointer">Batal</Button>
+                   <Button onClick={handleSubmit} className="flex-[2] !py-5 text-xs uppercase tracking-widest font-black shadow-glow cursor-pointer">Mulai Input Nilai</Button>
                 </div>
             </div>
          </Card>

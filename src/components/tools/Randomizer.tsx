@@ -184,10 +184,10 @@ const WheelView = ({
           onClick={spin}
           disabled={isSpinning || !hasEnoughData}
           className={`
-            group relative px-10 py-5 rounded-2xl font-black text-xl tracking-widest uppercase transition-all duration-300 transform cursor-pointer
+            group relative px-10 py-5 rounded-full font-black text-xl tracking-widest uppercase transition-all duration-300 transform cursor-pointer
             ${isSpinning || !hasEnoughData
               ? 'bg-slate-200 text-slate-400 cursor-not-allowed scale-95 shadow-none' 
-              : 'bg-[#3B66F5] text-white shadow-xl hover:scale-105 hover:bg-indigo-900 hover:shadow-2xl hover:-translate-y-1'
+              : 'bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white shadow-xl hover:scale-105 hover:brightness-110 hover:shadow-2xl hover:-translate-y-1 border border-white/10'
             }
           `}
         >
@@ -284,10 +284,10 @@ const DiceView = ({ activeStudents, rollDice, isRolling }: any) => {
         onClick={rollDice}
         disabled={isRolling || activeStudents.length === 0}
         className={`
-          group relative px-10 py-5 rounded-2xl font-black text-xl tracking-widest uppercase transition-all duration-300 transform cursor-pointer
+          group relative px-10 py-5 rounded-full font-black text-xl tracking-widest uppercase transition-all duration-300 transform cursor-pointer
           ${isRolling || activeStudents.length === 0
             ? 'bg-slate-200 text-slate-400 cursor-not-allowed scale-95 shadow-none' 
-            : 'bg-[#3B66F5] text-white shadow-xl hover:scale-105 hover:bg-indigo-900 hover:shadow-2xl hover:-translate-y-1'
+            : 'bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white shadow-xl hover:scale-105 hover:brightness-110 hover:shadow-2xl hover:-translate-y-1 border border-white/10'
           }
         `}
       >
@@ -486,13 +486,13 @@ const Randomizer: React.FC = () => {
                     <div className="mt-6 flex flex-col gap-3">
                        <button 
                          onClick={removeWinner}
-                         className="w-full py-3 bg-red-650 hover:bg-red-700 text-white rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-transform cursor-pointer"
+                          className="w-full py-3 bg-red-650 hover:bg-red-700 text-white rounded-full font-bold flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-transform cursor-pointer"
                        >
                           <Trash2 className="w-5 h-5 text-white" /> Hapus & Tutup
                        </button>
                        <button 
                          onClick={() => setWinner(null)}
-                         className="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                          className="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-full font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer"
                        >
                           <RotateCcw className="w-5 h-5 text-slate-700" /> Simpan & Putar Lagi
                        </button>
@@ -515,7 +515,7 @@ const Randomizer: React.FC = () => {
                 <div className="space-y-3">
                    <div className="flex items-center justify-between border-b border-slate-100 pb-2 mb-2">
                       <h3 className="font-bold text-sm text-indigo-955">Nama Tersedia ({activeStudents.length})</h3>
-                      <button onClick={handleReset} className="text-xs text-red-600 hover:text-red-700 font-bold flex items-center gap-1 bg-red-50 px-2 py-1 rounded transition-colors cursor-pointer">
+                       <button onClick={handleReset} className="text-xs text-red-600 hover:text-red-700 font-bold flex items-center gap-1 bg-red-50 px-2 py-1 rounded-full transition-colors cursor-pointer">
                         <RotateCcw className="w-3 h-3 text-red-600" /> Reset
                       </button>
                    </div>
@@ -545,21 +545,21 @@ const Randomizer: React.FC = () => {
               <div className="flex gap-1">
                 <button 
                   onClick={() => setMode('wheel')}
-                  className={`p-2.5 rounded-xl flex items-center gap-2 transition-all cursor-pointer ${mode === 'wheel' ? 'bg-[#3B66F5] shadow-sm text-white font-bold' : 'text-slate-500 hover:bg-slate-50'}`}
+                  className={`p-2.5 rounded-full flex items-center gap-2 transition-all cursor-pointer ${mode === 'wheel' ? 'bg-[#3B66F5] shadow-sm text-white font-bold' : 'text-slate-500 hover:bg-slate-50'}`}
                 >
                   <Disc className={`w-5 h-5 ${mode === 'wheel' ? 'text-white' : 'text-slate-500'}`} />
                   <span className="hidden sm:inline text-sm font-semibold">Roda</span>
                 </button>
                 <button 
                   onClick={() => setMode('box')}
-                  className={`p-2.5 rounded-xl flex items-center gap-2 transition-all cursor-pointer ${mode === 'box' ? 'bg-[#3B66F5] shadow-sm text-white font-bold' : 'text-slate-500 hover:bg-slate-50'}`}
+                  className={`p-2.5 rounded-full flex items-center gap-2 transition-all cursor-pointer ${mode === 'box' ? 'bg-[#3B66F5] shadow-sm text-white font-bold' : 'text-slate-500 hover:bg-slate-50'}`}
                 >
                   <Grid3X3 className={`w-5 h-5 ${mode === 'box' ? 'text-white' : 'text-slate-500'}`} />
                   <span className="hidden sm:inline text-sm font-semibold">Kotak</span>
                 </button>
                 <button 
                   onClick={() => setMode('dice')}
-                  className={`p-2.5 rounded-xl flex items-center gap-2 transition-all cursor-pointer ${mode === 'dice' ? 'bg-[#3B66F5] shadow-sm text-white font-bold' : 'text-slate-500 hover:bg-slate-50'}`}
+                  className={`p-2.5 rounded-full flex items-center gap-2 transition-all cursor-pointer ${mode === 'dice' ? 'bg-[#3B66F5] shadow-sm text-white font-bold' : 'text-slate-500 hover:bg-slate-50'}`}
                 >
                   <Dices className={`w-5 h-5 ${mode === 'dice' ? 'text-white' : 'text-slate-500'}`} />
                   <span className="hidden sm:inline text-sm font-semibold">Dadu</span>
@@ -568,7 +568,7 @@ const Randomizer: React.FC = () => {
 
               <button 
                 onClick={() => setSoundEnabled(!soundEnabled)}
-                className="p-2.5 rounded-xl hover:bg-slate-50 text-slate-600 transition-colors cursor-pointer border border-transparent hover:border-slate-200"
+                className="p-2.5 rounded-full hover:bg-slate-50 text-slate-600 transition-colors cursor-pointer border border-transparent hover:border-slate-200"
               >
                 {soundEnabled ? <Volume2 className="w-5 h-5 text-slate-700" /> : <VolumeX className="w-5 h-5 text-slate-700" />}
               </button>

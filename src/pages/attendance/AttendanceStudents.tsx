@@ -623,7 +623,7 @@ else if (fileExt === 'csv') {
                     <h1 className="text-2xl font-bold text-gray-900">Manajemen Kelas</h1>
                     <p className="text-gray-500 text-sm mt-1">Pilih kelas untuk mengelola data siswa</p>
                   </div>
-                  <Button onClick={() => setIsClassModalOpen(true)} className="!px-5 !py-2.5 rounded-xl shadow-lg shadow-blue-200/50">
+                  <Button onClick={() => setIsClassModalOpen(true)} className="!px-5 !py-2.5 rounded-full shadow-lg shadow-blue-200/50">
                     <Plus className="w-5 h-5 mr-2" /> Kelas Baru
                   </Button>
               </div>
@@ -748,7 +748,7 @@ else if (fileExt === 'csv') {
                     onClick={handleDownloadBulkCards} 
                     disabled={isGenerating}
                     variant="secondary"
-                    className="!px-4 !py-2.5 !text-xs !rounded-xl bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200 font-bold"
+                    className="!px-4 !py-2.5 !text-xs bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200 font-bold"
                 >
                     {isGenerating ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <IdCard className="w-4 h-4 mr-2" />}
                     Unduh Semua Kartu (ZIP)
@@ -760,13 +760,13 @@ else if (fileExt === 'csv') {
       {/* MOBILE TABS (Hidden on Desktop) */}
       <div className="flex lg:hidden gap-2 mb-6 bg-gray-100 p-1 rounded-2xl max-w-md md:max-w-xs">
         <button 
-          className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-all ${activeTab === 'list' ? 'bg-white shadow text-blue-600' : 'text-gray-500'}`}
+          className={`flex-1 py-2 rounded-full text-sm font-semibold transition-all ${activeTab === 'list' ? 'bg-white shadow text-blue-600' : 'text-gray-500'}`}
           onClick={() => setActiveTab('list')}
         >
           Daftar Murid
         </button>
         <button 
-          className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-all ${activeTab === 'add' ? 'bg-white shadow text-blue-600' : 'text-gray-500'}`}
+          className={`flex-1 py-2 rounded-full text-sm font-semibold transition-all ${activeTab === 'add' ? 'bg-white shadow text-blue-600' : 'text-gray-500'}`}
           onClick={() => setActiveTab('add')}
         >
           Input / Impor

@@ -207,8 +207,8 @@ const ReportDetailView: React.FC<{ idKelas: string }> = ({ idKelas }) => {
               <p className="text-[9px] font-bold text-slate-400 uppercase mt-1 hidden-in-pdf">Data real-time berdasarkan aktivitas kelas</p>
            </div>
            <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto" data-html2canvas-ignore>
-              <Button variant="secondary" onClick={exportExcel} className="flex-1 md:flex-none !py-3 !px-6 !text-[13px] !rounded-xl h-14 md:h-auto"><FileSpreadsheet size={18} className="mr-2 text-emerald-600"/> Export Excel</Button>
-              <Button variant="accent" onClick={exportPDF} className="flex-1 md:flex-none !py-3 !px-6 !text-[13px] !rounded-xl h-14 md:h-auto shadow-glow-gold"><FileText size={18} className="mr-2 text-red-500"/> Export PDF</Button>
+              <Button variant="secondary" onClick={exportExcel} className="flex-1 md:flex-none !py-3 !px-6 !text-[13px] h-14 md:h-auto"><FileSpreadsheet size={18} className="mr-2 text-emerald-600"/> Export Excel</Button>
+              <Button variant="accent" onClick={exportPDF} className="flex-1 md:flex-none !py-3 !px-6 !text-[13px] h-14 md:h-auto shadow-glow-gold"><FileText size={18} className="mr-2 text-red-500"/> Export PDF</Button>
            </div>
         </div>
         
@@ -257,7 +257,7 @@ const ReportDetailView: React.FC<{ idKelas: string }> = ({ idKelas }) => {
                            </span>
                        </td>
                        <td className="px-6 py-4 no-print" data-html2canvas-ignore>
-                          <Link to={`/reports/${idKelas}/${std.idSiswa}`} className="w-8 h-8 rounded-lg bg-slate-50 text-slate-300 flex items-center justify-center hover:bg-primary hover:text-white transition-colors">
+                          <Link to={`/reports/${idKelas}/${std.idSiswa}`} className="w-8 h-8 rounded-full bg-slate-50 text-slate-300 flex items-center justify-center hover:bg-primary hover:text-white transition-colors">
                              <ChevronRight size={16} />
                           </Link>
                        </td>

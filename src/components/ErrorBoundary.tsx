@@ -89,7 +89,7 @@ export default class ErrorBoundary extends React.Component<Props, State> {
               if (this.props.onReset) this.props.onReset();
               else window.location.reload();
             }}
-            className="flex items-center gap-2 bg-indigo-950 text-white px-6 py-3 rounded-xl font-bold hover:bg-indigo-900 transition-all active:scale-95 shadow-lg"
+            className="flex items-center gap-2 bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white px-6 py-3 rounded-full font-bold hover:brightness-110 transition-all active:scale-95 shadow-lg"
           >
             <RefreshCw className="w-5 h-5" />
             Muat Ulang Form

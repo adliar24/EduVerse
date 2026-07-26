@@ -712,14 +712,14 @@ export default function KelolaMateriTugas() {
             {selectedIds.length > 0 && (
               <button
                 onClick={() => handleDeleteBulk(selectedIds.filter(id => currentActiveList.some(item => item.id === id)), false)}
-                className="bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 px-3 py-1.5 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-all active:scale-[0.98]"
+                className="bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 px-3 py-1.5 rounded-full font-bold text-xs flex items-center gap-1.5 transition-all active:scale-[0.98]"
               >
                 <Trash2 className="w-3.5 h-3.5" /> Hapus Terpilih
               </button>
             )}
             <button
               onClick={() => handleDeleteBulk(currentActiveList.map(item => item.id), true)}
-              className="bg-white text-rose-600 hover:bg-rose-50 border border-slate-200 hover:border-rose-200 px-3 py-1.5 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-all active:scale-[0.98]"
+              className="bg-white text-rose-600 hover:bg-rose-50 border border-slate-200 hover:border-rose-200 px-3 py-1.5 rounded-full font-bold text-xs flex items-center gap-1.5 transition-all active:scale-[0.98]"
             >
               <Trash2 className="w-3.5 h-3.5 text-rose-500" /> Hapus Semua
             </button>
@@ -1178,14 +1178,14 @@ export default function KelolaMateriTugas() {
                     type="button" 
                     disabled={submitting}
                     onClick={() => setShowModal(false)}
-                    className="px-6 py-3 rounded-xl font-bold text-sm text-slate-500 bg-slate-100 hover:bg-slate-200 transition-colors disabled:opacity-50"
+                    className="px-6 py-3 rounded-full font-bold text-sm text-slate-500 bg-slate-100 hover:bg-slate-200 transition-colors disabled:opacity-50"
                   >
                     Batal
                   </button>
                   <button 
                     type="submit" 
                     disabled={submitting}
-                    className="bg-indigo-950 text-white px-6 py-3 rounded-xl font-bold text-sm hover:bg-indigo-900 active:scale-[0.98] transition-all shadow-lg shadow-indigo-100 flex items-center justify-center gap-2 disabled:opacity-50"
+                    className="bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white px-6 py-3 rounded-full font-bold text-sm hover:brightness-110 active:scale-[0.98] border border-white/10 transition-all shadow-lg shadow-[#3B66F5]/25 flex items-center justify-center gap-2 disabled:opacity-50"
                   >
                     {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Simpan Postingan'}
                   </button>

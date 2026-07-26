@@ -110,7 +110,7 @@ export const PointTemplateManagerScreen: React.FC<{ profile: TeacherProfile | nu
                         </div>
                         <Button 
                             onClick={() => { setEditingTemplate(null); setFormData({ title: '', amount: '', type: 'positive' }); setIsModalOpen(true); }}
-                            className="w-full md:w-auto !rounded-2xl !px-10 !py-4 bg-primary hover:bg-primary/90 border-none shadow-xl shadow-primary/20 text-xs font-black uppercase tracking-widest"
+                            className="w-full md:w-auto !px-10 !py-4 bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] hover:brightness-110 border-none shadow-xl shadow-[#3B66F5]/25 text-xs font-black uppercase tracking-widest"
                         >
                             Tambah Baru <Plus size={18} className="ml-2" />
                         </Button>
@@ -119,7 +119,7 @@ export const PointTemplateManagerScreen: React.FC<{ profile: TeacherProfile | nu
                     <div className="sticky top-4 z-30 flex bg-slate-100/80 backdrop-blur-md p-1.5 rounded-[2.5rem] shadow-inner border border-slate-200/50">
                         <button 
                             onClick={() => setActiveListTab('positive')}
-                            className={`flex-1 py-4 rounded-[2rem] text-[10px] md:text-xs font-black uppercase tracking-[0.1em] transition-all flex items-center justify-center gap-3 ${
+                            className={`flex-1 py-4 rounded-full text-[10px] md:text-xs font-black uppercase tracking-[0.1em] transition-all flex items-center justify-center gap-3 ${
                                 activeListTab === 'positive' ? 'bg-white text-emerald-600 shadow-md scale-[1.02]' : 'text-slate-400 hover:text-slate-600'
                             }`}
                         >
@@ -128,7 +128,7 @@ export const PointTemplateManagerScreen: React.FC<{ profile: TeacherProfile | nu
                         </button>
                         <button 
                             onClick={() => setActiveListTab('negative')}
-                            className={`flex-1 py-4 rounded-[2rem] text-[10px] md:text-xs font-black uppercase tracking-[0.1em] transition-all flex items-center justify-center gap-3 ${
+                            className={`flex-1 py-4 rounded-full text-[10px] md:text-xs font-black uppercase tracking-[0.1em] transition-all flex items-center justify-center gap-3 ${
                                 activeListTab === 'negative' ? 'bg-white text-red-600 shadow-md scale-[1.02]' : 'text-slate-400 hover:text-slate-600'
                             }`}
                         >
@@ -160,8 +160,8 @@ export const PointTemplateManagerScreen: React.FC<{ profile: TeacherProfile | nu
                                                     </div>
                                                 </div>
                                                 <div className="flex gap-1.5 shrink-0">
-                                                    <button onClick={() => openEdit(t)} className="w-8 h-8 bg-slate-50 text-slate-400 hover:text-primary rounded-lg transition-all flex items-center justify-center"><Edit2 size={14} /></button>
-                                                    <button onClick={() => setDeleteConfirm({ isOpen: true, id: t.id })} className="w-8 h-8 bg-slate-50 text-slate-400 hover:text-red-500 rounded-lg transition-all flex items-center justify-center"><Trash2 size={14} /></button>
+                                                    <button onClick={() => openEdit(t)} className="w-8 h-8 bg-slate-50 text-slate-400 hover:text-primary rounded-full transition-all flex items-center justify-center"><Edit2 size={14} /></button>
+                                                    <button onClick={() => setDeleteConfirm({ isOpen: true, id: t.id })} className="w-8 h-8 bg-slate-50 text-slate-400 hover:text-red-500 rounded-full transition-all flex items-center justify-center"><Trash2 size={14} /></button>
                                                 </div>
                                             </div>
                                         ))}
@@ -190,8 +190,8 @@ export const PointTemplateManagerScreen: React.FC<{ profile: TeacherProfile | nu
                                                     </div>
                                                 </div>
                                                 <div className="flex gap-1.5 shrink-0">
-                                                    <button onClick={() => openEdit(t)} className="w-8 h-8 bg-slate-50 text-slate-400 hover:text-primary rounded-lg transition-all flex items-center justify-center"><Edit2 size={14} /></button>
-                                                    <button onClick={() => setDeleteConfirm({ isOpen: true, id: t.id })} className="w-8 h-8 bg-slate-50 text-slate-400 hover:text-red-500 rounded-lg transition-all flex items-center justify-center"><Trash2 size={14} /></button>
+                                                    <button onClick={() => openEdit(t)} className="w-8 h-8 bg-slate-50 text-slate-400 hover:text-primary rounded-full transition-all flex items-center justify-center"><Edit2 size={14} /></button>
+                                                    <button onClick={() => setDeleteConfirm({ isOpen: true, id: t.id })} className="w-8 h-8 bg-slate-50 text-slate-400 hover:text-red-500 rounded-full transition-all flex items-center justify-center"><Trash2 size={14} /></button>
                                                 </div>
                                             </div>
                                         ))}
@@ -208,20 +208,20 @@ export const PointTemplateManagerScreen: React.FC<{ profile: TeacherProfile | nu
                     <div className="grid grid-cols-2 gap-3 p-1 bg-slate-100 rounded-2xl">
                         <button 
                             onClick={() => setFormData({...formData, type: 'positive'})}
-                            className={`py-3 rounded-xl font-black text-[10px] uppercase transition-all ${formData.type === 'positive' ? 'bg-white text-emerald-600 shadow-sm' : 'text-slate-400'}`}
+                            className={`py-3 rounded-full font-black text-[10px] uppercase transition-all ${formData.type === 'positive' ? 'bg-white text-emerald-600 shadow-sm' : 'text-slate-400'}`}
                         >
                             Positif (+)
                         </button>
                         <button 
                             onClick={() => setFormData({...formData, type: 'negative'})}
-                            className={`py-3 rounded-xl font-black text-[10px] uppercase transition-all ${formData.type === 'negative' ? 'bg-white text-red-600 shadow-sm' : 'text-slate-400'}`}
+                            className={`py-3 rounded-full font-black text-[10px] uppercase transition-all ${formData.type === 'negative' ? 'bg-white text-red-600 shadow-sm' : 'text-slate-400'}`}
                         >
                             Negatif (-)
                         </button>
                     </div>
                     <Input label="JUDUL TEMPLATE" placeholder="Misal: Membersihkan Kelas, Terlambat..." value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} />
                     <Input label="JUMLAH POIN" type="number" placeholder="Masukkan angka..." value={formData.amount} onChange={e => setFormData({...formData, amount: e.target.value})} />
-                    <Button onClick={handleSave} className={`w-full py-4 !rounded-2xl font-black uppercase ${formData.type === 'positive' ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-red-500 hover:bg-red-600'}`}>
+                    <Button onClick={handleSave} className={`w-full py-4 font-black uppercase ${formData.type === 'positive' ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-red-500 hover:bg-red-600'}`}>
                         Simpan Template <Save size={18} className="ml-2" />
                     </Button>
                 </div>

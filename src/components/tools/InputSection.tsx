@@ -216,7 +216,7 @@ const InputSection: React.FC<InputSectionProps> = ({ onStudentsLoaded, currentCo
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`flex-1 py-2 px-3 rounded-lg text-sm font-bold transition-all duration-300 cursor-pointer ${
+               className={`flex-1 py-2 px-3 rounded-full text-sm font-bold transition-all duration-300 cursor-pointer ${
                 activeTab === tab.key
                   ? `${themeClasses.tabActive}`
                   : 'text-slate-500 hover:text-slate-700'
@@ -237,7 +237,7 @@ const InputSection: React.FC<InputSectionProps> = ({ onStudentsLoaded, currentCo
                 <button
                   type="button"
                   onClick={() => setIsClassDropdownOpen(!isClassDropdownOpen)}
-                  className={`w-full flex items-center justify-between p-3 border border-slate-200 rounded-xl bg-white text-sm text-left transition-all cursor-pointer ${themeClasses.ring} ${selectedClassId ? 'text-slate-800 font-semibold' : 'text-slate-400'}`}
+                  className={`w-full flex items-center justify-between p-3 border border-slate-200 rounded-full bg-white text-sm text-left transition-all cursor-pointer ${themeClasses.ring} ${selectedClassId ? 'text-slate-800 font-semibold' : 'text-slate-400'}`}
                 >
                   <span className="truncate">{selectedClassName || '— Pilih kelas —'}</span>
                   <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${isClassDropdownOpen ? 'rotate-180' : ''}`} />
@@ -316,7 +316,7 @@ const InputSection: React.FC<InputSectionProps> = ({ onStudentsLoaded, currentCo
                     <button
                       onClick={handleLoadFromClass}
                       disabled={checkedStudentIds.size === 0}
-                      className={`w-full py-3 bg-gradient-to-r text-white rounded-xl font-bold shadow-md transition-all active:scale-[0.98] disabled:from-slate-200 disabled:to-slate-300 disabled:text-slate-400 disabled:shadow-none disabled:cursor-not-allowed cursor-pointer ${themeClasses.button}`}
+                      className={`w-full py-3 bg-gradient-to-r text-white rounded-full font-bold shadow-md transition-all active:scale-[0.98] disabled:from-slate-200 disabled:to-slate-300 disabled:text-slate-400 disabled:shadow-none disabled:cursor-not-allowed cursor-pointer ${themeClasses.button}`}
                     >
                       Muat Siswa Terpilih ({checkedStudentIds.size})
                     </button>
@@ -385,7 +385,7 @@ const InputSection: React.FC<InputSectionProps> = ({ onStudentsLoaded, currentCo
             <button
               onClick={handleManualSubmit}
               disabled={isGenderMode ? (!maleText.trim() && !femaleText.trim()) : !manualText.trim()}
-              className={`w-full py-3 bg-gradient-to-r text-white rounded-xl font-bold shadow-md transition-all active:scale-[0.98] disabled:from-slate-200 disabled:to-slate-300 disabled:text-slate-400 disabled:shadow-none disabled:cursor-not-allowed cursor-pointer ${themeClasses.button}`}
+              className={`w-full py-3 bg-gradient-to-r text-white rounded-full font-bold shadow-md transition-all active:scale-[0.98] disabled:from-slate-200 disabled:to-slate-300 disabled:text-slate-400 disabled:shadow-none disabled:cursor-not-allowed cursor-pointer ${themeClasses.button}`}
             >
               Muat Data Manual
             </button>
@@ -401,7 +401,7 @@ const InputSection: React.FC<InputSectionProps> = ({ onStudentsLoaded, currentCo
                </div>
                <button 
                  onClick={generateStudentListTemplate}
-                 className={`flex items-center gap-1.5 bg-white border border-slate-200 px-3 py-2 rounded-lg text-xs font-bold transition-all shadow-sm hover:bg-slate-50 text-indigo-950 cursor-pointer`}
+                  className={`flex items-center gap-1.5 bg-white border border-slate-200 px-3 py-2 rounded-full text-xs font-bold transition-all shadow-sm hover:bg-slate-50 text-indigo-950 cursor-pointer`}
                >
                  <Download className="w-3 h-3 text-indigo-950" /> Template
                </button>

@@ -818,7 +818,7 @@ const switchCamera = async () => {
               </p>
               <Link 
                 to="/kelola-kelas"
-                className="mt-5 inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-950 hover:bg-indigo-900 text-white rounded-xl font-semibold text-sm transition-all cursor-pointer shadow-md shadow-indigo-950/20"
+                className="mt-5 inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] hover:brightness-110 text-white rounded-full font-semibold text-sm transition-all cursor-pointer shadow-md shadow-indigo-950/20"
               >
                 <Plus className="w-4 h-4" />
                 Buat Kelas Baru
@@ -1002,21 +1002,21 @@ const switchCamera = async () => {
         rightAction={
           <div className="flex gap-2">
             {mode === 'manual' && students.length > 0 && (
-                <Button onClick={handleMarkAllPresent} className="!px-4 !py-2 !text-xs !rounded-xl cursor-pointer">
+                <Button onClick={handleMarkAllPresent} className="!px-4 !py-2 !text-xs cursor-pointer">
                     <CheckCircle className="w-4 h-4" /> <span className="hidden sm:inline">Hadir Semua</span>
                 </Button>
             )}
             {currentSession && !currentSession.isClosed && (
-                <Button variant="danger" onClick={handleCloseSession} className="!px-3 !py-2 !text-xs !rounded-xl cursor-pointer">
+                <Button variant="danger" onClick={handleCloseSession} className="!px-3 !py-2 !text-xs cursor-pointer">
                     <UserX className="w-4 h-4" /> <span className="hidden sm:inline">Tutup Absen</span>
                 </Button>
             )}
             {currentSession && currentSession.isClosed && (
-                <Button variant="success" onClick={handleReopenSession} className="!px-3 !py-2 !text-xs !rounded-xl cursor-pointer bg-emerald-600 hover:bg-emerald-700">
+                <Button variant="success" onClick={handleReopenSession} className="!px-3 !py-2 !text-xs cursor-pointer bg-emerald-600 hover:bg-emerald-700">
                     <Play className="w-4 h-4" /> <span className="hidden sm:inline">Buka Sesi</span>
                 </Button>
             )}
-            <Button variant="secondary" onClick={handleChangeClass} className="!px-4 !py-2 !text-xs !rounded-xl cursor-pointer">
+            <Button variant="secondary" onClick={handleChangeClass} className="!px-4 !py-2 !text-xs cursor-pointer">
                <ArrowRightLeft className="w-4 h-4" /> <span className="hidden sm:inline">Ganti Kelas</span>
             </Button>
           </div>
@@ -1069,13 +1069,13 @@ const switchCamera = async () => {
           <div className="bg-white p-1.5 rounded-2xl border border-gray-200 shadow-sm flex">
             <button 
               onClick={() => { setMode('scan'); setScanType(null); }}
-              className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm transition-all ${mode === 'scan' ? 'bg-blue-500 text-white shadow-md' : 'text-gray-500 hover:bg-gray-50'}`}
+              className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-full font-bold text-sm transition-all ${mode === 'scan' ? 'bg-blue-500 text-white shadow-md' : 'text-gray-500 hover:bg-gray-50'}`}
             >
               <ScanLine className="w-4 h-4" /> Scan
             </button>
             <button 
               onClick={() => { setMode('manual'); setScanType(null); }}
-              className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm transition-all ${mode === 'manual' ? 'bg-blue-500 text-white shadow-md' : 'text-gray-500 hover:bg-gray-50'}`}
+              className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-full font-bold text-sm transition-all ${mode === 'manual' ? 'bg-blue-500 text-white shadow-md' : 'text-gray-500 hover:bg-gray-50'}`}
             >
               <List className="w-4 h-4" /> Manual
             </button>
@@ -1214,7 +1214,7 @@ const switchCamera = async () => {
                 <div className="flex bg-gray-100 rounded-xl p-1">
                   <button
                     onClick={() => setShowFilter('all')}
-                    className={`flex-1 py-2 rounded-lg text-sm font-bold transition ${
+                    className={`flex-1 py-2 rounded-full text-sm font-bold transition ${
                       showFilter === 'all' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500'
                     }`}
                   >
@@ -1222,7 +1222,7 @@ const switchCamera = async () => {
                   </button>
                   <button
                     onClick={() => setShowFilter('present')}
-                    className={`flex-1 py-2 rounded-lg text-sm font-bold transition ${
+                    className={`flex-1 py-2 rounded-full text-sm font-bold transition ${
                       showFilter === 'present' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500'
                     }`}
                   >
@@ -1230,7 +1230,7 @@ const switchCamera = async () => {
                   </button>
                   <button
                     onClick={() => setShowFilter('absent')}
-                    className={`flex-1 py-2 rounded-lg text-sm font-bold transition ${
+                    className={`flex-1 py-2 rounded-full text-sm font-bold transition ${
                       showFilter === 'absent' ? 'bg-white text-red-600 shadow-sm' : 'text-gray-500'
                     }`}
                   >
@@ -1315,7 +1315,7 @@ const switchCamera = async () => {
                             <button
                               key={opt}
                               onClick={() => handleManualStatus(s.id, opt)}
-                              className={`w-full py-3 rounded-2xl font-extrabold text-sm border border-transparent transition ${cls}`}
+                              className={`w-full py-3 rounded-full font-extrabold text-sm border border-transparent transition ${cls}`}
                             >
                               {opt}
                             </button>

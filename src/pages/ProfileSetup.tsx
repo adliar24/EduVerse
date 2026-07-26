@@ -536,7 +536,7 @@ export default function ProfileSetup() {
               <button
                 onClick={(e) => handleAddSchool(e)}
                 disabled={!newSchoolName.trim()}
-                className="px-4 py-2.5 bg-indigo-950 text-white rounded-xl font-medium hover:bg-indigo-900 disabled:opacity-50 transition-colors"
+                className="px-4 py-2.5 bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white rounded-xl font-medium hover:brightness-110 disabled:opacity-50 border border-white/10 transition-colors"
               >
                 <Plus className="w-4 h-4" />
               </button>
@@ -611,7 +611,7 @@ export default function ProfileSetup() {
               <button
                 onClick={(e) => handleAddCustomSubject(e)}
                 disabled={!newCustomSubject.trim()}
-                className="px-4 py-2.5 bg-indigo-950 text-white rounded-xl font-medium hover:bg-indigo-900 disabled:opacity-50 transition-colors"
+                className="px-4 py-2.5 bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white rounded-xl font-medium hover:brightness-110 disabled:opacity-50 border border-white/10 transition-colors"
               >
                 <Plus className="w-4 h-4" />
               </button>
@@ -621,7 +621,7 @@ export default function ProfileSetup() {
           <button
             onClick={handleSaveProfile}
             disabled={loading || !name.trim() || selectedSchoolIds.length === 0 || selectedSubjectIds.length === 0 || !academicYear || !semester}
-            className="w-full bg-indigo-950 text-white py-4 rounded-2xl font-bold hover:bg-indigo-900 active:scale-[0.98] transition-all shadow-xl shadow-indigo-950/20 flex items-center justify-center gap-2 disabled:opacity-50 disabled:pointer-events-none"
+            className="w-full bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white py-4 rounded-2xl font-bold hover:brightness-110 active:scale-[0.98] transition-all border border-white/10 shadow-xl shadow-indigo-950/20 flex items-center justify-center gap-2 disabled:opacity-50 disabled:pointer-events-none"
           >
             {loading ? (
               <Loader2 className="w-5 h-5 animate-spin" />

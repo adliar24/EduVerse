@@ -729,7 +729,7 @@ const CertificateGenerator: React.FC = () => {
                       <button
                         onClick={processBulkPDF}
                         disabled={isProcessingBulk || checkedIndices.size === 0}
-                        className="flex items-center justify-center gap-2 py-2.5 px-3 bg-white border border-slate-350 text-slate-850 font-bold rounded-lg hover:bg-slate-50 shadow-sm disabled:opacity-40 transition-all text-xs cursor-pointer"
+                        className="flex items-center justify-center gap-2 py-2.5 px-3 bg-white border border-slate-350 text-slate-850 font-bold rounded-full hover:bg-slate-50 shadow-sm disabled:opacity-40 transition-all text-xs cursor-pointer"
                       >
                         <Printer className="w-4 h-4 text-slate-550" />
                         PDF Gabungan ({checkedIndices.size})
@@ -737,7 +737,7 @@ const CertificateGenerator: React.FC = () => {
                       <button
                         onClick={processBulkZIP}
                         disabled={isProcessingBulk || checkedIndices.size === 0}
-                        className="flex items-center justify-center gap-2 py-2.5 px-3 bg-indigo-950 disabled:bg-slate-200 text-white font-bold rounded-lg hover:bg-indigo-900 shadow-md disabled:opacity-40 transition-all text-xs cursor-pointer"
+                        className="flex items-center justify-center gap-2 py-2.5 px-3 bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] disabled:bg-slate-200 text-white font-bold rounded-full hover:brightness-110 shadow-md disabled:opacity-40 transition-all text-xs cursor-pointer border border-white/10"
                       >
                         <Package className="w-4 h-4 text-white" />
                         ZIP PNG ({checkedIndices.size})
@@ -957,21 +957,21 @@ const CertificateGenerator: React.FC = () => {
                 <button
                   onClick={handleShareToWhatsApp}
                   disabled={isGenerating}
-                  className="flex items-center justify-center gap-1.5 py-2 px-3 bg-green-550 hover:bg-green-600 text-white text-xs font-bold rounded-lg shadow-sm transition-colors cursor-pointer"
+                  className="flex items-center justify-center gap-1.5 py-2 px-3 bg-green-550 hover:bg-green-600 text-white text-xs font-bold rounded-full shadow-sm transition-colors cursor-pointer"
                 >
                   <Share2 className="w-3.5 h-3.5 text-white" /> WhatsApp
                 </button>
                 <button
                   onClick={handleDownloadImage}
                   disabled={isGenerating}
-                  className="flex items-center justify-center gap-1.5 py-2 px-3 bg-white border border-slate-350 hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-lg shadow-sm transition-colors cursor-pointer"
+                  className="flex items-center justify-center gap-1.5 py-2 px-3 bg-white border border-slate-350 hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-full shadow-sm transition-colors cursor-pointer"
                 >
                   <Download className="w-3.5 h-3.5 text-slate-500" /> Unduh PNG
                 </button>
                 <button
                   onClick={handleDownloadPDF}
                   disabled={isGenerating}
-                  className="flex items-center justify-center gap-1.5 py-2 px-3 bg-indigo-950 hover:bg-indigo-900 text-white text-xs font-bold rounded-lg shadow-sm transition-colors cursor-pointer"
+                  className="flex items-center justify-center gap-1.5 py-2 px-3 bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] hover:brightness-110 border border-white/10 text-white text-xs font-bold rounded-full shadow-sm transition-colors cursor-pointer"
                 >
                   <Printer className="w-3.5 h-3.5 text-white" /> Unduh PDF
                 </button>

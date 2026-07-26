@@ -289,7 +289,7 @@ export const FaceBulkEnrollment: React.FC<Props> = ({ state, notify }) => {
                           {previews[student.id] ? (
                             <>
                               <img src={previews[student.id]} alt={student.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
-                              <button onClick={(e) => { e.stopPropagation(); handleFileSelect(student.id, null); }} className="absolute top-2 right-2 p-1 bg-white/90 rounded-lg shadow-sm"><X size={12} /></button>
+                              <button onClick={(e) => { e.stopPropagation(); handleFileSelect(student.id, null); }} className="absolute top-2 right-2 p-1 bg-white/90 rounded-full shadow-sm"><X size={12} /></button>
                             </>
                           ) : (
                             <div className="flex flex-col items-center gap-2">
@@ -329,7 +329,7 @@ export const FaceBulkEnrollment: React.FC<Props> = ({ state, notify }) => {
                   </div>
                 </div>
                 <div className="shrink-0 w-full sm:w-auto">
-                  <Button onClick={saveAllFaces} disabled={isProcessing || Object.keys(selectedFiles).length === 0} className="w-full !px-8 h-12 rounded-2xl text-[11px] bg-blue-500 text-white font-black uppercase tracking-widest shadow-lg shadow-blue-200">
+                  <Button onClick={saveAllFaces} disabled={isProcessing || Object.keys(selectedFiles).length === 0} className="w-full !px-8 h-12 rounded-full text-[11px] bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white font-black uppercase tracking-widest shadow-lg shadow-indigo-200">
                     {isProcessing ? 'Memproses...' : <span className="flex items-center gap-2">Mulai Pendaftaran <ArrowRight size={14} /></span>}
                   </Button>
                 </div>

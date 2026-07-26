@@ -276,7 +276,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ profile: initialPr
                 <div className="absolute top-[-20%] right-[-20%] w-[80%] h-[80%] bg-white/5 rounded-full blur-[60px] pointer-events-none -z-10" />
                 <div className="absolute bottom-[-20%] left-[-20%] w-[60%] h-[60%] bg-accent/10 rounded-full blur-[60px] pointer-events-none -z-10" />
                 
-                <Link to="/setup" className="absolute right-6 top-[28%] -translate-y-1/2 w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center hover:bg-white/20 transition-colors z-20 backdrop-blur-sm">
+                <Link to="/setup" className="absolute right-6 top-[28%] -translate-y-1/2 w-10 h-10 bg-white/10 rounded-full flex items-center justify-center hover:bg-white/20 transition-colors z-20 backdrop-blur-sm">
                     <Pencil size={18} className="text-white" />
                 </Link>
 
@@ -326,14 +326,14 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ profile: initialPr
             </div>
 
             <div className="grid grid-cols-2 gap-3 px-1 mt-1">
-                <button onClick={() => setIsBackupModalOpen(true)} className="bg-white rounded-[1.5rem] p-4 border border-slate-100 shadow-sm flex flex-col items-center justify-center aspect-square gap-2 active:scale-95 transition-transform">
+                <button onClick={() => setIsBackupModalOpen(true)} className="bg-white rounded-full p-4 border border-slate-100 shadow-sm flex flex-col items-center justify-center aspect-square gap-2 active:scale-95 transition-transform">
                     <div className="text-primary"><Download size={20} strokeWidth={2.5}/></div>
                     <div className="text-center leading-tight">
                         <div className="font-black text-xs text-slate-800 uppercase">Cadangkan</div>
                         <div className="text-[10px] font-bold text-slate-400 uppercase">Data Lokal</div>
                     </div>
                 </button>
-                <button onClick={() => setIsRestoreModalOpen(true)} className="bg-white rounded-[1.5rem] p-4 border border-slate-100 shadow-sm flex flex-col items-center justify-center aspect-square gap-2 active:scale-95 transition-transform">
+                <button onClick={() => setIsRestoreModalOpen(true)} className="bg-white rounded-full p-4 border border-slate-100 shadow-sm flex flex-col items-center justify-center aspect-square gap-2 active:scale-95 transition-transform">
                     <div className="text-amber-500"><Upload size={20} strokeWidth={2.5}/></div>
                     <div className="text-center leading-tight">
                         <div className="font-black text-xs text-slate-800 uppercase">Pulihkan</div>
@@ -341,14 +341,14 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ profile: initialPr
                     </div>
                     <input type="file" ref={backupInputRef} className="hidden" accept=".json" onChange={handleRestoreBackup} />
                 </button>
-                <button onClick={handleResetApplication} className="bg-white rounded-[1.5rem] p-4 border border-slate-100 shadow-sm flex flex-col items-center justify-center aspect-square gap-2 active:scale-95 transition-transform">
+                <button onClick={handleResetApplication} className="bg-white rounded-full p-4 border border-slate-100 shadow-sm flex flex-col items-center justify-center aspect-square gap-2 active:scale-95 transition-transform">
                     <div className="text-red-500"><Trash2 size={20} strokeWidth={2.5}/></div>
                     <div className="text-center leading-tight">
                         <div className="font-black text-xs text-slate-800 uppercase">Reset</div>
                         <div className="text-[10px] font-bold text-slate-400 uppercase">Hapus Semua</div>
                     </div>
                 </button>
-                <button onClick={handleLogout} className="bg-white rounded-[1.5rem] p-4 border border-slate-100 shadow-sm flex flex-col items-center justify-center aspect-square gap-2 active:scale-95 transition-transform">
+                <button onClick={handleLogout} className="bg-white rounded-full p-4 border border-slate-100 shadow-sm flex flex-col items-center justify-center aspect-square gap-2 active:scale-95 transition-transform">
                     <div className="text-red-500"><LogOut size={20} strokeWidth={2.5}/></div>
                     <div className="text-center leading-tight">
                         <div className="font-black text-xs text-slate-800 uppercase tracking-wide">Keluar</div>
@@ -358,7 +358,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ profile: initialPr
             </div>
 
             <div className="space-y-3 px-1">
-                 <Link to="/grading-settings" className="w-full bg-white rounded-[1.5rem] p-5 border border-slate-100 shadow-sm flex items-center gap-5 active:scale-95 transition-transform">
+                 <Link to="/grading-settings" className="w-full bg-white rounded-full p-5 border border-slate-100 shadow-sm flex items-center gap-5 active:scale-95 transition-transform">
                     <div className="w-12 h-12 rounded-2xl bg-blue-50 text-primary flex items-center justify-center shrink-0">
                         <TrendingUp size={22} />
                     </div>
@@ -368,7 +368,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ profile: initialPr
                     </div>
                     <ChevronRight size={18} className="text-slate-300" />
                 </Link>
-                <Link to="/point-templates" className="w-full bg-white rounded-[1.5rem] p-5 border border-slate-100 shadow-sm flex items-center gap-5 active:scale-95 transition-transform">
+                <Link to="/point-templates" className="w-full bg-white rounded-full p-5 border border-slate-100 shadow-sm flex items-center gap-5 active:scale-95 transition-transform">
                     <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
                         <Zap size={22} />
                     </div>
@@ -378,7 +378,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ profile: initialPr
                     </div>
                     <ChevronRight size={18} className="text-slate-300" />
                 </Link>
-                <Link to="/tp-manager" className="w-full bg-white rounded-[1.5rem] p-5 border border-slate-100 shadow-sm flex items-center gap-5 active:scale-95 transition-transform">
+                <Link to="/tp-manager" className="w-full bg-white rounded-full p-5 border border-slate-100 shadow-sm flex items-center gap-5 active:scale-95 transition-transform">
                     <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
                         <Library size={22} />
                     </div>
@@ -418,7 +418,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ profile: initialPr
                 <div className="flex-1 text-center md:text-left min-w-0">
                     <div className="flex items-center justify-center md:justify-start gap-3 mb-1.5 flex-wrap">
                         <h1 className="text-2xl md:text-3xl lg:text-4xl font-black uppercase tracking-tight leading-tight whitespace-normal">{profile.namaGuru}</h1>
-                        <Link to="/setup" className="p-1.5 bg-white/10 rounded-lg text-white/60 hover:text-white hover:bg-white/20 transition-all">
+                        <Link to="/setup" className="p-1.5 bg-white/10 rounded-full text-white/60 hover:text-white hover:bg-white/20 transition-all">
                             <Edit2 size={16} />
                         </Link>
                     </div>
@@ -455,7 +455,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ profile: initialPr
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Link to="/grading-settings" className="bg-white rounded-[2rem] p-6 border border-slate-100 shadow-sm flex items-center gap-5 group hover:border-primary transition-all">
+                <Link to="/grading-settings" className="bg-white rounded-full p-6 border border-slate-100 shadow-sm flex items-center gap-5 group hover:border-primary transition-all">
                     <div className="w-14 h-14 rounded-2xl bg-blue-50 text-primary flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
                         <TrendingUp size={24} strokeWidth={2.5} />
                     </div>
@@ -466,7 +466,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ profile: initialPr
                     <ChevronRight className="ml-auto text-slate-300 group-hover:text-primary shrink-0" size={16} />
                 </Link>
 
-                <Link to="/point-templates" className="bg-white rounded-[2rem] p-6 border border-slate-100 shadow-sm flex items-center gap-5 group hover:border-amber-500 transition-all">
+                <Link to="/point-templates" className="bg-white rounded-full p-6 border border-slate-100 shadow-sm flex items-center gap-5 group hover:border-amber-500 transition-all">
                     <div className="w-14 h-14 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
                         <Zap size={24} strokeWidth={2.5} />
                     </div>
@@ -477,7 +477,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ profile: initialPr
                     <ChevronRight className="ml-auto text-slate-300 group-hover:text-amber-500 shrink-0" size={16} />
                 </Link>
 
-                <Link to="/tp-manager" className="bg-white rounded-[2rem] p-6 border border-slate-100 shadow-sm flex items-center gap-5 group hover:border-emerald-500 transition-all">
+                <Link to="/tp-manager" className="bg-white rounded-full p-6 border border-slate-100 shadow-sm flex items-center gap-5 group hover:border-emerald-500 transition-all">
                     <div className="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
                         <Library size={24} strokeWidth={2.5} />
                     </div>
@@ -490,7 +490,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ profile: initialPr
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-                <button onClick={() => setIsBackupModalOpen(true)} className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm hover:shadow-lg hover:border-blue-200 hover:-translate-y-1 transition-all group flex flex-col items-center text-center">
+                <button onClick={() => setIsBackupModalOpen(true)} className="bg-white rounded-full p-6 border border-slate-100 shadow-sm hover:shadow-lg hover:border-blue-200 hover:-translate-y-1 transition-all group flex flex-col items-center text-center">
                 <div className="w-14 h-14 rounded-2xl bg-blue-50 text-primary flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-inner">
                     <Download size={24} strokeWidth={2.5} />
                 </div>
@@ -498,7 +498,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ profile: initialPr
                 <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Data Lokal</p>
                 </button>
 
-                <button onClick={() => setIsRestoreModalOpen(true)} className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm hover:shadow-lg hover:border-amber-200 hover:-translate-y-1 transition-all group flex flex-col items-center text-center">
+                <button onClick={() => setIsRestoreModalOpen(true)} className="bg-white rounded-full p-6 border border-slate-100 shadow-sm hover:shadow-lg hover:border-amber-200 hover:-translate-y-1 transition-all group flex flex-col items-center text-center">
                 <div className="w-14 h-14 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-inner">
                     <Upload size={24} strokeWidth={2.5} />
                 </div>
@@ -507,7 +507,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ profile: initialPr
                 <input type="file" ref={backupInputRef} className="hidden" accept=".json" onChange={handleRestoreBackup} />
                 </button>
 
-                <button onClick={handleResetApplication} className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm hover:shadow-lg hover:border-red-200 hover:-translate-y-1 transition-all group flex flex-col items-center text-center">
+                <button onClick={handleResetApplication} className="bg-white rounded-full p-6 border border-slate-100 shadow-sm hover:shadow-lg hover:border-red-200 hover:-translate-y-1 transition-all group flex flex-col items-center text-center">
                 <div className="w-14 h-14 rounded-2xl bg-red-50 text-red-500 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-inner">
                     <Trash2 size={24} strokeWidth={2.5} />
                 </div>
@@ -515,7 +515,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ profile: initialPr
                 <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Hapus Semua Data</p>
                 </button>
 
-                <button onClick={handleLogout} className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm hover:shadow-lg hover:border-red-200 hover:-translate-y-1 transition-all group flex flex-col items-center text-center">
+                <button onClick={handleLogout} className="bg-white rounded-full p-6 border border-slate-100 shadow-sm hover:shadow-lg hover:border-red-200 hover:-translate-y-1 transition-all group flex flex-col items-center text-center">
                 <div className="w-14 h-14 rounded-2xl bg-red-50 text-red-500 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-inner">
                     <LogOut size={24} strokeWidth={2.5} />
                 </div>
@@ -533,7 +533,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ profile: initialPr
               </div>
               <button 
                 onClick={() => processBackup('full')}
-                className="w-full bg-blue-50 hover:bg-blue-100 border border-blue-100 hover:border-blue-200 rounded-[2rem] p-6 flex items-center gap-5 transition-all group text-left relative overflow-hidden"
+                className="w-full bg-blue-50 hover:bg-blue-100 border border-blue-100 hover:border-blue-200 rounded-full p-6 flex items-center gap-5 transition-all group text-left relative overflow-hidden"
               >
                   <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center text-primary shadow-sm shrink-0">
                      <Database size={32} strokeWidth={2.5} />
@@ -548,7 +548,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ profile: initialPr
               </button>
               <button 
                 onClick={() => processBackup('master')}
-                className="w-full bg-amber-50 hover:bg-amber-100 border border-amber-100 hover:border-amber-200 rounded-[2rem] p-6 flex items-center gap-5 transition-all group text-left relative overflow-hidden"
+                className="w-full bg-amber-50 hover:bg-amber-100 border border-amber-100 hover:border-amber-200 rounded-full p-6 flex items-center gap-5 transition-all group text-left relative overflow-hidden"
               >
                   <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center text-amber-600 shadow-sm shrink-0">
                      <FileJson size={32} strokeWidth={2.5} />
@@ -574,7 +574,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ profile: initialPr
               </div>
               <button 
                 onClick={() => triggerRestore('full')}
-                className="w-full bg-blue-50 hover:bg-blue-100 border border-blue-100 hover:border-blue-200 rounded-[2rem] p-6 flex items-center gap-5 transition-all group text-left relative overflow-hidden"
+                className="w-full bg-blue-50 hover:bg-blue-100 border border-blue-100 hover:border-blue-200 rounded-full p-6 flex items-center gap-5 transition-all group text-left relative overflow-hidden"
               >
                   <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center text-primary shadow-sm shrink-0">
                      <Database size={32} strokeWidth={2.5} />
@@ -589,7 +589,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ profile: initialPr
               </button>
               <button 
                 onClick={() => triggerRestore('master')}
-                className="w-full bg-amber-50 hover:bg-amber-100 border border-amber-100 hover:border-amber-200 rounded-[2rem] p-6 flex items-center gap-5 transition-all group text-left relative overflow-hidden"
+                className="w-full bg-amber-50 hover:bg-amber-100 border border-amber-100 hover:border-amber-200 rounded-full p-6 flex items-center gap-5 transition-all group text-left relative overflow-hidden"
               >
                   <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center text-amber-600 shadow-sm shrink-0">
                      <FileJson size={32} strokeWidth={2.5} />
@@ -651,8 +651,8 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ profile: initialPr
                    </select>
                 </div>
                 <div className="flex gap-3 pt-4">
-                   <button onClick={() => setIsTransferMode(false)} className="flex-1 py-4 rounded-2xl border-2 border-slate-200 font-black text-slate-500 uppercase text-sm">Batal</button>
-                   <button onClick={handleTransferData} className="flex-1 py-4 rounded-2xl bg-primary text-white font-black uppercase text-sm shadow-glow">Proses Pindah</button>
+                   <button onClick={() => setIsTransferMode(false)} className="flex-1 py-4 rounded-full border-2 border-slate-200 font-black text-slate-500 uppercase text-sm">Batal</button>
+                   <button onClick={handleTransferData} className="flex-1 py-4 rounded-full bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white font-black uppercase text-sm shadow-glow">Proses Pindah</button>
                 </div>
              </div>
            ) : !isAddSchoolMode ? (
@@ -693,7 +693,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ profile: initialPr
                   );
                 })}
                 <div className="flex gap-3 mt-6">
-                    <button onClick={() => setIsAddSchoolMode(true)} className="flex-1 bg-primary/10 hover:bg-primary/20 border border-primary/20 rounded-2xl p-4 flex items-center justify-center gap-2 transition-all">
+                    <button onClick={() => setIsAddSchoolMode(true)} className="flex-1 bg-[#3B66F5]/10 hover:bg-[#3B66F5]/20 border border-[#3B66F5]/20 rounded-full p-4 flex items-center justify-center gap-2 transition-all">
                        <PlusCircle className="text-primary" size={20} />
                        <span className="font-black text-primary uppercase text-[10px]">Tambah</span>
                     </button>
@@ -729,8 +729,8 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ profile: initialPr
                           className="w-full p-4 rounded-2xl border-2 border-slate-200 font-bold text-slate-800 focus:border-primary focus:outline-none" />
                 </div>
                 <div className="flex gap-3 pt-2">
-                   <button onClick={() => { setIsAddSchoolMode(false); setEditingSchoolId(null); }} className="flex-1 py-4 rounded-2xl border-2 border-slate-200 font-black text-slate-500 uppercase text-sm">Batal</button>
-                   <button onClick={handleAddSchool} className="flex-1 py-4 rounded-2xl bg-primary text-white font-black uppercase text-sm">
+                   <button onClick={() => { setIsAddSchoolMode(false); setEditingSchoolId(null); }} className="flex-1 py-4 rounded-full border-2 border-slate-200 font-black text-slate-500 uppercase text-sm">Batal</button>
+                   <button onClick={handleAddSchool} className="flex-1 py-4 rounded-full bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white font-black uppercase text-sm">
                        {editingSchoolId ? "Simpan Perubahan" : "Simpan"}
                    </button>
                 </div>

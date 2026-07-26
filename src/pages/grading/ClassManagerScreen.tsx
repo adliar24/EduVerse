@@ -79,13 +79,13 @@ export const ClassManagerScreen: React.FC = () => {
       <Header title="Daftar Kelas" subtitle="Manajemen Ruang Belajar & Mapel" />
       
       <div className="px-6 mt-6 mb-8 md:hidden">
-        <Button onClick={() => setIsModalOpen(true)} variant="accent" className="w-full !rounded-2xl h-14 shadow-glow-gold uppercase tracking-widest text-[11px] font-black flex items-center justify-center border-2 border-white/20">
+        <Button onClick={() => setIsModalOpen(true)} variant="accent" className="w-full h-14 shadow-glow-gold uppercase tracking-widest text-[11px] font-black flex items-center justify-center border-2 border-white/20">
             <Plus size={20} className="mr-2" strokeWidth={3} /> Kelas Baru
         </Button>
       </div>
 
       <div className="hidden md:flex justify-end mb-6">
-         <Button onClick={() => setIsModalOpen(true)} variant="accent" className="!rounded-2xl px-6 py-3 shadow-glow-gold uppercase tracking-widest text-[11px] font-black">
+         <Button onClick={() => setIsModalOpen(true)} variant="accent" className="px-6 py-3 shadow-glow-gold uppercase tracking-widest text-[11px] font-black">
             <Plus size={18} className="mr-2" strokeWidth={3} /> Kelas Baru
         </Button>
       </div>
@@ -122,7 +122,7 @@ export const ClassManagerScreen: React.FC = () => {
                     </div>
                 </Link>
 
-                <Card className="hidden md:block p-6 group relative overflow-hidden border-2 !border-amber-400 shadow-sm hover:shadow-xl hover:!border-amber-500 transition-all hover:-translate-y-1 bg-white !rounded-[2rem]">
+                <Card className="hidden md:block p-6 group relative overflow-hidden border-2 !border-amber-400 shadow-sm hover:shadow-xl hover:!border-amber-500 transition-all hover:-translate-y-1 bg-white">
                     <div className="absolute top-2 right-2 flex items-center gap-1 z-20">
                         <button onClick={() => handleEditClass(cls)} className="p-2 text-slate-400 hover:text-primary transition-colors">
                             <Edit2 size={16}/>
@@ -137,7 +137,7 @@ export const ClassManagerScreen: React.FC = () => {
                             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest truncate">{cls.mapel}</p>
                         </div>
                         <Link to={`/classes/${cls.idKelas}`} className="mt-auto">
-                            <Button variant="secondary" className="w-full !rounded-xl text-[9px] font-black uppercase tracking-widest py-3 hover:bg-primary/5 hover:text-primary hover:border-primary/20 transition-all">
+                            <Button variant="secondary" className="w-full text-[9px] font-black uppercase tracking-widest py-3 hover:bg-primary/5 hover:text-primary hover:border-primary/20 transition-all">
                                 Detail Siswa <ChevronRight size={14} className="ml-2" />
                             </Button>
                         </Link>
@@ -168,7 +168,7 @@ export const ClassManagerScreen: React.FC = () => {
             ))}
           </Select>
           <div className="pt-4">
-            <Button onClick={handleAddClass} className="w-full py-5 !rounded-2xl font-black uppercase tracking-widest text-xs">
+            <Button onClick={handleAddClass} className="w-full py-5 font-black uppercase tracking-widest text-xs">
                 {editingClass ? "SIMPAN PERUBAHAN" : "SIMPAN DATA KELAS"}
             </Button>
           </div>
@@ -187,8 +187,8 @@ export const ClassManagerScreen: React.FC = () => {
               </p>
            </div>
            <div className="flex gap-3 pt-4">
-              <Button variant="secondary" onClick={() => setDeleteConfirmation({ isOpen: false, id: null })} className="flex-1 !py-4 !rounded-2xl">Batal</Button>
-              <Button variant="danger" onClick={executeDeleteClass} className="flex-1 !py-4 !rounded-2xl shadow-lg shadow-red-500/20">Ya, Hapus Permanen</Button>
+              <Button variant="secondary" onClick={() => setDeleteConfirmation({ isOpen: false, id: null })} className="flex-1 !py-4">Batal</Button>
+              <Button variant="danger" onClick={executeDeleteClass} className="flex-1 !py-4 shadow-lg shadow-red-500/20">Ya, Hapus Permanen</Button>
            </div>
         </div>
       </Modal>

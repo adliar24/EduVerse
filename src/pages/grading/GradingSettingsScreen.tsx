@@ -121,7 +121,7 @@ export const GradingSettingsScreen: React.FC = () => {
                                 onClick={handleSave} 
                                 disabled={isSaving || weights.formatif + weights.sumatif + weights.pts + weights.pas !== 100}
                                 isLoading={isSaving}
-                                className="w-full !rounded-2xl py-5 uppercase tracking-widest font-black"
+                                className="w-full py-5 uppercase tracking-widest font-black"
                             >
                                 Simpan Pengaturan
                             </Button>

@@ -310,7 +310,7 @@ export default function StudentJoin({ isDashboardView = false }: { isDashboardVi
                   <button
                     onClick={() => setSelectedSession(session)}
                     disabled={loading}
-                    className="bg-indigo-950 text-white px-6 py-3 rounded-xl font-bold hover:bg-indigo-900 active:scale-[0.98] transition-all flex items-center justify-center gap-2 shrink-0 self-start sm:self-center"
+                    className="bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white px-6 py-3 rounded-full font-bold hover:brightness-110 active:scale-[0.98] transition-all border border-white/10 flex items-center justify-center gap-2 shrink-0 self-start sm:self-center"
                   >
                     Kerjakan Ujian
                     <ArrowRight className="w-4 h-4" />
@@ -358,7 +358,7 @@ export default function StudentJoin({ isDashboardView = false }: { isDashboardVi
                   <button 
                     onClick={() => setSelectedSession(null)}
                     disabled={loading}
-                    className="flex-1 py-3 px-4 rounded-xl font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors"
+                    className="flex-1 py-3 px-4 rounded-full font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors"
                   >
                     Tidak
                   </button>
@@ -376,7 +376,7 @@ export default function StudentJoin({ isDashboardView = false }: { isDashboardVi
                       handleStartExam(selectedSession);
                     }}
                     disabled={loading}
-                    className="flex-1 py-3 px-4 rounded-xl font-bold text-white bg-gradient-to-r from-[#685ECC] via-[#5C53D4] to-[#4F46E5] shadow-lg shadow-[#5C53D4]/25 hover:scale-[1.02] border border-white/10 transition-all flex items-center justify-center"
+                    className="flex-1 py-3 px-4 rounded-full font-bold text-white bg-gradient-to-r from-[#685ECC] via-[#5C53D4] to-[#4F46E5] shadow-lg shadow-[#5C53D4]/25 hover:scale-[1.02] border border-white/10 transition-all flex items-center justify-center"
                   >
                     {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Ya, Mulai'}
                   </button>
@@ -456,7 +456,7 @@ export default function StudentJoin({ isDashboardView = false }: { isDashboardVi
               <button 
                 type="submit"
                 disabled={loading || !studentCode}
-                className="w-full bg-indigo-950 text-white py-4 rounded-xl font-black text-lg hover:bg-indigo-900 active:scale-[0.98] transition-all shadow-lg shadow-slate-200 disabled:opacity-50 flex items-center justify-center gap-3 group"
+                className="w-full bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white py-4 rounded-full font-black text-lg hover:brightness-110 active:scale-[0.98] transition-all border border-white/10 shadow-lg shadow-slate-200 disabled:opacity-50 flex items-center justify-center gap-3 group"
               >
                 {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
                   <>
@@ -495,7 +495,7 @@ export default function StudentJoin({ isDashboardView = false }: { isDashboardVi
                         key={session.id}
                         onClick={() => setSelectedSession(session)}
                         disabled={loading}
-                        className="text-left w-full p-4 rounded-xl border-2 border-slate-100 bg-white hover:border-blue-500 hover:bg-blue-50/50 transition-all flex flex-col group disabled:opacity-50"
+                        className="text-left w-full p-4 rounded-full border-2 border-slate-100 bg-white hover:border-blue-500 hover:bg-blue-50/50 transition-all flex flex-col group disabled:opacity-50"
                       >
                         <span className="font-bold text-lg text-indigo-950 group-hover:text-blue-700 transition-colors">{session.exams?.title}</span>
                         <div className="flex items-center gap-4 mt-2 text-xs font-bold text-slate-500">
@@ -517,7 +517,7 @@ export default function StudentJoin({ isDashboardView = false }: { isDashboardVi
                 <button 
                   type="button"
                   onClick={() => setStudentInfo(null)}
-                  className="w-full px-6 py-4 rounded-xl font-bold text-slate-500 bg-slate-100 hover:bg-slate-200 transition-all flex items-center justify-center gap-2"
+                  className="w-full px-6 py-4 rounded-full font-bold text-slate-500 bg-slate-100 hover:bg-slate-200 transition-all flex items-center justify-center gap-2"
                 >
                   <ChevronLeft className="w-5 h-5" />
                   Ganti Kode Unik
@@ -571,7 +571,7 @@ export default function StudentJoin({ isDashboardView = false }: { isDashboardVi
                 <button 
                   onClick={() => setSelectedSession(null)}
                   disabled={loading}
-                  className="flex-1 py-3 px-4 rounded-xl font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors"
+                  className="flex-1 py-3 px-4 rounded-full font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors"
                 >
                   Tidak
                 </button>
@@ -589,7 +589,7 @@ export default function StudentJoin({ isDashboardView = false }: { isDashboardVi
                     handleStartExam(selectedSession);
                   }}
                   disabled={loading}
-                  className="flex-1 py-3 px-4 rounded-xl font-bold text-white bg-gradient-to-r from-[#685ECC] via-[#5C53D4] to-[#4F46E5] shadow-lg shadow-[#5C53D4]/25 hover:scale-[1.02] border border-white/10 transition-all flex items-center justify-center"
+                  className="flex-1 py-3 px-4 rounded-full font-bold text-white bg-gradient-to-r from-[#685ECC] via-[#5C53D4] to-[#4F46E5] shadow-lg shadow-[#5C53D4]/25 hover:scale-[1.02] border border-white/10 transition-all flex items-center justify-center"
                 >
                   {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Ya, Mulai'}
                 </button>

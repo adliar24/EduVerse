@@ -554,15 +554,15 @@ export const FinalGradeRecapScreen: React.FC = () => {
                     </div>
                   ) : (
                       <div className="grid grid-cols-3 gap-3">
-                        <button onClick={() => { setComparisonMode('manual'); setShowComparisonModal(true); }} className="p-4 rounded-2xl border-2 border-indigo-200 bg-white hover:bg-indigo-50 transition-all">
+                        <button onClick={() => { setComparisonMode('manual'); setShowComparisonModal(true); }} className="p-4 rounded-full border-2 border-indigo-200 bg-white hover:bg-indigo-50 transition-all">
                            <FileText size={24} className="mx-auto mb-2 text-indigo-500" />
                            <span className="text-[10px] font-black text-indigo-600 uppercase">Manual</span>
                         </button>
-                        <button onClick={() => { setComparisonMode('voice'); toggleVoice(); }} className={`p-4 rounded-2xl border-2 transition-all ${isListening ? 'bg-red-500 border-red-400 text-white' : 'border-red-200 bg-white hover:bg-red-50'}`}>
+                        <button onClick={() => { setComparisonMode('voice'); toggleVoice(); }} className={`p-4 rounded-full border-2 transition-all ${isListening ? 'bg-red-500 border-red-400 text-white' : 'border-red-200 bg-white hover:bg-red-50'}`}>
                            {isListening ? <MicOff size={24} className="mx-auto mb-2" /> : <Mic size={24} className="mx-auto mb-2 text-red-500" />}
                            <span className={`text-[10px] font-black uppercase ${isListening ? 'text-white' : 'text-red-600'}`}>{isListening ? 'Stop' : 'Suara'}</span>
                         </button>
-                        <button onClick={() => { setComparisonMode('ocr'); setShowComparisonModal(true); }} className="p-4 rounded-2xl border-2 border-purple-200 bg-white hover:bg-purple-50 transition-all">
+                        <button onClick={() => { setComparisonMode('ocr'); setShowComparisonModal(true); }} className="p-4 rounded-full border-2 border-purple-200 bg-white hover:bg-purple-50 transition-all">
                            <Camera size={24} className="mx-auto mb-2 text-purple-500" />
                            <span className="text-[10px] font-black text-purple-600 uppercase">Gambar</span>
                         </button>
@@ -662,7 +662,7 @@ export const FinalGradeRecapScreen: React.FC = () => {
                         <input type="file" ref={fileInputRef} className="hidden" accept=".xlsx,.xls" multiple onChange={handleFileInputChange} />
                      </div>
 
-                      <Button variant="primary" onClick={handleSmartFill} isLoading={isProcessing} className="!rounded-2xl py-4 px-6 flex items-center justify-center">
+                      <Button variant="primary" onClick={handleSmartFill} isLoading={isProcessing} className="py-4 px-6 flex items-center justify-center">
                          <Zap size={18} className="mr-2" />
                          <span className="uppercase font-black text-[10px] tracking-widest">Proses</span>
                       </Button>
@@ -679,13 +679,13 @@ export const FinalGradeRecapScreen: React.FC = () => {
                           const wb = XLSX.utils.book_new();
                           XLSX.utils.book_append_sheet(wb, ws, 'eRapor');
                           XLSX.writeFile(wb, `eRapor_${classes.find(c => c.idKelas === selectedClass)?.namaKelas}.xlsx`);
-                      }} className="!py-2 !px-4 !text-[10px] !rounded-xl">
+                      }} className="!py-2 !px-4 !text-[10px]">
                           <FileSpreadsheet size={14} className="mr-1 text-emerald-600"/> Excel
                       </Button>
                   </div>
                   <div className="w-full md:w-64">
                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2 mb-2 block">Pilih Kelas</label>
-                     <Select value={selectedClass} onChange={e => setSelectedClass(e.target.value)} className="!py-2.5 !px-4 !text-xs !rounded-xl">
+                     <Select value={selectedClass} onChange={e => setSelectedClass(e.target.value)} className="!py-2.5 !px-4 !text-xs">
                         {classes.map(c => <option key={c.idKelas} value={c.idKelas}>{c.namaKelas}</option>)}
                      </Select>
                   </div>
@@ -729,10 +729,10 @@ export const FinalGradeRecapScreen: React.FC = () => {
                       <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Pratinjau Nilai Rapor</span>
                    </div>
                    <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto" data-html2canvas-ignore>
-                      <Button variant="secondary" onClick={handleExportRaw} className="flex-1 md:flex-none !py-3 !px-6 !text-[13px] !rounded-xl h-14 md:h-auto">
+                      <Button variant="secondary" onClick={handleExportRaw} className="flex-1 md:flex-none !py-3 !px-6 !text-[13px] h-14 md:h-auto">
                          <FileSpreadsheet size={18} className="mr-2 text-emerald-600"/> Export Excel
                       </Button>
-                      <Button variant="primary" onClick={handleExportPDF} className="flex-1 md:flex-none !py-3 !px-6 !text-[13px] !rounded-xl h-14 md:h-auto">
+                      <Button variant="primary" onClick={handleExportPDF} className="flex-1 md:flex-none !py-3 !px-6 !text-[13px] h-14 md:h-auto">
                          <FileText size={18} className="mr-2 text-white" /> Export PDF
                       </Button>
                    </div>
@@ -763,7 +763,7 @@ export const FinalGradeRecapScreen: React.FC = () => {
                                         <div className="flex-1 text-[11px] font-bold text-slate-500 leading-relaxed uppercase bg-slate-50 p-4 rounded-2xl border border-slate-100">
                                             {row.description || <span className="opacity-30">Belum ada data TP yang dihubungkan ke entri nilai.</span>}
                                         </div>
-                                        <Link to={`/reports/${selectedClass}/${row.idSiswa}`} className="w-10 h-10 rounded-xl bg-white border-2 border-slate-100 text-slate-300 flex items-center justify-center hover:border-primary hover:text-primary transition-all shrink-0" data-html2canvas-ignore>
+                                        <Link to={`/reports/${selectedClass}/${row.idSiswa}`} className="w-10 h-10 rounded-full bg-white border-2 border-slate-100 text-slate-300 flex items-center justify-center hover:border-primary hover:text-primary transition-all shrink-0" data-html2canvas-ignore>
                                             <ChevronRight size={20} />
                                         </Link>
                                     </div>
@@ -810,7 +810,7 @@ export const FinalGradeRecapScreen: React.FC = () => {
                                  <option value="1">1 (GANJIL)</option>
                                  <option value="2">2 (GENAP)</option>
                               </Select>
-                              <label className="flex items-center gap-3 p-3 bg-white border border-slate-100 rounded-xl cursor-pointer mt-4">
+                               <label className="flex items-center gap-3 p-3 bg-white border border-slate-100 rounded-full cursor-pointer mt-4">
                                  <input type="checkbox" checked={nextSettings.autoBackup} onChange={e => setNextSettings({...nextSettings, autoBackup: e.target.checked})} className="w-4 h-4 rounded-md text-primary" />
                                  <div>
                                     <p className="text-[10px] font-black text-slate-700 uppercase">Simpan File Arsip (.json)</p>

@@ -534,7 +534,7 @@ export default function ScanUjian() {
               "px-6 py-2.5 rounded-xl font-bold text-xs transition-all cursor-pointer shadow-sm",
               isCameraActive 
                 ? "bg-slate-100 text-slate-600 hover:bg-slate-200" 
-                : "bg-indigo-600 text-white hover:bg-indigo-700"
+                : "bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white hover:brightness-110 border border-white/10"
             )}
           >
             {isCameraActive ? 'Matikan Kamera' : 'Aktifkan Kamera'}

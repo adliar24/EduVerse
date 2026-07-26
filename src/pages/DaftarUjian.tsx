@@ -412,7 +412,7 @@ export default function DaftarUjian() {
         </div>
         <button 
           onClick={() => navigate('/buat-ujian')}
-          className="bg-[#3B66F5] text-white px-5 py-2.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 hover:bg-indigo-900 active:scale-[0.98] transition-all shadow-lg shadow-slate-200"
+          className="bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white px-5 py-2.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 hover:brightness-110 active:scale-[0.98] transition-all shadow-lg shadow-slate-200 border border-white/10"
         >
           <Plus className="w-4 h-4" />
           Buat Ujian Baru
@@ -460,7 +460,7 @@ export default function DaftarUjian() {
                   <button 
                     onClick={() => deleteExam(exam.id)}
                     title="Hapus Ujian"
-                    className="p-2 rounded-xl border border-red-100 bg-red-50 text-red-500 hover:text-red-700 hover:bg-red-100 hover:border-red-200 transition-all cursor-pointer flex items-center justify-center button-hover"
+                    className="p-2 rounded-full border border-red-100 bg-red-50 text-red-500 hover:text-red-700 hover:bg-red-100 hover:border-red-200 transition-all cursor-pointer flex items-center justify-center button-hover"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -662,7 +662,7 @@ export default function DaftarUjian() {
                 {exam.qr_submission ? (
                   <button 
                     onClick={() => navigate(`/scan-ujian/${exam.id}`)}
-                    className="w-full bg-emerald-50/70 border border-emerald-100 text-emerald-600 py-3 rounded-xl font-bold text-xs hover:bg-emerald-100 hover:text-emerald-700 transition-all shadow-sm flex items-center justify-center gap-2 button-hover cursor-pointer"
+                    className="w-full bg-emerald-50/70 border border-emerald-100 text-emerald-600 py-3 rounded-full font-bold text-xs hover:bg-emerald-100 hover:text-emerald-700 transition-all shadow-sm flex items-center justify-center gap-2 button-hover cursor-pointer"
                   >
                     <QrCode className="w-4 h-4 shrink-0" />
                     <span>Pindai QR</span>
@@ -671,7 +671,7 @@ export default function DaftarUjian() {
                   !exam.offline_mode && (
                     <button 
                       onClick={() => navigate(`/monitor-ujian/${exam.id}`)}
-                      className="w-full bg-blue-50/70 border border-blue-100 text-blue-600 py-3 rounded-xl font-bold text-xs hover:bg-blue-100 hover:text-blue-700 transition-all shadow-sm flex items-center justify-center gap-2 button-hover cursor-pointer"
+                      className="w-full bg-blue-50/70 border border-blue-100 text-blue-600 py-3 rounded-full font-bold text-xs hover:bg-blue-100 hover:text-blue-700 transition-all shadow-sm flex items-center justify-center gap-2 button-hover cursor-pointer"
                     >
                       <Activity className="w-4 h-4 shrink-0" />
                       <span>Live Monitor</span>
@@ -680,7 +680,7 @@ export default function DaftarUjian() {
                 )}
                 <button 
                   onClick={() => navigate('/hasil-ujian', { state: { examId: exam.id } })}
-                  className="w-full bg-[#3B66F5] text-white py-3 rounded-xl font-bold text-xs hover:bg-indigo-900 transition-all shadow-md flex items-center justify-center gap-2 group/btn button-hover cursor-pointer"
+                  className="w-full bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white py-3 rounded-full font-bold text-xs hover:brightness-110 transition-all shadow-md flex items-center justify-center gap-2 group/btn button-hover cursor-pointer border border-white/10"
                 >
                   <BarChart3 className="w-4 h-4 shrink-0" />
                   <span>Analisis & Nilai</span>
@@ -698,7 +698,7 @@ export default function DaftarUjian() {
             <p className="text-slate-400 font-medium max-w-sm mx-auto">Anda belum menerbitkan ujian apapun. Mulai buat ujian pertama Anda sekarang.</p>
             <button 
               onClick={() => navigate('/buat-ujian')}
-              className="mt-8 bg-[#3B66F5] text-white px-6 py-3 rounded-xl font-semibold text-sm hover:bg-indigo-900 transition-all shadow-lg shadow-slate-200 flex items-center gap-2 mx-auto"
+              className="mt-8 bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white px-6 py-3 rounded-xl font-semibold text-sm hover:brightness-110 transition-all shadow-lg shadow-slate-200 flex items-center gap-2 mx-auto border border-white/10"
             >
               <Plus className="w-4 h-4" />
               Buat Ujian Sekarang
@@ -741,7 +741,7 @@ export default function DaftarUjian() {
                 <div>
                   <label className="text-sm font-bold text-slate-700 mb-3 block">Pilih Kelas (bisa pilih banyak)</label>
                   <div className="max-h-48 overflow-y-auto space-y-2 p-2 bg-slate-50 rounded-xl border border-slate-100">
-                    <label className="flex items-center gap-3 p-3 rounded-lg bg-blue-50 cursor-pointer border border-blue-200">
+                    <label className="flex items-center gap-3 p-3 rounded-full bg-blue-50 cursor-pointer border border-blue-200">
                       <input 
                         type="checkbox"
                         checked={selectedClasses.length === classes.length && classes.length > 0}

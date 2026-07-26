@@ -1261,7 +1261,7 @@ export default function BankSoal() {
 
           <button 
             onClick={() => setShowAddForm(true)}
-            className="bg-[#3B66F5] text-white px-5 py-2.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 shadow-lg shadow-slate-200/50 transition-all hover:bg-indigo-900 active:scale-[0.98]"
+            className="bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white px-5 py-2.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 shadow-lg shadow-slate-200/50 border border-white/10 transition-all hover:brightness-110 active:scale-[0.98]"
           >
             <Plus className="w-4 h-4" />
             Tambah Baru
@@ -1533,7 +1533,7 @@ export default function BankSoal() {
             >
               <div className="flex items-center justify-between mb-8">
                 <h3 className="text-xl font-bold text-indigo-950">Buat Folder Baru</h3>
-                <button onClick={() => setShowFolderForm(false)} className="p-2 hover:bg-slate-100 rounded-xl transition-colors">
+                <button onClick={() => setShowFolderForm(false)} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
                   <Plus className="w-6 h-6 rotate-45 text-slate-400" />
                 </button>
               </div>
@@ -1564,7 +1564,7 @@ export default function BankSoal() {
                   </button>
                   <button 
                     type="submit"
-                    className="flex-1 py-3 rounded-xl font-semibold text-sm text-white bg-indigo-950 hover:bg-indigo-900 transition-all shadow-lg shadow-slate-200"
+                    className="flex-1 py-3 rounded-xl font-semibold text-sm text-white bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] hover:brightness-110 border border-white/10 transition-all shadow-lg shadow-[#3B66F5]/25"
                   >
                     Buat Folder
                   </button>
@@ -1703,7 +1703,7 @@ export default function BankSoal() {
             >
               <div className="flex items-center justify-between mb-8">
                 <h3 className="text-xl font-bold text-indigo-950">Pindahkan {selectedQuestionIds.length} Soal</h3>
-                <button onClick={() => setShowMoveModal(false)} className="p-2 hover:bg-slate-100 rounded-xl transition-colors">
+                <button onClick={() => setShowMoveModal(false)} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
                   <Plus className="w-6 h-6 rotate-45 text-slate-400" />
                 </button>
               </div>
@@ -1769,7 +1769,7 @@ export default function BankSoal() {
                   <h3 className="text-2xl font-bold text-indigo-950">{editingId ? 'Edit Soal' : 'Tambah Soal Baru'}</h3>
                   <p className="text-sm text-slate-500 font-medium mt-1">Lengkapi detail pertanyaan di bawah ini secara lengkap.</p>
                 </div>
-                <button onClick={closeModal} className="p-2.5 hover:bg-slate-50 rounded-xl transition-colors cursor-pointer border border-slate-200 bg-white shadow-sm">
+                <button onClick={closeModal} className="p-2.5 hover:bg-slate-50 rounded-full transition-colors cursor-pointer border border-slate-200 bg-white shadow-sm">
                   <X className="w-5 h-5 text-slate-400 hover:text-slate-600" />
                 </button>
               </div>
@@ -1974,13 +1974,13 @@ export default function BankSoal() {
                   <button 
                     type="button"
                     onClick={closeModal}
-                    className="flex-1 py-3.5 rounded-xl font-bold text-sm text-slate-500 bg-slate-100 hover:bg-slate-200 transition-all cursor-pointer button-hover"
+                    className="flex-1 py-3.5 rounded-full font-bold text-sm text-slate-500 bg-slate-100 hover:bg-slate-200 transition-all cursor-pointer button-hover"
                   >
                     Batalkan
                   </button>
                   <button 
                     type="submit"
-                    className="flex-1 py-3.5 rounded-xl font-bold text-sm text-white bg-[#3B66F5] hover:bg-[#2563EB] transition-all shadow-lg shadow-[#3B66F5]/25 cursor-pointer button-hover"
+                    className="flex-1 py-3.5 rounded-full font-bold text-sm text-white bg-[#3B66F5] hover:bg-[#2563EB] transition-all shadow-lg shadow-[#3B66F5]/25 cursor-pointer button-hover"
                   >
                     Simpan Pertanyaan
                   </button>

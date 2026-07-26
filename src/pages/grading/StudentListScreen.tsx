@@ -191,17 +191,17 @@ export const StudentListScreen: React.FC = () => {
                     className="!border-none !ring-0 !bg-slate-50 !font-black !py-4" 
                   />
                 </div>
-                <Button onClick={handleAddStudent} variant="primary" className="!p-4 !rounded-2xl shrink-0"><Plus strokeWidth={4}/></Button>
+                <Button onClick={handleAddStudent} variant="primary" className="!p-4 shrink-0"><Plus strokeWidth={4}/></Button>
               </div>
               
               <div className="flex flex-wrap gap-2 md:gap-3 justify-end px-2">
-                <Button variant="secondary" onClick={handleDownloadTemplate} className="!text-[9px] md:!text-[10px] !rounded-xl !px-4 !py-2.5 md:!px-5 md:!py-3 font-black tracking-widest uppercase shadow-sm border-slate-200">
+                <Button variant="secondary" onClick={handleDownloadTemplate} className="!text-[9px] md:!text-[10px] !px-4 !py-2.5 md:!px-5 md:!py-3 font-black tracking-widest uppercase shadow-sm border-slate-200">
                   <Download size={14} className="mr-2 text-primary"/> Templat
                 </Button>
-                <Button variant="secondary" onClick={() => fileImportRef.current?.click()} className="!text-[9px] md:!text-[10px] !rounded-xl !px-4 !py-2.5 md:!px-5 md:!py-3 font-black tracking-widest uppercase shadow-sm border-slate-200">
+                <Button variant="secondary" onClick={() => fileImportRef.current?.click()} className="!text-[9px] md:!text-[10px] !px-4 !py-2.5 md:!px-5 md:!py-3 font-black tracking-widest uppercase shadow-sm border-slate-200">
                   <FileSpreadsheet size={14} className="mr-2 text-emerald-600"/> Impor
                 </Button>
-                <Button variant="accent" onClick={() => setIsQRModalOpen(true)} className="!text-[9px] md:!text-[10px] !rounded-xl !px-4 !py-2.5 md:!px-5 md:!py-3 font-black tracking-widest uppercase shadow-sm border-slate-200 bg-white hover:bg-slate-50 !text-slate-800">
+                <Button variant="accent" onClick={() => setIsQRModalOpen(true)} className="!text-[9px] md:!text-[10px] !px-4 !py-2.5 md:!px-5 md:!py-3 font-black tracking-widest uppercase shadow-sm border-slate-200 bg-white hover:bg-slate-50 !text-slate-800">
                   <QrCode size={14} className="mr-2 text-indigo-500"/> Kartu QR
                 </Button>
               </div>
@@ -243,7 +243,7 @@ export const StudentListScreen: React.FC = () => {
               <div className="flex justify-between items-center px-2">
                  <h3 className="font-black text-slate-400 text-[10px] md:text-xs tracking-widest uppercase">Riwayat Nilai ({classMeetings.length})</h3>
                  <Link to="/meetings/new">
-                    <Button variant="primary" className="!rounded-xl !py-2 !px-4 text-[9px] uppercase tracking-widest"><Plus size={14} className="mr-1" /> Baru</Button>
+                    <Button variant="primary" className="!py-2 !px-4 text-[9px] uppercase tracking-widest"><Plus size={14} className="mr-1" /> Baru</Button>
                  </Link>
               </div>
 
@@ -303,8 +303,8 @@ export const StudentListScreen: React.FC = () => {
               </p>
            </div>
            <div className="flex gap-3 pt-4">
-              <Button variant="secondary" onClick={() => setDeleteMeetingConf({ isOpen: false, id: null })} className="flex-1 !py-4 !rounded-2xl">Batal</Button>
-              <Button variant="danger" onClick={executeDeleteMeeting} className="flex-1 !py-4 !rounded-2xl shadow-lg shadow-red-500/20">Hapus Nilai</Button>
+              <Button variant="secondary" onClick={() => setDeleteMeetingConf({ isOpen: false, id: null })} className="flex-1 !py-4">Batal</Button>
+              <Button variant="danger" onClick={executeDeleteMeeting} className="flex-1 !py-4 shadow-lg shadow-red-500/20">Hapus Nilai</Button>
            </div>
         </div>
       </Modal>
@@ -325,8 +325,8 @@ export const StudentListScreen: React.FC = () => {
               </p>
            </div>
            <div className="flex gap-3 pt-4">
-              <Button variant="secondary" onClick={() => setDeleteConfirmation({ isOpen: false, id: null })} className="flex-1 !py-4 !rounded-2xl">Batal</Button>
-              <Button variant="danger" onClick={executeDeleteStudent} className="flex-1 !py-4 !rounded-2xl shadow-lg shadow-red-500/20">Hapus</Button>
+              <Button variant="secondary" onClick={() => setDeleteConfirmation({ isOpen: false, id: null })} className="flex-1 !py-4">Batal</Button>
+              <Button variant="danger" onClick={executeDeleteStudent} className="flex-1 !py-4 shadow-lg shadow-red-500/20">Hapus</Button>
            </div>
         </div>
       </Modal>
@@ -511,7 +511,7 @@ export const StudentQRModal: React.FC<{
             <h3 className="font-black text-xl text-white uppercase">Kartu QR EduScore</h3>
             <p className="text-xs font-bold text-blue-100 uppercase tracking-widest mt-1">Gunakan untuk input poin Penghargaan & Hukuman</p>
           </div>
-          <Button onClick={handleDownloadZip} variant="accent" className="!rounded-2xl shadow-lg bg-yellow-400 hover:bg-yellow-300 text-slate-900 border-none">
+          <Button onClick={handleDownloadZip} variant="accent" className="shadow-lg bg-yellow-400 hover:bg-yellow-300 text-slate-900 border-none">
             <Download size={20} className="mr-3" /> Unduh ZIP
           </Button>
         </div>

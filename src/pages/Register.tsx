@@ -240,7 +240,7 @@ export default function Register() {
             <button 
               type="submit"
               disabled={loading}
-              className="w-full bg-indigo-950 text-white py-4 rounded-2xl font-bold hover:bg-indigo-900 active:scale-[0.98] transition-all shadow-xl shadow-slate-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:pointer-events-none mt-4"
+              className="w-full bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white py-4 rounded-2xl font-bold hover:brightness-110 active:scale-[0.98] transition-all border border-white/10 shadow-xl shadow-slate-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:pointer-events-none mt-4"
             >
               {loading ? (
                 <Loader2 className="w-5 h-5 animate-spin" />

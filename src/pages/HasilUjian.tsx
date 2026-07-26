@@ -486,7 +486,7 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
             </button>
             <button 
               onClick={exportToExcel}
-              className="bg-indigo-950 text-white px-8 py-4 rounded-2xl font-bold flex items-center justify-center gap-3 hover:bg-indigo-900 transition-all shadow-xl shadow-slate-200 active:scale-[0.98]"
+              className="bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white px-8 py-4 rounded-2xl font-bold flex items-center justify-center gap-3 hover:brightness-110 border border-white/10 transition-all shadow-xl shadow-slate-200 active:scale-[0.98]"
             >
               <FileSpreadsheet className="w-5 h-5" />
               Excel
@@ -648,7 +648,7 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
                       </div>
                     </td>
                     <td className="px-8 py-6 text-right">
-                      <button className="p-3 text-slate-300 group-hover:text-indigo-950 group-hover:bg-white rounded-xl transition-all shadow-sm opacity-0 group-hover:opacity-100">
+                      <button className="p-3 text-slate-300 group-hover:text-indigo-950 group-hover:bg-white rounded-full transition-all shadow-sm opacity-0 group-hover:opacity-100">
                         <ChevronRight className="w-5 h-5" />
                       </button>
                     </td>
@@ -787,7 +787,7 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
                 <div className="p-6 bg-slate-50 border-t border-slate-100 flex justify-end">
                   <button 
                     onClick={() => setShowDetailModal(false)}
-                    className="px-8 py-3 bg-indigo-950 text-white rounded-xl font-bold hover:bg-indigo-900 transition-all shadow-lg shadow-indigo-950/20 active:scale-95"
+                    className="px-8 py-3 bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white rounded-full font-bold hover:brightness-110 transition-all shadow-lg shadow-[#3B66F5]/25 active:scale-95 border border-white/10"
                   >
                     Tutup
                   </button>

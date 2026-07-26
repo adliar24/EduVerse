@@ -325,7 +325,7 @@ export default function FaceScanner({ classId, className, sessionTopic, onMatchS
       <div className="fixed inset-0 z-[100] bg-black flex flex-col items-center justify-center p-6">
         <AlertCircle className="w-12 h-12 text-red-400 mb-4" />
         <p className="text-white/70 text-center mb-4">{message}</p>
-        <button onClick={onCancel} className="px-6 py-2 bg-white/10 text-white rounded-lg">
+        <button onClick={onCancel} className="px-6 py-2 bg-white/10 text-white rounded-full">
           Kembali
         </button>
       </div>

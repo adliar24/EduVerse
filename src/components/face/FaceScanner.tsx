@@ -532,7 +532,7 @@ const playTone = (freq: number, type: OscillatorType, duration: number, vol: num
         
         <button 
           onClick={() => { cleanup(); onCancel(); }}
-          className="px-8 py-3 bg-white/10 text-white rounded-2xl hover:bg-white/20 font-medium transition-all"
+          className="px-8 py-3 bg-white/10 text-white rounded-full hover:bg-white/20 font-medium transition-all"
         >
           Kembali
         </button>
@@ -570,7 +570,7 @@ const playTone = (freq: number, type: OscillatorType, duration: number, vol: num
                 whileTap={{ scale: 0.95 }}
                 onClick={handleSwitchCamera}
                 disabled={isSwitchingCamera}
-                className="w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl bg-white/10 backdrop-blur-md flex items-center justify-center text-white hover:bg-white/20 transition-all border border-white/10"
+                className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center text-white hover:bg-white/20 transition-all border border-white/10"
                 title="Pindah Kamera"
               >
                 {isSwitchingCamera ? (
@@ -583,7 +583,7 @@ const playTone = (freq: number, type: OscillatorType, duration: number, vol: num
             <motion.button 
               whileTap={{ scale: 0.95 }}
               onClick={() => { cleanup(); onCancel(); }}
-              className="w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl bg-red-500/80 backdrop-blur-md flex items-center justify-center text-white hover:bg-red-600 transition-all shadow-lg shadow-red-900/40 border border-red-400/30"
+              className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-red-500/80 backdrop-blur-md flex items-center justify-center text-white hover:bg-red-600 transition-all shadow-lg shadow-red-900/40 border border-red-400/30"
             >
               <X className="w-5 h-5 md:w-7 md:h-7" />
             </motion.button>

@@ -468,7 +468,7 @@ export default function FaceEnrollment({
     return (
       <div className="flex flex-col" ref={containerRef}>
         <div className="flex items-center justify-between mb-3">
-          <button onClick={handleBack} className="p-2 hover:bg-gray-100 rounded-lg text-gray-500">
+          <button onClick={handleBack} className="p-2 hover:bg-gray-100 rounded-full text-gray-500">
             <X className="w-5 h-5" />
           </button>
           <h3 className="font-semibold text-gray-800">Daftar Wajah</h3>
@@ -518,13 +518,13 @@ export default function FaceEnrollment({
             <div className="flex gap-2">
               <button
                 onClick={handleRetake}
-                className="flex-1 py-2.5 rounded-lg font-medium text-sm bg-gray-100 text-gray-700 hover:bg-gray-200"
+                className="flex-1 py-2.5 rounded-full font-medium text-sm bg-gray-100 text-gray-700 hover:bg-gray-200"
               >
                 Ambil Ulang
               </button>
               <button
                 onClick={handleEnroll}
-                className="flex-1 py-2.5 rounded-lg font-medium text-sm bg-emerald-500 text-white hover:bg-emerald-600"
+                className="flex-1 py-2.5 rounded-full font-medium text-sm bg-emerald-500 text-white hover:bg-emerald-600"
               >
                 Simpan Wajah
               </button>
@@ -550,7 +550,7 @@ export default function FaceEnrollment({
     return (
       <div className="flex flex-col">
         <div className="flex items-center justify-between mb-3">
-          <button onClick={handleBack} className="p-2 hover:bg-gray-100 rounded-lg text-gray-500">
+          <button onClick={handleBack} className="p-2 hover:bg-gray-100 rounded-full text-gray-500">
             <X className="w-5 h-5" />
           </button>
           <h3 className="font-semibold text-gray-800">Upload Foto</h3>
@@ -570,20 +570,20 @@ export default function FaceEnrollment({
                 <div className="flex gap-2">
                   <button
                     onClick={() => { setPreviewImage(null); setCapturedDescriptor(null); }}
-                    className="flex-1 py-2.5 rounded-lg font-medium text-sm bg-gray-100 text-gray-700"
+                    className="flex-1 py-2.5 rounded-full font-medium text-sm bg-gray-100 text-gray-700"
                   >
                     Pilih Foto Lain
                   </button>
                   <button
                     onClick={handleSaveFromUpload}
-                    className="flex-1 py-2.5 rounded-lg font-medium text-sm bg-emerald-500 text-white hover:bg-emerald-600"
-                  >
-                    Simpan Wajah
-                  </button>
-                </div>
-              )}
+className="flex-1 py-2.5 rounded-full font-medium text-sm bg-emerald-500 text-white hover:bg-emerald-600"
+              >
+                Simpan Wajah
+              </button>
             </div>
-          ) : (
+          )}
+        </div>
+      ) : (
             <div className="text-center space-y-3">
               <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto">
                 <ImagePlus className="w-8 h-8 text-gray-400" />
@@ -602,7 +602,7 @@ export default function FaceEnrollment({
               />
               <label 
                 htmlFor="face-upload-input" 
-                className="inline-block px-5 py-2.5 bg-emerald-500 text-white rounded-lg font-medium hover:bg-emerald-600 cursor-pointer"
+                className="inline-block px-5 py-2.5 bg-emerald-500 text-white rounded-full font-medium hover:bg-emerald-600 cursor-pointer"
               >
                 Pilih Foto
               </label>
@@ -625,7 +625,7 @@ export default function FaceEnrollment({
       <div className="flex items-center justify-between mb-4">
         <h3 className="font-semibold text-gray-800">Registrasi Wajah</h3>
         {onCancel && (
-          <button onClick={onCancel} className="p-2 hover:bg-gray-100 rounded-lg text-gray-500">
+          <button onClick={onCancel} className="p-2 hover:bg-gray-100 rounded-full text-gray-500">
             <X className="w-5 h-5" />
           </button>
         )}
@@ -636,7 +636,7 @@ export default function FaceEnrollment({
       <div className="space-y-3 flex-1">
         <button
           onClick={handleStartCamera}
-          className="w-full p-4 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl hover:bg-emerald-100 transition-colors flex items-center gap-3"
+          className="w-full p-4 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-full hover:bg-emerald-100 transition-colors flex items-center gap-3"
         >
           <Camera className="w-6 h-6" />
           <div className="text-left">
@@ -647,7 +647,7 @@ export default function FaceEnrollment({
         
         <button
           onClick={() => fileInputRef.current?.click()}
-          className="w-full p-4 bg-blue-50 border border-blue-200 text-blue-700 rounded-xl hover:bg-blue-100 transition-colors flex items-center gap-3"
+          className="w-full p-4 bg-[#3B66F5]/10 border-[#3B66F5]/20 text-[#3B66F5] rounded-full hover:bg-[#3B66F5]/20 transition-colors flex items-center gap-3"
         >
           <ImagePlus className="w-6 h-6" />
           <div className="text-left">
@@ -659,7 +659,7 @@ export default function FaceEnrollment({
         {hasFaceData && (
           <button
             onClick={() => setShowDeleteConfirm(true)}
-            className="w-full p-3 bg-red-50 border border-red-200 text-red-600 rounded-xl hover:bg-red-100 transition-colors flex items-center justify-center gap-2"
+            className="w-full p-3 bg-red-50 border border-red-200 text-red-600 rounded-full hover:bg-red-100 transition-colors flex items-center justify-center gap-2"
           >
             <Trash2 className="w-4 h-4" />
             <span className="font-medium text-sm">Hapus Data Wajah</span>
