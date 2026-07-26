@@ -19,15 +19,15 @@ export interface ThemeConfig {
 export const THEME_CONFIGS: Record<ThemeName, ThemeConfig> = {
   royal: {
     id: 'royal',
-    name: 'Royal Midnight',
-    badge: '👑 Royal Midnight',
-    primary: '#27206D',
-    gradient: 'from-[#27206D] via-[#1F1959] to-[#171245]',
-    heroGradient: 'bg-gradient-to-br from-[#27206D] via-[#1F1959] to-[#171245]',
-    cardStyle: 'bg-gradient-to-br from-[#27206D] via-[#1F1959] to-[#171245] text-white shadow-xl shadow-[#171245]/30 border border-white/10',
-    accentColor: '#818CF8',
-    bgSoft: '#F0F4F8',
-    sidebarActiveBg: 'bg-white/15 text-white backdrop-blur-md shadow-lg border border-white/20 font-bold'
+    name: 'Electric Royal',
+    badge: '⚡ Electric Blue',
+    primary: '#3B66F5',
+    gradient: 'from-[#3B66F5] via-[#2563EB] to-[#1D4ED8]',
+    heroGradient: 'bg-gradient-to-br from-[#3B66F5] via-[#2563EB] to-[#1D4ED8]',
+    cardStyle: 'bg-gradient-to-br from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white shadow-xl shadow-[#3B66F5]/20 border border-white/10',
+    accentColor: '#38BDF8',
+    bgSoft: '#F0F5FF',
+    sidebarActiveBg: 'bg-[#3B66F5] text-white font-bold shadow-md shadow-[#3B66F5]/25 rounded-2xl'
   },
   ocean: {
     id: 'ocean',

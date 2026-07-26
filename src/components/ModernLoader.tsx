@@ -17,7 +17,7 @@ export default function ModernLoader() {
             repeat: Infinity,
             ease: "easeInOut"
           }}
-          className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-blue-600/15 rounded-full blur-[120px]"
+          className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-[#3B66F5]/20 rounded-full blur-[120px]"
         />
         <motion.div
           animate={{
@@ -30,7 +30,7 @@ export default function ModernLoader() {
             repeat: Infinity,
             ease: "easeInOut"
           }}
-          className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-indigo-600/15 rounded-full blur-[140px]"
+          className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-[#2563EB]/20 rounded-full blur-[140px]"
         />
       </div>
 
@@ -46,7 +46,7 @@ export default function ModernLoader() {
             rotate: { duration: 12, repeat: Infinity, ease: "linear" },
             borderRadius: { duration: 6, repeat: Infinity, ease: "easeInOut" }
           }}
-          className="absolute inset-0 border border-blue-500/30 bg-gradient-to-tr from-blue-500/5 to-indigo-500/5 shadow-[0_0_40px_rgba(59,130,246,0.15)]"
+          className="absolute inset-0 border border-[#3B66F5]/40 bg-gradient-to-tr from-[#3B66F5]/10 to-[#2563EB]/10 shadow-[0_0_40px_rgba(59,102,245,0.3)]"
         />
 
         {/* Middle reverse-rotating morphing ring */}
@@ -59,7 +59,7 @@ export default function ModernLoader() {
             rotate: { duration: 8, repeat: Infinity, ease: "linear" },
             borderRadius: { duration: 5, repeat: Infinity, ease: "easeInOut" }
           }}
-          className="absolute w-[80%] h-[80%] border border-indigo-500/40 bg-gradient-to-bl from-indigo-500/5 to-purple-500/5 shadow-[0_0_30px_rgba(99,102,241,0.2)]"
+          className="absolute w-[80%] h-[80%] border border-[#2563EB]/50 bg-gradient-to-bl from-[#3B66F5]/10 to-[#1D4ED8]/10 shadow-[0_0_30px_rgba(59,102,245,0.3)]"
         />
 
         {/* Inner solid glowing fluid ball */}
@@ -72,7 +72,7 @@ export default function ModernLoader() {
             scale: { duration: 3, repeat: Infinity, ease: "easeInOut" },
             borderRadius: { duration: 4, repeat: Infinity, ease: "easeInOut" }
           }}
-          className="absolute w-[45%] h-[45%] bg-gradient-to-br from-blue-400 via-indigo-500 to-purple-600 shadow-[0_0_25px_rgba(99,102,241,0.5)] flex items-center justify-center"
+          className="absolute w-[45%] h-[45%] bg-gradient-to-br from-[#60A5FA] via-[#3B66F5] to-[#1D4ED8] shadow-[0_0_25px_rgba(59,102,245,0.6)] flex items-center justify-center"
         >
           {/* A tiny accent circle in the center */}
           <div className="w-2.5 h-2.5 rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.9)] animate-pulse" />

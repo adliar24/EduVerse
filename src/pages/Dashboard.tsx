@@ -335,13 +335,13 @@ export default function Dashboard() {
       className="space-y-4 pb-2"
     >
       {/* Banner Sambutan Guru */}
-      <div className="bg-gradient-to-r from-indigo-950 via-purple-900 to-indigo-950 text-white rounded-3xl p-4 md:p-5 relative overflow-hidden shadow-xl border border-white/10">
-        <div className="absolute right-0 top-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl"></div>
-        <div className="absolute left-1/3 bottom-0 w-48 h-48 bg-emerald-500/5 rounded-full blur-2xl"></div>
+      <div className="bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white rounded-3xl p-5 relative overflow-hidden shadow-xl border border-white/20">
+        <div className="absolute right-0 top-0 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
+        <div className="absolute left-1/3 bottom-0 w-48 h-48 bg-cyan-400/10 rounded-full blur-2xl"></div>
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/10 rounded-full text-xs font-semibold tracking-wide text-blue-200 mb-2 backdrop-blur-md border border-white/10">
-              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/15 rounded-full text-xs font-semibold tracking-wide text-white mb-2 backdrop-blur-md border border-white/20">
+              <Sparkles className="w-3.5 h-3.5 text-cyan-300" />
               Tahun Ajaran {activeSchool?.academic_year || '2026/2027'} • Semester {activeSchool?.semester || 'Ganjil'}
             </div>
             <h2 className="text-xl md:text-2xl font-bold tracking-tight text-white">
@@ -357,7 +357,7 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <Link
             to="/attendance/scan"
-            className="flex items-center gap-3 p-3 bg-gradient-to-r from-[#685ECC] via-[#5C53D4] to-[#4F46E5] text-white rounded-full shadow-lg shadow-[#5C53D4]/30 hover:shadow-[#5C53D4]/50 hover:scale-[1.02] border border-white/15 transition-all group cursor-pointer"
+            className="flex items-center gap-3 p-3 bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white rounded-full shadow-lg shadow-[#3B66F5]/25 hover:scale-[1.02] border border-white/15 transition-all group cursor-pointer"
           >
             <div className="bg-white/20 text-white p-2.5 rounded-full group-hover:scale-105 transition-transform">
               <ClipboardCheck className="w-5 h-5" />
@@ -369,7 +369,7 @@ export default function Dashboard() {
 
           <Link
             to="/grading"
-            className="flex items-center gap-3 p-3 bg-gradient-to-r from-[#685ECC] via-[#5C53D4] to-[#4F46E5] text-white rounded-full shadow-lg shadow-[#5C53D4]/30 hover:shadow-[#5C53D4]/50 hover:scale-[1.02] border border-white/15 transition-all group cursor-pointer"
+            className="flex items-center gap-3 p-3 bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white rounded-full shadow-lg shadow-[#3B66F5]/25 hover:scale-[1.02] border border-white/15 transition-all group cursor-pointer"
           >
             <div className="bg-white/20 text-white p-2.5 rounded-full group-hover:scale-105 transition-transform">
               <Activity className="w-5 h-5" />
@@ -381,7 +381,7 @@ export default function Dashboard() {
 
           <Link
             to="/buat-ujian"
-            className="flex items-center gap-3 p-3 bg-gradient-to-r from-[#685ECC] via-[#5C53D4] to-[#4F46E5] text-white rounded-full shadow-lg shadow-[#5C53D4]/30 hover:shadow-[#5C53D4]/50 hover:scale-[1.02] border border-white/15 transition-all group cursor-pointer"
+            className="flex items-center gap-3 p-3 bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white rounded-full shadow-lg shadow-[#3B66F5]/25 hover:scale-[1.02] border border-white/15 transition-all group cursor-pointer"
           >
             <div className="bg-white/20 text-white p-2.5 rounded-full group-hover:scale-105 transition-transform">
               <FileText className="w-5 h-5" />

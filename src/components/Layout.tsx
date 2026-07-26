@@ -292,13 +292,15 @@ export default function Layout({ session }: LayoutProps) {
 
       {/* Sidebar Desktop */}
       {!isFullScreenScanMode && (
-        <aside className="w-[240px] sidebar-gradient border-r border-indigo-950/20 hidden lg:flex flex-col sticky top-0 h-screen z-40 transition-all duration-300 shadow-2xl">
-          <div className="p-6 flex items-center gap-3 relative z-10 border-b border-white/5">
-            <GraduationCap className="w-6 h-6 text-white" />
-            <span className="text-xl font-bold tracking-tight text-white">Edu<span className="text-blue-400">Verse</span></span>
+        <aside className="w-[240px] bg-white border-r border-slate-200/80 hidden lg:flex flex-col sticky top-0 h-screen z-40 transition-all duration-300 shadow-md">
+          <div className="p-6 flex items-center gap-3 relative z-10 border-b border-slate-100">
+            <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center border border-blue-100 text-[#3B66F5]">
+              <GraduationCap className="w-5 h-5" />
+            </div>
+            <span className="text-xl font-extrabold tracking-tight text-slate-900">Edu<span className="text-[#3B66F5]">Verse</span></span>
           </div>
 
-          <nav className="flex-1 px-4 py-3 space-y-1 relative z-10 overflow-y-auto max-h-[calc(100vh-140px)] scrollbar-none">
+          <nav className="flex-1 px-3 py-4 space-y-1 relative z-10 overflow-y-auto max-h-[calc(100vh-140px)] scrollbar-none">
             {menuItems.map((item) => {
               const hasSub = !!item.subItems;
               const isSubOpen = openSubmenu === item.label;
@@ -311,22 +313,22 @@ export default function Layout({ session }: LayoutProps) {
                     <button
                       onClick={() => toggleSubmenu(item.label)}
                       className={cn(
-                        "flex items-center justify-between w-full px-3 py-2.5 rounded-xl transition-colors duration-150 group text-left cursor-pointer",
+                        "flex items-center justify-between w-full px-3 py-2.5 rounded-2xl transition-all duration-150 group text-left cursor-pointer",
                         isActive
-                          ? "bg-white text-[#1C174D] shadow-lg font-bold"
-                          : "text-indigo-200/70 hover:bg-white/10 hover:text-white"
+                          ? "bg-[#3B66F5] text-white shadow-md shadow-[#3B66F5]/25 font-bold"
+                          : "text-slate-600 hover:bg-slate-100/80 hover:text-slate-900"
                       )}
                     >
                       <div className="flex items-center gap-3">
                         <item.icon className={cn(
                           "w-[18px] h-[18px] transition-transform duration-200 group-hover:scale-105",
-                          isActive ? "text-[#1C174D]" : "text-indigo-300/60 group-hover:text-white"
+                          isActive ? "text-white" : "text-slate-400 group-hover:text-slate-700"
                         )} />
-                        <span className="font-medium text-[13px]">{item.label}</span>
+                        <span className="font-semibold text-[13px]">{item.label}</span>
                       </div>
                       <ChevronDown className={cn(
                         "w-4 h-4 transition-transform duration-200",
-                        isActive ? "text-[#1C174D]" : "text-indigo-300/60 group-hover:text-white",
+                        isActive ? "text-white" : "text-slate-400 group-hover:text-slate-700",
                         isSubOpen ? "transform rotate-180" : ""
                       )} />
                     </button>
@@ -349,15 +351,15 @@ export default function Layout({ session }: LayoutProps) {
                                 if (prefetch) prefetch();
                               }}
                               className={cn(
-                                "flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] font-medium transition-colors",
+                                "flex items-center gap-2.5 px-3 py-2 rounded-xl text-[12px] font-medium transition-colors",
                                 location.pathname === sub.path
-                                  ? "text-white bg-white/20 font-bold"
-                                  : "text-indigo-200/70 hover:text-white hover:bg-white/10"
+                                  ? "text-[#3B66F5] bg-blue-50 font-bold"
+                                  : "text-slate-500 hover:text-slate-900 hover:bg-slate-100/60"
                               )}
                             >
                               <div className={cn(
                                 "w-1.5 h-1.5 rounded-full transition-colors",
-                                location.pathname === sub.path ? "bg-white" : "bg-indigo-300/40 group-hover:bg-white"
+                                location.pathname === sub.path ? "bg-[#3B66F5]" : "bg-slate-300 group-hover:bg-slate-500"
                               )} />
                               {sub.label}
                             </Link>
@@ -378,14 +380,14 @@ export default function Layout({ session }: LayoutProps) {
                     if (prefetch) prefetch();
                   }}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors duration-150 group text-left cursor-pointer",
+                    "flex items-center gap-3 px-3 py-2.5 rounded-2xl transition-all duration-150 group text-left cursor-pointer",
                     location.pathname === item.path
-                      ? "bg-white text-[#1C174D] shadow-lg font-bold"
-                      : "text-indigo-200/70 hover:bg-white/10 hover:text-white"
+                      ? "bg-[#3B66F5] text-white shadow-md shadow-[#3B66F5]/25 font-bold"
+                      : "text-slate-600 hover:bg-slate-100/80 hover:text-slate-900"
                   )}
                 >
-                  <item.icon className={cn("w-[18px] h-[18px]", location.pathname === item.path ? "text-[#1C174D]" : "text-indigo-300/60 group-hover:text-white")} />
-                  <span className="font-medium text-[13px]">{item.label}</span>
+                  <item.icon className={cn("w-[18px] h-[18px]", location.pathname === item.path ? "text-white" : "text-slate-400 group-hover:text-slate-700")} />
+                  <span className="font-semibold text-[13px]">{item.label}</span>
                 </Link>
               );
             })}

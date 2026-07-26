@@ -25,20 +25,20 @@ export const FluidCanvas: React.FC<{ className?: string }> = ({ className = "" }
     // Wave parameters for liquid fluid motion
     let step = 0;
     const waves = [
-      { amplitude: 60, wavelength: 0.008, speed: 0.015, color: 'rgba(79, 70, 229, 0.45)' },   // Indigo
-      { amplitude: 80, wavelength: 0.005, speed: 0.012, color: 'rgba(124, 58, 237, 0.35)' },  // Purple
-      { amplitude: 50, wavelength: 0.01, speed: 0.02, color: 'rgba(6, 182, 212, 0.25)' },     // Cyan
-      { amplitude: 90, wavelength: 0.004, speed: 0.008, color: 'rgba(236, 72, 153, 0.2)' }   // Pink/Magenta
+      { amplitude: 60, wavelength: 0.008, speed: 0.015, color: 'rgba(59, 102, 245, 0.45)' },   // Electric Royal Blue
+      { amplitude: 80, wavelength: 0.005, speed: 0.012, color: 'rgba(37, 99, 235, 0.35)' },    // Sapphire Blue
+      { amplitude: 50, wavelength: 0.01, speed: 0.02, color: 'rgba(56, 189, 248, 0.3)' },      // Sky Cyan
+      { amplitude: 90, wavelength: 0.004, speed: 0.008, color: 'rgba(96, 165, 250, 0.25)' }   // Soft Blue
     ];
 
     const render = () => {
       ctx.clearRect(0, 0, width, height);
 
-      // Deep gradient backdrop
+      // Deep Electric Blue gradient backdrop
       const bgGradient = ctx.createLinearGradient(0, 0, width, height);
-      bgGradient.addColorStop(0, '#0F0C31');
-      bgGradient.addColorStop(0.5, '#1A1454');
-      bgGradient.addColorStop(1, '#2D1B69');
+      bgGradient.addColorStop(0, '#1D4ED8');
+      bgGradient.addColorStop(0.5, '#2563EB');
+      bgGradient.addColorStop(1, '#3B66F5');
       ctx.fillStyle = bgGradient;
       ctx.fillRect(0, 0, width, height);
 
