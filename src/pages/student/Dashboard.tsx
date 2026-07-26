@@ -17,24 +17,24 @@ import { motion } from 'framer-motion';
 import React from 'react';
 import { cn } from '../../lib/utils';
 
-const SINGLE_DARK_ROYAL_GRADIENT = {
-  bg: 'bg-gradient-to-br from-[#241D62] via-[#1A144E] to-[#120D3A] text-white border border-white/10 hover:scale-[1.01] transition-all shadow-xl shadow-[#120D3A]/40',
-  selectedBg: 'bg-gradient-to-br from-[#2C2477] via-[#201A5F] to-[#161047] text-white border-white/40 shadow-[0_15px_35px_rgba(26,20,78,0.5)] scale-[1.02]',
+const HOME_LAUNCHER_PURPLE_GRADIENT = {
+  bg: 'bg-gradient-to-br from-[#685ECC] via-[#5C53D4] to-[#4F46E5] text-white border border-white/20 hover:scale-[1.01] transition-all shadow-xl shadow-[#5C53D4]/25',
+  selectedBg: 'bg-gradient-to-br from-[#5C53D4] via-[#4F46E5] to-[#4338CA] text-white border-white/40 shadow-[0_15px_35px_rgba(92,83,212,0.4)] scale-[1.02]',
   text: 'text-white',
-  textMuted: 'text-indigo-200/75',
-  badge: 'bg-white/15 text-white border-white/10 rounded-full backdrop-blur-md',
+  textMuted: 'text-purple-100/85',
+  badge: 'bg-white/20 text-white border-white/10 rounded-full backdrop-blur-md',
   divider: 'border-white/10',
   btnEdit: 'text-white/80 hover:text-white hover:bg-white/15 rounded-full',
   btnDelete: 'text-white/80 hover:text-red-200 hover:bg-red-500/30 rounded-full',
-  checkbox: 'border-white/30 text-indigo-400 focus:ring-offset-indigo-950'
+  checkbox: 'border-white/30 text-[#5C53D4] focus:ring-offset-[#5C53D4]'
 };
 
 const CARD_STYLES = [
-  SINGLE_DARK_ROYAL_GRADIENT,
-  SINGLE_DARK_ROYAL_GRADIENT,
-  SINGLE_DARK_ROYAL_GRADIENT,
-  SINGLE_DARK_ROYAL_GRADIENT,
-  SINGLE_DARK_ROYAL_GRADIENT
+  HOME_LAUNCHER_PURPLE_GRADIENT,
+  HOME_LAUNCHER_PURPLE_GRADIENT,
+  HOME_LAUNCHER_PURPLE_GRADIENT,
+  HOME_LAUNCHER_PURPLE_GRADIENT,
+  HOME_LAUNCHER_PURPLE_GRADIENT
 ];
 
 export default function StudentDashboard() {
