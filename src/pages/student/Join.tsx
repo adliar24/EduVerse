@@ -376,7 +376,7 @@ export default function StudentJoin({ isDashboardView = false }: { isDashboardVi
                       handleStartExam(selectedSession);
                     }}
                     disabled={loading}
-                    className="flex-1 py-3 px-4 rounded-xl font-bold text-white bg-blue-600 hover:bg-blue-700 active:scale-95 transition-all flex items-center justify-center"
+                    className="flex-1 py-3 px-4 rounded-xl font-bold text-white bg-gradient-to-r from-[#685ECC] via-[#5C53D4] to-[#4F46E5] shadow-lg shadow-[#5C53D4]/25 hover:scale-[1.02] border border-white/10 transition-all flex items-center justify-center"
                   >
                     {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Ya, Mulai'}
                   </button>
@@ -589,7 +589,7 @@ export default function StudentJoin({ isDashboardView = false }: { isDashboardVi
                     handleStartExam(selectedSession);
                   }}
                   disabled={loading}
-                  className="flex-1 py-3 px-4 rounded-xl font-bold text-white bg-blue-600 hover:bg-blue-700 active:scale-95 transition-all flex items-center justify-center"
+                  className="flex-1 py-3 px-4 rounded-xl font-bold text-white bg-gradient-to-r from-[#685ECC] via-[#5C53D4] to-[#4F46E5] shadow-lg shadow-[#5C53D4]/25 hover:scale-[1.02] border border-white/10 transition-all flex items-center justify-center"
                 >
                   {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Ya, Mulai'}
                 </button>

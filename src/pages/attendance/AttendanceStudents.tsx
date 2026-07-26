@@ -722,7 +722,7 @@ else if (fileExt === 'csv') {
             >
                 <ArrowLeft className="w-4 h-4 mr-1" /> Kembali ke Daftar Kelas
             </button>
-            <div className="bg-blue-600 p-6 rounded-3xl text-white shadow-lg w-full md:w-auto md:min-w-[300px] relative overflow-hidden">
+            <div className="bg-gradient-to-br from-[#685ECC] via-[#5C53D4] to-[#4F46E5] p-6 rounded-3xl text-white shadow-xl shadow-[#5C53D4]/20 border border-white/10 w-full md:w-auto md:min-w-[300px] relative overflow-hidden">
                 <div className="relative z-10">
                 <div className="opacity-80 text-sm font-medium mb-1">{state.teacher?.schoolYear}</div>
                 <h1 className="text-3xl font-bold">{activeClass.name}</h1>
@@ -734,7 +734,7 @@ else if (fileExt === 'csv') {
          
          <div className="flex md:flex-col gap-2 md:items-end">
             <div className="bg-white px-5 py-3 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-3">
-                <div className="bg-blue-50 p-2 rounded-lg text-blue-600">
+                <div className="bg-[#5C53D4]/10 p-2 rounded-lg text-[#5C53D4]">
                     <User className="w-5 h-5" />
                 </div>
                 <div>

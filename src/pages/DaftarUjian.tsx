@@ -795,7 +795,7 @@ export default function DaftarUjian() {
                 <button 
                   onClick={handleActivateExam}
                   disabled={selectedClasses.length === 0 || activating}
-                  className="flex-1 py-3 rounded-xl font-semibold text-sm text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+                  className="flex-1 py-3 rounded-xl font-semibold text-sm text-white bg-gradient-to-r from-[#685ECC] via-[#5C53D4] to-[#4F46E5] shadow-lg shadow-[#5C53D4]/25 hover:scale-[1.02] border border-white/10 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
                 >
                   {activating ? (
                     <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />

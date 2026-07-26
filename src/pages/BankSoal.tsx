@@ -1735,7 +1735,7 @@ export default function BankSoal() {
                   </button>
                   <button 
                     onClick={handleMoveQuestions}
-                    className="flex-1 py-3 rounded-xl font-semibold text-sm text-white bg-blue-600 hover:bg-blue-700 transition-all shadow-lg shadow-blue-200"
+                    className="flex-1 py-3 rounded-xl font-semibold text-sm text-white bg-gradient-to-r from-[#685ECC] via-[#5C53D4] to-[#4F46E5] shadow-lg shadow-[#5C53D4]/25 hover:scale-[1.02] border border-white/10 transition-all"
                   >
                     Pindahkan
                   </button>

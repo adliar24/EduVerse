@@ -1136,7 +1136,7 @@ export default function StudentExam() {
         <div className="space-y-3">
           <button 
             onClick={() => window.location.reload()}
-            className="w-full bg-blue-600 text-white py-4 rounded-2xl font-black hover:bg-blue-500 transition-all shadow-xl shadow-blue-900/40 active:scale-[0.98]"
+            className="w-full bg-gradient-to-r from-[#685ECC] via-[#5C53D4] to-[#4F46E5] text-white py-4 rounded-2xl font-black hover:scale-[1.01] transition-all shadow-xl shadow-[#5C53D4]/25 border border-white/10"
           >
             Coba Lagi
           </button>
@@ -1629,7 +1629,7 @@ export default function StudentExam() {
                     console.warn('Failed to enter fullscreen:', err);
                   }
                 }}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-2xl font-black transition-all shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2"
+                className="w-full bg-gradient-to-r from-[#685ECC] via-[#5C53D4] to-[#4F46E5] text-white py-4 rounded-2xl font-black transition-all shadow-lg shadow-[#5C53D4]/25 hover:scale-[1.01] border border-white/10 flex items-center justify-center gap-2"
               >
                 Masuk Mode Layar Penuh
               </button>
