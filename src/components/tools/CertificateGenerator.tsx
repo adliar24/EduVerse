@@ -42,7 +42,7 @@ const COLOR_THEMES: Record<CertificateThemeColor, { gradient: string; text: stri
     gradient: 'from-blue-400 via-indigo-500 to-indigo-700', 
     text: 'text-indigo-700',
     ring: 'ring-blue-100',
-    iconBg: 'bg-blue-50',
+    iconBg: 'bg-[#3B66F5]/5',
     shadow: 'shadow-blue-500/30'
   },
   yellow: { 
@@ -578,8 +578,8 @@ const CertificateGenerator: React.FC = () => {
           <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
             <div className="p-4 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Users className="w-5 h-5 text-indigo-950" />
-                <h3 className="font-bold text-indigo-955 text-sm">
+                <Users className="w-5 h-5 text-[#1D4ED8]" />
+                <h3 className="font-bold text-[#3B66F5] text-sm">
                   Antrean Penerima ({recipients.length})
                 </h3>
               </div>
@@ -606,7 +606,7 @@ const CertificateGenerator: React.FC = () => {
                       type="checkbox"
                       checked={checkedIndices.size === recipients.length && recipients.length > 0}
                       onChange={handleToggleCheckAll}
-                      className="w-4 h-4 rounded text-indigo-950 focus:ring-indigo-950/20 cursor-pointer"
+                      className="w-4 h-4 rounded text-[#1D4ED8] focus:ring-[#3B66F5]/20 cursor-pointer"
                     />
                     <span className="text-xs font-bold text-slate-500">Pilih Semua untuk Ekspor Massal</span>
                   </div>
@@ -623,7 +623,7 @@ const CertificateGenerator: React.FC = () => {
                           className={`
                             group flex items-center justify-between p-2 rounded-xl border text-sm transition-all cursor-pointer
                             ${isActive 
-                              ? 'bg-blue-50 border-indigo-950 text-indigo-955 font-bold shadow-sm' 
+                              ? 'bg-[#3B66F5]/5 border-[#3B66F5] text-[#3B66F5] font-bold shadow-sm' 
                               : 'bg-slate-50 hover:bg-slate-100/80 border-slate-200 text-slate-700'
                             }
                           `}
@@ -633,7 +633,7 @@ const CertificateGenerator: React.FC = () => {
                               type="checkbox"
                               checked={isChecked}
                               onChange={() => handleToggleCheck(i)}
-                              className="w-4 h-4 rounded text-indigo-950 focus:ring-indigo-950/20 cursor-pointer"
+                              className="w-4 h-4 rounded text-[#1D4ED8] focus:ring-[#3B66F5]/20 cursor-pointer"
                             />
                             <div className="truncate text-left">
                               <span className="font-semibold text-slate-800 truncate block">{rec.studentName}</span>
@@ -646,7 +646,7 @@ const CertificateGenerator: React.FC = () => {
                               rec.grade === 'S' 
                                 ? 'bg-yellow-50 text-yellow-700 border-yellow-200' 
                                 : rec.grade === 'A' 
-                                  ? 'bg-blue-50 text-blue-700 border-blue-200' 
+                                  ? 'bg-[#3B66F5]/5 text-blue-700 border-[#3B66F5]/30' 
                                   : 'bg-emerald-50 text-emerald-700 border-emerald-200'
                             }`}>
                               {rec.gradeDisplay || rec.grade}
@@ -675,7 +675,7 @@ const CertificateGenerator: React.FC = () => {
                           onClick={() => setOrientation('portrait')}
                           className={`py-1.5 px-3 rounded-lg border text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                             orientation === 'portrait'
-                              ? 'border-indigo-955 bg-indigo-50 text-indigo-955 font-bold shadow-sm'
+                              ? 'border-[#3B66F5] bg-[#3B66F5]/10 text-[#3B66F5] font-bold shadow-sm'
                               : 'border-slate-200 text-slate-500 hover:bg-slate-50'
                           }`}
                         >
@@ -685,7 +685,7 @@ const CertificateGenerator: React.FC = () => {
                           onClick={() => setOrientation('landscape')}
                           className={`py-1.5 px-3 rounded-lg border text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                             orientation === 'landscape'
-                              ? 'border-indigo-955 bg-indigo-50 text-indigo-955 font-bold shadow-sm'
+                              ? 'border-[#3B66F5] bg-[#3B66F5]/10 text-[#3B66F5] font-bold shadow-sm'
                               : 'border-slate-200 text-slate-500 hover:bg-slate-50'
                           }`}
                         >
@@ -702,7 +702,7 @@ const CertificateGenerator: React.FC = () => {
                           value={globalTeacherName}
                           onChange={(e) => setGlobalTeacherName(e.target.value)}
                           placeholder="Nama Guru"
-                          className="w-full p-2 text-xs border border-slate-350 rounded-md focus:ring-2 focus:ring-indigo-955/15 focus:border-indigo-955 bg-white text-slate-800 transition-colors outline-none"
+                          className="w-full p-2 text-xs border border-slate-350 rounded-md focus:ring-2 focus:ring-[#3B66F5]/15 focus:border-[#3B66F5] bg-white text-slate-800 transition-colors outline-none"
                         />
                       </div>
                       <div>
@@ -712,7 +712,7 @@ const CertificateGenerator: React.FC = () => {
                           value={globalDate}
                           onChange={(e) => setGlobalDate(e.target.value)}
                           placeholder="13 Juli 2026"
-                          className="w-full p-2 text-xs border border-slate-350 rounded-md focus:ring-2 focus:ring-indigo-955/15 focus:border-indigo-955 bg-white text-slate-800 transition-colors outline-none"
+                          className="w-full p-2 text-xs border border-slate-350 rounded-md focus:ring-2 focus:ring-[#3B66F5]/15 focus:border-[#3B66F5] bg-white text-slate-800 transition-colors outline-none"
                         />
                       </div>
                     </div>
@@ -722,7 +722,7 @@ const CertificateGenerator: React.FC = () => {
                   <div className="pt-4 border-t border-slate-100 space-y-3">
                     <div className="flex justify-between items-center text-xs text-slate-650 font-semibold mb-1">
                       <span>Penerima Terpilih untuk Ekspor:</span>
-                      <span className="font-bold text-indigo-955">{checkedIndices.size} Siswa</span>
+                      <span className="font-bold text-[#3B66F5]">{checkedIndices.size} Siswa</span>
                     </div>
 
                     <div className="grid grid-cols-2 gap-3">
@@ -752,7 +752,7 @@ const CertificateGenerator: React.FC = () => {
                         </div>
                         <div className="w-full bg-slate-205 rounded-full h-1.5">
                           <div 
-                            className="bg-indigo-955 h-1.5 rounded-full transition-all duration-300" 
+                            className="bg-[#3B66F5] h-1.5 rounded-full transition-all duration-300" 
                             style={{ width: `${(bulkProgress.current / bulkProgress.total) * 100}%` }}
                           ></div>
                         </div>
@@ -771,10 +771,10 @@ const CertificateGenerator: React.FC = () => {
           {!activeRecipient ? (
             /* EMPTY STATE */
             <div className="bg-white rounded-3xl p-12 border border-slate-200 w-full flex flex-col items-center justify-center min-h-[500px] text-center shadow-md">
-              <div className="w-20 h-20 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center mb-6">
-                <Award className="w-10 h-10 text-indigo-955" />
+              <div className="w-20 h-20 rounded-2xl bg-[#3B66F5]/10 border border-[#3B66F5]/20 flex items-center justify-center mb-6">
+                <Award className="w-10 h-10 text-[#3B66F5]" />
               </div>
-              <h3 className="text-xl font-bold text-indigo-955 mb-2">Editor Pratinjau Sertifikat</h3>
+              <h3 className="text-xl font-bold text-[#3B66F5] mb-2">Editor Pratinjau Sertifikat</h3>
               <p className="text-sm text-slate-500 max-w-sm leading-relaxed">
                 Pilih atau tambahkan penerima di sebelah kiri untuk melihat desain pratinjau sertifikat, menyesuaikan tema warna, grade penghargaan, dan mengunduh berkas.
               </p>
@@ -980,8 +980,8 @@ const CertificateGenerator: React.FC = () => {
               {/* Editor Panel for Current Recipient */}
               <div className="bg-white rounded-2xl border border-slate-200 w-full p-6 text-left shadow-sm space-y-5">
                 <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
-                  <Edit3 className="w-5 h-5 text-indigo-955" />
-                  <h3 className="font-bold text-indigo-955 text-sm">Sesuaikan Detail Penerima Aktif</h3>
+                  <Edit3 className="w-5 h-5 text-[#3B66F5]" />
+                  <h3 className="font-bold text-[#3B66F5] text-sm">Sesuaikan Detail Penerima Aktif</h3>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
@@ -992,7 +992,7 @@ const CertificateGenerator: React.FC = () => {
                       value={activeRecipient.studentName}
                       onChange={(e) => updateActiveRecipient('studentName', e.target.value)}
                       placeholder="Budi Santoso"
-                      className="w-full p-2 border border-slate-350 rounded-md focus:ring-2 focus:ring-indigo-955/15 focus:border-indigo-955 bg-white text-slate-800 text-sm outline-none"
+                      className="w-full p-2 border border-slate-350 rounded-md focus:ring-2 focus:ring-[#3B66F5]/15 focus:border-[#3B66F5] bg-white text-slate-800 text-sm outline-none"
                     />
                   </div>
                   <div>
@@ -1002,7 +1002,7 @@ const CertificateGenerator: React.FC = () => {
                       value={activeRecipient.studentClass}
                       onChange={(e) => updateActiveRecipient('studentClass', e.target.value)}
                       placeholder="XII IPA 1"
-                      className="w-full p-2 border border-slate-350 rounded-md focus:ring-2 focus:ring-indigo-955/15 focus:border-indigo-955 bg-white text-slate-800 text-sm outline-none"
+                      className="w-full p-2 border border-slate-350 rounded-md focus:ring-2 focus:ring-[#3B66F5]/15 focus:border-[#3B66F5] bg-white text-slate-800 text-sm outline-none"
                     />
                   </div>
                 </div>
@@ -1026,11 +1026,11 @@ const CertificateGenerator: React.FC = () => {
                       onClick={() => handleGradeChange('A')}
                       className={`p-2 rounded-lg border-2 flex flex-col items-center gap-0.5 transition-all cursor-pointer ${
                         activeRecipient.grade === 'A' 
-                          ? 'border-blue-600 bg-blue-50 text-blue-700 font-bold' 
+                          ? 'border-blue-600 bg-[#3B66F5]/5 text-blue-700 font-bold' 
                           : 'border-slate-200 text-slate-500 hover:border-blue-250'
                       }`}
                     >
-                      <Star className="w-4 h-4 text-blue-600" />
+                      <Star className="w-4 h-4 text-[#3B66F5]" />
                       <span className="text-[10px]">Sangat Baik</span>
                     </button>
                     <button
@@ -1056,7 +1056,7 @@ const CertificateGenerator: React.FC = () => {
                       value={activeRecipient.gradeDisplay || activeRecipient.grade}
                       onChange={(e) => updateActiveRecipient('gradeDisplay', e.target.value)}
                       placeholder="Baik, TOP, A+"
-                      className="w-full p-2 border border-slate-350 rounded-md focus:ring-2 focus:ring-indigo-955/15 focus:border-indigo-955 bg-white text-slate-800 text-sm outline-none"
+                      className="w-full p-2 border border-slate-350 rounded-md focus:ring-2 focus:ring-[#3B66F5]/15 focus:border-[#3B66F5] bg-white text-slate-800 text-sm outline-none"
                     />
                   </div>
 
@@ -1097,7 +1097,7 @@ const CertificateGenerator: React.FC = () => {
                             updateActiveRecipient('awardArea', val);
                           }
                         }}
-                        className="w-full p-2 border border-slate-350 rounded-md focus:ring-2 focus:ring-indigo-955/15 focus:border-indigo-955 bg-white text-slate-800 text-sm outline-none cursor-pointer"
+                        className="w-full p-2 border border-slate-350 rounded-md focus:ring-2 focus:ring-[#3B66F5]/15 focus:border-[#3B66F5] bg-white text-slate-800 text-sm outline-none cursor-pointer"
                       >
                         {AWARD_AREAS.filter(a => a !== 'Lainnya').map(area => (
                           <option key={area} value={area}>{area}</option>
@@ -1108,13 +1108,13 @@ const CertificateGenerator: React.FC = () => {
                       {isCustomAward && (
                         <div className="animate-in fade-in slide-in-from-top-1">
                           <div className="relative">
-                            <Edit3 className="absolute left-3 top-2.5 w-4 h-4 text-indigo-955" />
+                            <Edit3 className="absolute left-3 top-2.5 w-4 h-4 text-[#3B66F5]" />
                             <input 
                               type="text"
                               value={activeRecipient.awardArea === 'Lainnya' ? '' : activeRecipient.awardArea}
                               onChange={(e) => updateActiveRecipient('awardArea', e.target.value)}
                               placeholder="Ketik judul penghargaan..."
-                              className="w-full pl-9 p-2 border border-indigo-300 rounded-md focus:ring-2 focus:ring-indigo-955/15 focus:border-indigo-955 bg-indigo-50 text-slate-850 text-sm outline-none"
+                              className="w-full pl-9 p-2 border border-indigo-300 rounded-md focus:ring-2 focus:ring-[#3B66F5]/15 focus:border-[#3B66F5] bg-[#3B66F5]/10 text-slate-850 text-sm outline-none"
                             />
                           </div>
                         </div>
@@ -1129,7 +1129,7 @@ const CertificateGenerator: React.FC = () => {
                       onChange={(e) => updateActiveRecipient('specificQuote', e.target.value)}
                       placeholder="Contoh: berhasil memecahkan soal tersulit..."
                       rows={3}
-                      className="w-full p-2 border border-slate-350 rounded-md focus:ring-2 focus:ring-indigo-955/15 focus:border-indigo-955 text-sm bg-white text-slate-850 outline-none resize-none"
+                      className="w-full p-2 border border-slate-350 rounded-md focus:ring-2 focus:ring-[#3B66F5]/15 focus:border-[#3B66F5] text-sm bg-white text-slate-850 outline-none resize-none"
                     />
                   </div>
                 </div>

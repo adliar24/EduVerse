@@ -185,12 +185,12 @@ export default function StudentDashboard() {
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h2 className="text-3xl font-bold text-indigo-950 tracking-tight">Halo, Selamat Belajar!</h2>
+          <h2 className="text-3xl font-bold text-[#1D4ED8] tracking-tight">Halo, Selamat Belajar!</h2>
           <p className="text-slate-500 mt-1 font-medium">Pantau progres ujian dan hasil belajar Anda di sini.</p>
         </div>
         <Link 
           to="/daftar-ujian-siswa"
-          className="bg-gradient-loading text-white px-6 py-3.5 rounded-full font-bold flex items-center gap-2 hover:scale-[1.02] transition-all shadow-glow-loading"
+          className="bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white px-6 py-3.5 rounded-full font-bold flex items-center gap-2 hover:scale-[1.02] transition-all shadow-glow-loading"
         >
           <Zap className="w-5 h-5 text-amber-300 animate-pulse" />
           Ikuti Ujian Baru
@@ -248,7 +248,7 @@ export default function StudentDashboard() {
       <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-8">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h3 className="text-xl font-bold text-indigo-950">Riwayat Ujian</h3>
+            <h3 className="text-xl font-bold text-[#1D4ED8]">Riwayat Ujian</h3>
             <p className="text-sm text-slate-400 font-medium">Daftar ujian yang telah Anda kerjakan</p>
           </div>
         </div>
@@ -276,7 +276,7 @@ export default function StudentDashboard() {
                       "font-bold text-lg",
                       result.status === 'ongoing' 
                         ? "text-amber-700" 
-                        : "text-indigo-950 group-hover:text-blue-600 transition-colors"
+                        : "text-[#1D4ED8] group-hover:text-[#3B66F5] transition-colors"
                     )}>{result.exams?.title}</h4>
                     {result.status === 'ongoing' && (
                       <span className="bg-amber-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full animate-pulse">
@@ -287,7 +287,7 @@ export default function StudentDashboard() {
                   <div className="flex items-center gap-3 mt-1">
                     <span className="text-xs font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-md uppercase tracking-tighter">Code: {result.exams?.exam_code}</span>
                     <span className="text-xs font-medium text-slate-400 flex items-center gap-1">
-                      <Clock className="w-3 h-3 text-blue-500" />
+                      <Clock className="w-3 h-3 text-[#3B66F5]" />
                       {result.exams?.duration} Menit
                     </span>
                   </div>
@@ -311,7 +311,7 @@ export default function StudentDashboard() {
                       )}>{result.score || 0}</p>
                       <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Skor</p>
                     </div>
-                    <div className="h-10 w-10 rounded-full border border-slate-200 flex items-center justify-center group-hover:bg-indigo-950 group-hover:border-indigo-950 transition-all">
+                    <div className="h-10 w-10 rounded-full border border-slate-200 flex items-center justify-center group-hover:bg-[#3B66F5] group-hover:border-[#3B66F5] transition-all">
                       <ArrowUpRight className="w-5 h-5 text-slate-400 group-hover:text-white transition-all" />
                     </div>
                   </>
@@ -324,7 +324,7 @@ export default function StudentDashboard() {
                 <FileText className="w-8 h-8 text-slate-300" />
               </div>
               <p className="text-slate-400 font-bold">Belum ada riwayat ujian.</p>
-              <Link to="/daftar-ujian-siswa" className="text-blue-600 text-sm font-bold mt-2 inline-block hover:underline">Ikuti ujian pertama Anda →</Link>
+              <Link to="/daftar-ujian-siswa" className="text-[#3B66F5] text-sm font-bold mt-2 inline-block hover:underline">Ikuti ujian pertama Anda →</Link>
             </div>
           )}
         </div>
@@ -337,13 +337,13 @@ export default function StudentDashboard() {
           <div>
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h3 className="text-xl font-bold text-indigo-950 flex items-center gap-2">
-                  <BookOpen className="w-5 h-5 text-blue-600" />
+                <h3 className="text-xl font-bold text-[#1D4ED8] flex items-center gap-2">
+                  <BookOpen className="w-5 h-5 text-[#3B66F5]" />
                   Materi Terbaru
                 </h3>
                 <p className="text-xs text-slate-400 font-medium">Bahan ajar pelajaran yang dibagikan guru</p>
               </div>
-              <Link to="/materi-tugas-siswa" className="text-xs font-bold text-blue-600 hover:underline">Lihat Semua →</Link>
+              <Link to="/materi-tugas-siswa" className="text-xs font-bold text-[#3B66F5] hover:underline">Lihat Semua →</Link>
             </div>
 
             <div className="space-y-4">
@@ -373,7 +373,7 @@ export default function StudentDashboard() {
           <div>
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h3 className="text-xl font-bold text-indigo-950 flex items-center gap-2">
+                <h3 className="text-xl font-bold text-[#1D4ED8] flex items-center gap-2">
                   <FileText className="w-5 h-5 text-purple-600" />
                   Tugas Aktif
                 </h3>

@@ -156,7 +156,7 @@ export const StudentListScreen: React.FC = () => {
                   onClick={() => setActiveTab('siswa')}
                   className={`flex-1 py-4 px-6 rounded-[1.5rem] font-black uppercase tracking-widest text-[10px] md:text-xs transition-all flex items-center justify-center gap-2 ${
                       activeTab === 'siswa' 
-                      ? 'bg-gradient-primary text-white shadow-lg shadow-blue-900/20 scale-[1.02]' 
+                      ? 'bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white shadow-lg shadow-blue-900/20 scale-[1.02]' 
                       : 'text-slate-400 hover:bg-slate-50'
                   }`}
               >
@@ -166,7 +166,7 @@ export const StudentListScreen: React.FC = () => {
                   onClick={() => setActiveTab('nilai')}
                   className={`flex-1 py-4 px-6 rounded-[1.5rem] font-black uppercase tracking-widest text-[10px] md:text-xs transition-all flex items-center justify-center gap-2 ${
                       activeTab === 'nilai' 
-                      ? 'bg-gradient-primary text-white shadow-lg shadow-blue-900/20 scale-[1.02]' 
+                      ? 'bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white shadow-lg shadow-blue-900/20 scale-[1.02]' 
                       : 'text-slate-400 hover:bg-slate-50'
                   }`}
               >
@@ -196,13 +196,13 @@ export const StudentListScreen: React.FC = () => {
               
               <div className="flex flex-wrap gap-2 md:gap-3 justify-end px-2">
                 <Button variant="secondary" onClick={handleDownloadTemplate} className="!text-[9px] md:!text-[10px] !px-4 !py-2.5 md:!px-5 md:!py-3 font-black tracking-widest uppercase shadow-sm border-slate-200">
-                  <Download size={14} className="mr-2 text-primary"/> Templat
+                  <Download size={14} className="mr-2 text-[#3B66F5]"/> Templat
                 </Button>
                 <Button variant="secondary" onClick={() => fileImportRef.current?.click()} className="!text-[9px] md:!text-[10px] !px-4 !py-2.5 md:!px-5 md:!py-3 font-black tracking-widest uppercase shadow-sm border-slate-200">
                   <FileSpreadsheet size={14} className="mr-2 text-emerald-600"/> Impor
                 </Button>
                 <Button variant="accent" onClick={() => setIsQRModalOpen(true)} className="!text-[9px] md:!text-[10px] !px-4 !py-2.5 md:!px-5 md:!py-3 font-black tracking-widest uppercase shadow-sm border-slate-200 bg-white hover:bg-slate-50 !text-slate-800">
-                  <QrCode size={14} className="mr-2 text-indigo-500"/> Kartu QR
+                  <QrCode size={14} className="mr-2 text-[#3B66F5]"/> Kartu QR
                 </Button>
               </div>
             </div>
@@ -256,15 +256,15 @@ export const StudentListScreen: React.FC = () => {
                 <div className="grid gap-3 px-1">
                     {classMeetings.sort((a, b) => new Date(b.tanggal).getTime() - new Date(a.tanggal).getTime()).map(m => (
                         <Link key={m.idPertemuan} to={`/grading/${m.idPertemuan}`} className="group">
-                            <div className={`bg-white rounded-2xl p-3 border-2 ${m.assessmentCategory === 'Sumatif' ? 'border-amber-400' : 'border-primary'} flex items-center justify-between shadow-sm active:scale-95 transition-all relative overflow-hidden`}>
+                            <div className={`bg-white rounded-2xl p-3 border-2 ${m.assessmentCategory === 'Sumatif' ? 'border-amber-400' : 'border-[#3B66F5]'} flex items-center justify-between shadow-sm active:scale-95 transition-all relative overflow-hidden`}>
                                 <div className="flex items-center gap-3 relative z-10">
-                                    <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 shadow-inner ${m.assessmentCategory === 'Sumatif' ? 'bg-amber-50 text-amber-600' : 'bg-blue-50 text-primary'} border border-slate-100 transition-colors group-hover:bg-primary group-hover:text-white`}>
+                                    <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 shadow-inner ${m.assessmentCategory === 'Sumatif' ? 'bg-amber-50 text-amber-600' : 'bg-[#3B66F5]/5 text-[#3B66F5]'} border border-slate-100 transition-colors group-hover:bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] group-hover:text-white`}>
                                         {m.assessmentCategory === 'Sumatif' ? <Trophy size={18} /> : <BookOpen size={18} />}
                                     </div>
                                     <div className="min-w-0">
-                                        <h3 className="font-black text-slate-800 text-[13px] uppercase tracking-tight group-hover:text-primary transition-colors truncate leading-tight">{m.materi}</h3>
+                                        <h3 className="font-black text-slate-800 text-[13px] uppercase tracking-tight group-hover:text-[#3B66F5] transition-colors truncate leading-tight">{m.materi}</h3>
                                         <div className="flex items-center gap-1.5 mt-0.5">
-                                            <span className={`text-[9px] font-black uppercase tracking-widest ${m.assessmentCategory === 'Sumatif' ? 'text-amber-600' : 'text-primary'}`}>{m.activityType}</span>
+                                            <span className={`text-[9px] font-black uppercase tracking-widest ${m.assessmentCategory === 'Sumatif' ? 'text-amber-600' : 'text-[#3B66F5]'}`}>{m.activityType}</span>
                                             <span className="text-[9px] text-slate-300 font-bold">•</span>
                                             <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest truncate max-w-[120px]">Ke-{m.urutanKe} • {new Date(m.tanggal).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}</span>
                                         </div>
@@ -277,7 +277,7 @@ export const StudentListScreen: React.FC = () => {
                                     >
                                         <Trash2 size={16} />
                                     </button>
-                                    <ChevronRight size={18} className="text-slate-300 group-hover:text-primary group-hover:translate-x-1 transition-all" />
+                                    <ChevronRight size={18} className="text-slate-300 group-hover:text-[#3B66F5] group-hover:translate-x-1 transition-all" />
                                 </div>
                             </div>
                         </Link>
@@ -506,7 +506,7 @@ export const StudentQRModal: React.FC<{
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Cetak Kartu QR Murid" fullScreen>
       <div className="space-y-8 pb-20">
-        <div className="flex justify-between items-center bg-gradient-primary p-6 rounded-[2rem] border border-white/20 shadow-xl shadow-blue-900/10 no-print">
+        <div className="flex justify-between items-center bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] p-6 rounded-[2rem] border border-white/20 shadow-xl shadow-[#3B66F5]/10 no-print">
           <div>
             <h3 className="font-black text-xl text-white uppercase">Kartu QR EduScore</h3>
             <p className="text-xs font-bold text-blue-100 uppercase tracking-widest mt-1">Gunakan untuk input poin Penghargaan & Hukuman</p>
@@ -518,7 +518,7 @@ export const StudentQRModal: React.FC<{
 
         {isGenerating ? (
           <div className="py-20 text-center">
-            <Loader2 className="animate-spin mx-auto text-primary mb-4" size={40} />
+            <Loader2 className="animate-spin mx-auto text-[#3B66F5] mb-4" size={40} />
             <p className="font-black text-slate-400 uppercase tracking-widest text-xs">Menyiapkan Kartu QR...</p>
           </div>
         ) : (

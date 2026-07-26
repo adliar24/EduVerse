@@ -259,7 +259,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ profile: initialPr
     setProfile(updatedProfile);
   };
 
-  if (!profile) return <Layout><div className="flex items-center justify-center p-40"><Loader2 className="animate-spin text-primary" size={60}/></div></Layout>;
+  if (!profile) return <Layout><div className="flex items-center justify-center p-40"><Loader2 className="animate-spin text-[#3B66F5]" size={60}/></div></Layout>;
 
   return (
     <Layout>
@@ -268,11 +268,11 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ profile: initialPr
         {/* === MOBILE VIEW ONLY (New Design) === */}
         <div className="md:hidden space-y-5 pb-20 pt-6">
             <div className="px-2 mb-2">
-                <h1 className="font-black text-2xl text-primaryDark uppercase tracking-wide leading-tight">Profil Guru</h1>
+                <h1 className="font-black text-2xl text-[#1D4ED8] uppercase tracking-wide leading-tight">Profil Guru</h1>
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Pengaturan & Pemeliharaan Data</p>
             </div>
 
-            <div className="bg-gradient-primary rounded-[2.5rem] p-8 text-white relative shadow-2xl overflow-hidden flex flex-col items-center text-center isolate">
+            <div className="bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] rounded-[2.5rem] p-8 text-white relative shadow-2xl overflow-hidden flex flex-col items-center text-center isolate">
                 <div className="absolute top-[-20%] right-[-20%] w-[80%] h-[80%] bg-white/5 rounded-full blur-[60px] pointer-events-none -z-10" />
                 <div className="absolute bottom-[-20%] left-[-20%] w-[60%] h-[60%] bg-accent/10 rounded-full blur-[60px] pointer-events-none -z-10" />
                 
@@ -317,7 +317,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ profile: initialPr
                     </div>
                 </div>
 
-                <div className="bg-accent text-primaryDark rounded-[2rem] w-24 h-24 flex flex-col items-center justify-center shadow-lg shadow-amber-500/20 z-20">
+                <div className="bg-accent text-[#1D4ED8] rounded-[2rem] w-24 h-24 flex flex-col items-center justify-center shadow-lg shadow-amber-500/20 z-20">
                     <span className="text-[10px] font-black uppercase tracking-widest mb-0.5 opacity-60">KKM</span>
                     <span className="text-4xl font-black leading-none tracking-tighter">
                       {profile.schools.find(s => s.id === profile.activeSchoolId)?.kkmDefault || profile.kkmDefault}
@@ -327,7 +327,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ profile: initialPr
 
             <div className="grid grid-cols-2 gap-3 px-1 mt-1">
                 <button onClick={() => setIsBackupModalOpen(true)} className="bg-white rounded-full p-4 border border-slate-100 shadow-sm flex flex-col items-center justify-center aspect-square gap-2 active:scale-95 transition-transform">
-                    <div className="text-primary"><Download size={20} strokeWidth={2.5}/></div>
+                    <div className="text-[#3B66F5]"><Download size={20} strokeWidth={2.5}/></div>
                     <div className="text-center leading-tight">
                         <div className="font-black text-xs text-slate-800 uppercase">Cadangkan</div>
                         <div className="text-[10px] font-bold text-slate-400 uppercase">Data Lokal</div>
@@ -359,7 +359,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ profile: initialPr
 
             <div className="space-y-3 px-1">
                  <Link to="/grading-settings" className="w-full bg-white rounded-full p-5 border border-slate-100 shadow-sm flex items-center gap-5 active:scale-95 transition-transform">
-                    <div className="w-12 h-12 rounded-2xl bg-blue-50 text-primary flex items-center justify-center shrink-0">
+                    <div className="w-12 h-12 rounded-2xl bg-[#3B66F5]/5 text-[#3B66F5] flex items-center justify-center shrink-0">
                         <TrendingUp size={22} />
                     </div>
                     <div className="text-left flex-1">
@@ -393,7 +393,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ profile: initialPr
 
         {/* === DESKTOP VIEW ONLY === */}
         <div className="hidden md:block space-y-6">
-            <div className="bg-gradient-primary rounded-3xl p-8 md:p-10 text-white shadow-xl relative overflow-hidden flex flex-col md:flex-row items-center gap-8 md:gap-10 isolate">
+            <div className="bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] rounded-3xl p-8 md:p-10 text-white shadow-xl relative overflow-hidden flex flex-col md:flex-row items-center gap-8 md:gap-10 isolate">
                 <div className="absolute -top-24 -right-24 w-64 h-64 bg-white/5 rounded-full blur-[80px] pointer-events-none" />
                 <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-accent/10 rounded-full blur-[80px] pointer-events-none" />
 
@@ -448,22 +448,22 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ profile: initialPr
                 <div className="w-full md:w-auto bg-gradient-gold rounded-[1.75rem] p-6 md:p-8 text-center shadow-lg shadow-amber-500/20 shrink-0 relative overflow-hidden group">
                     <div className="absolute top-0 right-0 w-24 h-24 bg-white/20 rounded-full blur-[40px] pointer-events-none translate-x-10 -translate-y-10"></div>
                     <div className="relative z-10">
-                        <div className="text-primaryDark/60 font-black text-[10px] uppercase tracking-widest mb-0.5">KKM</div>
-                        <div className="text-6xl md:text-7xl font-black text-primaryDark leading-none tracking-tighter group-hover:scale-105 transition-transform duration-300">{profile.kkmDefault}</div>
+                        <div className="text-[#1D4ED8]/60 font-black text-[10px] uppercase tracking-widest mb-0.5">KKM</div>
+                        <div className="text-6xl md:text-7xl font-black text-[#1D4ED8] leading-none tracking-tighter group-hover:scale-105 transition-transform duration-300">{profile.kkmDefault}</div>
                     </div>
                 </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Link to="/grading-settings" className="bg-white rounded-full p-6 border border-slate-100 shadow-sm flex items-center gap-5 group hover:border-primary transition-all">
-                    <div className="w-14 h-14 rounded-2xl bg-blue-50 text-primary flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
+                <Link to="/grading-settings" className="bg-white rounded-full p-6 border border-slate-100 shadow-sm flex items-center gap-5 group hover:border-[#3B66F5] transition-all">
+                    <div className="w-14 h-14 rounded-2xl bg-[#3B66F5]/5 text-[#3B66F5] flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
                         <TrendingUp size={24} strokeWidth={2.5} />
                     </div>
                     <div className="min-w-0">
                         <h4 className="font-black text-slate-800 text-[11px] uppercase tracking-wide truncate">Bobot Penilaian</h4>
                         <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Formatif & Sumatif</p>
                     </div>
-                    <ChevronRight className="ml-auto text-slate-300 group-hover:text-primary shrink-0" size={16} />
+                    <ChevronRight className="ml-auto text-slate-300 group-hover:text-[#3B66F5] shrink-0" size={16} />
                 </Link>
 
                 <Link to="/point-templates" className="bg-white rounded-full p-6 border border-slate-100 shadow-sm flex items-center gap-5 group hover:border-amber-500 transition-all">
@@ -490,8 +490,8 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ profile: initialPr
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-                <button onClick={() => setIsBackupModalOpen(true)} className="bg-white rounded-full p-6 border border-slate-100 shadow-sm hover:shadow-lg hover:border-blue-200 hover:-translate-y-1 transition-all group flex flex-col items-center text-center">
-                <div className="w-14 h-14 rounded-2xl bg-blue-50 text-primary flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-inner">
+                <button onClick={() => setIsBackupModalOpen(true)} className="bg-white rounded-full p-6 border border-slate-100 shadow-sm hover:shadow-lg hover:border-[#3B66F5]/30 hover:-translate-y-1 transition-all group flex flex-col items-center text-center">
+                <div className="w-14 h-14 rounded-2xl bg-[#3B66F5]/5 text-[#3B66F5] flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-inner">
                     <Download size={24} strokeWidth={2.5} />
                 </div>
                 <h3 className="font-black text-slate-800 text-[13px] uppercase tracking-wide mb-1">Cadangkan</h3>
@@ -533,17 +533,17 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ profile: initialPr
               </div>
               <button 
                 onClick={() => processBackup('full')}
-                className="w-full bg-blue-50 hover:bg-blue-100 border border-blue-100 hover:border-blue-200 rounded-full p-6 flex items-center gap-5 transition-all group text-left relative overflow-hidden"
+                className="w-full bg-[#3B66F5]/5 hover:bg-[#3B66F5]/10 border border-[#3B66F5]/20 hover:border-[#3B66F5]/30 rounded-full p-6 flex items-center gap-5 transition-all group text-left relative overflow-hidden"
               >
-                  <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center text-primary shadow-sm shrink-0">
+                  <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center text-[#3B66F5] shadow-sm shrink-0">
                      <Database size={32} strokeWidth={2.5} />
                   </div>
                   <div className="relative z-10">
-                     <h4 className="font-black text-slate-800 text-lg uppercase tracking-wide group-hover:text-primary transition-colors">Backup Lengkap</h4>
-                     <p className="text-xs text-slate-500 font-medium mt-1 leading-relaxed max-w-[200px]">Semua data termasuk Profil, Kelas, Siswa, <strong className="text-primary">Nilai & Poin</strong>.</p>
+                     <h4 className="font-black text-slate-800 text-lg uppercase tracking-wide group-hover:text-[#3B66F5] transition-colors">Backup Lengkap</h4>
+                     <p className="text-xs text-slate-500 font-medium mt-1 leading-relaxed max-w-[200px]">Semua data termasuk Profil, Kelas, Siswa, <strong className="text-[#3B66F5]">Nilai & Poin</strong>.</p>
                   </div>
                   <div className="absolute right-6 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
-                     <CheckCircle2 className="text-primary" size={24} />
+                     <CheckCircle2 className="text-[#3B66F5]" size={24} />
                   </div>
               </button>
               <button 
@@ -574,17 +574,17 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ profile: initialPr
               </div>
               <button 
                 onClick={() => triggerRestore('full')}
-                className="w-full bg-blue-50 hover:bg-blue-100 border border-blue-100 hover:border-blue-200 rounded-full p-6 flex items-center gap-5 transition-all group text-left relative overflow-hidden"
+                className="w-full bg-[#3B66F5]/5 hover:bg-[#3B66F5]/10 border border-[#3B66F5]/20 hover:border-[#3B66F5]/30 rounded-full p-6 flex items-center gap-5 transition-all group text-left relative overflow-hidden"
               >
-                  <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center text-primary shadow-sm shrink-0">
+                  <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center text-[#3B66F5] shadow-sm shrink-0">
                      <Database size={32} strokeWidth={2.5} />
                   </div>
                   <div className="relative z-10">
-                     <h4 className="font-black text-slate-800 text-lg uppercase tracking-wide group-hover:text-primary transition-colors">Restore Lengkap</h4>
+                     <h4 className="font-black text-slate-800 text-lg uppercase tracking-wide group-hover:text-[#3B66F5] transition-colors">Restore Lengkap</h4>
                      <p className="text-xs text-slate-500 font-medium mt-1 leading-relaxed max-w-[200px]">Timpa semua data dengan isi file backup (Profil, Siswa, Nilai, dll).</p>
                   </div>
                   <div className="absolute right-6 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
-                     <CheckCircle2 className="text-primary" size={24} />
+                     <CheckCircle2 className="text-[#3B66F5]" size={24} />
                   </div>
               </button>
               <button 
@@ -618,7 +618,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ profile: initialPr
         >
            {isProcessing ? (
              <div className="py-20 flex flex-col items-center justify-center">
-                <Loader2 className="animate-spin text-primary mb-4" size={40} />
+                <Loader2 className="animate-spin text-[#3B66F5] mb-4" size={40} />
                 <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Sedang Memproses...</p>
              </div>
            ) : isTransferMode ? (
@@ -633,7 +633,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ profile: initialPr
                    <select 
                       value={transferForm.from} 
                       onChange={e => setTransferForm({...transferForm, from: e.target.value})}
-                      className="w-full p-4 rounded-2xl border-2 border-slate-200 font-bold text-slate-800 focus:border-primary focus:outline-none bg-white"
+                      className="w-full p-4 rounded-2xl border-2 border-slate-200 font-bold text-slate-800 focus:border-[#3B66F5] focus:outline-none bg-white"
                    >
                       <option value="">Pilih Sekolah Asal</option>
                       {profile.schools.map(s => <option key={s.id} value={s.id}>{s.nama}</option>)}
@@ -644,7 +644,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ profile: initialPr
                    <select 
                       value={transferForm.to} 
                       onChange={e => setTransferForm({...transferForm, to: e.target.value})}
-                      className="w-full p-4 rounded-2xl border-2 border-slate-200 font-bold text-slate-800 focus:border-primary focus:outline-none bg-white"
+                      className="w-full p-4 rounded-2xl border-2 border-slate-200 font-bold text-slate-800 focus:border-[#3B66F5] focus:outline-none bg-white"
                    >
                       <option value="">Pilih Sekolah Tujuan</option>
                       {profile.schools.map(s => <option key={s.id} value={s.id}>{s.nama}</option>)}
@@ -662,20 +662,20 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ profile: initialPr
                   return (
                     <div 
                       key={school.id} 
-                      className={`p-4 rounded-2xl border-2 flex items-center justify-between cursor-pointer transition-all active:scale-[0.98] ${isActive ? 'border-primary bg-primary/5 ring-1 ring-primary/20' : 'border-slate-100 hover:border-slate-200'}`}
+                      className={`p-4 rounded-2xl border-2 flex items-center justify-between cursor-pointer transition-all active:scale-[0.98] ${isActive ? 'border-[#3B66F5] bg-[#3B66F5]/5 ring-1 ring-[#3B66F5]/20' : 'border-slate-100 hover:border-slate-200'}`}
                       onClick={() => handleSelectSchool(school.id)}
                     >
                        <div className="flex-1">
                           <div className="flex items-center gap-2">
-                            <h4 className={`font-black uppercase ${isActive ? 'text-primary' : 'text-slate-800'}`}>{school.nama}</h4>
-                            {isActive && <div className="px-1.5 py-0.5 bg-primary/10 text-primary text-[7px] font-black rounded uppercase tracking-tighter">Aktif</div>}
+                            <h4 className={`font-black uppercase ${isActive ? 'text-[#3B66F5]' : 'text-slate-800'}`}>{school.nama}</h4>
+                            {isActive && <div className="px-1.5 py-0.5 bg-[#3B66F5]/10 text-[#3B66F5] text-[7px] font-black rounded uppercase tracking-tighter">Aktif</div>}
                           </div>
                           <p className="text-xs text-slate-500 font-medium mt-1">TA {school.tahunAjaran} • Semester {school.semester === '1' ? 'Ganjil' : 'Genap'} • KKM {school.kkmDefault}</p>
                        </div>
                        <div className="flex items-center gap-1">
                            <button 
                               onClick={(e) => { e.stopPropagation(); handleEditSchool(school); }}
-                              className="p-2 text-slate-400 hover:text-primary transition-colors"
+                              className="p-2 text-slate-400 hover:text-[#3B66F5] transition-colors"
                            >
                               <Edit2 size={18} />
                            </button>
@@ -687,15 +687,15 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ profile: initialPr
                                   <Trash2 size={18} />
                                </button>
                            )}
-                           {isActive && <CheckCircle2 className="text-primary shrink-0 ml-2" size={24} />}
+                           {isActive && <CheckCircle2 className="text-[#3B66F5] shrink-0 ml-2" size={24} />}
                        </div>
                     </div>
                   );
                 })}
                 <div className="flex gap-3 mt-6">
                     <button onClick={() => setIsAddSchoolMode(true)} className="flex-1 bg-[#3B66F5]/10 hover:bg-[#3B66F5]/20 border border-[#3B66F5]/20 rounded-full p-4 flex items-center justify-center gap-2 transition-all">
-                       <PlusCircle className="text-primary" size={20} />
-                       <span className="font-black text-primary uppercase text-[10px]">Tambah</span>
+                       <PlusCircle className="text-[#3B66F5]" size={20} />
+                       <span className="font-black text-[#3B66F5] uppercase text-[10px]">Tambah</span>
                     </button>
                 </div>
              </div>
@@ -704,20 +704,20 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ profile: initialPr
                 <div>
                    <label className="text-xs font-black text-slate-500 uppercase tracking-wider block mb-2">Nama Sekolah</label>
                    <input type="text" value={schoolForm.nama} onChange={e => setSchoolForm({...schoolForm, nama: e.target.value})} 
-                          className="w-full p-4 rounded-2xl border-2 border-slate-200 font-bold text-slate-800 focus:border-primary focus:outline-none" placeholder="Nama Sekolah" />
+                          className="w-full p-4 rounded-2xl border-2 border-slate-200 font-bold text-slate-800 focus:border-[#3B66F5] focus:outline-none" placeholder="Nama Sekolah" />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                    <div>
                       <label className="text-xs font-black text-slate-500 uppercase tracking-wider block mb-2">Tahun Ajaran</label>
                       <select value={schoolForm.tahunAjaran} onChange={e => setSchoolForm({...schoolForm, tahunAjaran: e.target.value})}
-                              className="w-full p-4 rounded-2xl border-2 border-slate-200 font-bold text-slate-800 focus:border-primary focus:outline-none bg-white">
+                              className="w-full p-4 rounded-2xl border-2 border-slate-200 font-bold text-slate-800 focus:border-[#3B66F5] focus:outline-none bg-white">
                          {YEAR_OPTIONS.map(y => <option key={y} value={y}>{y}</option>)}
                       </select>
                    </div>
                    <div>
                       <label className="text-xs font-black text-slate-500 uppercase tracking-wider block mb-2">Semester</label>
                       <select value={schoolForm.semester} onChange={e => setSchoolForm({...schoolForm, semester: e.target.value})}
-                              className="w-full p-4 rounded-2xl border-2 border-slate-200 font-bold text-slate-800 focus:border-primary focus:outline-none bg-white">
+                              className="w-full p-4 rounded-2xl border-2 border-slate-200 font-bold text-slate-800 focus:border-[#3B66F5] focus:outline-none bg-white">
                          <option value="1">Ganjil</option>
                          <option value="2">Genap</option>
                       </select>
@@ -726,7 +726,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ profile: initialPr
                 <div>
                    <label className="text-xs font-black text-slate-500 uppercase tracking-wider block mb-2">KKM Default</label>
                    <input type="number" value={schoolForm.kkm} onChange={e => setSchoolForm({...schoolForm, kkm: parseInt(e.target.value) || 75})}
-                          className="w-full p-4 rounded-2xl border-2 border-slate-200 font-bold text-slate-800 focus:border-primary focus:outline-none" />
+                          className="w-full p-4 rounded-2xl border-2 border-slate-200 font-bold text-slate-800 focus:border-[#3B66F5] focus:outline-none" />
                 </div>
                 <div className="flex gap-3 pt-2">
                    <button onClick={() => { setIsAddSchoolMode(false); setEditingSchoolId(null); }} className="flex-1 py-4 rounded-full border-2 border-slate-200 font-black text-slate-500 uppercase text-sm">Batal</button>

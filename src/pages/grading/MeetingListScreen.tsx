@@ -118,7 +118,7 @@ export const MeetingListScreen: React.FC = () => {
         subtitle="Daftar pertemuan & penilaian kelas." 
         rightAction={
           <div className="flex gap-2 px-1">
-            <Button variant="secondary" onClick={exportRekapExcel} className="!py-3 !px-6 !text-[13px] hidden md:flex"><FileSpreadsheet size={18} className="mr-2 text-indigo-950"/> Export Excel</Button>
+            <Button variant="secondary" onClick={exportRekapExcel} className="!py-3 !px-6 !text-[13px] hidden md:flex"><FileSpreadsheet size={18} className="mr-2 text-[#1D4ED8]"/> Export Excel</Button>
             <Button variant="primary" onClick={exportRekapPDF} className="!py-3 !px-6 !text-[13px] hidden md:flex shadow-none"><FileText size={18} className="mr-2 text-white"/> Export PDF</Button>
           </div>
         }
@@ -128,12 +128,12 @@ export const MeetingListScreen: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         {/* Card 1: Input Nilai Per Pertemuan */}
         <Link to="/grading/meetings/new" className="group">
-          <Card className="p-5 bg-white border border-slate-200 hover:border-indigo-200 hover:shadow-md transition-all h-full flex items-center gap-4 cursor-pointer">
-            <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-950 flex items-center justify-center shrink-0 group-hover:bg-indigo-950 group-hover:text-white transition-all">
+          <Card className="p-5 bg-white border border-slate-200 hover:border-[#3B66F5]/30 hover:shadow-md transition-all h-full flex items-center gap-4 cursor-pointer">
+            <div className="w-12 h-12 rounded-2xl bg-[#3B66F5]/10 text-[#1D4ED8] flex items-center justify-center shrink-0 group-hover:bg-[#3B66F5] group-hover:text-white transition-all">
               <Plus size={24} strokeWidth={2.5} />
             </div>
             <div>
-              <h4 className="font-bold text-slate-800 text-sm group-hover:text-indigo-950 transition-colors">Pertemuan Baru</h4>
+              <h4 className="font-bold text-slate-800 text-sm group-hover:text-[#1D4ED8] transition-colors">Pertemuan Baru</h4>
               <p className="text-xs text-slate-400 font-medium mt-0.5">Input nilai per pertemuan / harian</p>
             </div>
           </Card>
@@ -141,12 +141,12 @@ export const MeetingListScreen: React.FC = () => {
 
         {/* Card 2: Input Kilat (Cepat) */}
         <button onClick={() => setIsQuickInputOpen(true)} className="group text-left w-full cursor-pointer focus:outline-none">
-          <Card className="p-5 bg-white border border-slate-200 hover:border-blue-200 hover:shadow-md transition-all h-full flex items-center gap-4 cursor-pointer">
-            <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 group-hover:bg-blue-600 group-hover:text-white transition-all">
+          <Card className="p-5 bg-white border border-slate-200 hover:border-[#3B66F5]/30 hover:shadow-md transition-all h-full flex items-center gap-4 cursor-pointer">
+            <div className="w-12 h-12 rounded-2xl bg-[#3B66F5]/5 text-[#3B66F5] flex items-center justify-center shrink-0 group-hover:bg-blue-600 group-hover:text-white transition-all">
               <Zap size={24} strokeWidth={2.5} />
             </div>
             <div>
-              <h4 className="font-bold text-slate-800 text-sm group-hover:text-blue-600 transition-colors">Input Kilat</h4>
+              <h4 className="font-bold text-slate-800 text-sm group-hover:text-[#3B66F5] transition-colors">Input Kilat</h4>
               <p className="text-xs text-slate-400 font-medium mt-0.5">Instan input nilai satu kolom kelas</p>
             </div>
           </Card>
@@ -193,13 +193,13 @@ export const MeetingListScreen: React.FC = () => {
                   <Link to={`/grading/score/${m.idPertemuan}`} className="md:hidden block group">
                     <div className={`bg-white rounded-2xl p-3 border-2 ${m.assessmentCategory === 'Sumatif' ? 'border-indigo-900' : 'border-indigo-600'} flex items-center justify-between shadow-sm active:scale-95 transition-all relative overflow-hidden`}>
                          <div className="flex items-center gap-3 relative z-10">
-                             <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 shadow-inner ${m.assessmentCategory === 'Sumatif' ? 'bg-indigo-50 text-indigo-950 border-indigo-100' : 'bg-blue-50 text-indigo-600 border-blue-100'} border transition-colors group-hover:bg-indigo-950 group-hover:text-white`}>
-                                 {m.assessmentCategory === 'Sumatif' ? <Trophy size={18} className="text-indigo-900" /> : <BookOpen size={18} />}
+                             <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 shadow-inner ${m.assessmentCategory === 'Sumatif' ? 'bg-[#3B66F5]/10 text-[#1D4ED8] border-[#3B66F5]/20' : 'bg-[#3B66F5]/5 text-[#3B66F5] border-[#3B66F5]/20'} border transition-colors group-hover:bg-[#3B66F5] group-hover:text-white`}>
+                                 {m.assessmentCategory === 'Sumatif' ? <Trophy size={18} className="text-[#1D4ED8]" /> : <BookOpen size={18} />}
                              </div>
                              <div className="min-w-0">
-                                 <h3 className="font-black text-slate-800 text-[13px] uppercase tracking-tight group-hover:text-indigo-950 transition-colors truncate leading-tight">{m.materi}</h3>
+                                 <h3 className="font-black text-slate-800 text-[13px] uppercase tracking-tight group-hover:text-[#1D4ED8] transition-colors truncate leading-tight">{m.materi}</h3>
                                  <div className="flex items-center gap-1.5 mt-0.5">
-                                     <span className={`text-[9px] font-black uppercase tracking-widest ${m.assessmentCategory === 'Sumatif' ? 'text-indigo-950' : 'text-indigo-600'}`}>{m.activityType}</span>
+                                     <span className={`text-[9px] font-black uppercase tracking-widest ${m.assessmentCategory === 'Sumatif' ? 'text-[#1D4ED8]' : 'text-[#3B66F5]'}`}>{m.activityType}</span>
                                      <span className="text-[9px] text-slate-300 font-bold">•</span>
                                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest truncate max-w-[120px]">Ke-{m.urutanKe} • {new Date(m.tanggal).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}</span>
                                  </div>
@@ -212,19 +212,19 @@ export const MeetingListScreen: React.FC = () => {
                                >
                                   <Trash2 size={16} />
                                </button>
-                               <ChevronRight size={18} className="text-slate-300 group-hover:text-indigo-950 group-hover:translate-x-1 transition-all" />
+                               <ChevronRight size={18} className="text-slate-300 group-hover:text-[#1D4ED8] group-hover:translate-x-1 transition-all" />
                          </div>
                      </div>
                    </Link>
  
                    <div className={`hidden md:flex bg-white rounded-3xl p-8 shadow-sm border-l-[12px] ${m.assessmentCategory === 'Sumatif' ? 'border-indigo-900' : 'border-indigo-600'} hover:shadow-xl transition-all group gap-8 items-center relative overflow-hidden`}>
                      <div className="absolute inset-0 bg-slate-50 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
-                     <div className={`w-20 h-20 rounded-2xl flex items-center justify-center shrink-0 shadow-inner relative z-10 ${m.assessmentCategory === 'Sumatif' ? 'bg-indigo-50 text-indigo-950' : 'bg-blue-50 text-indigo-600'}`}>
+                     <div className={`w-20 h-20 rounded-2xl flex items-center justify-center shrink-0 shadow-inner relative z-10 ${m.assessmentCategory === 'Sumatif' ? 'bg-[#3B66F5]/10 text-[#1D4ED8]' : 'bg-[#3B66F5]/5 text-[#3B66F5]'}`}>
                          {m.assessmentCategory === 'Sumatif' ? <Trophy size={32} /> : <BookOpen size={32} />}
                      </div>
                      <div className="flex-1 min-w-0 relative z-10">
                          <div className="flex items-center gap-3 mb-1">
-                           <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border ${m.assessmentCategory === 'Sumatif' ? 'bg-indigo-100 text-indigo-950 border-indigo-200' : 'bg-blue-100 text-blue-700 border-blue-200'}`}>
+                           <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border ${m.assessmentCategory === 'Sumatif' ? 'bg-indigo-100 text-[#1D4ED8] border-[#3B66F5]/30' : 'bg-[#3B66F5]/10 text-blue-700 border-[#3B66F5]/30'}`}>
                                {m.activityType}
                            </span>
                            <span className="text-[11px] text-slate-400 font-bold uppercase tracking-wider">{new Date(m.tanggal).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</span>

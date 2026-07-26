@@ -291,7 +291,7 @@ export const QuickInputModal: React.FC<{ isOpen: boolean, onClose: () => void }>
                                 )}
                             </div>
                             <div className="flex items-center gap-1.5 md:gap-2">
-                                <button onClick={toggleListening} className={`flex items-center gap-1.5 px-3 py-2 rounded-full border-2 transition-all ${isListening ? 'bg-red-500 border-red-400 text-white shadow-xl scale-105' : 'bg-white border-slate-200 text-slate-600 hover:border-primary shadow-sm'}`}>
+                                <button onClick={toggleListening} className={`flex items-center gap-1.5 px-3 py-2 rounded-full border-2 transition-all ${isListening ? 'bg-red-500 border-red-400 text-white shadow-xl scale-105' : 'bg-white border-slate-200 text-slate-600 hover:border-[#3B66F5] shadow-sm'}`}>
                                     {isListening ? <MicOff size={14} /> : <Mic size={14} />}
                                     <span className="text-[8px] font-black uppercase tracking-widest">{isListening ? 'Stop' : 'Suara'}</span>
                                 </button>
@@ -344,8 +344,8 @@ export const QuickInputModal: React.FC<{ isOpen: boolean, onClose: () => void }>
                             </div>
                         )}
                         {isListening && transcript && (
-                            <div className="bg-blue-50/50 px-8 py-3 border-b border-blue-100/50 italic text-sm text-primary font-bold animate-fade flex items-center gap-3">
-                                <div className="w-2 h-2 bg-primary rounded-full animate-bounce"/> "{transcript}..."
+                            <div className="bg-[#3B66F5]/5/50 px-8 py-3 border-b border-[#3B66F5]/20/50 italic text-sm text-[#3B66F5] font-bold animate-fade flex items-center gap-3">
+                                <div className="w-2 h-2 bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] rounded-full animate-bounce"/> "{transcript}..."
                             </div>
                         )}
                         <div className="divide-y divide-slate-100">
@@ -359,7 +359,7 @@ export const QuickInputModal: React.FC<{ isOpen: boolean, onClose: () => void }>
                                             <p className="font-black text-slate-700 uppercase tracking-wide text-[13px] md:text-sm">{s.nama}</p>
                                         </div>
                                         <div className="w-24 md:w-28">
-                                            <input type="number" className="w-full text-center bg-white border-2 border-slate-100 rounded-2xl px-3 py-2.5 font-black text-slate-800 text-base focus:border-primary outline-none" placeholder="0" value={scores[s.idSiswa] || ''} onChange={e => setScores({ ...scores, [s.idSiswa]: Number(e.target.value) })} />
+                                            <input type="number" className="w-full text-center bg-white border-2 border-slate-100 rounded-2xl px-3 py-2.5 font-black text-slate-800 text-base focus:border-[#3B66F5] outline-none" placeholder="0" value={scores[s.idSiswa] || ''} onChange={e => setScores({ ...scores, [s.idSiswa]: Number(e.target.value) })} />
                                         </div>
                                     </div>
                                 ))

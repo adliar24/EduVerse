@@ -413,7 +413,7 @@ export default function ProfileSetup() {
   if (fetchingProfile) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-indigo-950 animate-spin" />
+        <Loader2 className="w-8 h-8 text-[#1D4ED8] animate-spin" />
       </div>
     );
   }
@@ -431,10 +431,10 @@ export default function ProfileSetup() {
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-10"
         >
-          <div className="bg-indigo-950 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-xl shadow-indigo-950/20">
+          <div className="bg-[#1D4ED8] w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-xl shadow-[#3B66F5]/25">
             <Sparkles className="text-white w-8 h-8" />
           </div>
-          <h1 className="text-3xl font-bold text-indigo-950 mb-3">Pengaturan Profil</h1>
+          <h1 className="text-3xl font-bold text-[#1D4ED8] mb-3">Pengaturan Profil</h1>
           <p className="text-slate-500">Lengkapi data diri dan preferensi mengajar Anda</p>
         </motion.div>
 
@@ -506,7 +506,7 @@ export default function ProfileSetup() {
                 {schools.map(school => (
                   <span
                     key={school.id}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-full text-sm font-medium"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#3B66F5]/5 text-blue-700 rounded-full text-sm font-medium"
                   >
                     <Building2 className="w-3.5 h-3.5" />
                     {school.name}
@@ -621,7 +621,7 @@ export default function ProfileSetup() {
           <button
             onClick={handleSaveProfile}
             disabled={loading || !name.trim() || selectedSchoolIds.length === 0 || selectedSubjectIds.length === 0 || !academicYear || !semester}
-            className="w-full bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white py-4 rounded-2xl font-bold hover:brightness-110 active:scale-[0.98] transition-all border border-white/10 shadow-xl shadow-indigo-950/20 flex items-center justify-center gap-2 disabled:opacity-50 disabled:pointer-events-none"
+            className="w-full bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white py-4 rounded-2xl font-bold hover:brightness-110 active:scale-[0.98] transition-all border border-white/10 shadow-xl shadow-[#3B66F5]/25 flex items-center justify-center gap-2 disabled:opacity-50 disabled:pointer-events-none"
           >
             {loading ? (
               <Loader2 className="w-5 h-5 animate-spin" />

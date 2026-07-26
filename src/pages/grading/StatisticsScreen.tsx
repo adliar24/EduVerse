@@ -87,7 +87,7 @@ export const StatisticsScreen: React.FC = () => {
     setPage(1);
   };
 
-  if (loading) return <Layout><div className="flex items-center justify-center p-40"><Loader2 className="animate-spin text-primary" size={40}/></div></Layout>;
+  if (loading) return <Layout><div className="flex items-center justify-center p-40"><Loader2 className="animate-spin text-[#3B66F5]" size={40}/></div></Layout>;
 
   return (
     <Layout>
@@ -99,7 +99,7 @@ export const StatisticsScreen: React.FC = () => {
             <button 
                 onClick={() => handleTabChange('siswa')}
                 className={`flex-1 py-3.5 rounded-3xl text-[10px] font-black uppercase tracking-widest transition-all ${
-                    activeTab === 'siswa' ? 'bg-white text-primary shadow-sm' : 'text-slate-400 hover:text-slate-600'
+                    activeTab === 'siswa' ? 'bg-white text-[#3B66F5] shadow-sm' : 'text-slate-400 hover:text-slate-600'
                 }`}
             >
                 Peringkat Murid
@@ -107,7 +107,7 @@ export const StatisticsScreen: React.FC = () => {
             <button 
                 onClick={() => handleTabChange('kelas')}
                 className={`flex-1 py-3.5 rounded-3xl text-[10px] font-black uppercase tracking-widest transition-all ${
-                    activeTab === 'kelas' ? 'bg-white text-primary shadow-sm' : 'text-slate-400 hover:text-slate-600'
+                    activeTab === 'kelas' ? 'bg-white text-[#3B66F5] shadow-sm' : 'text-slate-400 hover:text-slate-600'
                 }`}
             >
                 Performa Kelas
@@ -120,8 +120,8 @@ export const StatisticsScreen: React.FC = () => {
                     onClick={() => { setSubTab('gabungan'); setPage(1); }}
                     className={`px-5 py-2.5 rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all border ${
                         subTab === 'gabungan' 
-                        ? 'bg-primary text-white border-primary shadow-md' 
-                        : 'bg-white text-slate-400 border-slate-100 hover:border-primary/30'
+                        ? 'bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white border-[#3B66F5] shadow-md' 
+                        : 'bg-white text-slate-400 border-slate-100 hover:border-[#3B66F5]/30'
                     }`}
                 >
                     Nilai + Poin
@@ -130,8 +130,8 @@ export const StatisticsScreen: React.FC = () => {
                     onClick={() => { setSubTab('nilai'); setPage(1); }}
                     className={`px-5 py-2.5 rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all border ${
                         subTab === 'nilai' 
-                        ? 'bg-primary text-white border-primary shadow-md' 
-                        : 'bg-white text-slate-400 border-slate-100 hover:border-primary/30'
+                        ? 'bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white border-[#3B66F5] shadow-md' 
+                        : 'bg-white text-slate-400 border-slate-100 hover:border-[#3B66F5]/30'
                     }`}
                 >
                     Nilai Saja
@@ -140,8 +140,8 @@ export const StatisticsScreen: React.FC = () => {
                     onClick={() => { setSubTab('poin'); setPage(1); }}
                     className={`px-5 py-2.5 rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all border ${
                         subTab === 'poin' 
-                        ? 'bg-primary text-white border-primary shadow-md' 
-                        : 'bg-white text-slate-400 border-slate-100 hover:border-primary/30'
+                        ? 'bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white border-[#3B66F5] shadow-md' 
+                        : 'bg-white text-slate-400 border-slate-100 hover:border-[#3B66F5]/30'
                     }`}
                 >
                     Poin Saja
@@ -220,7 +220,7 @@ export const StatisticsScreen: React.FC = () => {
 
                                         {subTab === 'gabungan' && (
                                             <div className="text-right">
-                                                <div className="text-2xl font-black text-primary leading-none mb-1">{std.combined}</div>
+                                                <div className="text-2xl font-black text-[#3B66F5] leading-none mb-1">{std.combined}</div>
                                                 <div className="text-[8px] font-black text-slate-300 uppercase tracking-[0.2em]">Total</div>
                                             </div>
                                         )}
@@ -234,7 +234,7 @@ export const StatisticsScreen: React.FC = () => {
                 <div className="space-y-4">
                     <div className="flex items-center justify-between px-2 mb-2">
                         <h2 className="font-black text-slate-800 text-sm uppercase tracking-wider flex items-center gap-2">
-                             <TrendingUp size={18} className="text-primary" strokeWidth={3}/> Ranking Performa Kelas
+                             <TrendingUp size={18} className="text-[#3B66F5]" strokeWidth={3}/> Ranking Performa Kelas
                         </h2>
                         <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{classRanking.length} Kelas</span>
                     </div>
@@ -243,9 +243,9 @@ export const StatisticsScreen: React.FC = () => {
                         {pagedData.map((cls, idx) => {
                             const globalIdx = (page - 1) * itemsPerPage + idx;
                             return (
-                                <div key={cls.id} className="bg-white rounded-[2rem] p-6 border border-slate-100 shadow-sm flex items-center justify-between group hover:border-primary/20 transition-all">
+                                <div key={cls.id} className="bg-white rounded-[2rem] p-6 border border-slate-100 shadow-sm flex items-center justify-between group hover:border-[#3B66F5]/20 transition-all">
                                     <div className="flex items-center gap-6">
-                                        <div className="font-black text-3xl text-slate-100 group-hover:text-primary/10 transition-colors">#{globalIdx + 1}</div>
+                                        <div className="font-black text-3xl text-slate-100 group-hover:text-[#3B66F5]/10 transition-colors">#{globalIdx + 1}</div>
                                         <div>
                                             <h3 className="font-black text-slate-800 text-lg uppercase tracking-tight">{cls.name}</h3>
                                             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{cls.subject}</p>
@@ -254,7 +254,7 @@ export const StatisticsScreen: React.FC = () => {
                                     
                                     <div className="flex items-center gap-8">
                                         <div className="hidden md:block w-32 h-2 bg-slate-50 rounded-full overflow-hidden">
-                                            <div className="h-full bg-primary rounded-full transition-all duration-1000" style={{ width: `${cls.avg}%` }} />
+                                            <div className="h-full bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] rounded-full transition-all duration-1000" style={{ width: `${cls.avg}%` }} />
                                         </div>
                                         <div className="text-right">
                                             <div className="text-xl font-black text-slate-800 leading-none mb-1">{cls.avg}</div>
@@ -274,7 +274,7 @@ export const StatisticsScreen: React.FC = () => {
                 <button 
                     onClick={() => setPage(p => Math.max(1, p - 1))}
                     disabled={page === 1}
-                    className="w-12 h-12 rounded-2xl border border-slate-100 bg-white flex items-center justify-center text-slate-400 disabled:opacity-30 disabled:cursor-not-allowed hover:border-primary hover:text-primary transition-all shadow-sm"
+                    className="w-12 h-12 rounded-2xl border border-slate-100 bg-white flex items-center justify-center text-slate-400 disabled:opacity-30 disabled:cursor-not-allowed hover:border-[#3B66F5] hover:text-[#3B66F5] transition-all shadow-sm"
                 >
                     <ChevronLeft size={20} />
                 </button>
@@ -285,7 +285,7 @@ export const StatisticsScreen: React.FC = () => {
                 <button 
                     onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                     disabled={page === totalPages}
-                    className="w-12 h-12 rounded-2xl border border-slate-100 bg-white flex items-center justify-center text-slate-400 disabled:opacity-30 disabled:cursor-not-allowed hover:border-primary hover:text-primary transition-all shadow-sm"
+                    className="w-12 h-12 rounded-2xl border border-slate-100 bg-white flex items-center justify-center text-slate-400 disabled:opacity-30 disabled:cursor-not-allowed hover:border-[#3B66F5] hover:text-[#3B66F5] transition-all shadow-sm"
                 >
                     <ChevronRight size={20} />
                 </button>

@@ -102,29 +102,29 @@ export const ClassManagerScreen: React.FC = () => {
                 <Link to={`/classes/${cls.idKelas}`} className="md:hidden block group">
                     <div className="bg-white rounded-2xl p-4 border-2 !border-amber-400 flex items-center justify-between shadow-sm active:scale-95 transition-all relative overflow-hidden">
                         <div className="flex items-center gap-4 relative z-10">
-                            <div className="w-12 h-12 rounded-xl bg-blue-50 text-primary flex items-center justify-center font-black text-lg border border-blue-100 shadow-inner group-hover:bg-primary group-hover:text-white transition-colors">
+                            <div className="w-12 h-12 rounded-xl bg-[#3B66F5]/5 text-[#3B66F5] flex items-center justify-center font-black text-lg border border-[#3B66F5]/20 shadow-inner group-hover:bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] group-hover:text-white transition-colors">
                                 {cls.namaKelas.charAt(0)}
                             </div>
                             <div>
-                                <h3 className="font-black text-slate-800 text-[13px] uppercase tracking-wide group-hover:text-primary transition-colors">{cls.namaKelas}</h3>
+                                <h3 className="font-black text-slate-800 text-[13px] uppercase tracking-wide group-hover:text-[#3B66F5] transition-colors">{cls.namaKelas}</h3>
                                 <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">{cls.mapel}</p>
                             </div>
                         </div>
                         <div className="flex items-center gap-1 relative z-10">
-                             <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleEditClass(cls); }} className="p-2 text-slate-400 hover:text-primary transition-colors">
+                             <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleEditClass(cls); }} className="p-2 text-slate-400 hover:text-[#3B66F5] transition-colors">
                                 <Edit2 size={16} />
                              </button>
                              <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); confirmDeleteClass(cls.idKelas); }} className="p-2 text-slate-300 hover:text-red-500 transition-colors">
                                 <Trash2 size={16} />
                              </button>
-                             <ChevronRight size={18} className="text-slate-300 group-hover:text-primary group-hover:translate-x-1 transition-all" />
+                             <ChevronRight size={18} className="text-slate-300 group-hover:text-[#3B66F5] group-hover:translate-x-1 transition-all" />
                         </div>
                     </div>
                 </Link>
 
                 <Card className="hidden md:block p-6 group relative overflow-hidden border-2 !border-amber-400 shadow-sm hover:shadow-xl hover:!border-amber-500 transition-all hover:-translate-y-1 bg-white">
                     <div className="absolute top-2 right-2 flex items-center gap-1 z-20">
-                        <button onClick={() => handleEditClass(cls)} className="p-2 text-slate-400 hover:text-primary transition-colors">
+                        <button onClick={() => handleEditClass(cls)} className="p-2 text-slate-400 hover:text-[#3B66F5] transition-colors">
                             <Edit2 size={16}/>
                         </button>
                         <button onClick={() => confirmDeleteClass(cls.idKelas)} className="p-2 text-slate-300 hover:text-red-500 transition-colors">
@@ -137,7 +137,7 @@ export const ClassManagerScreen: React.FC = () => {
                             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest truncate">{cls.mapel}</p>
                         </div>
                         <Link to={`/classes/${cls.idKelas}`} className="mt-auto">
-                            <Button variant="secondary" className="w-full text-[9px] font-black uppercase tracking-widest py-3 hover:bg-primary/5 hover:text-primary hover:border-primary/20 transition-all">
+                            <Button variant="secondary" className="w-full text-[9px] font-black uppercase tracking-widest py-3 hover:bg-[#3B66F5]/5 hover:text-[#3B66F5] hover:border-[#3B66F5]/20 transition-all">
                                 Detail Siswa <ChevronRight size={14} className="ml-2" />
                             </Button>
                         </Link>

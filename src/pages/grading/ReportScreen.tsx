@@ -32,25 +32,25 @@ export const ReportScreen: React.FC = () => {
              {classes.map(c => (
                <React.Fragment key={c.idKelas}>
                  <Link to={`/reports/view/${c.idKelas}`} className="md:hidden block group">
-                    <div className="bg-white rounded-2xl p-4 border-2 !border-primary flex items-center justify-between shadow-sm active:scale-95 transition-all relative overflow-hidden">
+                    <div className="bg-white rounded-2xl p-4 border-2 !border-[#3B66F5] flex items-center justify-between shadow-sm active:scale-95 transition-all relative overflow-hidden">
                         <div className="flex items-center gap-4 relative z-10">
-                            <div className="w-12 h-12 rounded-xl bg-blue-50 text-primary flex items-center justify-center font-black text-lg border border-blue-100 shadow-inner group-hover:bg-primary group-hover:text-white transition-colors">
+                            <div className="w-12 h-12 rounded-xl bg-[#3B66F5]/5 text-[#3B66F5] flex items-center justify-center font-black text-lg border border-[#3B66F5]/20 shadow-inner group-hover:bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] group-hover:text-white transition-colors">
                                 {c.namaKelas.charAt(0)}
                             </div>
                             <div>
-                                <h3 className="font-black text-slate-800 text-[13px] uppercase tracking-wide group-hover:text-primary transition-colors">{c.namaKelas}</h3>
+                                <h3 className="font-black text-slate-800 text-[13px] uppercase tracking-wide group-hover:text-[#3B66F5] transition-colors">{c.namaKelas}</h3>
                                 <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">{c.mapel}</p>
                             </div>
                         </div>
                         <div className="flex items-center gap-1 relative z-10">
-                             <ChevronRight size={18} className="text-slate-300 group-hover:text-primary group-hover:translate-x-1 transition-all" />
+                             <ChevronRight size={18} className="text-slate-300 group-hover:text-[#3B66F5] group-hover:translate-x-1 transition-all" />
                         </div>
                     </div>
                  </Link>
 
                  <Link key={c.idKelas} to={`/reports/view/${c.idKelas}`} className="hidden md:block">
                    <div className="bg-white p-8 rounded-[2.5rem] no-box-border hover:shadow-xl hover:border-accent hover:-translate-y-1 transition-all group h-full">
-                      <div className="w-16 h-16 rounded-2xl bg-blue-50 text-primary flex items-center justify-center mb-6 shadow-inner group-hover:scale-110 transition-transform">
+                      <div className="w-16 h-16 rounded-2xl bg-[#3B66F5]/5 text-[#3B66F5] flex items-center justify-center mb-6 shadow-inner group-hover:scale-110 transition-transform">
                          <BarChart3 size={32} />
                       </div>
                       <h3 className="text-2xl font-black text-slate-800 uppercase tracking-wide mb-2">{c.namaKelas}</h3>
@@ -179,7 +179,7 @@ const ReportDetailView: React.FC<{ idKelas: string }> = ({ idKelas }) => {
    return (
      <>
       <div className="bg-white rounded-[2rem] md:rounded-[3rem] no-box-border overflow-hidden" ref={reportRef} data-pdf-rekap>
-        <div className="hidden block-in-pdf p-10 bg-gradient-to-br from-primary via-blue-700 to-indigo-900 text-white relative">
+        <div className="hidden block-in-pdf p-10 bg-gradient-to-br from-primary via-blue-700 to-[#2563EB] text-white relative">
             <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-32 -mt-32"></div>
             
             <div className="flex justify-between items-end relative z-10">
@@ -238,7 +238,7 @@ const ReportDetailView: React.FC<{ idKelas: string }> = ({ idKelas }) => {
                           <span className="text-sm font-black text-slate-400 tabular-nums">{idx + 1}</span>
                        </td>
                        <td className="px-4 py-5">
-                          <h4 className="font-black text-slate-800 uppercase text-[14px] md:text-[16px] group-hover:text-primary transition-colors leading-tight">{std.nama}</h4>
+                          <h4 className="font-black text-slate-800 uppercase text-[14px] md:text-[16px] group-hover:text-[#3B66F5] transition-colors leading-tight">{std.nama}</h4>
                           <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mt-1 hidden-in-pdf">{stats[std.idSiswa]?.count} Aktivitas</span>
                        </td>
                        <td className="px-4 py-5 text-center">
@@ -250,14 +250,14 @@ const ReportDetailView: React.FC<{ idKelas: string }> = ({ idKelas }) => {
                        <td className="px-4 py-5 text-center">
                              <span className={`font-black text-base md:text-xl ${
                                 stats[std.idSiswa]?.sLetter === 'A' ? 'text-emerald-600' :
-                                stats[std.idSiswa]?.sLetter === 'B' ? 'text-blue-600' :
+                                stats[std.idSiswa]?.sLetter === 'B' ? 'text-[#3B66F5]' :
                                 stats[std.idSiswa]?.sLetter === 'C' ? 'text-amber-600' : 'text-red-600'
                            }`}>
                               {stats[std.idSiswa]?.sLetter}
                            </span>
                        </td>
                        <td className="px-6 py-4 no-print" data-html2canvas-ignore>
-                          <Link to={`/reports/${idKelas}/${std.idSiswa}`} className="w-8 h-8 rounded-full bg-slate-50 text-slate-300 flex items-center justify-center hover:bg-primary hover:text-white transition-colors">
+                          <Link to={`/reports/${idKelas}/${std.idSiswa}`} className="w-8 h-8 rounded-full bg-slate-50 text-slate-300 flex items-center justify-center hover:bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] hover:text-white transition-colors">
                              <ChevronRight size={16} />
                           </Link>
                        </td>

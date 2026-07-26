@@ -15,8 +15,8 @@ const ConfigSection: React.FC<ConfigSectionProps> = ({ config, setConfig, totalS
 
   const themeClasses = {
     headerBg: 'bg-slate-50/80 border-b border-slate-200/60',
-    iconText: 'text-indigo-950',
-    ring: 'focus:ring-2 focus:ring-indigo-950/10 focus:border-indigo-950',
+    iconText: 'text-[#1D4ED8]',
+    ring: 'focus:ring-2 focus:ring-[#3B66F5]/15 focus:border-[#3B66F5]',
     activeTab: 'bg-[#3B66F5] text-white shadow-md shadow-[#3B66F5]/20',
     link: 'text-indigo-650 hover:text-indigo-800'
   };
@@ -85,7 +85,7 @@ const ConfigSection: React.FC<ConfigSectionProps> = ({ config, setConfig, totalS
       <div className={`p-5 flex items-center justify-between border-b ${themeClasses.headerBg}`}>
         <h2 className={`text-lg font-bold flex items-center gap-2 font-display ${themeClasses.iconText}`}>
           <div className="p-1.5 bg-slate-100 rounded-lg shadow-inner">
-             <Settings className="w-5 h-5 text-indigo-950" />
+             <Settings className="w-5 h-5 text-[#1D4ED8]" />
           </div>
           2. Pengaturan Kelompok
         </h2>
@@ -122,12 +122,12 @@ const ConfigSection: React.FC<ConfigSectionProps> = ({ config, setConfig, totalS
                placeholder={config.mode === GroupingMode.BY_COUNT ? "Mau berapa kelompok?" : "Mau berapa siswa per kelompok?"}
                className={`w-full p-4 pl-12 border border-slate-200 rounded-2xl bg-white text-slate-900 transition-all outline-none font-bold text-lg ${themeClasses.ring}`}
              />
-             <div className="absolute left-4 top-4.5 text-slate-400 group-hover:text-indigo-950 transition-colors">
+             <div className="absolute left-4 top-4.5 text-slate-400 group-hover:text-[#1D4ED8] transition-colors">
                {config.mode === GroupingMode.BY_COUNT ? <Layers className="w-6 h-6" /> : <Users className="w-6 h-6" />}
              </div>
              {getEstimation() && (
-               <p className={`text-xs mt-2 font-bold flex items-center gap-1 animate-in fade-in ml-1 text-indigo-950`}>
-                 <Scale className="w-3 h-3 text-indigo-950" /> Estimasi: {getEstimation()}
+               <p className={`text-xs mt-2 font-bold flex items-center gap-1 animate-in fade-in ml-1 text-[#1D4ED8]`}>
+                 <Scale className="w-3 h-3 text-[#1D4ED8]" /> Estimasi: {getEstimation()}
                </p>
              )}
           </div>
@@ -141,10 +141,10 @@ const ConfigSection: React.FC<ConfigSectionProps> = ({ config, setConfig, totalS
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
              <button
                onClick={() => handleStrategyChange(DistributionStrategy.RANDOM)}
-                className={`p-4 rounded-full border text-left transition-all cursor-pointer ${config.strategy === DistributionStrategy.RANDOM ? 'border-indigo-950 bg-indigo-50/50 ring-1 ring-indigo-950' : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'}`}
+                className={`p-4 rounded-full border text-left transition-all cursor-pointer ${config.strategy === DistributionStrategy.RANDOM ? 'border-[#3B66F5] bg-[#3B66F5]/5 ring-1 ring-[#3B66F5]' : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'}`}
              >
                <div className="flex items-center gap-2 font-bold text-slate-800 text-sm">
-                 <div className="p-1.5 rounded-lg bg-slate-100 text-indigo-950"><Shuffle className="w-4 h-4 text-indigo-950" /></div>
+                 <div className="p-1.5 rounded-lg bg-slate-100 text-[#1D4ED8]"><Shuffle className="w-4 h-4 text-[#1D4ED8]" /></div>
                  Acak Total
                </div>
                <p className="text-[10px] text-slate-500 mt-2 pl-[38px]">Murni acak tanpa aturan khusus.</p>
@@ -152,10 +152,10 @@ const ConfigSection: React.FC<ConfigSectionProps> = ({ config, setConfig, totalS
 
              <button
                onClick={() => handleStrategyChange(DistributionStrategy.GENDER_BALANCE)}
-                className={`p-4 rounded-full border text-left transition-all cursor-pointer ${config.strategy === DistributionStrategy.GENDER_BALANCE ? 'border-indigo-950 bg-indigo-50/50 ring-1 ring-indigo-950' : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'}`}
+                className={`p-4 rounded-full border text-left transition-all cursor-pointer ${config.strategy === DistributionStrategy.GENDER_BALANCE ? 'border-[#3B66F5] bg-[#3B66F5]/5 ring-1 ring-[#3B66F5]' : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'}`}
              >
                <div className="flex items-center gap-2 font-bold text-slate-800 text-sm">
-                 <div className="p-1.5 rounded-lg bg-slate-100 text-indigo-950"><Scale className="w-4 h-4 text-indigo-950" /></div>
+                 <div className="p-1.5 rounded-lg bg-slate-100 text-[#1D4ED8]"><Scale className="w-4 h-4 text-[#1D4ED8]" /></div>
                  Seimbang Gender
                </div>
                <p className="text-[10px] text-slate-500 mt-2 pl-[38px]">Laki-laki & Perempuan dibagi rata.</p>
@@ -163,10 +163,10 @@ const ConfigSection: React.FC<ConfigSectionProps> = ({ config, setConfig, totalS
 
              <button
                onClick={() => handleStrategyChange(DistributionStrategy.ABILITY_HETEROGENEOUS)}
-                className={`p-4 rounded-full border text-left transition-all cursor-pointer ${config.strategy === DistributionStrategy.ABILITY_HETEROGENEOUS ? 'border-indigo-950 bg-indigo-50/50 ring-1 ring-indigo-950' : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'}`}
+                className={`p-4 rounded-full border text-left transition-all cursor-pointer ${config.strategy === DistributionStrategy.ABILITY_HETEROGENEOUS ? 'border-[#3B66F5] bg-[#3B66F5]/5 ring-1 ring-[#3B66F5]' : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'}`}
              >
                <div className="flex items-center gap-2 font-bold text-slate-800 text-sm">
-                 <div className="p-1.5 rounded-lg bg-slate-100 text-indigo-950"><UserCheck className="w-4 h-4 text-indigo-950" /></div>
+                 <div className="p-1.5 rounded-lg bg-slate-100 text-[#1D4ED8]"><UserCheck className="w-4 h-4 text-[#1D4ED8]" /></div>
                  Heterogen (Skill)
                </div>
                <p className="text-[10px] text-slate-500 mt-2 pl-[38px]">Campur Mahir & Dasar dalam 1 tim.</p>
@@ -174,10 +174,10 @@ const ConfigSection: React.FC<ConfigSectionProps> = ({ config, setConfig, totalS
 
              <button
                onClick={() => handleStrategyChange(DistributionStrategy.GENDER_AND_ABILITY_HETEROGENEOUS)}
-                className={`p-4 rounded-full border text-left transition-all cursor-pointer ${config.strategy === DistributionStrategy.GENDER_AND_ABILITY_HETEROGENEOUS ? 'border-indigo-950 bg-indigo-50/50 ring-1 ring-indigo-950' : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'}`}
+                className={`p-4 rounded-full border text-left transition-all cursor-pointer ${config.strategy === DistributionStrategy.GENDER_AND_ABILITY_HETEROGENEOUS ? 'border-[#3B66F5] bg-[#3B66F5]/5 ring-1 ring-[#3B66F5]' : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'}`}
              >
                <div className="flex items-center gap-2 font-bold text-slate-800 text-sm">
-                 <div className="p-1.5 rounded-lg bg-slate-100 text-indigo-950"><Layers className="w-4 h-4 text-indigo-950" /></div>
+                 <div className="p-1.5 rounded-lg bg-slate-100 text-[#1D4ED8]"><Layers className="w-4 h-4 text-[#1D4ED8]" /></div>
                  Super Mix
                </div>
                <p className="text-[10px] text-slate-500 mt-2 pl-[38px]">Keseimbangan gender & skill sekaligus.</p>
@@ -193,8 +193,8 @@ const ConfigSection: React.FC<ConfigSectionProps> = ({ config, setConfig, totalS
           
           <div className="flex gap-6 mb-4 font-semibold text-slate-700">
             <label className="flex items-center gap-2 cursor-pointer group">
-              <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${config.namingType === 'auto' ? 'border-indigo-950' : 'border-slate-300'}`}>
-                {config.namingType === 'auto' && <div className="w-2.5 h-2.5 bg-indigo-950 rounded-full" />}
+              <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${config.namingType === 'auto' ? 'border-[#3B66F5]' : 'border-slate-300'}`}>
+                {config.namingType === 'auto' && <div className="w-2.5 h-2.5 bg-[#1D4ED8] rounded-full" />}
               </div>
               <input 
                 type="radio" 
@@ -202,11 +202,11 @@ const ConfigSection: React.FC<ConfigSectionProps> = ({ config, setConfig, totalS
                 onChange={() => setConfig({...config, namingType: 'auto'})}
                 className="hidden"
               />
-              <span className="text-sm group-hover:text-indigo-950 transition-colors">Otomatis (Pola)</span>
+              <span className="text-sm group-hover:text-[#1D4ED8] transition-colors">Otomatis (Pola)</span>
             </label>
             <label className="flex items-center gap-2 cursor-pointer group">
-               <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${config.namingType === 'custom' ? 'border-indigo-950' : 'border-slate-300'}`}>
-                {config.namingType === 'custom' && <div className="w-2.5 h-2.5 bg-indigo-950 rounded-full" />}
+               <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${config.namingType === 'custom' ? 'border-[#3B66F5]' : 'border-slate-300'}`}>
+                {config.namingType === 'custom' && <div className="w-2.5 h-2.5 bg-[#1D4ED8] rounded-full" />}
               </div>
               <input 
                 type="radio" 
@@ -214,7 +214,7 @@ const ConfigSection: React.FC<ConfigSectionProps> = ({ config, setConfig, totalS
                 onChange={() => setConfig({...config, namingType: 'custom'})}
                 className="hidden"
               />
-              <span className="text-sm group-hover:text-indigo-950 transition-colors">Kustom (Manual)</span>
+              <span className="text-sm group-hover:text-[#1D4ED8] transition-colors">Kustom (Manual)</span>
             </label>
           </div>
 
@@ -226,7 +226,7 @@ const ConfigSection: React.FC<ConfigSectionProps> = ({ config, setConfig, totalS
                  value={config.namingPattern}
                  onChange={(e) => setConfig({...config, namingPattern: e.target.value})}
                  placeholder="Contoh: Kelompok, Tim, Squad (Default: Kelompok)"
-                 className="w-full p-3 text-sm border border-slate-300 rounded-xl bg-white text-slate-900 focus:ring-2 focus:ring-indigo-950/15 focus:border-indigo-950 outline-none"
+                 className="w-full p-3 text-sm border border-slate-300 rounded-xl bg-white text-slate-900 focus:ring-2 focus:ring-[#3B66F5]/15 focus:border-[#3B66F5] outline-none"
                />
                <p className="text-[10px] text-slate-400 mt-2">Output: "Kelompok 1", "Kelompok 2", dst.</p>
              </div>
@@ -238,7 +238,7 @@ const ConfigSection: React.FC<ConfigSectionProps> = ({ config, setConfig, totalS
                    onClick={() => fileInputRef.current?.click()}
                    className={`text-xs flex items-center gap-1 hover:underline font-bold ${themeClasses.link}`}
                  >
-                   <Upload className="w-3 h-3 text-indigo-950" /> Upload .txt/.xlsx
+                   <Upload className="w-3 h-3 text-[#1D4ED8]" /> Upload .txt/.xlsx
                  </button>
                  <input 
                    type="file"

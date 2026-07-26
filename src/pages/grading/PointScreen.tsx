@@ -276,7 +276,7 @@ export const PointScreen: React.FC = () => {
                      <div className="flex gap-2">
                         <button 
                             onClick={() => { setPointForm({...pointForm, mode: 'add', source: 'manual'}); setShowModal(true); }}
-                            className="bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] hover:brightness-110 text-white h-14 px-6 rounded-full font-black uppercase tracking-widest text-xs transition-all flex items-center gap-2 shadow-lg shadow-indigo-950/20 border border-white/10 active:scale-95 group cursor-pointer"
+                            className="bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] hover:brightness-110 text-white h-14 px-6 rounded-full font-black uppercase tracking-widest text-xs transition-all flex items-center gap-2 shadow-lg shadow-[#3B66F5]/25 border border-white/10 active:scale-95 group cursor-pointer"
                         >
                             <Plus size={18} strokeWidth={3} className="group-hover:scale-110 transition-transform" /> <span className="hidden sm:inline">Tambah</span>
                         </button>
@@ -303,7 +303,7 @@ export const PointScreen: React.FC = () => {
                             placeholder="Cari nama siswa..." 
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full bg-white pl-12 pr-6 py-4 rounded-[1.5rem] border border-slate-200 outline-none focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all font-bold text-slate-700"
+                            className="w-full bg-white pl-12 pr-6 py-4 rounded-[1.5rem] border border-slate-200 outline-none focus:border-[#3B66F5] focus:ring-4 focus:ring-[#3B66F5]/5 transition-all font-bold text-slate-700"
                         />
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
                     </div>
@@ -311,7 +311,7 @@ export const PointScreen: React.FC = () => {
                         <select 
                              value={effectiveClassFilter} 
                              onChange={(e) => setSelectedClassFilter(e.target.value)}
-                             className="w-full bg-white pl-12 pr-10 py-4 rounded-[1.5rem] border border-slate-200 outline-none focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all font-bold text-slate-700 appearance-none cursor-pointer"
+                             className="w-full bg-white pl-12 pr-10 py-4 rounded-[1.5rem] border border-slate-200 outline-none focus:border-[#3B66F5] focus:ring-4 focus:ring-[#3B66F5]/5 transition-all font-bold text-slate-700 appearance-none cursor-pointer"
                         >
                             <option value="">Semua Kelas</option>
                             {classes.map(c => <option key={c.idKelas} value={c.idKelas}>{c.namaKelas}</option>)}
@@ -323,9 +323,9 @@ export const PointScreen: React.FC = () => {
                     </div>
                 </div>
                 <div className="flex justify-between items-center px-2">
-                    <button onClick={toggleSelectAll} className="flex items-center gap-3 text-slate-500 hover:text-primary transition-colors font-bold text-sm group">
+                    <button onClick={toggleSelectAll} className="flex items-center gap-3 text-slate-500 hover:text-[#3B66F5] transition-colors font-bold text-sm group">
                         {filteredStudents.length > 0 && selectedStudentIds.size === filteredStudents.length ? (
-                            <CheckSquare className="text-primary group-hover:scale-110 transition-transform" />
+                            <CheckSquare className="text-[#3B66F5] group-hover:scale-110 transition-transform" />
                         ) : (
                             <Square className="group-hover:scale-110 transition-transform" />
                         )}
@@ -348,14 +348,14 @@ export const PointScreen: React.FC = () => {
                                     <div 
                                         key={std.idSiswa}
                                         onClick={() => toggleSelection(std.idSiswa)}
-                                        className={`p-5 flex items-center gap-4 hover:bg-slate-50 cursor-pointer transition-colors ${isSelected ? 'bg-blue-50/50' : ''}`}
+                                        className={`p-5 flex items-center gap-4 hover:bg-slate-50 cursor-pointer transition-colors ${isSelected ? 'bg-[#3B66F5]/5/50' : ''}`}
                                     >
-                                        <div className={`shrink-0 transition-colors ${isSelected ? 'text-primary' : 'text-slate-300'}`}>
+                                        <div className={`shrink-0 transition-colors ${isSelected ? 'text-[#3B66F5]' : 'text-slate-300'}`}>
                                             {isSelected ? <CheckSquare size={24} /> : <Square size={24} />}
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-3 mb-1">
-                                                <h4 className={`font-black uppercase truncate text-sm md:text-base ${isSelected ? 'text-primary' : 'text-slate-700'}`}>{std.nama}</h4>
+                                                <h4 className={`font-black uppercase truncate text-sm md:text-base ${isSelected ? 'text-[#3B66F5]' : 'text-slate-700'}`}>{std.nama}</h4>
                                                 <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-500 text-[10px] font-black uppercase tracking-widest border border-slate-200 whitespace-nowrap">
                                                     {getClassName(std.idKelas)}
                                                 </span>
@@ -378,13 +378,13 @@ export const PointScreen: React.FC = () => {
             <div className="py-10">
                 <button 
                     onClick={() => setIsScanning(true)}
-                    className="w-full max-w-sm mx-auto aspect-square rounded-full border-4 border-dashed border-slate-200 flex flex-col items-center justify-center gap-6 hover:bg-white hover:border-primary hover:scale-105 active:scale-95 transition-all group bg-slate-50"
+                    className="w-full max-w-sm mx-auto aspect-square rounded-full border-4 border-dashed border-slate-200 flex flex-col items-center justify-center gap-6 hover:bg-white hover:border-[#3B66F5] hover:scale-105 active:scale-95 transition-all group bg-slate-50"
                 >
                     <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center shadow-lg group-hover:shadow-glow transition-all">
-                        <QrCode size={48} className="text-slate-400 group-hover:text-primary transition-colors" />
+                        <QrCode size={48} className="text-slate-400 group-hover:text-[#3B66F5] transition-colors" />
                     </div>
                     <div className="text-center">
-                        <h3 className="font-black text-xl text-slate-700 uppercase tracking-wide group-hover:text-primary transition-colors">Klik Disini</h3>
+                        <h3 className="font-black text-xl text-slate-700 uppercase tracking-wide group-hover:text-[#3B66F5] transition-colors">Klik Disini</h3>
                         <p className="text-sm font-bold text-slate-400 uppercase tracking-widest mt-1">Untuk Memindai QR Code</p>
                     </div>
                 </button>
@@ -414,13 +414,13 @@ export const PointScreen: React.FC = () => {
               />
               
               <div className="absolute inset-0 pointer-events-none">
-                 <div className="absolute inset-[40px] border-2 border-primary/20 rounded-2xl">
-                    <div className="absolute top-0 left-0 w-10 h-10 border-t-4 border-l-4 border-primary rounded-tl-xl"></div>
-                    <div className="absolute top-0 right-0 w-10 h-10 border-t-4 border-r-4 border-primary rounded-tr-xl"></div>
-                    <div className="absolute bottom-0 left-0 w-10 h-10 border-b-4 border-l-4 border-primary rounded-bl-xl"></div>
-                    <div className="absolute bottom-0 right-0 w-10 h-10 border-b-4 border-r-4 border-primary rounded-br-xl"></div>
+                 <div className="absolute inset-[40px] border-2 border-[#3B66F5]/20 rounded-2xl">
+                    <div className="absolute top-0 left-0 w-10 h-10 border-t-4 border-l-4 border-[#3B66F5] rounded-tl-xl"></div>
+                    <div className="absolute top-0 right-0 w-10 h-10 border-t-4 border-r-4 border-[#3B66F5] rounded-tr-xl"></div>
+                    <div className="absolute bottom-0 left-0 w-10 h-10 border-b-4 border-l-4 border-[#3B66F5] rounded-bl-xl"></div>
+                    <div className="absolute bottom-0 right-0 w-10 h-10 border-b-4 border-r-4 border-[#3B66F5] rounded-br-xl"></div>
                     
-                    <div className="absolute top-0 left-0 right-0 h-1 bg-primary/40 shadow-[0_0_15px_rgba(15,82,186,0.3)] animate-scan"></div>
+                    <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8]/40 shadow-[0_0_15px_rgba(15,82,186,0.3)] animate-scan"></div>
                  </div>
               </div>
            </div>
@@ -458,7 +458,7 @@ export const PointScreen: React.FC = () => {
                    {pointForm.mode === 'add' ? 'Menambahkan Reward' : 'Memberikan Sanksi'}
                </p>
             </div>
-            <div className={`p-4 rounded-2xl flex items-center justify-center gap-3 font-black uppercase tracking-widest text-sm ${pointForm.mode === 'add' ? 'bg-blue-50 text-blue-600' : 'bg-red-50 text-red-600'}`}>
+            <div className={`p-4 rounded-2xl flex items-center justify-center gap-3 font-black uppercase tracking-widest text-sm ${pointForm.mode === 'add' ? 'bg-[#3B66F5]/5 text-[#3B66F5]' : 'bg-red-50 text-red-600'}`}>
                 {pointForm.mode === 'add' ? <Plus size={20} /> : <Minus size={20} />}
                 {pointForm.mode === 'add' ? 'Tambah Poin' : 'Kurangi Poin'}
             </div>
@@ -469,7 +469,7 @@ export const PointScreen: React.FC = () => {
                    placeholder="0" 
                    value={pointForm.amount} 
                    onChange={e => setPointForm({...pointForm, amount: e.target.value})}
-                   className={`!text-center !text-5xl !py-8 !h-auto !font-black ${pointForm.mode === 'add' ? 'text-blue-600 border-blue-100 focus:border-blue-300 focus:ring-blue-100' : 'text-red-600 border-red-100 focus:border-red-300 focus:ring-red-100'}`}
+                   className={`!text-center !text-5xl !py-8 !h-auto !font-black ${pointForm.mode === 'add' ? 'text-[#3B66F5] border-[#3B66F5]/20 focus:border-blue-300 focus:ring-blue-100' : 'text-red-600 border-red-100 focus:border-red-300 focus:ring-red-100'}`}
                 />
             </div>
 
@@ -487,7 +487,7 @@ export const PointScreen: React.FC = () => {
                                         note: t.title
                                     });
                                 }}
-                                className={`px-4 py-2.5 rounded-full border-2 font-bold text-[11px] uppercase tracking-wide transition-all active:scale-95 ${pointForm.mode === 'add' ? 'border-blue-100 text-blue-600 bg-blue-50/30 hover:bg-blue-50' : 'border-red-100 text-red-600 bg-red-50/30 hover:bg-red-50'}`}
+                                className={`px-4 py-2.5 rounded-full border-2 font-bold text-[11px] uppercase tracking-wide transition-all active:scale-95 ${pointForm.mode === 'add' ? 'border-[#3B66F5]/20 text-[#3B66F5] bg-[#3B66F5]/5/30 hover:bg-[#3B66F5]/5' : 'border-red-100 text-red-600 bg-red-50/30 hover:bg-red-50'}`}
                             >
                                 {t.title} ({t.amount > 0 ? `+${t.amount}` : t.amount})
                             </button>
@@ -501,7 +501,7 @@ export const PointScreen: React.FC = () => {
               value={pointForm.note}
               onChange={e => setPointForm({...pointForm, note: e.target.value})}
             />
-            <Button onClick={handleSubmitPoint} className={`w-full py-5 font-black uppercase tracking-widest shadow-lg ${pointForm.mode === 'add' ? 'bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] hover:brightness-110 shadow-indigo-950/20 border border-white/10' : 'bg-red-500 hover:bg-red-600 shadow-red-200'}`}>
+            <Button onClick={handleSubmitPoint} className={`w-full py-5 font-black uppercase tracking-widest shadow-lg ${pointForm.mode === 'add' ? 'bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] hover:brightness-110 shadow-[#3B66F5]/25 border border-white/10' : 'bg-red-500 hover:bg-red-600 shadow-red-200'}`}>
                SIMPAN
             </Button>
          </div>

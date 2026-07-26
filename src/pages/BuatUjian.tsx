@@ -211,7 +211,7 @@ export default function BuatUjian() {
   return (
     <div className="space-y-10 pb-20">
       <div>
-        <h2 className="text-3xl font-bold text-indigo-950 tracking-tight">Buat Ujian Baru</h2>
+        <h2 className="text-3xl font-bold text-[#1D4ED8] tracking-tight">Buat Ujian Baru</h2>
         <p className="text-slate-500 font-medium mt-1">Konfigurasi ujian Anda dan pilih soal terbaik.</p>
       </div>
 
@@ -228,7 +228,7 @@ export default function BuatUjian() {
               </div>
               <span className={cn(
                 "text-[10px] font-bold uppercase tracking-widest transition-colors duration-500 whitespace-nowrap",
-                step >= s.id ? "text-indigo-950" : "text-slate-300"
+                step >= s.id ? "text-[#1D4ED8]" : "text-slate-300"
               )}>{s.label}</span>
             </div>
             {i < steps.length - 1 && (
@@ -236,7 +236,7 @@ export default function BuatUjian() {
                 <motion.div 
                   initial={{ width: 0 }}
                   animate={{ width: step > s.id ? '100%' : '0%' }}
-                  className="h-full bg-indigo-950"
+                  className="h-full bg-[#1D4ED8]"
                 />
               </div>
             )}
@@ -259,7 +259,7 @@ export default function BuatUjian() {
                 <input 
                   type="text" 
                   placeholder="Contoh: Ujian Tengah Semester Matematika Kelas X"
-                  className="w-full px-4 py-2.5 rounded-lg border border-slate-200 bg-white outline-none focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-medium text-sm text-indigo-900"
+                  className="w-full px-4 py-2.5 rounded-lg border border-slate-200 bg-white outline-none focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-medium text-sm text-[#1D4ED8]"
                   value={formData.title}
                   onChange={(e) => setFormData({...formData, title: e.target.value})}
                 />
@@ -270,7 +270,7 @@ export default function BuatUjian() {
                   <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4 pointer-events-none z-10" />
                   <input 
                     type="number" 
-                    className="w-full pl-10 pr-8 py-2.5 rounded-lg border border-slate-200 bg-white outline-none focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-medium text-sm text-indigo-900"
+                    className="w-full pl-10 pr-8 py-2.5 rounded-lg border border-slate-200 bg-white outline-none focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-medium text-sm text-[#1D4ED8]"
                     value={formData.duration}
                     onChange={(e) => setFormData({...formData, duration: parseInt(e.target.value)})}
                   />
@@ -283,31 +283,31 @@ export default function BuatUjian() {
                   onClick={() => setShowDatePicker(true)}
                   className="w-full px-4 py-2.5 rounded-lg border border-slate-200 bg-white outline-none focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-medium text-sm text-slate-500 text-left flex items-center justify-between cursor-pointer hover:border-blue-300"
                 >
-                  <span className={formData.start_time ? "text-indigo-900" : ""}>
+                  <span className={formData.start_time ? "text-[#1D4ED8]" : ""}>
                     {formData.start_time 
                       ? format(new Date(formData.start_time), "dd MMMM yyyy, HH:mm")
                       : "Ketuk Disini"}
                   </span>
-                  <Calendar className="w-4 h-4 text-blue-500" />
+                  <Calendar className="w-4 h-4 text-[#3B66F5]" />
                 </button>
               </div>
             </div>
 
             <div className="space-y-4 pt-2">
               <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
-                <div className="bg-indigo-950 p-1.5 rounded-lg">
+                <div className="bg-[#1D4ED8] p-1.5 rounded-lg">
                   <LayoutGrid className="text-white w-3 h-3" />
                 </div>
-                <h4 className="font-bold text-indigo-950 text-sm tracking-tight">Konfigurasi Tambahan</h4>
+                <h4 className="font-bold text-[#1D4ED8] text-sm tracking-tight">Konfigurasi Tambahan</h4>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <label className={cn(
                   "flex items-center gap-4 p-6 rounded-3xl border-2 transition-all cursor-pointer group",
-                  formData.randomized ? "border-indigo-950 bg-slate-50" : "border-slate-100 bg-white hover:border-slate-200"
+                  formData.randomized ? "border-[#3B66F5] bg-slate-50" : "border-slate-100 bg-white hover:border-slate-200"
                 )}>
                   <div className={cn(
                     "w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all",
-                    formData.randomized ? "bg-indigo-950 border-indigo-950" : "border-slate-200 group-hover:border-slate-400"
+                    formData.randomized ? "bg-[#1D4ED8] border-[#3B66F5]" : "border-slate-200 group-hover:border-slate-400"
                   )}>
                     {formData.randomized && <Check className="text-white w-4 h-4" />}
                   </div>
@@ -318,17 +318,17 @@ export default function BuatUjian() {
                     onChange={(e) => setFormData({...formData, randomized: e.target.checked})}
                   />
                   <div>
-                    <p className="text-sm font-bold text-indigo-950">Acak Soal & Jawaban</p>
+                    <p className="text-sm font-bold text-[#1D4ED8]">Acak Soal & Jawaban</p>
                     <p className="text-xs text-slate-500 mt-0.5 font-medium">Urutan soal dan pilihan jawaban diacak.</p>
                   </div>
                 </label>
                 <label className={cn(
                   "flex items-center gap-4 p-6 rounded-3xl border-2 transition-all cursor-pointer group",
-                  formData.show_score ? "border-indigo-950 bg-slate-50" : "border-slate-100 bg-white hover:border-slate-200"
+                  formData.show_score ? "border-[#3B66F5] bg-slate-50" : "border-slate-100 bg-white hover:border-slate-200"
                 )}>
                   <div className={cn(
                     "w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all",
-                    formData.show_score ? "bg-indigo-950 border-indigo-950" : "border-slate-200 group-hover:border-slate-400"
+                    formData.show_score ? "bg-[#1D4ED8] border-[#3B66F5]" : "border-slate-200 group-hover:border-slate-400"
                   )}>
                     {formData.show_score && <Check className="text-white w-4 h-4" />}
                   </div>
@@ -339,18 +339,18 @@ export default function BuatUjian() {
                     onChange={(e) => setFormData({...formData, show_score: e.target.checked})}
                   />
                   <div>
-                    <p className="text-sm font-bold text-indigo-950">Tampilkan Nilai</p>
+                    <p className="text-sm font-bold text-[#1D4ED8]">Tampilkan Nilai</p>
                     <p className="text-xs text-slate-500 mt-0.5 font-medium">Siswa dapat melihat skor mereka setelah selesai.</p>
                   </div>
                 </label>
                 <div className="md:col-span-2 space-y-4">
                   <label className={cn(
                     "flex items-center gap-4 p-6 rounded-3xl border-2 transition-all cursor-pointer group w-full",
-                    formData.strict_mode ? "border-indigo-950 bg-slate-50" : "border-slate-100 bg-white hover:border-slate-200"
+                    formData.strict_mode ? "border-[#3B66F5] bg-slate-50" : "border-slate-100 bg-white hover:border-slate-200"
                   )}>
                     <div className={cn(
                       "w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all",
-                      formData.strict_mode ? "bg-indigo-950 border-indigo-950" : "border-slate-200 group-hover:border-slate-400"
+                      formData.strict_mode ? "bg-[#1D4ED8] border-[#3B66F5]" : "border-slate-200 group-hover:border-slate-400"
                     )}>
                       {formData.strict_mode && <Check className="text-white w-4 h-4" />}
                     </div>
@@ -362,10 +362,10 @@ export default function BuatUjian() {
                     />
                     <div className="flex-1 flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-bold text-indigo-950">Proteksi Ketat (Anti-Kecurangan)</p>
+                        <p className="text-sm font-bold text-[#1D4ED8]">Proteksi Ketat (Anti-Kecurangan)</p>
                         <p className="text-xs text-slate-500 mt-0.5 font-medium">Blokir copas dan pantau apabila siswa membuka tab baru.</p>
                       </div>
-                      {formData.strict_mode ? <Shield className="w-6 h-6 text-indigo-950" /> : <ShieldOff className="w-6 h-6 text-slate-300" />}
+                      {formData.strict_mode ? <Shield className="w-6 h-6 text-[#1D4ED8]" /> : <ShieldOff className="w-6 h-6 text-slate-300" />}
                     </div>
                   </label>
 
@@ -373,9 +373,9 @@ export default function BuatUjian() {
                     <motion.div 
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="bg-slate-50 p-6 rounded-3xl border border-indigo-950/20 space-y-3"
+                      className="bg-slate-50 p-6 rounded-3xl border border-[#3B66F5]/20 space-y-3"
                     >
-                      <p className="text-xs font-bold text-indigo-950 uppercase tracking-wider">Batas Maksimal Toleransi Keluar Tab:</p>
+                      <p className="text-xs font-bold text-[#1D4ED8] uppercase tracking-wider">Batas Maksimal Toleransi Keluar Tab:</p>
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                         {[
                           { label: '1x (Langsung Blokir)', value: 1 },
@@ -390,7 +390,7 @@ export default function BuatUjian() {
                             className={cn(
                               "py-2.5 px-3 rounded-xl text-xs font-bold border transition-all text-center",
                               formData.strict_limit === opt.value
-                                ? "bg-[#3B66F5] text-white border-indigo-950 shadow-sm"
+                                ? "bg-[#3B66F5] text-white border-[#3B66F5] shadow-sm"
                                 : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
                             )}
                           >
@@ -403,11 +403,11 @@ export default function BuatUjian() {
                 </div>
                 <label className={cn(
                   "flex items-center gap-4 p-6 rounded-3xl border-2 transition-all cursor-pointer group md:col-span-2",
-                  formData.offline_mode ? "border-indigo-950 bg-slate-50" : "border-slate-100 bg-white hover:border-slate-200"
+                  formData.offline_mode ? "border-[#3B66F5] bg-slate-50" : "border-slate-100 bg-white hover:border-slate-200"
                 )}>
                   <div className={cn(
                     "w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all",
-                    formData.offline_mode ? "bg-indigo-950 border-indigo-950" : "border-slate-200 group-hover:border-slate-400"
+                    formData.offline_mode ? "bg-[#1D4ED8] border-[#3B66F5]" : "border-slate-200 group-hover:border-slate-400"
                   )}>
                     {formData.offline_mode && <Check className="text-white w-4 h-4" />}
                   </div>
@@ -426,19 +426,19 @@ export default function BuatUjian() {
                   />
                   <div className="flex-1 flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-bold text-indigo-950">Mode Offline (Hemat Kuota)</p>
+                      <p className="text-sm font-bold text-[#1D4ED8]">Mode Offline (Hemat Kuota)</p>
                       <p className="text-xs text-slate-500 mt-0.5 font-medium">Siswa hanya butuh internet di awal untuk unduh soal dan di akhir untuk mengirim jawaban.</p>
                     </div>
-                    <WifiOff className={cn("w-6 h-6", formData.offline_mode ? "text-indigo-950" : "text-slate-300")} />
+                    <WifiOff className={cn("w-6 h-6", formData.offline_mode ? "text-[#1D4ED8]" : "text-slate-300")} />
                   </div>
                 </label>
                 <label className={cn(
                   "flex items-center gap-4 p-6 rounded-3xl border-2 transition-all cursor-pointer group md:col-span-2",
-                  formData.qr_submission ? "border-indigo-950 bg-slate-50" : "border-slate-100 bg-white hover:border-slate-200"
+                  formData.qr_submission ? "border-[#3B66F5] bg-slate-50" : "border-slate-100 bg-white hover:border-slate-200"
                 )}>
                   <div className={cn(
                     "w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all",
-                    formData.qr_submission ? "bg-indigo-950 border-indigo-950" : "border-slate-200 group-hover:border-slate-400"
+                    formData.qr_submission ? "bg-[#1D4ED8] border-[#3B66F5]" : "border-slate-200 group-hover:border-slate-400"
                   )}>
                     {formData.qr_submission && <Check className="text-white w-4 h-4" />}
                   </div>
@@ -457,10 +457,10 @@ export default function BuatUjian() {
                   />
                   <div className="flex-1 flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-bold text-indigo-950">Mode QR Code (Pengumpulan Manual)</p>
+                      <p className="text-sm font-bold text-[#1D4ED8]">Mode QR Code (Pengumpulan Manual)</p>
                       <p className="text-xs text-slate-500 mt-0.5 font-medium">Siswa menyelesaikan ujian dalam bentuk QR Code. Guru memindai hasil untuk merekap nilai.</p>
                     </div>
-                    <QrCode className={cn("w-6 h-6", formData.qr_submission ? "text-indigo-950" : "text-slate-300")} />
+                    <QrCode className={cn("w-6 h-6", formData.qr_submission ? "text-[#1D4ED8]" : "text-slate-300")} />
                   </div>
                 </label>
               </div>
@@ -487,12 +487,12 @@ export default function BuatUjian() {
           >
             <div className="bg-white p-6 sm:p-8 rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6">
               <div className="flex items-center gap-4 shrink-0">
-                <div className="bg-blue-50 w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl flex items-center justify-center text-blue-600 shadow-inner">
+                <div className="bg-[#3B66F5]/5 w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl flex items-center justify-center text-[#3B66F5] shadow-inner">
                   <Zap className="w-6 h-6 sm:w-8 sm:h-8" />
                 </div>
                 <div>
                   <p className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-widest">Soal Terpilih</p>
-                  <p className="text-2xl sm:text-3xl font-bold text-indigo-950 tracking-tight">{selectedQuestions.length}</p>
+                  <p className="text-2xl sm:text-3xl font-bold text-[#1D4ED8] tracking-tight">{selectedQuestions.length}</p>
                 </div>
               </div>
 
@@ -500,7 +500,7 @@ export default function BuatUjian() {
                 <div className="relative w-full sm:max-w-xs">
                   <FolderIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
                   <select 
-                    className="w-full pl-10 pr-10 py-2.5 sm:py-3 rounded-xl border border-slate-200 bg-slate-50 outline-none focus:ring-2 focus:ring-blue-500/10 transition-all font-medium text-sm text-indigo-950 appearance-none cursor-pointer"
+                    className="w-full pl-10 pr-10 py-2.5 sm:py-3 rounded-xl border border-slate-200 bg-slate-50 outline-none focus:ring-2 focus:ring-blue-500/10 transition-all font-medium text-sm text-[#1D4ED8] appearance-none cursor-pointer"
                     value={selectedCategoryId}
                     onChange={(e) => setSelectedCategoryId(e.target.value)}
                   >
@@ -519,7 +519,7 @@ export default function BuatUjian() {
                     type="button"
                     onClick={handleToggleSelectAll}
                     disabled={questions.length === 0}
-                    className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl font-semibold text-sm text-indigo-950 bg-indigo-50 hover:bg-indigo-100 disabled:opacity-50 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                    className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl font-semibold text-sm text-[#1D4ED8] bg-[#3B66F5]/10 hover:bg-indigo-100 disabled:opacity-50 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                   >
                     {areAllQuestionsSelected ? 'Batal Pilih Semua' : 'Pilih Semua'}
                   </button>
@@ -557,13 +557,13 @@ export default function BuatUjian() {
                   className={cn(
                     "flex items-start gap-6 p-6 rounded-[2rem] border-2 transition-all cursor-pointer group",
                     selectedQuestions.includes(q.id) 
-                      ? "border-indigo-950 bg-slate-50/50 shadow-lg shadow-slate-100" 
+                      ? "border-[#3B66F5] bg-slate-50/50 shadow-lg shadow-slate-100" 
                       : "border-slate-100 bg-white hover:border-slate-300"
                   )}
                 >
                   <div className={cn(
                     "mt-1 w-7 h-7 rounded-lg border-2 flex items-center justify-center transition-all shrink-0",
-                    selectedQuestions.includes(q.id) ? "bg-indigo-950 border-indigo-950" : "border-slate-200 group-hover:border-slate-400"
+                    selectedQuestions.includes(q.id) ? "bg-[#1D4ED8] border-[#3B66F5]" : "border-slate-200 group-hover:border-slate-400"
                   )}>
                     {selectedQuestions.includes(q.id) && <Check className="text-white w-4 h-4" />}
                   </div>
@@ -585,7 +585,7 @@ export default function BuatUjian() {
                         {q.question_type.replace('_', ' ')}
                       </span>
                     </div>
-                    <p className="text-indigo-900 font-bold text-lg leading-snug">{q.question_text}</p>
+                    <p className="text-[#1D4ED8] font-bold text-lg leading-snug">{q.question_text}</p>
                   </div>
                 </motion.label>
                 ))}
@@ -595,11 +595,11 @@ export default function BuatUjian() {
                   <div className="bg-slate-50 w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-6">
                     <AlertCircle className="w-10 h-10 text-slate-300" />
                   </div>
-                  <h3 className="text-xl font-bold text-indigo-950 mb-2">Bank Soal Kosong</h3>
+                  <h3 className="text-xl font-bold text-[#1D4ED8] mb-2">Bank Soal Kosong</h3>
                   <p className="text-slate-400 font-medium max-w-xs mx-auto">Anda perlu menambahkan soal ke Bank Soal terlebih dahulu sebelum membuat ujian.</p>
                   <button 
                     onClick={() => navigate('/bank-soal')}
-                    className="mt-8 text-blue-600 font-bold hover:underline flex items-center gap-2 mx-auto"
+                    className="mt-8 text-[#3B66F5] font-bold hover:underline flex items-center gap-2 mx-auto"
                   >
                     Ke Bank Soal Sekarang <ChevronRight className="w-4 h-4" />
                   </button>
@@ -621,7 +621,7 @@ export default function BuatUjian() {
             className="fixed inset-0 z-50 flex items-center justify-center p-4"
             onClick={() => setShowDatePicker(false)}
           >
-            <div className="absolute inset-0 bg-indigo-950/40 backdrop-blur-sm" />
+            <div className="absolute inset-0 bg-[#1D4ED8]/40 backdrop-blur-sm" />
             <motion.div 
               initial={{ opacity: 0, scale: 0.95, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -631,7 +631,7 @@ export default function BuatUjian() {
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-bold text-indigo-950">Pilih Waktu Mulai</h3>
+                <h3 className="text-lg font-bold text-[#1D4ED8]">Pilih Waktu Mulai</h3>
                 <button 
                   onClick={() => setShowDatePicker(false)}
                   className="p-2 hover:bg-slate-100 rounded-xl transition-colors"
@@ -648,7 +648,7 @@ export default function BuatUjian() {
                 >
                   <ChevronLeft className="w-5 h-5 text-slate-600" />
                 </button>
-                <span className="font-bold text-indigo-950">
+                <span className="font-bold text-[#1D4ED8]">
                   {format(pickerDate, "MMMM yyyy", { locale: id })}
                 </span>
                 <button 
@@ -687,15 +687,15 @@ export default function BuatUjian() {
                       className={cn(
                         "p-2 rounded-xl text-sm font-medium transition-all relative",
                         !isCurrentMonth && "text-slate-200",
-                        isCurrentMonth && !isPast && "text-slate-700 hover:bg-blue-50",
+                        isCurrentMonth && !isPast && "text-slate-700 hover:bg-[#3B66F5]/5",
                         isPast && "text-slate-200 cursor-not-allowed",
                         isSelected && "bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white hover:brightness-110",
-                        isToday && !isSelected && "bg-blue-50 text-blue-600 font-bold"
+                        isToday && !isSelected && "bg-[#3B66F5]/5 text-[#3B66F5] font-bold"
                       )}
                     >
                       {format(day, "d")}
                       {isToday && !isSelected && (
-                        <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-blue-500 rounded-full" />
+                        <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-[#3B66F5]/50 rounded-full" />
                       )}
                     </button>
                   );
@@ -709,7 +709,7 @@ export default function BuatUjian() {
                   <select 
                     value={pickerTime.hours}
                     onChange={(e) => setPickerTime(prev => ({ ...prev, hours: parseInt(e.target.value) }))}
-                    className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-center font-bold text-indigo-950 focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 outline-none"
+                    className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-center font-bold text-[#1D4ED8] focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 outline-none"
                   >
                     {Array.from({ length: 24 }, (_, i) => (
                       <option key={i} value={i}>{i.toString().padStart(2, '0')}</option>
@@ -719,7 +719,7 @@ export default function BuatUjian() {
                   <select 
                     value={pickerTime.minutes}
                     onChange={(e) => setPickerTime(prev => ({ ...prev, minutes: parseInt(e.target.value) }))}
-                    className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-center font-bold text-indigo-950 focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 outline-none"
+                    className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-center font-bold text-[#1D4ED8] focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 outline-none"
                   >
                     {[0, 15, 30, 45].map(m => (
                       <option key={m} value={m}>{m.toString().padStart(2, '0')}</option>

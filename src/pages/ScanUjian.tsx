@@ -407,7 +407,7 @@ export default function ScanUjian() {
 
   if (loading) return (
     <div className="min-h-screen pt-20 flex flex-col items-center justify-center space-y-4">
-      <Loader2 className="w-10 h-10 animate-spin text-indigo-600" />
+      <Loader2 className="w-10 h-10 animate-spin text-[#3B66F5]" />
       <p className="text-slate-500 font-medium">Memuat data pemindaian...</p>
     </div>
   );
@@ -419,12 +419,12 @@ export default function ScanUjian() {
         <div className="flex items-center gap-4">
           <button 
             onClick={() => navigate('/daftar-ujian')}
-            className="p-2.5 bg-white border border-slate-200 rounded-xl text-slate-400 hover:text-indigo-950 hover:bg-slate-50 transition-all shadow-sm"
+            className="p-2.5 bg-white border border-slate-200 rounded-xl text-slate-400 hover:text-[#1D4ED8] hover:bg-slate-50 transition-all shadow-sm"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
           <div>
-            <h2 className="text-3xl font-bold text-indigo-950 tracking-tight flex items-center gap-3">
+            <h2 className="text-3xl font-bold text-[#1D4ED8] tracking-tight flex items-center gap-3">
               Pindai Hasil QR
               <span className="flex h-3 w-3 relative">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -440,7 +440,7 @@ export default function ScanUjian() {
             <select
               value={selectedSession}
               onChange={(e) => setSelectedSession(e.target.value)}
-              className="px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-indigo-950 text-sm font-bold shadow-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
+              className="px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-[#1D4ED8] text-sm font-bold shadow-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
             >
               {sessions.map(s => (
                 <option key={s.id} value={s.id}>{s.class_name}</option>
@@ -449,7 +449,7 @@ export default function ScanUjian() {
           )}
           <button 
             onClick={() => fetchExamAndParticipants(true)}
-            className="bg-white text-indigo-950 border border-slate-200 px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-slate-50 transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer"
+            className="bg-white text-[#1D4ED8] border border-slate-200 px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-slate-50 transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer"
           >
             <RefreshCw className="w-4 h-4" />
             Refresh
@@ -462,8 +462,8 @@ export default function ScanUjian() {
         {/* Left Column: Camera Scanner */}
         <div className="lg:col-span-5 bg-white border border-slate-100 rounded-[2.5rem] p-6 shadow-sm flex flex-col items-center">
           <div className="text-center mb-6">
-            <h3 className="text-xl font-black text-indigo-950 tracking-tight flex items-center justify-center gap-2">
-              <QrCode className="w-6 h-6 text-indigo-600 animate-pulse" />
+            <h3 className="text-xl font-black text-[#1D4ED8] tracking-tight flex items-center justify-center gap-2">
+              <QrCode className="w-6 h-6 text-[#3B66F5] animate-pulse" />
               Kamera Pemindai
             </h3>
             <p className="text-xs font-semibold text-slate-400 mt-1">
@@ -485,7 +485,7 @@ export default function ScanUjian() {
             {/* Visual Guide Box */}
             {isCameraActive && (
               <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-                <div className="w-48 h-48 border-2 border-indigo-500/20 rounded-2xl relative">
+                <div className="w-48 h-48 border-2 border-[#3B66F5]/20 rounded-2xl relative">
                   <div className="absolute -top-1 -left-1 w-6 h-6 border-t-4 border-l-4 border-indigo-500 rounded-tl-md"></div>
                   <div className="absolute -top-1 -right-1 w-6 h-6 border-t-4 border-r-4 border-indigo-500 rounded-tr-md"></div>
                   <div className="absolute -bottom-1 -left-1 w-6 h-6 border-b-4 border-l-4 border-indigo-500 rounded-bl-md"></div>
@@ -513,15 +513,15 @@ export default function ScanUjian() {
                       animation: laser-sweep 2.5s infinite linear;
                     }
                   `}</style>
-                  <div className="w-full h-0.5 bg-indigo-500 absolute top-0 animate-laser shadow-md shadow-indigo-500/50"></div>
+                  <div className="w-full h-0.5 bg-[#3B66F5]/100 absolute top-0 animate-laser shadow-md shadow-indigo-500/50"></div>
                 </div>
               </div>
             )}
 
             {/* Loading/Processing Overlay */}
             {isProcessingScan && (
-              <div className="absolute inset-0 bg-indigo-950/70 backdrop-blur-sm flex flex-col items-center justify-center text-white gap-2">
-                <Loader2 className="w-8 h-8 animate-spin text-indigo-400" />
+              <div className="absolute inset-0 bg-[#1D4ED8]/70 backdrop-blur-sm flex flex-col items-center justify-center text-white gap-2">
+                <Loader2 className="w-8 h-8 animate-spin text-[#3B66F5]" />
                 <span className="text-xs font-bold uppercase tracking-widest text-indigo-200">Merekam Hasil...</span>
               </div>
             )}
@@ -577,7 +577,7 @@ export default function ScanUjian() {
           <div className="grid grid-cols-3 gap-4 bg-slate-50/50 p-4 rounded-3xl border border-slate-100/50 text-center">
             <div>
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Siswa</p>
-              <p className="text-2xl font-black text-indigo-950 mt-1">{totalClassCount}</p>
+              <p className="text-2xl font-black text-[#1D4ED8] mt-1">{totalClassCount}</p>
             </div>
             <div>
               <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Telah Dipindai</p>
@@ -591,7 +591,7 @@ export default function ScanUjian() {
 
           {/* Search bar */}
           <div className="relative group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4 group-focus-within:text-indigo-600 transition-colors" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4 group-focus-within:text-[#3B66F5] transition-colors" />
             <input 
               type="text" 
               placeholder="Cari nama siswa..."

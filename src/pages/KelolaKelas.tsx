@@ -756,7 +756,7 @@ export default function KelolaKelas() {
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-bold text-indigo-950 tracking-tight">Kelola Kelas</h2>
+          <h2 className="text-3xl font-bold text-[#1D4ED8] tracking-tight">Kelola Kelas</h2>
           <p className="text-slate-500 mt-1 font-medium">Manajemen daftar kelas dan mata pelajaran.</p>
         </div>
         <button 
@@ -774,7 +774,7 @@ export default function KelolaKelas() {
         <input 
           type="text" 
           placeholder="Cari nama kelas..."
-          className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 bg-white outline-none focus:ring-2 focus:ring-indigo-950/10 focus:border-indigo-950 transition-all text-sm font-medium text-slate-700"
+          className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 bg-white outline-none focus:ring-2 focus:ring-[#3B66F5]/15 focus:border-[#3B66F5] transition-all text-sm font-medium text-slate-700"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
@@ -841,7 +841,7 @@ export default function KelolaKelas() {
             <div className="bg-slate-50 w-16 h-16 rounded-2xl flex items-center justify-center mb-5">
               <School className="w-8 h-8 text-slate-200" />
             </div>
-            <h3 className="text-lg font-bold text-indigo-950 mb-2">Belum Ada Kelas</h3>
+            <h3 className="text-lg font-bold text-[#1D4ED8] mb-2">Belum Ada Kelas</h3>
             <p className="text-slate-400 text-sm font-medium max-w-sm text-center">Mulai kelola kelas Anda dengan menambahkan kelas pertama.</p>
             <button onClick={() => setShowForm(true)} className="mt-6 px-6 py-3 bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white rounded-full font-semibold text-sm flex items-center gap-2 hover:brightness-110 border border-white/10 transition-all">
               <Plus className="w-4 h-4" />
@@ -858,7 +858,7 @@ export default function KelolaKelas() {
             <motion.div 
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={() => setShowStudents(false)} 
-              className="absolute inset-0 bg-indigo-950/30 backdrop-blur-sm" 
+              className="absolute inset-0 bg-[#1D4ED8]/30 backdrop-blur-sm" 
             />
             <motion.div 
               initial={{ opacity: 0, scale: 0.97, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.97, y: 10 }}
@@ -867,10 +867,10 @@ export default function KelolaKelas() {
               {/* Header */}
               <div className="p-6 sm:p-8 pb-4 shrink-0 flex items-start justify-between border-b border-slate-50">
                 <div>
-                  <h3 className="text-xl font-bold text-indigo-950">Kelola Murid — {selectedClass.name}</h3>
+                  <h3 className="text-xl font-bold text-[#1D4ED8]">Kelola Murid — {selectedClass.name}</h3>
                   <p className="text-slate-400 text-sm mt-0.5">Daftar murid dan manajemen akun/username ujian.</p>
                   <div className="flex items-center gap-2 mt-3">
-                    <span className="bg-indigo-50 text-indigo-600 px-2.5 py-0.5 rounded-md text-[10px] font-semibold uppercase tracking-wider border border-indigo-100/50">
+                    <span className="bg-[#3B66F5]/10 text-[#3B66F5] px-2.5 py-0.5 rounded-md text-[10px] font-semibold uppercase tracking-wider border border-[#3B66F5]/20/50">
                       {selectedClass.subject || 'Mata Pelajaran'}
                     </span>
                     <span className="bg-slate-50 text-slate-400 px-2.5 py-0.5 rounded-md text-[10px] font-semibold uppercase tracking-wider border border-slate-100">
@@ -878,7 +878,7 @@ export default function KelolaKelas() {
                     </span>
                   </div>
                 </div>
-                <button onClick={() => setShowStudents(false)} className="p-2 bg-slate-50 text-slate-400 hover:text-indigo-950 hover:bg-slate-100 rounded-full transition-all">
+                <button onClick={() => setShowStudents(false)} className="p-2 bg-slate-50 text-slate-400 hover:text-[#1D4ED8] hover:bg-slate-100 rounded-full transition-all">
                   <X className="w-5 h-5" />
                 </button>
               </div>
@@ -886,10 +886,10 @@ export default function KelolaKelas() {
               {/* Toolbar */}
               <div className="px-6 sm:px-8 py-3 flex flex-wrap items-center gap-2 shrink-0 border-b border-slate-50">
                 <button onClick={handleDownloadTemplate} className="px-3.5 py-2 bg-white text-slate-600 border border-slate-200 rounded-full font-semibold text-xs flex items-center gap-1.5 hover:bg-slate-50 transition-all">
-                  <Download className="w-3.5 h-3.5 text-indigo-500" /> Template
+                  <Download className="w-3.5 h-3.5 text-[#3B66F5]" /> Template
                 </button>
                 <button onClick={() => fileInputRef.current?.click()} disabled={importing} className="px-3.5 py-2 bg-white text-slate-600 border border-slate-200 rounded-full font-semibold text-xs flex items-center gap-1.5 hover:bg-slate-50 transition-all disabled:opacity-50">
-                  {importing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5 text-indigo-500" />} Impor Excel
+                  {importing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5 text-[#3B66F5]" />} Impor Excel
                 </button>
                 <input type="file" ref={fileInputRef} className="hidden" accept=".xlsx, .xls" onChange={handleImportExcel} />
                 <button onClick={handleExportExcel} className="px-3.5 py-2 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-full font-semibold text-xs flex items-center gap-1.5 hover:bg-emerald-100 transition-all">
@@ -905,7 +905,7 @@ export default function KelolaKelas() {
                 <div className="px-6 sm:px-8 py-4">
                 {loadingStudents ? (
                   <div className="py-16 flex flex-col items-center">
-                    <Loader2 className="w-8 h-8 animate-spin text-indigo-950 opacity-20" />
+                    <Loader2 className="w-8 h-8 animate-spin text-[#1D4ED8] opacity-20" />
                     <p className="mt-3 text-slate-300 text-xs font-medium">Memuat data murid...</p>
                   </div>
                 ) : classStudents.length > 0 ? (
@@ -927,11 +927,11 @@ export default function KelolaKelas() {
                             <tr key={s.id} className="group hover:bg-slate-50/50 transition-colors">
                               <td className="px-4 py-3 text-center text-sm font-medium text-slate-300">{idx + 1}</td>
                               <td className="px-4 py-3">
-                                <span className="font-semibold text-indigo-950 text-sm group-hover:text-indigo-600 transition-colors">{s.name}</span>
+                                <span className="font-semibold text-[#1D4ED8] text-sm group-hover:text-[#3B66F5] transition-colors">{s.name}</span>
                               </td>
                               <td className="px-4 py-3 text-center">
                                 {s.gender === 'M' || s.gender === 'L' ? (
-                                  <span className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded text-[10px] font-extrabold border border-blue-100">L</span>
+                                  <span className="bg-[#3B66F5]/5 text-blue-700 px-2 py-0.5 rounded text-[10px] font-extrabold border border-[#3B66F5]/20">L</span>
                                 ) : s.gender === 'F' || s.gender === 'P' ? (
                                   <span className="bg-pink-50 text-pink-700 px-2 py-0.5 rounded text-[10px] font-extrabold border border-pink-100">P</span>
                                 ) : (
@@ -941,8 +941,8 @@ export default function KelolaKelas() {
                               <td className="px-4 py-3 text-center">
                                 {s.student_code ? (
                                   <div className="inline-flex items-center gap-1.5 bg-white border border-slate-200 px-2 py-1 rounded-md">
-                                    <span className="font-mono font-semibold text-xs text-indigo-600 tracking-wider">{s.student_code}</span>
-                                    <button onClick={() => copyCode(s.student_code)} className="p-0.5 text-slate-400 hover:text-indigo-600 transition-colors" title="Salin Kode">
+                                    <span className="font-mono font-semibold text-xs text-[#3B66F5] tracking-wider">{s.student_code}</span>
+                                    <button onClick={() => copyCode(s.student_code)} className="p-0.5 text-slate-400 hover:text-[#3B66F5] transition-colors" title="Salin Kode">
                                       <Copy className="w-3 h-3" />
                                     </button>
                                   </div>
@@ -958,7 +958,7 @@ export default function KelolaKelas() {
                               <td className="px-4 py-3 text-right">
                                 <div className="flex items-center justify-end gap-1">
                                   <button onClick={() => { setEditingStudentId(s.id); setNewStudentName(s.name); setShowAddStudentForm(true); }}
-                                    className="p-1.5 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50/80 rounded-lg transition-all" title="Edit Murid"
+                                    className="p-1.5 text-[#3B66F5] hover:text-indigo-800 hover:bg-[#3B66F5]/10/80 rounded-lg transition-all" title="Edit Murid"
                                   >
                                     <Edit3 className="w-3.5 h-3.5" />
                                   </button>
@@ -975,10 +975,10 @@ export default function KelolaKelas() {
 
                     <div className="bg-slate-50 p-5 rounded-xl border border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
                       <div className="text-center sm:text-left">
-                        <p className="font-semibold text-indigo-950 text-sm">Otomatisasi Username Murid</p>
+                        <p className="font-semibold text-[#1D4ED8] text-sm">Otomatisasi Username Murid</p>
                         <p className="text-slate-400 text-xs mt-0.5">Buat username untuk murid yang belum punya secara otomatis.</p>
                       </div>
-                      <button onClick={handleGenerateCodes} className="px-4 py-2.5 bg-white border border-slate-200 text-indigo-950 rounded-full font-semibold text-xs hover:bg-indigo-950 hover:text-white transition-all active:scale-95 flex items-center gap-1.5">
+                      <button onClick={handleGenerateCodes} className="px-4 py-2.5 bg-white border border-slate-200 text-[#1D4ED8] rounded-full font-semibold text-xs hover:bg-[#3B66F5] hover:text-white transition-all active:scale-95 flex items-center gap-1.5">
                         Buat Username Massal <ArrowRight className="w-3.5 h-3.5" />
                       </button>
                     </div>
@@ -988,7 +988,7 @@ export default function KelolaKelas() {
                     <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4">
                       <Users className="w-7 h-7 text-slate-200" />
                     </div>
-                    <h4 className="text-base font-bold text-indigo-950">Belum Ada Murid</h4>
+                    <h4 className="text-base font-bold text-[#1D4ED8]">Belum Ada Murid</h4>
                     <p className="text-slate-400 text-sm max-w-xs mx-auto mt-1">Klik "Tambah Murid" atau gunakan fitur "Impor Excel".</p>
                   </div>
                 )}
@@ -1005,12 +1005,12 @@ export default function KelolaKelas() {
           <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowAddStudentForm(false)} className="absolute inset-0 bg-indigo-900/30 backdrop-blur-sm" />
             <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.97 }} className="relative w-full max-w-sm bg-white rounded-2xl shadow-2xl p-6">
-              <h3 className="text-lg font-bold text-indigo-950 mb-5">{editingStudentId ? 'Edit Nama Murid' : 'Tambah Murid Manual'}</h3>
+              <h3 className="text-lg font-bold text-[#1D4ED8] mb-5">{editingStudentId ? 'Edit Nama Murid' : 'Tambah Murid Manual'}</h3>
               <form onSubmit={handleAddStudent} className="space-y-4">
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Nama Lengkap Murid</label>
                   <input type="text" autoFocus required placeholder="Contoh: Budi Santoso"
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 outline-none focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-950 text-sm font-medium text-indigo-950"
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 outline-none focus:ring-2 focus:ring-indigo-500/10 focus:border-[#3B66F5] text-sm font-medium text-[#1D4ED8]"
                     value={newStudentName} onChange={(e) => setNewStudentName(e.target.value)}
                   />
                 </div>
@@ -1030,14 +1030,14 @@ export default function KelolaKelas() {
       <AnimatePresence>
         {showForm && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowForm(false)} className="absolute inset-0 bg-indigo-950/30 backdrop-blur-sm" />
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowForm(false)} className="absolute inset-0 bg-[#1D4ED8]/30 backdrop-blur-sm" />
             <motion.div initial={{ opacity: 0, scale: 0.97, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.97, y: 10 }} className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl p-7">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
-                  <div className="bg-indigo-50 p-2.5 rounded-xl">
-                    <School className="w-5 h-5 text-indigo-600" />
+                  <div className="bg-[#3B66F5]/10 p-2.5 rounded-xl">
+                    <School className="w-5 h-5 text-[#3B66F5]" />
                   </div>
-                  <h3 className="text-lg font-bold text-indigo-950">{editingId ? 'Edit Kelas' : 'Kelas Baru'}</h3>
+                  <h3 className="text-lg font-bold text-[#1D4ED8]">{editingId ? 'Edit Kelas' : 'Kelas Baru'}</h3>
                 </div>
                 <button onClick={() => setShowForm(false)} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
                   <X className="w-5 h-5 text-slate-400" />
@@ -1048,7 +1048,7 @@ export default function KelolaKelas() {
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Nama Kelas</label>
                   <input name="name" type="text" autoFocus required placeholder="Contoh: XII - IPA 1"
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 outline-none focus:ring-2 focus:ring-indigo-950/10 focus:border-indigo-950 transition-all font-medium text-sm text-indigo-950"
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 outline-none focus:ring-2 focus:ring-[#3B66F5]/15 focus:border-[#3B66F5] transition-all font-medium text-sm text-[#1D4ED8]"
                     value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   />
                 </div>
@@ -1058,9 +1058,9 @@ export default function KelolaKelas() {
                     <button
                       type="button"
                       onClick={() => setSubjectDropdownOpen(!subjectDropdownOpen)}
-                      className="w-full flex items-center justify-between px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 outline-none focus:ring-2 focus:ring-indigo-950/10 focus:border-indigo-950 transition-all font-medium text-sm text-left"
+                      className="w-full flex items-center justify-between px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 outline-none focus:ring-2 focus:ring-[#3B66F5]/15 focus:border-[#3B66F5] transition-all font-medium text-sm text-left"
                     >
-                      <span className={formData.subject ? "text-indigo-950" : "text-slate-400"}>
+                      <span className={formData.subject ? "text-[#1D4ED8]" : "text-slate-400"}>
                         {formData.subject || "Pilih mata pelajaran..."}
                       </span>
                       <ChevronDown className={cn("w-4 h-4 text-slate-400 transition-transform", subjectDropdownOpen && "rotate-180")} />
@@ -1091,11 +1091,11 @@ export default function KelolaKelas() {
                               >
                                 <BookOpen className="w-4 h-4 text-green-600" />
                                 <div className="flex-1">
-                                  <p className="font-semibold text-indigo-950 text-sm">{subject.name}</p>
+                                  <p className="font-semibold text-[#1D4ED8] text-sm">{subject.name}</p>
                                   <p className="text-[10px] text-slate-400">{subject.level}</p>
                                 </div>
                                 {formData.subject === subject.name && (
-                                  <div className="w-4 h-4 rounded-full bg-indigo-950 flex items-center justify-center">
+                                  <div className="w-4 h-4 rounded-full bg-[#1D4ED8] flex items-center justify-center">
                                     <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                                     </svg>

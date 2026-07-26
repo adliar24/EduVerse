@@ -59,7 +59,7 @@ export default class ErrorBoundary extends React.Component<Props, State> {
       if (!this.state.hasRetried) {
         return (
           <div className="flex items-center justify-center min-h-[50vh] w-full">
-            <div className="w-8 h-8 rounded-full border-2 border-indigo-950 border-t-transparent animate-spin" />
+            <div className="w-8 h-8 rounded-full border-2 border-[#3B66F5] border-t-transparent animate-spin" />
           </div>
         );
       }

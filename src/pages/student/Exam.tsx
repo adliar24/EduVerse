@@ -1112,21 +1112,21 @@ export default function StudentExam() {
 
 
   if (loading) return (
-    <div className="min-h-screen bg-indigo-950 flex flex-col items-center justify-center p-6 relative overflow-hidden">
+    <div className="min-h-screen bg-[#1D4ED8] flex flex-col items-center justify-center p-6 relative overflow-hidden">
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-500/10 rounded-full blur-[120px]" />
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-[#3B66F5]/50/10 rounded-full blur-[120px]" />
         <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-purple-500/10 rounded-full blur-[150px]" />
       </div>
       <div className="bg-white/5 backdrop-blur-xl p-8 rounded-[2.5rem] border border-white/10 mb-8 shadow-2xl">
-        <div className="w-12 h-12 text-blue-400 mx-auto">⏳</div>
+        <div className="w-12 h-12 text-[#3B66F5] mx-auto">⏳</div>
       </div>
       <h2 className="text-3xl font-black text-white tracking-tight text-center">Menyiapkan Ruang Ujian...</h2>
-      <p className="text-indigo-300 font-medium mt-3 text-lg text-center max-w-md">Mohon tunggu sebentar, kami sedang memproses soal-soal Anda.</p>
+      <p className="text-[#3B66F5]/70 font-medium mt-3 text-lg text-center max-w-md">Mohon tunggu sebentar, kami sedang memproses soal-soal Anda.</p>
     </div>
   );
 
   if (initError) return (
-    <div className="min-h-screen bg-indigo-950 flex flex-col items-center justify-center p-6">
+    <div className="min-h-screen bg-[#1D4ED8] flex flex-col items-center justify-center p-6">
       <div className="bg-white/5 backdrop-blur-xl p-10 rounded-[3rem] border border-white/10 mb-8 text-center max-w-md shadow-2xl">
         <div className="bg-red-500/20 w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-6">
           <AlertCircle className="w-12 h-12 text-red-400" />
@@ -1142,7 +1142,7 @@ export default function StudentExam() {
           </button>
           <button 
             onClick={() => navigate('/exam')}
-            className="w-full py-4 px-4 rounded-full font-black text-indigo-300 bg-white/5 hover:bg-white/10 border border-white/5 transition-all"
+            className="w-full py-4 px-4 rounded-full font-black text-[#3B66F5]/70 bg-white/5 hover:bg-white/10 border border-white/5 transition-all"
           >
             Kembali ke Daftar Ujian
           </button>
@@ -1185,18 +1185,18 @@ export default function StudentExam() {
       {/* Decorative Background Elements */}
       <div className="fixed inset-0 pointer-events-none z-0">
         <div className="absolute top-[-5%] left-[-5%] w-[30%] h-[30%] bg-blue-400/10 rounded-full blur-[100px]" />
-        <div className="absolute bottom-[-5%] right-[-10%] w-[40%] h-[40%] bg-indigo-950/5 rounded-full blur-[120px]" />
+        <div className="absolute bottom-[-5%] right-[-10%] w-[40%] h-[40%] bg-[#1D4ED8]/5 rounded-full blur-[120px]" />
         <div className="absolute top-[40%] left-[50%] w-[25%] h-[25%] bg-emerald-400/5 rounded-full blur-[100px]" />
       </div>
 
       {/* Header */}
-      <header className="bg-gradient-to-r from-indigo-950 via-purple-900 to-indigo-950 border-b border-white/10 h-20 sticky top-0 z-30 px-6 sm:px-12 flex items-center justify-between shadow-lg">
+      <header className="bg-gradient-to-r from-[#1D4ED8] via-purple-900 to-[#1D4ED8] border-b border-white/10 h-20 sticky top-0 z-30 px-6 sm:px-12 flex items-center justify-between shadow-lg">
         <div className="flex items-center gap-6">
-          <div className="hidden sm:flex bg-white/10 border border-white/20 w-12 h-12 rounded-2xl items-center justify-center text-white shadow-xl shadow-indigo-950/20">
+          <div className="hidden sm:flex bg-white/10 border border-white/20 w-12 h-12 rounded-2xl items-center justify-center text-white shadow-xl shadow-[#3B66F5]/25">
             <Clock className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-[10px] font-black text-indigo-300 uppercase tracking-[0.2em]">Waktu Tersisa</p>
+            <p className="text-[10px] font-black text-[#3B66F5]/70 uppercase tracking-[0.2em]">Waktu Tersisa</p>
             {examEndTime > 0 && <ExamTimer endTime={examEndTime} onTimeUp={() => handleSubmit(true)} />}
           </div>
         </div>
@@ -1220,21 +1220,21 @@ export default function StudentExam() {
         <div className="text-center">
           <h1 className="text-xs sm:text-sm font-black text-white uppercase tracking-widest line-clamp-1 max-w-[140px] sm:max-w-md">{exam?.title || 'Ujian'}</h1>
           <div className="flex items-center justify-center gap-2 mt-1">
-            <span className="text-[10px] font-bold text-indigo-300 uppercase tracking-widest hidden sm:inline">Progress:</span>
+            <span className="text-[10px] font-bold text-[#3B66F5]/70 uppercase tracking-widest hidden sm:inline">Progress:</span>
             <div className="w-20 sm:w-32 h-1.5 bg-white/10 rounded-full overflow-hidden">
               <div 
                 className="h-full bg-blue-400 transition-all duration-500 shadow-[0_0_10px_rgba(96,165,250,0.5)]" 
                 style={{ width: `${(Object.keys(answers).length / questions.length) * 100}%` }}
               />
             </div>
-            <span className="text-[10px] font-bold text-indigo-300">{Object.keys(answers).length}/{questions.length}</span>
+            <span className="text-[10px] font-bold text-[#3B66F5]/70">{Object.keys(answers).length}/{questions.length}</span>
           </div>
         </div>
 
         <button 
           onClick={() => setShowSubmitConfirm(true)}
           disabled={submitting}
-          className="bg-gradient-loading text-white px-6 sm:px-8 py-3 sm:py-3.5 rounded-full font-black text-sm hover:scale-[1.02] active:scale-[0.98] transition-all shadow-glow-loading flex items-center gap-2 sm:gap-3"
+          className="bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white px-6 sm:px-8 py-3 sm:py-3.5 rounded-full font-black text-sm hover:scale-[1.02] active:scale-[0.98] transition-all shadow-glow-loading flex items-center gap-2 sm:gap-3"
         >
           <Send className="w-5 h-5" />
           <span className="hidden sm:inline">Kumpulkan</span>
@@ -1260,7 +1260,7 @@ export default function StudentExam() {
               <div className="bg-red-50 w-20 h-20 rounded-3xl flex items-center justify-center text-red-600 mx-auto mb-6">
                 <AlertCircle className="w-10 h-10" />
               </div>
-              <h3 className="text-2xl font-black text-indigo-950 mb-2">Peringatan Pelanggaran!</h3>
+              <h3 className="text-2xl font-black text-[#1D4ED8] mb-2">Peringatan Pelanggaran!</h3>
               <p className="text-slate-500 font-medium mb-8">
                 Anda terdeteksi meninggalkan halaman ujian. Hal ini dilarang keras! 
                 {exam?.strict_limit === 0 ? (
@@ -1297,10 +1297,10 @@ export default function StudentExam() {
               exit={{ scale: 0.95, opacity: 0, y: 10 }}
               className="bg-white rounded-[2rem] p-8 max-w-sm w-full relative z-10 shadow-2xl overflow-hidden"
             >
-              <div className="w-16 h-16 bg-blue-50 text-blue-500 rounded-2xl flex items-center justify-center mx-auto mb-6">
+              <div className="w-16 h-16 bg-[#3B66F5]/5 text-[#3B66F5] rounded-2xl flex items-center justify-center mx-auto mb-6">
                 <AlertCircle className="w-8 h-8" />
               </div>
-              <h3 className="text-xl font-bold text-indigo-950 text-center mb-2 tracking-tight">Kumpulkan Jawaban?</h3>
+              <h3 className="text-xl font-bold text-[#1D4ED8] text-center mb-2 tracking-tight">Kumpulkan Jawaban?</h3>
               <p className="text-center text-slate-500 font-medium mb-8">
                 Apakah Anda sudah yakin dengan semua jawaban Anda? Ujian tidak dapat diulang setelah dikumpulkan.
               </p>
@@ -1330,7 +1330,7 @@ export default function StudentExam() {
         {/* Sidebar Navigation - Moved to top on mobile */}
         <div className="w-full lg:w-96 space-y-6 lg:space-y-8 order-1 lg:order-2">
           <div className="bg-indigo-900 rounded-[3rem] border border-indigo-500/30 shadow-2xl overflow-hidden text-white">
-            <div className="bg-indigo-950/50 p-6 sm:p-8 flex items-center gap-3 border-b border-indigo-500/20">
+            <div className="bg-[#1D4ED8]/50 p-6 sm:p-8 flex items-center gap-3 border-b border-[#3B66F5]/20">
               <div className="bg-white/10 p-2.5 rounded-xl border border-white/10">
                 <LayoutGrid className="text-white w-5 h-5" />
               </div>
@@ -1347,9 +1347,9 @@ export default function StudentExam() {
                   className={cn(
                     "h-10 sm:h-12 rounded-full font-black text-xs sm:text-sm transition-all relative border",
                     i === currentIndex 
-                      ? "bg-gradient-loading text-white shadow-xl scale-105 sm:scale-110 z-10 border-transparent shadow-[#3B66F5]/30" 
+                      ? "bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white shadow-xl scale-105 sm:scale-110 z-10 border-transparent shadow-[#3B66F5]/30" 
                       : answers[q.id] 
-                        ? "bg-[#3B66F5]/30 text-white border-blue-400/40" 
+                        ? "bg-[#3B66F5]/30 text-white border-[#3B66F5]/40" 
                         : "bg-[#1D4ED8]/40 text-[#3B66F5] border-[#3B66F5]/20 hover:border-[#3B66F5]/40 hover:bg-[#3B66F5]/20"
                   )}
                 >
@@ -1362,7 +1362,7 @@ export default function StudentExam() {
             </div>
           </div>
 
-          <div className="hidden lg:block bg-gradient-to-br from-indigo-950 via-purple-900 to-indigo-950 border border-indigo-500/20 rounded-[3rem] p-10 text-white overflow-hidden relative group shadow-lg">
+          <div className="hidden lg:block bg-gradient-to-br from-[#1D4ED8] via-purple-900 to-[#1D4ED8] border border-[#3B66F5]/20 rounded-[3rem] p-10 text-white overflow-hidden relative group shadow-lg">
             <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform duration-700">
               <HelpCircle className="w-32 h-32" />
             </div>
@@ -1395,16 +1395,16 @@ export default function StudentExam() {
 
 
               <div className="flex items-center gap-4 mb-10">
-                <div className="bg-indigo-950 w-14 h-14 rounded-2xl flex items-center justify-center text-white font-black text-2xl shadow-xl shadow-slate-200">
+                <div className="bg-[#1D4ED8] w-14 h-14 rounded-2xl flex items-center justify-center text-white font-black text-2xl shadow-xl shadow-slate-200">
                   {currentIndex + 1}
                 </div>
                 <div>
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Pertanyaan</p>
-                  <p className="text-sm font-bold text-indigo-950">Dari {questions.length} Soal</p>
+                  <p className="text-sm font-bold text-[#1D4ED8]">Dari {questions.length} Soal</p>
                 </div>
               </div>
 
-              <h2 className="text-2xl sm:text-3xl font-bold text-indigo-900 leading-snug mb-8">
+              <h2 className="text-2xl sm:text-3xl font-bold text-[#1D4ED8] leading-snug mb-8">
                 {currentQuestion.question_text}
               </h2>
 
@@ -1425,7 +1425,7 @@ export default function StudentExam() {
                       className={cn(
                         "flex items-start gap-4 sm:gap-6 p-4 sm:p-6 rounded-full border-2 text-left transition-all group",
                         answers[currentQuestion.id] === opt.id
-                          ? "bg-gradient-to-r from-indigo-600 to-blue-600 border-indigo-400 text-white shadow-xl shadow-indigo-650/20"
+                          ? "bg-gradient-to-r from-indigo-600 to-blue-600 border-[#3B66F5]/50 text-white shadow-xl shadow-indigo-650/20"
                           : "border-slate-200 bg-white hover:bg-slate-50/50 hover:border-slate-300"
                       )}
                     >
@@ -1463,7 +1463,7 @@ export default function StudentExam() {
                   <label className="text-sm font-black text-slate-400 uppercase tracking-widest ml-1">Jawaban Anda</label>
                   <textarea 
                     rows={6}
-                    className="w-full p-8 rounded-[2.5rem] border-2 border-slate-100 bg-slate-50 focus:border-indigo-950 focus:bg-white outline-none transition-all font-bold text-xl text-indigo-900 placeholder:text-slate-300"
+                    className="w-full p-8 rounded-[2.5rem] border-2 border-slate-100 bg-slate-50 focus:border-[#3B66F5] focus:bg-white outline-none transition-all font-bold text-xl text-[#1D4ED8] placeholder:text-slate-300"
                     placeholder="Tuliskan jawaban lengkap Anda di sini..."
                     value={answers[currentQuestion.id] || ''}
                     onChange={(e) => handleAnswer(currentQuestion.id, e.target.value)}
@@ -1527,7 +1527,7 @@ export default function StudentExam() {
               
               {isPermanentlyBlocked ? (
                 <>
-                  <h3 className="text-2xl font-black text-indigo-950 mb-3">Ujian Selesai!</h3>
+                  <h3 className="text-2xl font-black text-[#1D4ED8] mb-3">Ujian Selesai!</h3>
                   <p className="text-slate-500 font-medium text-sm leading-relaxed mb-6">
                     Akun Anda telah dinonaktifkan secara permanen karena melanggar aturan ujian (membuka tab/aplikasi lain) melewati batas toleransi yang ditentukan ({exam?.strict_limit} kali).
                   </p>
@@ -1539,14 +1539,14 @@ export default function StudentExam() {
                       localStorage.removeItem(`exam_session_${examCode}`);
                       navigate('/exam');
                     }}
-                    className="w-full bg-gradient-loading text-white py-4 rounded-full font-black hover:scale-[1.01] transition-all shadow-glow-loading flex items-center justify-center gap-2"
+                    className="w-full bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white py-4 rounded-full font-black hover:scale-[1.01] transition-all shadow-glow-loading flex items-center justify-center gap-2"
                   >
                     Kembali ke Menu
                   </button>
                 </>
               ) : (
                 <>
-                  <h3 className="text-2xl font-black text-indigo-950 mb-3">Layar Terkunci!</h3>
+                  <h3 className="text-2xl font-black text-[#1D4ED8] mb-3">Layar Terkunci!</h3>
                   <p className="text-slate-500 font-medium text-sm leading-relaxed mb-6">
                     Aktivitas mencurigakan terdeteksi (membuka tab/aplikasi lain). Silakan hubungi guru/pengawas untuk memasukkan kode bypass.
                   </p>
@@ -1567,7 +1567,7 @@ export default function StudentExam() {
                             handleBypassUnlock();
                           }
                         }}
-                        className="w-full px-5 py-4 rounded-2xl border-2 border-slate-200 focus:border-red-500 focus:ring-2 focus:ring-red-500/10 outline-none transition-all font-bold text-center tracking-widest text-indigo-950 uppercase"
+                        className="w-full px-5 py-4 rounded-2xl border-2 border-slate-200 focus:border-red-500 focus:ring-2 focus:ring-red-500/10 outline-none transition-all font-bold text-center tracking-widest text-[#1D4ED8] uppercase"
                       />
                       {unlockError && (
                         <p className="text-xs font-bold text-red-500 mt-2">
@@ -1599,15 +1599,15 @@ export default function StudentExam() {
               initial={{ scale: 0.95, opacity: 0, y: 15 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 15 }}
-              className="bg-white rounded-[2.5rem] p-10 max-w-md w-full text-center border border-blue-100 shadow-2xl relative overflow-hidden"
+              className="bg-white rounded-[2.5rem] p-10 max-w-md w-full text-center border border-[#3B66F5]/20 shadow-2xl relative overflow-hidden"
             >
-              <div className="absolute top-0 left-0 right-0 h-2 bg-blue-500" />
+              <div className="absolute top-0 left-0 right-0 h-2 bg-[#3B66F5]/50" />
               
-              <div className="bg-blue-50 w-20 h-20 rounded-3xl flex items-center justify-center text-blue-500 mx-auto mb-6 shadow-inner animate-pulse">
+              <div className="bg-[#3B66F5]/5 w-20 h-20 rounded-3xl flex items-center justify-center text-[#3B66F5] mx-auto mb-6 shadow-inner animate-pulse">
                 <Maximize2 className="w-10 h-10" />
               </div>
               
-              <h3 className="text-2xl font-black text-indigo-950 mb-3">Wajib Layar Penuh!</h3>
+              <h3 className="text-2xl font-black text-[#1D4ED8] mb-3">Wajib Layar Penuh!</h3>
               <p className="text-slate-500 font-medium text-sm leading-relaxed mb-8">
                 Untuk mencegah kecurangan, ujian ini wajib dikerjakan dalam mode layar penuh (fullscreen).
               </p>

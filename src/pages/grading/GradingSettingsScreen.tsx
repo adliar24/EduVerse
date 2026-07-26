@@ -46,7 +46,7 @@ export const GradingSettingsScreen: React.FC = () => {
         }
     };
 
-    if (!profile) return <Layout><div className="flex items-center justify-center p-40"><Loader2 className="animate-spin text-primary" size={60}/></div></Layout>;
+    if (!profile) return <Layout><div className="flex items-center justify-center p-40"><Loader2 className="animate-spin text-[#3B66F5]" size={60}/></div></Layout>;
 
     return (
         <Layout>
@@ -66,7 +66,7 @@ export const GradingSettingsScreen: React.FC = () => {
                                         type="number" 
                                         value={weights.formatif} 
                                         onChange={e => setWeights({...weights, formatif: Number(e.target.value)})}
-                                        className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl px-5 font-black text-slate-700 outline-none focus:border-primary transition-all text-xl"
+                                        className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl px-5 font-black text-slate-700 outline-none focus:border-[#3B66F5] transition-all text-xl"
                                     />
                                     <p className="text-[9px] text-slate-400 font-bold ml-1 uppercase">Aktivitas harian, tugas, partisipasi</p>
                                 </div>
@@ -76,7 +76,7 @@ export const GradingSettingsScreen: React.FC = () => {
                                         type="number" 
                                         value={weights.sumatif} 
                                         onChange={e => setWeights({...weights, sumatif: Number(e.target.value)})}
-                                        className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl px-5 font-black text-slate-700 outline-none focus:border-primary transition-all text-xl"
+                                        className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl px-5 font-black text-slate-700 outline-none focus:border-[#3B66F5] transition-all text-xl"
                                     />
                                     <p className="text-[9px] text-slate-400 font-bold ml-1 uppercase">Ulangan harian / tes materi</p>
                                 </div>
@@ -86,7 +86,7 @@ export const GradingSettingsScreen: React.FC = () => {
                                         type="number" 
                                         value={weights.pts} 
                                         onChange={e => setWeights({...weights, pts: Number(e.target.value)})}
-                                        className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl px-5 font-black text-slate-700 outline-none focus:border-primary transition-all text-xl"
+                                        className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl px-5 font-black text-slate-700 outline-none focus:border-[#3B66F5] transition-all text-xl"
                                     />
                                     <p className="text-[9px] text-slate-400 font-bold ml-1 uppercase">Penilaian Tengah Semester</p>
                                 </div>
@@ -96,7 +96,7 @@ export const GradingSettingsScreen: React.FC = () => {
                                         type="number" 
                                         value={weights.pas} 
                                         onChange={e => setWeights({...weights, pas: Number(e.target.value)})}
-                                        className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl px-5 font-black text-slate-700 outline-none focus:border-primary transition-all text-xl"
+                                        className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl px-5 font-black text-slate-700 outline-none focus:border-[#3B66F5] transition-all text-xl"
                                     />
                                     <p className="text-[9px] text-slate-400 font-bold ml-1 uppercase">Penilaian Akhir Semester</p>
                                 </div>
@@ -128,8 +128,8 @@ export const GradingSettingsScreen: React.FC = () => {
                         </div>
                     </Card>
 
-                    <div className="p-6 bg-blue-50 rounded-2xl border border-blue-100 flex items-start gap-4">
-                        <Info className="text-primary shrink-0 mt-1" size={20} />
+                    <div className="p-6 bg-[#3B66F5]/5 rounded-2xl border border-[#3B66F5]/20 flex items-start gap-4">
+                        <Info className="text-[#3B66F5] shrink-0 mt-1" size={20} />
                         <div>
                             <h4 className="font-black text-slate-800 text-xs uppercase tracking-wide mb-1">Tips Pembobotan</h4>
                             <p className="text-[10px] font-bold text-slate-500 leading-relaxed uppercase opacity-80">

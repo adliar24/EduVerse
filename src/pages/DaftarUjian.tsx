@@ -407,7 +407,7 @@ export default function DaftarUjian() {
     <div className="space-y-10 pb-10">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
         <div>
-          <h2 className="text-3xl font-bold text-indigo-950 tracking-tight">Daftar Ujian</h2>
+          <h2 className="text-3xl font-bold text-[#1D4ED8] tracking-tight">Daftar Ujian</h2>
           <p className="text-slate-500 font-medium mt-1">Pantau dan kelola semua ujian yang telah Anda terbitkan.</p>
         </div>
         <button 
@@ -420,7 +420,7 @@ export default function DaftarUjian() {
       </div>
 
       <div className="relative group">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4 group-focus-within:text-blue-500 transition-colors" />
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4 group-focus-within:text-[#3B66F5] transition-colors" />
         <input 
           type="text" 
           placeholder="Cari berdasarkan judul ujian..."
@@ -440,7 +440,7 @@ export default function DaftarUjian() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.05 }}
               key={exam.id}
-              className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm group hover:shadow-2xl hover:shadow-slate-200/50 hover:border-blue-200 transition-all duration-500 flex flex-col"
+              className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm group hover:shadow-2xl hover:shadow-slate-200/50 hover:border-[#3B66F5]/30 transition-all duration-500 flex flex-col"
             >
               <div className="pt-8 px-8 pb-5 flex-1">
                 {/* Card Top Header: Token & Action Dropdown */}
@@ -451,10 +451,10 @@ export default function DaftarUjian() {
                       showAlert({ title: 'Salin Kode', message: `Token / Kode Bypass "${exam.exam_code}" berhasil disalin!`, type: 'success' });
                     }}
                     title="Klik untuk salin token & kode bypass"
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 border border-slate-200/60 rounded-xl text-slate-500 hover:text-indigo-950 hover:bg-slate-100 hover:border-slate-300 font-bold transition-all text-[11px] group/token cursor-pointer"
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 border border-slate-200/60 rounded-xl text-slate-500 hover:text-[#1D4ED8] hover:bg-slate-100 hover:border-slate-300 font-bold transition-all text-[11px] group/token cursor-pointer"
                   >
-                    <span className="font-mono text-indigo-950 tracking-wider">Token / Bypass: {exam.exam_code}</span>
-                    <Copy className="w-3 h-3 text-slate-400 group-hover/token:text-indigo-950 group-hover/token:scale-105 transition-all" />
+                    <span className="font-mono text-[#1D4ED8] tracking-wider">Token / Bypass: {exam.exam_code}</span>
+                    <Copy className="w-3 h-3 text-slate-400 group-hover/token:text-[#1D4ED8] group-hover/token:scale-105 transition-all" />
                   </button>
                   
                   <button 
@@ -467,15 +467,15 @@ export default function DaftarUjian() {
                 </div>
 
                 {/* Title & Duration/Questions */}
-                <h3 className="text-xl font-bold text-indigo-950 mb-2 group-hover:text-blue-900 transition-colors line-clamp-2 leading-tight min-h-[3.5rem] flex items-center">{exam.title}</h3>
+                <h3 className="text-xl font-bold text-[#1D4ED8] mb-2 group-hover:text-blue-900 transition-colors line-clamp-2 leading-tight min-h-[3.5rem] flex items-center">{exam.title}</h3>
                 
                 <div className="flex flex-wrap items-center gap-2 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-6">
                   <div className="flex items-center gap-1.5 bg-slate-50 px-2.5 py-1.5 rounded-xl border border-slate-150">
-                    <Clock className="w-3.5 h-3.5 text-indigo-950/60" />
+                    <Clock className="w-3.5 h-3.5 text-[#1D4ED8]/60" />
                     <span>{exam.duration} Menit</span>
                   </div>
                   <div className="flex items-center gap-1.5 bg-slate-50 px-2.5 py-1.5 rounded-xl border border-slate-150">
-                    <FileText className="w-3.5 h-3.5 text-indigo-950/60" />
+                    <FileText className="w-3.5 h-3.5 text-[#1D4ED8]/60" />
                     <span>{exam.total_questions} Soal</span>
                   </div>
                 </div>
@@ -671,7 +671,7 @@ export default function DaftarUjian() {
                   !exam.offline_mode && (
                     <button 
                       onClick={() => navigate(`/monitor-ujian/${exam.id}`)}
-                      className="w-full bg-blue-50/70 border border-blue-100 text-blue-600 py-3 rounded-full font-bold text-xs hover:bg-blue-100 hover:text-blue-700 transition-all shadow-sm flex items-center justify-center gap-2 button-hover cursor-pointer"
+                      className="w-full bg-[#3B66F5]/5/70 border border-[#3B66F5]/20 text-[#3B66F5] py-3 rounded-full font-bold text-xs hover:bg-[#3B66F5]/10 hover:text-blue-700 transition-all shadow-sm flex items-center justify-center gap-2 button-hover cursor-pointer"
                     >
                       <Activity className="w-4 h-4 shrink-0" />
                       <span>Live Monitor</span>
@@ -694,7 +694,7 @@ export default function DaftarUjian() {
             <div className="bg-slate-50 w-24 h-24 rounded-[2rem] flex items-center justify-center mx-auto mb-8">
               <Calendar className="w-12 h-12 text-slate-200" />
             </div>
-            <h3 className="text-2xl font-bold text-indigo-950 mb-3">Belum ada ujian</h3>
+            <h3 className="text-2xl font-bold text-[#1D4ED8] mb-3">Belum ada ujian</h3>
             <p className="text-slate-400 font-medium max-w-sm mx-auto">Anda belum menerbitkan ujian apapun. Mulai buat ujian pertama Anda sekarang.</p>
             <button 
               onClick={() => navigate('/buat-ujian')}
@@ -724,7 +724,7 @@ export default function DaftarUjian() {
               className="bg-white rounded-[2rem] p-8 max-w-md w-full relative z-10 shadow-2xl"
             >
               <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-bold text-indigo-950">Aktifkan Ujian</h3>
+                <h3 className="text-xl font-bold text-[#1D4ED8]">Aktifkan Ujian</h3>
                 <button 
                   onClick={() => setShowActivateModal(false)}
                   className="p-2 hover:bg-slate-100 rounded-xl transition-colors"
@@ -741,7 +741,7 @@ export default function DaftarUjian() {
                 <div>
                   <label className="text-sm font-bold text-slate-700 mb-3 block">Pilih Kelas (bisa pilih banyak)</label>
                   <div className="max-h-48 overflow-y-auto space-y-2 p-2 bg-slate-50 rounded-xl border border-slate-100">
-                    <label className="flex items-center gap-3 p-3 rounded-full bg-blue-50 cursor-pointer border border-blue-200">
+                    <label className="flex items-center gap-3 p-3 rounded-full bg-[#3B66F5]/5 cursor-pointer border border-[#3B66F5]/30">
                       <input 
                         type="checkbox"
                         checked={selectedClasses.length === classes.length && classes.length > 0}
@@ -752,7 +752,7 @@ export default function DaftarUjian() {
                             setSelectedClasses([]);
                           }
                         }}
-                        className="w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                        className="w-5 h-5 rounded border-slate-300 text-[#3B66F5] focus:ring-blue-500"
                       />
                       <span className="font-bold text-blue-700">Pilih Semua Kelas</span>
                     </label>
@@ -771,14 +771,14 @@ export default function DaftarUjian() {
                               setSelectedClasses(selectedClasses.filter(id => id !== cls.id));
                             }
                           }}
-                          className="w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                          className="w-5 h-5 rounded border-slate-300 text-[#3B66F5] focus:ring-blue-500"
                         />
                         <span className="font-medium text-slate-700">{cls.name}</span>
                       </label>
                     ))}
                   </div>
                   {selectedClasses.length > 0 && (
-                    <p className="text-xs text-blue-600 mt-2 font-medium">
+                    <p className="text-xs text-[#3B66F5] mt-2 font-medium">
                       {selectedClasses.length} kelas dipilih
                     </p>
                   )}

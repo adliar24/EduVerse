@@ -431,8 +431,8 @@ export default function FaceEnrollment({
   if (state === 'loading') {
     return (
       <div className="flex flex-col items-center justify-center p-8 min-h-[300px]">
-        <div className="w-16 h-16 rounded-full bg-blue-500/20 flex items-center justify-center mb-4">
-          <Loader2 className="w-8 h-8 text-blue-400 animate-spin" />
+        <div className="w-16 h-16 rounded-full bg-[#3B66F5]/50/20 flex items-center justify-center mb-4">
+          <Loader2 className="w-8 h-8 text-[#3B66F5] animate-spin" />
         </div>
         <p className="text-gray-700 font-medium">{message || 'Memuat...'}</p>
       </div>
@@ -652,7 +652,7 @@ className="flex-1 py-2.5 rounded-full font-medium text-sm bg-emerald-500 text-wh
           <ImagePlus className="w-6 h-6" />
           <div className="text-left">
             <span className="block font-medium">Upload Foto</span>
-            <span className="block text-blue-600 text-xs">Pilih dari galeri</span>
+            <span className="block text-[#3B66F5] text-xs">Pilih dari galeri</span>
           </div>
         </button>
 

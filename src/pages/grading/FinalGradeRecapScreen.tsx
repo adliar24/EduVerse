@@ -492,18 +492,18 @@ export const FinalGradeRecapScreen: React.FC = () => {
          <Header title="Rekap Nilai Akhir" subtitle="Kalkulasi e-Rapor & Smart Filling" />
          <PageTransition className="space-y-4 pb-4">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-               <div className="bg-gradient-to-r from-slate-50 to-indigo-50/30 rounded-3xl p-4 border border-indigo-100 space-y-3">
+               <div className="bg-gradient-to-r from-slate-50 to-indigo-50/30 rounded-3xl p-4 border border-[#3B66F5]/20 space-y-3">
                   <div className="flex items-center gap-3">
                      <div className="w-10 h-10 bg-[#3B66F5] rounded-xl flex items-center justify-center text-white">
                         <BarChart3 size={20} />
                      </div>
                      <div>
-                        <h4 className="font-black text-indigo-950 text-sm uppercase tracking-wide">Banding Nilai Semester</h4>
+                        <h4 className="font-black text-[#1D4ED8] text-sm uppercase tracking-wide">Banding Nilai Semester</h4>
                         <p className="text-[10px] text-slate-500 font-bold">vs nilai e-Rapor semester lalu</p>
                      </div>
                   </div>
                  
-                 <div className="bg-white/60 rounded-2xl p-4 border border-indigo-100">
+                 <div className="bg-white/60 rounded-2xl p-4 border border-[#3B66F5]/20">
                     <p className="text-[10px] font-bold text-indigo-700/70 leading-relaxed uppercase">
                        Bandingkan nilai akhir semester ini dengan<br/>
                        nilai e-Rapor semester sebelumnya untuk<br/>
@@ -554,9 +554,9 @@ export const FinalGradeRecapScreen: React.FC = () => {
                     </div>
                   ) : (
                       <div className="grid grid-cols-3 gap-3">
-                        <button onClick={() => { setComparisonMode('manual'); setShowComparisonModal(true); }} className="p-4 rounded-full border-2 border-indigo-200 bg-white hover:bg-indigo-50 transition-all">
-                           <FileText size={24} className="mx-auto mb-2 text-indigo-500" />
-                           <span className="text-[10px] font-black text-indigo-600 uppercase">Manual</span>
+                        <button onClick={() => { setComparisonMode('manual'); setShowComparisonModal(true); }} className="p-4 rounded-full border-2 border-[#3B66F5]/30 bg-white hover:bg-[#3B66F5]/10 transition-all">
+                           <FileText size={24} className="mx-auto mb-2 text-[#3B66F5]" />
+                           <span className="text-[10px] font-black text-[#3B66F5] uppercase">Manual</span>
                         </button>
                         <button onClick={() => { setComparisonMode('voice'); toggleVoice(); }} className={`p-4 rounded-full border-2 transition-all ${isListening ? 'bg-red-500 border-red-400 text-white' : 'border-red-200 bg-white hover:bg-red-50'}`}>
                            {isListening ? <MicOff size={24} className="mx-auto mb-2" /> : <Mic size={24} className="mx-auto mb-2 text-red-500" />}
@@ -581,7 +581,7 @@ export const FinalGradeRecapScreen: React.FC = () => {
                           )}
                         </div>
                         {isListening && transcript && (
-                          <div className="bg-white rounded-xl px-4 py-2 italic text-sm text-primary font-bold">
+                          <div className="bg-white rounded-xl px-4 py-2 italic text-sm text-[#3B66F5] font-bold">
                               "{transcript}..."
                           </div>
                         )}
@@ -596,7 +596,7 @@ export const FinalGradeRecapScreen: React.FC = () => {
                               previousScores.slice(0, 5).map((s, i) => (
                                 <div key={i} className="flex justify-between text-[10px]">
                                     <span className="font-bold text-slate-600">{s.nama}</span>
-                                    <span className="font-black text-primary">{s.nilai}</span>
+                                    <span className="font-black text-[#3B66F5]">{s.nilai}</span>
                                 </div>
                               ))
                           )}
@@ -605,13 +605,13 @@ export const FinalGradeRecapScreen: React.FC = () => {
                   )}
                 </div>
 
-                 <div className="bg-gradient-to-r from-slate-50 to-blue-50/30 rounded-3xl p-4 border border-indigo-100 space-y-3">
+                 <div className="bg-gradient-to-r from-slate-50 to-blue-50/30 rounded-3xl p-4 border border-[#3B66F5]/20 space-y-3">
                   <div className="flex items-center gap-3">
                      <div className="w-10 h-10 bg-[#3B66F5] rounded-xl flex items-center justify-center text-white">
                         <Zap size={20} />
                      </div>
                      <div>
-                        <h4 className="font-black text-indigo-950 text-sm uppercase tracking-wide">Smart Filling</h4>
+                        <h4 className="font-black text-[#1D4ED8] text-sm uppercase tracking-wide">Smart Filling</h4>
                         <p className="text-[10px] text-slate-500 font-bold">Isi template e-Rapor otomatis</p>
                      </div>
                   </div>
@@ -632,15 +632,15 @@ export const FinalGradeRecapScreen: React.FC = () => {
                         onDrop={(e) => { e.preventDefault(); setIsDragging(false); handleFileDrop(e.dataTransfer.files); }}
                      >
                         {templateWorkbooks.length > 0 ? (
-                            <div className={`bg-white rounded-2xl p-4 border-2 h-full transition-all ${isDragging ? 'border-primary bg-blue-50' : 'border-slate-100'}`}>
+                            <div className={`bg-white rounded-2xl p-4 border-2 h-full transition-all ${isDragging ? 'border-[#3B66F5] bg-[#3B66F5]/5' : 'border-slate-100'}`}>
                               <div className="flex items-center justify-between mb-2">
-                                 <span className="text-[10px] font-black text-indigo-950 uppercase">{templateWorkbooks.length} File</span>
+                                 <span className="text-[10px] font-black text-[#1D4ED8] uppercase">{templateWorkbooks.length} File</span>
                                  <button onClick={() => setTemplateWorkbooks([])} className="text-[9px] text-red-500 font-bold">X</button>
                               </div>
                               <div className="flex flex-wrap gap-2 max-h-16 overflow-y-auto">
                                  {templateWorkbooks.map((tmpl, idx) => (
-                                    <div key={idx} className="flex items-center gap-2 bg-indigo-50/50 px-3 py-2 rounded-lg border border-indigo-100 text-[10px] font-bold text-indigo-950">
-                                       <FileText size={12} className="text-indigo-900" />
+                                    <div key={idx} className="flex items-center gap-2 bg-[#3B66F5]/5 px-3 py-2 rounded-lg border border-[#3B66F5]/20 text-[10px] font-bold text-[#1D4ED8]">
+                                       <FileText size={12} className="text-[#1D4ED8]" />
                                        <span className="max-w-[120px] truncate">{tmpl.name}</span>
                                     </div>
                                  ))}
@@ -649,11 +649,11 @@ export const FinalGradeRecapScreen: React.FC = () => {
                         ) : (
                            <div 
                               className={`border-2 border-dashed rounded-2xl p-4 text-center transition-all cursor-pointer h-full flex flex-col justify-center ${
-                                 isDragging ? 'border-primary bg-blue-50 scale-102' : 'border-slate-200 hover:border-indigo-950/20 hover:bg-slate-50/30'
+                                 isDragging ? 'border-[#3B66F5] bg-[#3B66F5]/5 scale-102' : 'border-slate-200 hover:border-[#3B66F5]/20 hover:bg-slate-50/30'
                               }`}
                               onClick={() => fileInputRef.current?.click()}
                            >
-                              <Upload size={20} className={`mx-auto mb-2 ${isDragging ? 'text-primary' : 'text-slate-400'}`} />
+                              <Upload size={20} className={`mx-auto mb-2 ${isDragging ? 'text-[#3B66F5]' : 'text-slate-400'}`} />
                               <div className="text-[10px] font-black text-slate-500 uppercase">
                                  {isDragging ? 'Lepaskan File' : 'Seret & Lepas'}
                               </div>
@@ -692,26 +692,26 @@ export const FinalGradeRecapScreen: React.FC = () => {
                   <div className="flex-1 w-full grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3">
                      <div className="text-center p-2 bg-slate-50 rounded-xl border border-slate-100">
                         <div className="text-[8px] font-black text-slate-400 uppercase opacity-60">Form</div>
-                        <div className="text-sm font-black text-indigo-950">{profile?.weights?.formatif ?? 40}%</div>
+                        <div className="text-sm font-black text-[#1D4ED8]">{profile?.weights?.formatif ?? 40}%</div>
                      </div>
                      <div className="text-center p-2 bg-slate-50 rounded-xl border border-slate-100">
                         <div className="text-[8px] font-black text-slate-400 uppercase opacity-60">Sum</div>
-                        <div className="text-sm font-black text-indigo-950">{profile?.weights?.sumatif ?? 30}%</div>
+                        <div className="text-sm font-black text-[#1D4ED8]">{profile?.weights?.sumatif ?? 30}%</div>
                      </div>
                      <div className="text-center p-2 bg-slate-50 rounded-xl border border-slate-100">
                         <div className="text-[8px] font-black text-slate-400 uppercase opacity-60">PTS</div>
-                        <div className="text-sm font-black text-indigo-950">{profile?.weights?.pts ?? 15}%</div>
+                        <div className="text-sm font-black text-[#1D4ED8]">{profile?.weights?.pts ?? 15}%</div>
                      </div>
                      <div className="text-center p-2 bg-slate-50 rounded-xl border border-slate-100">
                         <div className="text-[8px] font-black text-slate-400 uppercase opacity-60">PAS</div>
-                        <div className="text-sm font-black text-indigo-950">{profile?.weights?.pas ?? 15}%</div>
+                        <div className="text-sm font-black text-[#1D4ED8]">{profile?.weights?.pas ?? 15}%</div>
                      </div>
                   </div>
               </div>
            </div>
 
            <Card className="rounded-3xl p-0 overflow-hidden no-box-border" ref={reportRef}>
-             <div className="hidden block-in-pdf p-8 bg-gradient-to-r from-blue-900 to-indigo-900 text-white">
+             <div className="hidden block-in-pdf p-8 bg-gradient-to-r from-blue-900 to-[#2563EB] text-white">
                 <div className="flex justify-between items-start">
                    <div>
                       <h1 className="text-2xl font-black uppercase tracking-tighter">Rekap Nilai e-Rapor</h1>
@@ -748,7 +748,7 @@ export const FinalGradeRecapScreen: React.FC = () => {
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                         {recapData.map(row => (
-                            <tr key={row.idSiswa} className="hover:bg-blue-50/30 transition-colors">
+                            <tr key={row.idSiswa} className="hover:bg-[#3B66F5]/5/30 transition-colors">
                                 <td className="px-8 py-5">
                                     <div className="font-black text-slate-700 uppercase text-sm">{row.nama}</div>
                                     <div className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">NISN: {row.nisn || '-'}</div>
@@ -763,7 +763,7 @@ export const FinalGradeRecapScreen: React.FC = () => {
                                         <div className="flex-1 text-[11px] font-bold text-slate-500 leading-relaxed uppercase bg-slate-50 p-4 rounded-2xl border border-slate-100">
                                             {row.description || <span className="opacity-30">Belum ada data TP yang dihubungkan ke entri nilai.</span>}
                                         </div>
-                                        <Link to={`/reports/${selectedClass}/${row.idSiswa}`} className="w-10 h-10 rounded-full bg-white border-2 border-slate-100 text-slate-300 flex items-center justify-center hover:border-primary hover:text-primary transition-all shrink-0" data-html2canvas-ignore>
+                                        <Link to={`/reports/${selectedClass}/${row.idSiswa}`} className="w-10 h-10 rounded-full bg-white border-2 border-slate-100 text-slate-300 flex items-center justify-center hover:border-[#3B66F5] hover:text-[#3B66F5] transition-all shrink-0" data-html2canvas-ignore>
                                             <ChevronRight size={20} />
                                         </Link>
                                     </div>
@@ -781,7 +781,7 @@ export const FinalGradeRecapScreen: React.FC = () => {
                      <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Langkah Akhir</span>
                      <span className="text-xs font-black text-slate-700 uppercase">Selesaikan Semester Ini</span>
                   </div>
-                  <div className="w-12 h-12 bg-gradient-to-br from-indigo-900 to-indigo-950 rounded-full flex items-center justify-center text-white shadow-lg">
+                  <div className="w-12 h-12 bg-gradient-to-br from-indigo-900 to-[#1D4ED8] rounded-full flex items-center justify-center text-white shadow-lg">
                      <Archive size={20} />
                   </div>
                </button>
@@ -791,7 +791,7 @@ export const FinalGradeRecapScreen: React.FC = () => {
                <div className="p-2">
                   {finishStep === 1 ? (
                      <div className="space-y-6 text-center">
-                        <div className="w-20 h-20 bg-indigo-50 rounded-3xl flex items-center justify-center mx-auto text-indigo-950 mb-2"><AlertCircle size={40} /></div>
+                        <div className="w-20 h-20 bg-[#3B66F5]/10 rounded-3xl flex items-center justify-center mx-auto text-[#1D4ED8] mb-2"><AlertCircle size={40} /></div>
                         <div>
                            <h3 className="text-lg font-black text-slate-800 uppercase">Selesaikan Semester?</h3>
                            <p className="text-sm font-bold text-slate-500 mt-2">Data nilai lama tetap tersimpan tapi tidak akan muncul di dashboard utama.</p>
@@ -811,7 +811,7 @@ export const FinalGradeRecapScreen: React.FC = () => {
                                  <option value="2">2 (GENAP)</option>
                               </Select>
                                <label className="flex items-center gap-3 p-3 bg-white border border-slate-100 rounded-full cursor-pointer mt-4">
-                                 <input type="checkbox" checked={nextSettings.autoBackup} onChange={e => setNextSettings({...nextSettings, autoBackup: e.target.checked})} className="w-4 h-4 rounded-md text-primary" />
+                                 <input type="checkbox" checked={nextSettings.autoBackup} onChange={e => setNextSettings({...nextSettings, autoBackup: e.target.checked})} className="w-4 h-4 rounded-md text-[#3B66F5]" />
                                  <div>
                                     <p className="text-[10px] font-black text-slate-700 uppercase">Simpan File Arsip (.json)</p>
                                  </div>

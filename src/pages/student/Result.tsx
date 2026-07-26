@@ -86,7 +86,7 @@ export default function StudentResult() {
       <div className="bg-red-50 p-6 rounded-[2.5rem] border border-red-100 mb-8">
         <XCircle className="w-16 h-16 text-red-500 mx-auto" />
       </div>
-      <h1 className="text-3xl font-black text-indigo-950 tracking-tight">Hasil Tidak Ditemukan</h1>
+      <h1 className="text-3xl font-black text-[#1D4ED8] tracking-tight">Hasil Tidak Ditemukan</h1>
       <p className="text-slate-500 font-medium mt-2 max-w-xs mx-auto">Maaf, kami tidak dapat menemukan data hasil ujian untuk ID ini.</p>
       <Link to="/exam" className="mt-8 inline-flex items-center gap-2 bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white px-10 py-4 rounded-full font-black hover:brightness-110 transition-all border border-white/10 shadow-xl shadow-[#3B66F5]/25">
         Kembali ke Beranda
@@ -101,8 +101,8 @@ export default function StudentResult() {
     <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 py-16 relative overflow-hidden">
       {/* Decorative Background */}
       <div className="absolute inset-0 pointer-events-none z-0">
-        <div className="absolute top-[-5%] left-[-5%] w-[40%] h-[40%] bg-indigo-950/5 rounded-full blur-[100px]" />
-        <div className="absolute bottom-[-5%] right-[-10%] w-[50%] h-[50%] bg-blue-500/5 rounded-full blur-[120px]" />
+        <div className="absolute top-[-5%] left-[-5%] w-[40%] h-[40%] bg-[#1D4ED8]/5 rounded-full blur-[100px]" />
+        <div className="absolute bottom-[-5%] right-[-10%] w-[50%] h-[50%] bg-[#3B66F5]/50/5 rounded-full blur-[120px]" />
         <div className="absolute top-[40%] left-[50%] w-[30%] h-[30%] bg-purple-500/5 rounded-full blur-[100px]" />
       </div>
 
@@ -129,11 +129,11 @@ export default function StudentResult() {
           >
             {isPassed ? <PartyPopper className="w-10 h-10 sm:w-16 sm:h-16" /> : <AlertTriangle className="w-10 h-10 sm:w-16 sm:h-16" />}
             <div className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2">
-              <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 text-blue-400 animate-pulse" />
+              <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 text-[#3B66F5] animate-pulse" />
             </div>
           </motion.div>
 
-          <h1 className="text-2xl sm:text-4xl font-black text-indigo-950 tracking-tight mb-2 sm:mb-3">Ujian Selesai!</h1>
+          <h1 className="text-2xl sm:text-4xl font-black text-[#1D4ED8] tracking-tight mb-2 sm:mb-3">Ujian Selesai!</h1>
           <p className="text-slate-500 text-xs sm:text-base font-medium mb-8 sm:mb-12 max-w-md mx-auto px-4">
             {isQRMode 
               ? "Tunjukkan QR Code di bawah ini ke guru/pengawas Anda untuk memindai dan merekap hasil pengerjaan Anda."
@@ -143,7 +143,7 @@ export default function StudentResult() {
           <div className="bg-slate-50 rounded-[2rem] sm:rounded-[3rem] p-6 sm:p-10 mb-8 sm:mb-12 grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-10 border border-slate-100 text-left sm:text-center">
             <div className="space-y-1">
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Peserta Ujian</p>
-              <p className="text-xl sm:text-2xl font-black text-indigo-950 truncate">{participant.name}</p>
+              <p className="text-xl sm:text-2xl font-black text-[#1D4ED8] truncate">{participant.name}</p>
               <div className="flex items-center gap-2 text-slate-500 font-bold text-xs sm:text-base">
                 <GraduationCap className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 {participant.class}
@@ -151,7 +151,7 @@ export default function StudentResult() {
             </div>
             <div className="sm:text-right space-y-1">
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Mata Pelajaran</p>
-              <p className="text-xl sm:text-2xl font-black text-indigo-950 truncate">{exam.title}</p>
+              <p className="text-xl sm:text-2xl font-black text-[#1D4ED8] truncate">{exam.title}</p>
               <div className="flex items-center sm:justify-end gap-2 text-slate-500 font-bold text-xs sm:text-base">
                 <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 Kode: {exam.exam_code}
@@ -160,13 +160,13 @@ export default function StudentResult() {
           </div>
 
           {isQRMode ? (
-            <div className="bg-indigo-50/50 p-6 sm:p-10 rounded-3xl sm:rounded-[2.5rem] border border-indigo-100/70 mb-8 sm:mb-12 flex flex-col items-center">
-              <div className="bg-white p-6 rounded-3xl shadow-xl border border-indigo-100/50 mb-6 flex items-center justify-center">
+            <div className="bg-[#3B66F5]/5 p-6 sm:p-10 rounded-3xl sm:rounded-[2.5rem] border border-[#3B66F5]/20/70 mb-8 sm:mb-12 flex flex-col items-center">
+              <div className="bg-white p-6 rounded-3xl shadow-xl border border-[#3B66F5]/20/50 mb-6 flex items-center justify-center">
                 {qrDataUrl ? (
                   <img src={qrDataUrl} alt="QR Code Hasil Ujian" className="w-56 h-56 sm:w-72 sm:h-72 object-contain" />
                 ) : (
                   <div className="w-56 h-56 sm:w-72 sm:h-72 flex flex-col items-center justify-center gap-3">
-                    <QrCode className="w-12 h-12 text-indigo-300" />
+                    <QrCode className="w-12 h-12 text-[#3B66F5]/70" />
                     <p className="text-xs text-slate-400 font-medium">QR Code tidak tersedia</p>
                   </div>
                 )}
@@ -174,8 +174,8 @@ export default function StudentResult() {
               
               {exam.show_score ? (
                 <div className="text-center">
-                  <p className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em] mb-1">Skor Sementara Anda</p>
-                  <p className="text-4xl sm:text-5xl font-black text-indigo-950">{Math.round(participant.score)} <span className="text-slate-300 text-xl font-black">/ 100</span></p>
+                  <p className="text-[10px] font-black text-[#3B66F5] uppercase tracking-[0.2em] mb-1">Skor Sementara Anda</p>
+                  <p className="text-4xl sm:text-5xl font-black text-[#1D4ED8]">{Math.round(participant.score)} <span className="text-slate-300 text-xl font-black">/ 100</span></p>
                   <div className="mt-3 flex justify-center">
                     <span className={cn(
                       "px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider shadow-sm",
@@ -187,8 +187,8 @@ export default function StudentResult() {
                 </div>
               ) : (
                 <div className="text-center">
-                  <p className="text-xs font-bold text-indigo-400 uppercase tracking-widest flex items-center gap-1.5 justify-center">
-                    <QrCode className="w-4 h-4 text-indigo-500" />
+                  <p className="text-xs font-bold text-[#3B66F5] uppercase tracking-widest flex items-center gap-1.5 justify-center">
+                    <QrCode className="w-4 h-4 text-[#3B66F5]" />
                     Mode Pengumpulan QR Code Aktif
                   </p>
                 </div>
@@ -205,7 +205,7 @@ export default function StudentResult() {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.3, duration: 0.3, ease: 'easeOut' }}
-                        className="text-7xl sm:text-[10rem] font-black leading-none tracking-tighter text-indigo-950"
+                        className="text-7xl sm:text-[10rem] font-black leading-none tracking-tighter text-[#1D4ED8]"
                       >
                         {Math.round(participant.score)}
                       </motion.span>
@@ -226,9 +226,9 @@ export default function StudentResult() {
                     </div>
                   </>
                 ) : (
-                  <div className="bg-indigo-50 p-8 sm:p-10 rounded-3xl sm:rounded-[2.5rem] border border-indigo-100 mt-6 sm:mt-10">
-                    <ShieldCheck className="w-12 h-12 sm:w-16 sm:h-16 text-indigo-500 mx-auto mb-4 sm:mb-6" />
-                    <h3 className="text-xl sm:text-2xl font-black text-indigo-950 mb-2">Skor Disembunyikan</h3>
+                  <div className="bg-[#3B66F5]/10 p-8 sm:p-10 rounded-3xl sm:rounded-[2.5rem] border border-[#3B66F5]/20 mt-6 sm:mt-10">
+                    <ShieldCheck className="w-12 h-12 sm:w-16 sm:h-16 text-[#3B66F5] mx-auto mb-4 sm:mb-6" />
+                    <h3 className="text-xl sm:text-2xl font-black text-[#1D4ED8] mb-2">Skor Disembunyikan</h3>
                     <p className="text-slate-500 font-medium text-sm sm:text-base">Sesuai kebijakan pengawas, skor untuk ujian ini tidak ditampilkan secara langsung.</p>
                   </div>
                 )}
@@ -239,7 +239,7 @@ export default function StudentResult() {
           <div className="grid grid-cols-2 gap-4 sm:gap-6 mb-8 sm:mb-12">
             <div className="flex flex-col sm:flex-row items-center sm:items-start gap-3 sm:gap-4 p-4 sm:p-6 rounded-2xl sm:rounded-[2rem] bg-slate-50 border border-slate-100 group hover:bg-white transition-all">
               <div className="bg-white p-2 sm:p-3 rounded-lg sm:rounded-xl shadow-sm group-hover:shadow-md transition-all">
-                <Calendar className="w-5 h-5 sm:w-6 sm:h-6 text-blue-500" />
+                <Calendar className="w-5 h-5 sm:w-6 sm:h-6 text-[#3B66F5]" />
               </div>
               <div className="text-center sm:text-left">
                 <p className="text-[8px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest">Tanggal</p>
@@ -248,7 +248,7 @@ export default function StudentResult() {
             </div>
             <div className="flex flex-col sm:flex-row items-center sm:items-start gap-3 sm:gap-4 p-4 sm:p-6 rounded-2xl sm:rounded-[2rem] bg-slate-50 border border-slate-100 group hover:bg-white transition-all">
               <div className="bg-white p-2 sm:p-3 rounded-lg sm:rounded-xl shadow-sm group-hover:shadow-md transition-all">
-                <Clock className="w-5 h-5 sm:w-6 sm:h-6 text-blue-500" />
+                <Clock className="w-5 h-5 sm:w-6 sm:h-6 text-[#3B66F5]" />
               </div>
               <div className="text-center sm:text-left">
                 <p className="text-[8px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest">Selesai</p>

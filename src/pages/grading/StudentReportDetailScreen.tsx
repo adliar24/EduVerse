@@ -177,14 +177,14 @@ export const StudentReportDetailScreen: React.FC = () => {
                 <FileSpreadsheet size={18} className="mr-2 text-emerald-600"/> Excel
             </Button>
             <Button variant="accent" onClick={exportPDF} className="!py-3 !px-6 !text-[13px] shadow-glow-gold hidden md:flex">
-                <FileText size={18} className="mr-2 text-primaryDark/60"/> Export PDF
+                <FileText size={18} className="mr-2 text-[#1D4ED8]/60"/> Export PDF
             </Button>
           </div>
         }
       />
       <div ref={reportRef} data-pdf-detail className="bg-slate-50 min-h-screen">
          <PageTransition className="space-y-6 pb-20">
-            <div className="bg-gradient-primary p-8 md:p-12 rounded-[3rem] text-white shadow-2xl relative overflow-hidden animate-fade">
+            <div className="bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] p-8 md:p-12 rounded-[3rem] text-white shadow-2xl relative overflow-hidden animate-fade">
                <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-[80px] -mr-32 -mt-32"></div>
                <div className="absolute bottom-0 left-0 w-48 h-48 bg-accent/10 rounded-full blur-[80px] -ml-24 -mb-24"></div>
                
@@ -225,13 +225,13 @@ export const StudentReportDetailScreen: React.FC = () => {
 
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
                {[
-                  { label: 'Nilai Rapor', val: averages.final, count: 'Prediksi', icon: TrendingUp, color: 'text-white', bg: 'bg-gradient-primary', border: 'border-transparent', isFeatured: true },
-                  { label: 'Formatif', val: averages.formatif, count: counts.formatif, icon: ClipboardCheck, color: 'text-blue-500', bg: 'bg-blue-50', border: 'border-blue-100' },
+                  { label: 'Nilai Rapor', val: averages.final, count: 'Prediksi', icon: TrendingUp, color: 'text-white', bg: 'bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8]', border: 'border-transparent', isFeatured: true },
+                  { label: 'Formatif', val: averages.formatif, count: counts.formatif, icon: ClipboardCheck, color: 'text-[#3B66F5]', bg: 'bg-[#3B66F5]/5', border: 'border-[#3B66F5]/20' },
                   { label: 'Sumatif', val: averages.sumatif, count: counts.sumatif, icon: CheckCircle2, color: 'text-amber-500', bg: 'bg-amber-50', border: 'border-amber-100' },
                   { label: 'PTS / PAS', val: `${averages.pts} / ${averages.pas}`, count: counts.pts + counts.pas, icon: GraduationCap, color: 'text-purple-500', bg: 'bg-purple-50', border: 'border-purple-100' },
                   { label: 'Poin', val: points, count: pointHistory.length, icon: Star, color: 'text-emerald-500', bg: 'bg-emerald-50', border: 'border-emerald-100' }
                ].map((st, i) => (
-                  <div key={i} className={`${st.isFeatured ? 'bg-gradient-primary text-white shadow-lg scale-105 z-10' : 'bg-white text-slate-800'} p-6 rounded-[2rem] border ${st.border} shadow-sm flex flex-col items-center text-center group hover:border-primary/20 transition-all active:scale-95`}>
+                  <div key={i} className={`${st.isFeatured ? 'bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white shadow-lg scale-105 z-10' : 'bg-white text-slate-800'} p-6 rounded-[2rem] border ${st.border} shadow-sm flex flex-col items-center text-center group hover:border-[#3B66F5]/20 transition-all active:scale-95`}>
                      <div className={`w-12 h-12 ${st.isFeatured ? 'bg-white/20 text-white' : st.bg + ' ' + st.color} rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
                         <st.icon size={20} strokeWidth={2.5} />
                      </div>
@@ -244,7 +244,7 @@ export const StudentReportDetailScreen: React.FC = () => {
 
             {description && (
                 <div className="bg-slate-900 rounded-[2rem] p-6 md:p-8 text-white relative overflow-hidden shadow-xl group">
-                   <div className="absolute top-0 right-0 w-80 h-80 bg-primary/20 rounded-full blur-[100px] -mr-40 -mt-40 group-hover:scale-125 transition-transform duration-1000"></div>
+                   <div className="absolute top-0 right-0 w-80 h-80 bg-[#3B66F5]/20 rounded-full blur-[100px] -mr-40 -mt-40 group-hover:scale-125 transition-transform duration-1000"></div>
                    <div className="relative z-10 flex flex-col md:flex-row gap-6 items-center">
                       <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center shrink-0 border border-white/10 shadow-inner backdrop-blur-md">
                          <Info size={24} className="text-accent" strokeWidth={2.5} />
@@ -290,7 +290,7 @@ export const StudentReportDetailScreen: React.FC = () => {
                <div className="flex items-center justify-between px-2">
                   <h3 className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Riwayat Sesi Belajar</h3>
                   <div className="flex gap-2">
-                     <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                     <div className="w-2 h-2 rounded-full bg-[#3B66F5]/50"></div>
                      <div className="w-2 h-2 rounded-full bg-amber-500"></div>
                      <div className="w-2 h-2 rounded-full bg-purple-500"></div>
                   </div>
@@ -303,11 +303,11 @@ export const StudentReportDetailScreen: React.FC = () => {
                   </div>
                ) : (
                   reportData.map(item => (
-                  <div key={item.idPertemuan} className="bg-white p-6 md:p-8 rounded-[2.25rem] border border-slate-100 shadow-sm flex justify-between items-center transition-all hover:shadow-lg hover:border-primary/20 group">
+                  <div key={item.idPertemuan} className="bg-white p-6 md:p-8 rounded-[2.25rem] border border-slate-100 shadow-sm flex justify-between items-center transition-all hover:shadow-lg hover:border-[#3B66F5]/20 group">
                      <div className="min-w-0 flex items-center gap-6">
                         <div className={`w-14 h-14 rounded-2xl flex items-center justify-center font-black text-xl shadow-inner shrink-0 transition-transform group-hover:scale-110 ${
                            item.score >= 90 ? 'bg-emerald-50 text-emerald-600' : 
-                           item.score >= 75 ? 'bg-blue-50 text-blue-600' : 
+                           item.score >= 75 ? 'bg-[#3B66F5]/5 text-[#3B66F5]' : 
                            item.score === null ? 'bg-slate-50 text-slate-300' : 'bg-red-50 text-red-500'
                         }`}>
                            {item.aspekPenilaian === 'Sikap' ? (
@@ -320,11 +320,11 @@ export const StudentReportDetailScreen: React.FC = () => {
                            <div className="flex items-center gap-2 mb-1.5">
                               <span className={`px-2 py-0.5 rounded-lg text-[8px] font-black uppercase tracking-widest ${
                                  item.assessmentCategory === 'Sumatif' ? 'bg-amber-100 text-amber-700' : 
-                                 item.assessmentCategory === 'PTS' || item.assessmentCategory === 'PAS' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'
+                                 item.assessmentCategory === 'PTS' || item.assessmentCategory === 'PAS' ? 'bg-purple-100 text-purple-700' : 'bg-[#3B66F5]/10 text-blue-700'
                               }`}>{item.assessmentCategory}</span>
                               <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{new Date(item.tanggal).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}</span>
                            </div>
-                           <h4 className="font-black text-slate-800 text-sm md:text-base uppercase truncate leading-tight group-hover:text-primary transition-colors">{item.materi}</h4>
+                           <h4 className="font-black text-slate-800 text-sm md:text-base uppercase truncate leading-tight group-hover:text-[#3B66F5] transition-colors">{item.materi}</h4>
                            <p className="text-[10px] font-bold text-slate-400 uppercase truncate mt-0.5">{item.activityName}</p>
                         </div>
                      </div>

@@ -67,7 +67,7 @@ export const Recap: React.FC<RecapProps> = ({ state, refresh, notify }) => {
     Hadir: { border: 'border-emerald-500', bg: 'bg-emerald-500', text: 'text-white', shadow: 'shadow-emerald-200' },
     Terlambat: { border: 'border-orange-500', bg: 'bg-orange-500', text: 'text-white', shadow: 'shadow-orange-200' },
     Sakit: { border: 'border-amber-400', bg: 'bg-amber-400', text: 'text-white', shadow: 'shadow-amber-200' },
-    Izin: { border: 'border-blue-500', bg: 'bg-blue-500', text: 'text-white', shadow: 'shadow-blue-200' },
+    Izin: { border: 'border-blue-500', bg: 'bg-[#3B66F5]/50', text: 'text-white', shadow: 'shadow-blue-200' },
     Alpha: { border: 'border-red-500', bg: 'bg-red-500', text: 'text-white', shadow: 'shadow-red-200' },
   };
 
@@ -895,7 +895,7 @@ const saveSessionChanges = async (sessionId: string) => {
                 <Card
                   key={st.id}
                   onClick={() => setSelectedStudentId(st.id)}
-                  className="px-4 py-3.5 sm:py-2.5 rounded-xl border border-gray-200 hover:border-blue-200 hover:shadow-sm transition cursor-pointer"
+                  className="px-4 py-3.5 sm:py-2.5 rounded-xl border border-gray-200 hover:border-[#3B66F5]/30 hover:shadow-sm transition cursor-pointer"
                 >
                   {/* Desktop */}
                   <div className="hidden sm:flex items-center justify-between gap-4">
@@ -966,7 +966,7 @@ const saveSessionChanges = async (sessionId: string) => {
 
               <div className="flex items-center gap-2 justify-start sm:justify-end overflow-x-auto whitespace-nowrap pb-1">
                 <button
-                   className="shrink-0 px-3 py-1.5 text-xs rounded-full border border-gray-200 hover:border-blue-200 hover:bg-blue-50 disabled:opacity-40 disabled:hover:bg-transparent"
+                   className="shrink-0 px-3 py-1.5 text-xs rounded-full border border-gray-200 hover:border-[#3B66F5]/30 hover:bg-[#3B66F5]/5 disabled:opacity-40 disabled:hover:bg-transparent"
                    onClick={() => setStudentPage(p => Math.max(1, p - 1))}
                   disabled={studentPage <= 1}
                 >
@@ -988,7 +988,7 @@ const saveSessionChanges = async (sessionId: string) => {
                       {showFirst && (
                         <>
                           <button
-                            className={`w-9 h-9 text-xs rounded-full border ${studentPage === 1 ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-200 hover:border-blue-200 hover:bg-blue-50'}`}
+                            className={`w-9 h-9 text-xs rounded-full border ${studentPage === 1 ? 'border-blue-500 bg-[#3B66F5]/5 text-blue-700' : 'border-gray-200 hover:border-[#3B66F5]/30 hover:bg-[#3B66F5]/5'}`}
                             onClick={() => setStudentPage(1)}
                           >
                             1
@@ -1000,7 +1000,7 @@ const saveSessionChanges = async (sessionId: string) => {
                       {pages.map(p => (
                         <button
                           key={p}
-                          className={`w-9 h-9 text-xs rounded-full border ${studentPage === p ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-200 hover:border-blue-200 hover:bg-blue-50'}`}
+                          className={`w-9 h-9 text-xs rounded-full border ${studentPage === p ? 'border-blue-500 bg-[#3B66F5]/5 text-blue-700' : 'border-gray-200 hover:border-[#3B66F5]/30 hover:bg-[#3B66F5]/5'}`}
                           onClick={() => setStudentPage(p)}
                         >
                           {p}
@@ -1011,7 +1011,7 @@ const saveSessionChanges = async (sessionId: string) => {
                         <>
                           {end < totalStudentPages - 1 && <span className="px-1 text-gray-400">…</span>}
                           <button
-                             className={`w-9 h-9 text-xs rounded-full border ${studentPage === totalStudentPages ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-200 hover:border-blue-200 hover:bg-blue-50'}`}
+                             className={`w-9 h-9 text-xs rounded-full border ${studentPage === totalStudentPages ? 'border-blue-500 bg-[#3B66F5]/5 text-blue-700' : 'border-gray-200 hover:border-[#3B66F5]/30 hover:bg-[#3B66F5]/5'}`}
                             onClick={() => setStudentPage(totalStudentPages)}
                           >
                             {totalStudentPages}
@@ -1023,7 +1023,7 @@ const saveSessionChanges = async (sessionId: string) => {
                 })()}
 
                 <button
-                   className="shrink-0 px-3 py-1.5 text-xs rounded-full border border-gray-200 hover:border-blue-200 hover:bg-blue-50 disabled:opacity-40 disabled:hover:bg-transparent"
+                   className="shrink-0 px-3 py-1.5 text-xs rounded-full border border-gray-200 hover:border-[#3B66F5]/30 hover:bg-[#3B66F5]/5 disabled:opacity-40 disabled:hover:bg-transparent"
                    onClick={() => setStudentPage(p => Math.min(totalStudentPages, p + 1))}
                   disabled={studentPage >= totalStudentPages}
                 >
@@ -1064,7 +1064,7 @@ const saveSessionChanges = async (sessionId: string) => {
           <Card
             key={sess.id}
             className={`overflow-hidden transition-all duration-300 ${
-              isSelected ? 'ring-2 ring-blue-500 shadow-md' : 'hover:border-blue-200'
+              isSelected ? 'ring-2 ring-blue-500 shadow-md' : 'hover:border-[#3B66F5]/30'
             }`}
           >
             {/* ROW HEADER */}
@@ -1079,14 +1079,14 @@ const saveSessionChanges = async (sessionId: string) => {
                 }
               }}
               className={`p-4 md:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 cursor-pointer ${
-                isSelected ? 'bg-blue-50/50' : 'bg-white'
+                isSelected ? 'bg-[#3B66F5]/5/50' : 'bg-white'
               }`}
             >
               <div className="flex gap-4 items-center min-w-0">
                 <div
                   className={`w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-sm shrink-0 transition-colors ${
                     isSelected
-                      ? 'bg-blue-500 text-white shadow-blue-200 shadow-md'
+                      ? 'bg-[#3B66F5]/50 text-white shadow-blue-200 shadow-md'
                       : 'bg-gray-100 text-gray-500'
                   }`}
                 >
@@ -1118,7 +1118,7 @@ const saveSessionChanges = async (sessionId: string) => {
                     e.stopPropagation();
                     await exportSessionExcel(sess.id);
                   }}
-                   className="flex items-center gap-2 px-3 py-2 text-xs font-bold text-blue-700 bg-blue-100 hover:bg-blue-200 rounded-full transition-colors border border-blue-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                   className="flex items-center gap-2 px-3 py-2 text-xs font-bold text-blue-700 bg-[#3B66F5]/10 hover:bg-blue-200 rounded-full transition-colors border border-[#3B66F5]/30 disabled:opacity-50 disabled:cursor-not-allowed"
                   title={hasAnyDraft ? 'Simpan perubahan dulu agar export sesuai' : 'Ekspor Excel pertemuan ini'}
                   disabled={hasAnyDraft}
                 >
@@ -1158,7 +1158,7 @@ const saveSessionChanges = async (sessionId: string) => {
                 >
                   <div className="p-4 md:p-5">
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
-                      <div className="flex items-center gap-3 bg-blue-50 border border-blue-100 text-blue-700 px-4 py-3 rounded-xl text-xs font-bold">
+                      <div className="flex items-center gap-3 bg-[#3B66F5]/5 border border-[#3B66F5]/20 text-blue-700 px-4 py-3 rounded-xl text-xs font-bold">
                         <FileText className="w-4 h-4" />
                         <span>KLIK STATUS DI BAWAH UNTUK MENGUBAH/EDIT KEHADIRAN</span>
                       </div>
@@ -1263,7 +1263,7 @@ const saveSessionChanges = async (sessionId: string) => {
                   <Button variant="secondary" onClick={() => exportStudentData(student.id, 'pdf')} className="flex-1 text-[10px] px-2 text-red-600">
                     <FileText className="w-3.5 h-3.5" /> PDF
                   </Button>
-                  <Button variant="secondary" onClick={() => exportStudentData(student.id, 'word')} className="flex-1 text-[10px] px-2 text-blue-600">
+                  <Button variant="secondary" onClick={() => exportStudentData(student.id, 'word')} className="flex-1 text-[10px] px-2 text-[#3B66F5]">
                     <FileText className="w-3.5 h-3.5" /> Word
                   </Button>
                 </div>
@@ -1348,7 +1348,7 @@ const saveSessionChanges = async (sessionId: string) => {
                   onClick={() => setExportPeriod(p.id as any)}
                   className={`py-2 px-1 rounded-full text-[10px] sm:text-xs font-medium border-2 transition-colors ${
                     exportPeriod === p.id 
-                      ? 'border-blue-500 bg-blue-50 text-blue-700' 
+                      ? 'border-blue-500 bg-[#3B66F5]/5 text-blue-700' 
                       : 'border-gray-200 text-gray-600 hover:border-gray-300'
                   }`}
                 >
@@ -1364,14 +1364,14 @@ const saveSessionChanges = async (sessionId: string) => {
               {[
                 { id: 'excel', label: 'Excel', icon: <FileSpreadsheet className="w-4 h-4" /> },
                 { id: 'pdf', label: 'PDF', icon: <FileText className="w-4 h-4 text-red-500" /> },
-                { id: 'word', label: 'Word', icon: <FileText className="w-4 h-4 text-blue-500" /> },
+                { id: 'word', label: 'Word', icon: <FileText className="w-4 h-4 text-[#3B66F5]" /> },
               ].map((f) => (
                 <button
                   key={f.id}
                   onClick={() => setExportFormat(f.id as any)}
                    className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-full text-sm font-medium border-2 transition-colors ${
                     exportFormat === f.id 
-                      ? 'border-blue-500 bg-blue-50 text-blue-700' 
+                      ? 'border-blue-500 bg-[#3B66F5]/5 text-blue-700' 
                       : 'border-gray-200 text-gray-600 hover:border-gray-300'
                   }`}
                 >
@@ -1446,7 +1446,7 @@ const saveSessionChanges = async (sessionId: string) => {
                 onClick={() => setExportMonth(0)}
                 className={`flex-1 py-2 px-3 rounded-full text-sm font-medium border-2 transition-colors ${
                   exportMonth === 0 
-                    ? 'border-blue-500 bg-blue-50 text-blue-700' 
+                    ? 'border-blue-500 bg-[#3B66F5]/5 text-blue-700' 
                     : 'border-gray-200 text-gray-600 hover:border-gray-300'
                 }`}
               >
@@ -1456,7 +1456,7 @@ const saveSessionChanges = async (sessionId: string) => {
                 onClick={() => setExportMonth(6)}
                 className={`flex-1 py-2 px-3 rounded-full text-sm font-medium border-2 transition-colors ${
                   exportMonth === 6 
-                    ? 'border-blue-500 bg-blue-50 text-blue-700' 
+                    ? 'border-blue-500 bg-[#3B66F5]/5 text-blue-700' 
                     : 'border-gray-200 text-gray-600 hover:border-gray-300'
                 }`}
               >

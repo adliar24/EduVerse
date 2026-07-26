@@ -122,7 +122,7 @@ export default function FaceScan({
   if (state === 'initializing' || state === 'loading') {
     return (
       <div className="flex flex-col items-center justify-center p-8 space-y-4 min-h-[400px]">
-        <Loader2 className="w-12 h-12 text-blue-500 animate-spin" />
+        <Loader2 className="w-12 h-12 text-[#3B66F5] animate-spin" />
         <p className="text-gray-600 text-center">{message}</p>
         {state === 'initializing' && (
           <p className="text-xs text-gray-400">Sedang memuat AI dan data...</p>

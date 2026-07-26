@@ -415,17 +415,17 @@ export default function Layout({ session }: LayoutProps) {
             <motion.div 
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={() => setIsMobileMenuOpen(false)}
-              className="fixed inset-0 bg-indigo-950/40 backdrop-blur-sm z-40 lg:hidden"
+              className="fixed inset-0 bg-[#1D4ED8]/40 backdrop-blur-sm z-40 lg:hidden"
             />
             <motion.aside 
               initial={{ x: '-100%' }} animate={{ x: 0 }} exit={{ x: '-100%' }}
               transition={{ type: 'tween', ease: 'easeInOut', duration: 0.2 }}
               className="fixed inset-y-0 left-0 w-[240px] sidebar-gradient z-50 lg:hidden flex flex-col shadow-xl overflow-y-auto scrollbar-none"
             >
-              <div className="p-6 flex items-center justify-between sticky top-0 bg-indigo-950/40 z-10 border-b border-white/5">
+              <div className="p-6 flex items-center justify-between sticky top-0 bg-[#1D4ED8]/40 z-10 border-b border-white/5">
                 <div className="flex items-center gap-2.5">
                   <GraduationCap className="w-6 h-6 text-white" />
-                  <span className="text-lg font-bold text-white">Edu<span className="text-blue-400">Verse</span></span>
+                  <span className="text-lg font-bold text-white">Edu<span className="text-[#3B66F5]">Verse</span></span>
                 </div>
                 <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 hover:bg-white/5 rounded-full transition-colors bg-white/5">
                   <X className="w-4 h-4 text-slate-400" />
@@ -566,13 +566,13 @@ export default function Layout({ session }: LayoutProps) {
                       e.stopPropagation();
                       setIsSchoolDropdownOpen(!isSchoolDropdownOpen);
                     }}
-                    className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 rounded-full transition-colors"
+                    className="flex items-center gap-2 px-3 py-1.5 bg-[#3B66F5]/5 hover:bg-[#3B66F5]/10 rounded-full transition-colors"
                   >
-                    <Building2 className="w-4 h-4 text-blue-600" />
+                    <Building2 className="w-4 h-4 text-[#3B66F5]" />
                     <span className="text-sm font-medium text-blue-700 max-w-[120px] truncate">
                       {activeSchool?.name || 'Pilih Sekolah'}
                     </span>
-                    <ChevronDown className={cn("w-3.5 h-3.5 text-blue-500", isSchoolDropdownOpen && "rotate-180")} />
+                    <ChevronDown className={cn("w-3.5 h-3.5 text-[#3B66F5]", isSchoolDropdownOpen && "rotate-180")} />
                   </button>
 
                   <AnimatePresence>
@@ -599,13 +599,13 @@ export default function Layout({ session }: LayoutProps) {
                               className={cn(
                                 "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-left",
                                 activeSchool?.id === school.id 
-                                  ? "bg-blue-50 text-blue-700" 
+                                  ? "bg-[#3B66F5]/5 text-blue-700" 
                                   : "hover:bg-slate-50 text-slate-700"
                               )}
                             >
                               <div className={cn(
                                 "w-5 h-5 rounded-md border-2 flex items-center justify-center transition-colors",
-                                activeSchool?.id === school.id ? "bg-blue-500 border-blue-500" : "border-slate-300"
+                                activeSchool?.id === school.id ? "bg-[#3B66F5]/50 border-blue-500" : "border-slate-300"
                               )}>
                                 {activeSchool?.id === school.id && <Check className="w-3 h-3 text-white" />}
                               </div>
@@ -626,8 +626,8 @@ export default function Layout({ session }: LayoutProps) {
 
               {/* Single school display */}
               {userRole === 'guru' && schools.length === 1 && schools[0] && !schoolLoading && (
-                <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 rounded-lg">
-                  <Building2 className="w-4 h-4 text-blue-600" />
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-[#3B66F5]/5 rounded-lg">
+                  <Building2 className="w-4 h-4 text-[#3B66F5]" />
                   <span className="text-sm font-medium text-blue-700 max-w-[150px] truncate">
                     {schools[0]?.name || ''}
                   </span>
@@ -638,10 +638,10 @@ export default function Layout({ session }: LayoutProps) {
 
               <Link to="/profil" className="flex items-center gap-2.5 group p-1 pr-3 rounded-full hover:bg-white hover:shadow-sm transition-all">
                 <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center border border-white shadow-sm overflow-hidden group-hover:scale-105 transition-transform">
-                  <User className="w-4 h-4 text-blue-600" />
+                  <User className="w-4 h-4 text-[#3B66F5]" />
                 </div>
                 <div className="text-left hidden sm:block">
-                  <p className="text-sm font-semibold text-indigo-950 leading-none mb-0.5 group-hover:text-blue-600 transition-colors">{userName}</p>
+                  <p className="text-sm font-semibold text-[#1D4ED8] leading-none mb-0.5 group-hover:text-[#3B66F5] transition-colors">{userName}</p>
                   <p className="text-[10px] uppercase tracking-wider font-medium text-slate-400 leading-none">
                     {userRole === 'guru' ? 'Administrator' : 'Murid'}
                   </p>
@@ -663,7 +663,7 @@ export default function Layout({ session }: LayoutProps) {
         )}>
           <Suspense fallback={
             <div className="flex items-center justify-center min-h-[50vh] w-full">
-              <Loader2 className="w-10 h-10 text-indigo-950 animate-spin" />
+              <Loader2 className="w-10 h-10 text-[#1D4ED8] animate-spin" />
             </div>
           }>
             <motion.div

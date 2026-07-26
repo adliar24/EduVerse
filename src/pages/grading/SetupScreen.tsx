@@ -136,7 +136,7 @@ export const SetupScreen: React.FC<{ onSuccess?: () => void }> = ({ onSuccess })
       {isEditing && (
         <button 
           onClick={() => navigate('/profile')} 
-          className="absolute top-6 left-6 z-50 w-11 h-11 bg-white rounded-xl shadow-md border border-slate-200 flex items-center justify-center text-slate-600 hover:text-primary transition-all active:scale-90"
+          className="absolute top-6 left-6 z-50 w-11 h-11 bg-white rounded-xl shadow-md border border-slate-200 flex items-center justify-center text-slate-600 hover:text-[#3B66F5] transition-all active:scale-90"
         >
           <ChevronLeft size={22} />
         </button>
@@ -151,7 +151,7 @@ export const SetupScreen: React.FC<{ onSuccess?: () => void }> = ({ onSuccess })
           <p className="text-slate-500 text-sm mt-2 font-medium italic">Data untuk laporan hasil belajar otomatis.</p>
         </div>
 
-        <div className="bg-gradient-primary p-8 md:p-12 rounded-[2.5rem] shadow-2xl space-y-10 relative overflow-hidden">
+        <div className="bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] p-8 md:p-12 rounded-[2.5rem] shadow-2xl space-y-10 relative overflow-hidden">
           <div className="flex flex-col items-center gap-6 relative z-10">
             <div 
               onClick={() => fileInputRef.current?.click()}
@@ -176,8 +176,8 @@ export const SetupScreen: React.FC<{ onSuccess?: () => void }> = ({ onSuccess })
           </div>
 
           <div className="grid md:grid-cols-2 gap-8 relative z-10">
-            <Input label="NAMA LENGKAP" labelClassName="text-blue-100" placeholder="Nama Lengkap & Gelar" value={formData.namaGuru} onChange={e => setFormData({...formData, namaGuru: e.target.value})} className="!bg-white/10 !border-white/10 !text-white !placeholder-blue-300" />
-            <Input label="NAMA SEKOLAH" labelClassName="text-blue-100" placeholder="Nama Sekolah Tempat Mengajar" value={formData.sekolah} onChange={e => setFormData({...formData, sekolah: e.target.value})} className="!bg-white/10 !border-white/10 !text-white !placeholder-blue-300" />
+            <Input label="NAMA LENGKAP" labelClassName="text-blue-100" placeholder="Nama Lengkap & Gelar" value={formData.namaGuru} onChange={e => setFormData({...formData, namaGuru: e.target.value})} className="!bg-white/10 !border-white/10 !text-white !placeholder-[#3B66F5]/60" />
+            <Input label="NAMA SEKOLAH" labelClassName="text-blue-100" placeholder="Nama Sekolah Tempat Mengajar" value={formData.sekolah} onChange={e => setFormData({...formData, sekolah: e.target.value})} className="!bg-white/10 !border-white/10 !text-white !placeholder-[#3B66F5]/60" />
             
             <Select label="TAHUN AJARAN" labelClassName="text-blue-100" value={formData.tahunAjaran} onChange={e => setFormData({...formData, tahunAjaran: e.target.value})} className="!bg-white/10 !border-white/10 !text-white">
               {YEAR_OPTIONS.map(year => <option key={year} value={year} className="text-slate-800">{year}</option>)}
@@ -228,13 +228,13 @@ export const SetupScreen: React.FC<{ onSuccess?: () => void }> = ({ onSuccess })
                 placeholder="Atau Ketik Mapel Baru..." 
                 value={customMapel} 
                 onChange={e => setCustomMapel(e.target.value)} 
-                className="w-full h-[56px] bg-white/10 text-white border border-white/10 rounded-2xl px-5 outline-none focus:bg-white/20 focus:border-white/30 transition-all font-bold placeholder-blue-200/40" 
+                className="w-full h-[56px] bg-white/10 text-white border border-white/10 rounded-2xl px-5 outline-none focus:bg-white/20 focus:border-white/30 transition-all font-bold placeholder-[#3B66F5]/40" 
               />
 
               <button 
                 type="button"
                 onClick={handleAddCustomSubject} 
-                className="h-[56px] w-full md:w-[56px] bg-accent text-primaryDark rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-glow-gold flex items-center justify-center border border-transparent"
+                className="h-[56px] w-full md:w-[56px] bg-accent text-[#1D4ED8] rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-glow-gold flex items-center justify-center border border-transparent"
                 title="Tambah"
               >
                 <Plus size={28} strokeWidth={4} />

@@ -621,7 +621,7 @@ export default function KelolaMateriTugas() {
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-bold text-indigo-950 tracking-tight">Materi & Tugas</h2>
+          <h2 className="text-3xl font-bold text-[#1D4ED8] tracking-tight">Materi & Tugas</h2>
           <p className="text-slate-500 mt-1 font-medium">Buat dan kelola materi pelajaran serta lembar tugas murid.</p>
         </div>
         <div className="flex gap-2">
@@ -648,8 +648,8 @@ export default function KelolaMateriTugas() {
             onClick={() => setActiveTab('materials')}
             className={`font-black text-lg pb-2.5 border-b-2 transition-all relative ${
               activeTab === 'materials' 
-                ? 'text-indigo-950 border-indigo-950' 
-                : 'text-slate-400 border-transparent hover:text-indigo-950'
+                ? 'text-[#1D4ED8] border-[#3B66F5]' 
+                : 'text-slate-400 border-transparent hover:text-[#1D4ED8]'
             }`}
           >
             Materi Pelajaran
@@ -663,8 +663,8 @@ export default function KelolaMateriTugas() {
             onClick={() => setActiveTab('assignments')}
             className={`font-black text-lg pb-2.5 border-b-2 transition-all relative ${
               activeTab === 'assignments' 
-                ? 'text-indigo-950 border-indigo-950' 
-                : 'text-slate-400 border-transparent hover:text-indigo-950'
+                ? 'text-[#1D4ED8] border-[#3B66F5]' 
+                : 'text-slate-400 border-transparent hover:text-[#1D4ED8]'
             }`}
           >
             Tugas Murid
@@ -680,7 +680,7 @@ export default function KelolaMateriTugas() {
           <select 
             value={selectedClassFilter} 
             onChange={(e) => setSelectedClassFilter(e.target.value)}
-            className="pl-3 pr-8 py-2 rounded-xl border border-slate-200 bg-white text-xs font-bold text-indigo-950 outline-none cursor-pointer"
+            className="pl-3 pr-8 py-2 rounded-xl border border-slate-200 bg-white text-xs font-bold text-[#1D4ED8] outline-none cursor-pointer"
           >
             <option value="all">Semua Kelas</option>
             {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -697,7 +697,7 @@ export default function KelolaMateriTugas() {
                 type="checkbox"
                 checked={currentActiveList.length > 0 && currentActiveList.every(item => selectedIds.includes(item.id))}
                 onChange={handleSelectAll}
-                className="w-4 h-4 rounded text-indigo-600 border-slate-300 focus:ring-indigo-500"
+                className="w-4 h-4 rounded text-[#3B66F5] border-slate-300 focus:ring-indigo-500"
               />
               Pilih Semua ({currentActiveList.length} item)
             </label>
@@ -750,7 +750,7 @@ export default function KelolaMateriTugas() {
                           type="checkbox"
                           checked={selectedIds.includes(m.id)}
                           onChange={() => handleToggleSelect(m.id)}
-                          className="w-4 h-4 rounded text-indigo-600 border-white/20 focus:ring-indigo-500 cursor-pointer bg-white/10"
+                          className="w-4 h-4 rounded text-[#3B66F5] border-white/20 focus:ring-indigo-500 cursor-pointer bg-white/10"
                         />
                         {(m.classIds || []).map((cid: string) => {
                           const cls = classes.find(c => c.id === cid);
@@ -829,7 +829,7 @@ export default function KelolaMateriTugas() {
                           type="checkbox"
                           checked={selectedIds.includes(a.id)}
                           onChange={() => handleToggleSelect(a.id)}
-                          className="w-4 h-4 rounded text-indigo-600 border-white/20 focus:ring-indigo-500 cursor-pointer bg-white/10"
+                          className="w-4 h-4 rounded text-[#3B66F5] border-white/20 focus:ring-indigo-500 cursor-pointer bg-white/10"
                         />
                         {(a.classIds || []).map((cid: string) => {
                           const cls = classes.find(c => c.id === cid);
@@ -958,7 +958,7 @@ export default function KelolaMateriTugas() {
               className="bg-white rounded-[2.5rem] max-w-2xl w-full max-h-[85vh] overflow-y-auto custom-scrollbar relative z-10 shadow-2xl border border-slate-100"
             >
               <div className="p-8">
-                <h3 className="text-2xl font-black text-indigo-950 mb-6 tracking-tight">
+                <h3 className="text-2xl font-black text-[#1D4ED8] mb-6 tracking-tight">
                   {editingId ? 'Edit' : 'Tambah'} {formType === 'material' ? 'Materi Pelajaran' : 'Tugas Murid'}
                 </h3>
 
@@ -969,7 +969,7 @@ export default function KelolaMateriTugas() {
                     type="text" 
                     required 
                     placeholder={`Masukkan judul ${formType === 'material' ? 'materi' : 'tugas'}...`}
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-indigo-950 text-sm font-semibold text-slate-800 transition-colors"
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-[#3B66F5] text-sm font-semibold text-slate-800 transition-colors"
                     value={formTitle}
                     onChange={(e) => setFormTitle(e.target.value)}
                   />
@@ -981,7 +981,7 @@ export default function KelolaMateriTugas() {
                     required 
                     rows={4}
                     placeholder={`Tulis penjelasan materi atau deskripsi petunjuk pengerjaan tugas...`}
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-indigo-950 text-sm font-semibold text-slate-800 transition-colors resize-none"
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-[#3B66F5] text-sm font-semibold text-slate-800 transition-colors resize-none"
                     value={formDesc}
                     onChange={(e) => setFormDesc(e.target.value)}
                   />
@@ -993,7 +993,7 @@ export default function KelolaMateriTugas() {
                     <input 
                       type="url" 
                       placeholder="https://drive.google.com/..."
-                      className="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-indigo-950 text-sm font-semibold text-slate-800 transition-colors"
+                      className="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-[#3B66F5] text-sm font-semibold text-slate-800 transition-colors"
                       value={formLink}
                       onChange={(e) => setFormLink(e.target.value)}
                     />
@@ -1005,7 +1005,7 @@ export default function KelolaMateriTugas() {
                         <label className="text-[13px] font-bold text-slate-700 ml-0.5">Tenggat Waktu (Deadline) (Opsional)</label>
                         <input 
                           type="datetime-local" 
-                          className="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-indigo-950 text-sm font-semibold text-slate-800 transition-colors"
+                          className="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-[#3B66F5] text-sm font-semibold text-slate-800 transition-colors"
                           value={formDeadline}
                           onChange={(e) => setFormDeadline(e.target.value)}
                         />
@@ -1050,7 +1050,7 @@ export default function KelolaMateriTugas() {
                             setSelectedClassIds(classes.map(c => c.id));
                           }
                         }}
-                        className="text-[11px] font-bold text-indigo-600 hover:text-indigo-800 transition-colors"
+                        className="text-[11px] font-bold text-[#3B66F5] hover:text-indigo-800 transition-colors"
                       >
                         {selectedClassIds.length === classes.length ? 'Batal Pilih Semua' : 'Pilih Semua Kelas'}
                       </button>
@@ -1070,7 +1070,7 @@ export default function KelolaMateriTugas() {
                             }}
                             className={`flex items-center justify-between p-3 rounded-xl border text-left text-xs font-bold transition-all ${
                               isChecked
-                                ? 'bg-indigo-950 border-indigo-950 text-white shadow-md'
+                                ? 'bg-[#1D4ED8] border-[#3B66F5] text-white shadow-md'
                                 : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300'
                             }`}
                           >
@@ -1080,13 +1080,13 @@ export default function KelolaMateriTugas() {
                                 {studentCount} siswa
                               </span>
                             </span>
-                            {isChecked && <Check className="w-4 h-4 text-blue-400 shrink-0" />}
+                            {isChecked && <Check className="w-4 h-4 text-[#3B66F5] shrink-0" />}
                           </button>
                         );
                       })}
                     </div>
                     {selectedClassIds.length > 0 && (
-                      <p className="text-[11px] font-bold text-indigo-600 ml-0.5">
+                      <p className="text-[11px] font-bold text-[#3B66F5] ml-0.5">
                         {selectedClassIds.length} kelas dipilih
                       </p>
                     )}
@@ -1127,13 +1127,13 @@ export default function KelolaMateriTugas() {
                       className="space-y-3 bg-slate-50 p-5 rounded-2xl border border-slate-100 overflow-hidden"
                     >
                       <div className="flex items-center justify-between gap-4">
-                        <h4 className="text-xs font-black text-indigo-950 uppercase tracking-widest">Pilih Murid Target ({selectedStudentIds.length})</h4>
+                        <h4 className="text-xs font-black text-[#1D4ED8] uppercase tracking-widest">Pilih Murid Target ({selectedStudentIds.length})</h4>
                         <div className="relative max-w-[200px]">
                           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 w-3.5 h-3.5" />
                           <input 
                             type="text" 
                             placeholder="Cari murid..."
-                            className="w-full pl-8 pr-3 py-1.5 rounded-lg border border-slate-200 bg-white outline-none focus:border-indigo-950 text-xs font-bold text-slate-700"
+                            className="w-full pl-8 pr-3 py-1.5 rounded-lg border border-slate-200 bg-white outline-none focus:border-[#3B66F5] text-xs font-bold text-slate-700"
                             value={studentSearchTerm}
                             onChange={(e) => setStudentSearchTerm(e.target.value)}
                           />
@@ -1154,12 +1154,12 @@ export default function KelolaMateriTugas() {
                                 onClick={() => handleToggleStudent(student.id!)}
                                 className={`flex items-center justify-between p-3 rounded-xl border text-left text-xs font-bold transition-all ${
                                   isChecked 
-                                    ? 'bg-indigo-950 border-indigo-950 text-white shadow-md' 
+                                    ? 'bg-[#1D4ED8] border-[#3B66F5] text-white shadow-md' 
                                     : 'bg-white border-slate-100 text-slate-700 hover:border-slate-200'
                                 }`}
                               >
                                 <span className="truncate pr-2">{student.name}{classLabel}</span>
-                                {isChecked && <Check className="w-4 h-4 text-blue-400 shrink-0" />}
+                                {isChecked && <Check className="w-4 h-4 text-[#3B66F5] shrink-0" />}
                               </button>
                             );
                           })}

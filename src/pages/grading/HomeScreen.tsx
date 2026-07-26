@@ -145,7 +145,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ profile: propProfile, re
   return (
     <Layout profile={profile} refreshProfile={refreshProfile}>
       {/* MOBILE HEADER */}
-      <div className="md:hidden -mx-6 -mt-2 px-8 pt-6 pb-12 bg-gradient-primary rounded-b-[3rem] shadow-xl mb-10 text-white relative overflow-hidden animate-fade z-0">
+      <div className="md:hidden -mx-6 -mt-2 px-8 pt-6 pb-12 bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] rounded-b-[3rem] shadow-xl mb-10 text-white relative overflow-hidden animate-fade z-0">
          <div className="absolute top-0 right-0 w-56 h-56 bg-white/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
          <div className="absolute bottom-0 left-0 w-40 h-40 bg-accent/10 rounded-full blur-3xl -ml-10 -mb-10 pointer-events-none"></div>
 
@@ -197,10 +197,10 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ profile: propProfile, re
             <div className="lg:col-span-2 bg-white rounded-[2rem] p-6 md:p-7 border border-slate-100 shadow-sm overflow-hidden relative group">
                 <div className="flex items-center justify-between mb-6">
                     <h3 className="font-black text-slate-800 text-base uppercase tracking-wide flex items-center gap-2">
-                        <TrendingUp className="text-primary" size={18} /> Tren Nilai
+                        <TrendingUp className="text-[#3B66F5]" size={18} /> Tren Nilai
                     </h3>
                     <Link to="/statistics">
-                        <Button variant="secondary" className="!py-2 !px-4 text-[10px] font-black uppercase tracking-widest shadow-sm hover:text-primary transition-all">
+                        <Button variant="secondary" className="!py-2 !px-4 text-[10px] font-black uppercase tracking-widest shadow-sm hover:text-[#3B66F5] transition-all">
                            Statistik <ChevronRight size={14} className="ml-1" />
                         </Button>
                     </Link>
@@ -214,7 +214,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ profile: propProfile, re
                                 onClick={() => setChartMode(mode)}
                                 className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all whitespace-nowrap ${
                                     chartMode === mode 
-                                    ? 'bg-white text-primary shadow-sm border border-slate-100' 
+                                    ? 'bg-white text-[#3B66F5] shadow-sm border border-slate-100' 
                                     : 'text-slate-400 hover:text-slate-600'
                                 }`}
                             >
@@ -293,7 +293,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ profile: propProfile, re
                     {[
                         { label: 'Kelas', val: stats.classes, color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-200' },
                         { label: 'Murid', val: stats.students, color: 'text-slate-600', bg: 'bg-slate-50', border: 'border-slate-100' },
-                        { label: 'Nilai', val: stats.meetings, color: 'text-primary', bg: 'bg-blue-50', border: 'border-primary/20' }
+                        { label: 'Nilai', val: stats.meetings, color: 'text-[#3B66F5]', bg: 'bg-[#3B66F5]/5', border: 'border-[#3B66F5]/20' }
                     ].map((stat, i) => (
                         <div key={i} className={`bg-white rounded-2xl p-4 border ${stat.border} shadow-sm flex flex-col items-center text-center transition-all hover:scale-105 ${stat.bg.replace('bg-', 'hover:bg-')}`}>
                             <span className={`text-lg font-black ${stat.color} leading-none mb-1`}>{stat.val}</span>
@@ -338,7 +338,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ profile: propProfile, re
 
         <div className="order-1 md:order-2 grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
             <Link to="/meetings" className="group">
-             <div className="bg-gradient-primary rounded-2xl p-4 md:p-8 text-white shadow-lg relative overflow-hidden transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-between min-h-[70px] md:min-h-[180px]">
+             <div className="bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] rounded-2xl p-4 md:p-8 text-white shadow-lg relative overflow-hidden transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-between min-h-[70px] md:min-h-[180px]">
                <div className="flex items-center gap-3 z-10">
                  <div className="w-12 md:w-14 h-12 md:h-14 bg-white/20 rounded-xl md:rounded-2xl flex items-center justify-center shrink-0">
                    <Plus size={24} strokeWidth={3} />
@@ -368,14 +368,14 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ profile: propProfile, re
            </button>
 
            <Link to="/rapor" className="group">
-              <div className="bg-gradient-gold rounded-2xl p-4 md:p-8 text-primaryDark shadow-lg relative overflow-hidden transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-between min-h-[70px] md:min-h-[180px]">
+              <div className="bg-gradient-gold rounded-2xl p-4 md:p-8 text-[#1D4ED8] shadow-lg relative overflow-hidden transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-between min-h-[70px] md:min-h-[180px]">
                  <div className="flex items-center gap-3 z-10">
-                   <div className="w-12 md:w-14 h-12 md:h-14 bg-primaryDark/10 rounded-xl md:rounded-2xl flex items-center justify-center shrink-0">
+                   <div className="w-12 md:w-14 h-12 md:h-14 bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8]Dark/10 rounded-xl md:rounded-2xl flex items-center justify-center shrink-0">
                      <GraduationCap size={24} strokeWidth={2.5} />
                    </div>
                    <div>
                      <h3 className="text-lg md:text-xl font-black tracking-wide uppercase">e-Rapor</h3>
-                     <p className="text-[10px] md:text-[11px] text-primaryDark/60 font-bold leading-tight">Finalisasi & Rekap</p>
+                     <p className="text-[10px] md:text-[11px] text-[#1D4ED8]/60 font-bold leading-tight">Finalisasi & Rekap</p>
                    </div>
                  </div>
                  <div className="absolute -bottom-2 -right-2 opacity-10 pointer-events-none"><GraduationCap size={60} /></div>

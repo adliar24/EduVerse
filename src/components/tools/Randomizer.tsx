@@ -227,8 +227,8 @@ const BoxView = ({ shuffledStudents, onReveal, revealedIndices }: any) => {
               className={`
                 aspect-square rounded-2xl flex flex-col items-center justify-center p-2 shadow-lg transition-all relative overflow-hidden
                 ${isRevealed 
-                  ? 'bg-white border-2 border-indigo-950 text-indigo-950 font-bold' 
-                  : 'bg-gradient-to-br from-indigo-950 to-indigo-900 text-white border-b-4 border-indigo-950/80 cursor-pointer'
+                  ? 'bg-white border-2 border-[#3B66F5] text-[#1D4ED8] font-bold' 
+                  : 'bg-gradient-to-br from-[#1D4ED8] to-[#2563EB] text-white border-b-4 border-[#3B66F5]/80 cursor-pointer'
                 }
               `}
             >
@@ -239,7 +239,7 @@ const BoxView = ({ shuffledStudents, onReveal, revealedIndices }: any) => {
                    className="text-center"
                  >
                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1 block">Terpilih</span>
-                   <span className="text-lg font-black text-indigo-950 leading-tight line-clamp-2">{student.name}</span>
+                   <span className="text-lg font-black text-[#1D4ED8] leading-tight line-clamp-2">{student.name}</span>
                  </motion.div>
               ) : (
                  <span className="text-4xl font-black drop-shadow-md">{index + 1}</span>
@@ -272,7 +272,7 @@ const DiceView = ({ activeStudents, rollDice, isRolling }: any) => {
         transition={{ duration: 1.5, ease: "easeInOut" }}
         className="w-40 h-40 bg-white rounded-3xl shadow-2xl border-4 border-slate-200 flex items-center justify-center mb-12 relative"
       >
-        <Dices className={`w-20 h-20 text-indigo-950 ${isRolling ? 'opacity-50' : 'opacity-100'}`} />
+        <Dices className={`w-20 h-20 text-[#1D4ED8] ${isRolling ? 'opacity-50' : 'opacity-100'}`} />
         {isRolling && (
           <div className="absolute inset-0 flex items-center justify-center">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-3xl bg-indigo-400 opacity-20"></span>
@@ -469,17 +469,17 @@ const Randomizer: React.FC = () => {
                animate={{ scale: 1, opacity: 1, y: 0 }}
                exit={{ scale: 0.5, opacity: 0, y: 50 }}
                transition={{ type: "spring", damping: 15 }}
-               className="relative bg-white rounded-3xl shadow-2xl p-8 max-w-sm w-full text-center border-4 border-indigo-950 overflow-hidden"
+               className="relative bg-white rounded-3xl shadow-2xl p-8 max-w-sm w-full text-center border-4 border-[#3B66F5] overflow-hidden"
              >
                 <div className="absolute inset-0 bg-gradient-to-br from-indigo-50 to-indigo-100/50 z-0"></div>
                 
                 <div className="relative z-10">
                     <div className="inline-flex p-3 rounded-full bg-yellow-105 text-yellow-600 mb-4 shadow-sm animate-bounce">
-                       <Trophy className="w-8 h-8 fill-current text-indigo-950" />
+                       <Trophy className="w-8 h-8 fill-current text-[#1D4ED8]" />
                     </div>
                     <h3 className="text-xl font-bold text-slate-500 uppercase tracking-widest mb-1">Terpilih</h3>
                     <div className="py-4 my-2 border-y-2 border-slate-100 bg-white/60 rounded-xl">
-                       <h2 className="text-4xl font-black text-indigo-950 break-words leading-tight px-2">
+                       <h2 className="text-4xl font-black text-[#1D4ED8] break-words leading-tight px-2">
                          {winner.name}
                        </h2>
                     </div>
@@ -514,7 +514,7 @@ const Randomizer: React.FC = () => {
               {activeStudents.length > 0 && (
                 <div className="space-y-3">
                    <div className="flex items-center justify-between border-b border-slate-100 pb-2 mb-2">
-                      <h3 className="font-bold text-sm text-indigo-955">Nama Tersedia ({activeStudents.length})</h3>
+                      <h3 className="font-bold text-sm text-[#3B66F5]">Nama Tersedia ({activeStudents.length})</h3>
                        <button onClick={handleReset} className="text-xs text-red-600 hover:text-red-700 font-bold flex items-center gap-1 bg-red-50 px-2 py-1 rounded-full transition-colors cursor-pointer">
                         <RotateCcw className="w-3 h-3 text-red-600" /> Reset
                       </button>

@@ -22,8 +22,8 @@ const ProficiencyBadge = ({ score, label }: { score?: number, label?: string }) 
       defaultLabel = "Mahir";
       break;
     case 3: // Cakap
-      colorClass = "bg-blue-50 text-blue-700 border-blue-200";
-      icon = <SignalMedium className="w-3 h-3 text-blue-600" />;
+      colorClass = "bg-[#3B66F5]/5 text-blue-700 border-[#3B66F5]/30";
+      icon = <SignalMedium className="w-3 h-3 text-[#3B66F5]" />;
       defaultLabel = "Cakap";
       break;
     case 2: // Dasar / Berkembang
@@ -56,7 +56,7 @@ const ResultsSection: React.FC<ResultsSectionProps> = ({ groups }) => {
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <h2 className="text-xl font-bold text-indigo-950">Hasil Pembagian ({groups.length} Kelompok)</h2>
+        <h2 className="text-xl font-bold text-[#1D4ED8]">Hasil Pembagian ({groups.length} Kelompok)</h2>
         <div className="flex flex-col sm:flex-row gap-3">
           <button
             onClick={() => exportToTxt(groups)}
@@ -97,7 +97,7 @@ const ResultsSection: React.FC<ResultsSectionProps> = ({ groups }) => {
                     <div className="flex flex-col w-full">
                        <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-semibold text-slate-800">{member.name}</span>
-                        {member.gender === 'M' && <span className="text-[9px] font-bold text-blue-600 bg-blue-50 border border-blue-100 px-1.5 py-0 rounded">L</span>}
+                        {member.gender === 'M' && <span className="text-[9px] font-bold text-[#3B66F5] bg-[#3B66F5]/5 border border-[#3B66F5]/20 px-1.5 py-0 rounded">L</span>}
                         {member.gender === 'F' && <span className="text-[9px] font-bold text-pink-600 bg-pink-50 border border-pink-100 px-1.5 py-0 rounded">P</span>}
                        </div>
                        <ProficiencyBadge score={member.proficiency} label={member.proficiencyLabel} />

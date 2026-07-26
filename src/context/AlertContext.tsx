@@ -90,8 +90,8 @@ export function AlertProvider({ children }: { children: ReactNode }) {
       case 'success': return <CheckCircle2 className="w-12 h-12 text-emerald-500" />;
       case 'error': return <XCircle className="w-12 h-12 text-rose-500" />;
       case 'warning': return <AlertTriangle className="w-12 h-12 text-amber-500" />;
-      case 'confirm': return <AlertTriangle className="w-12 h-12 text-indigo-500" />;
-      default: return <Info className="w-12 h-12 text-blue-500" />;
+      case 'confirm': return <AlertTriangle className="w-12 h-12 text-[#3B66F5]" />;
+      default: return <Info className="w-12 h-12 text-[#3B66F5]" />;
     }
   };
 
@@ -110,7 +110,7 @@ export function AlertProvider({ children }: { children: ReactNode }) {
       case 'success': return 'bg-emerald-500';
       case 'error': return 'bg-rose-500';
       case 'warning': return 'bg-amber-500';
-      default: return 'bg-indigo-500';
+      default: return 'bg-[#3B66F5]/100';
     }
   };
 
@@ -151,7 +151,7 @@ export function AlertProvider({ children }: { children: ReactNode }) {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={hideAlert}
-              className="absolute inset-0 bg-indigo-950/40 backdrop-blur-md"
+              className="absolute inset-0 bg-[#1D4ED8]/40 backdrop-blur-md"
             />
             <motion.div
               initial={{ opacity: 0, y: 10 }}
@@ -164,7 +164,7 @@ export function AlertProvider({ children }: { children: ReactNode }) {
                 {getIcon()}
               </div>
 
-              <h3 className="text-2xl font-black text-indigo-950 mb-3 tracking-tighter leading-none">
+              <h3 className="text-2xl font-black text-[#1D4ED8] mb-3 tracking-tighter leading-none">
                 {options.title}
               </h3>
               
@@ -190,7 +190,7 @@ export function AlertProvider({ children }: { children: ReactNode }) {
                 {options.type === 'confirm' && (
                   <button
                     onClick={handleCancel}
-                    className="w-full py-4 rounded-2xl font-black text-sm text-slate-400 hover:text-indigo-950 transition-all"
+                    className="w-full py-4 rounded-2xl font-black text-sm text-slate-400 hover:text-[#1D4ED8] transition-all"
                   >
                     {options.cancelText}
                   </button>
@@ -199,7 +199,7 @@ export function AlertProvider({ children }: { children: ReactNode }) {
                 {options.type !== 'confirm' && !options.showConfirmButton && (
                    <button
                     onClick={hideAlert}
-                    className="mt-2 text-slate-400 hover:text-indigo-950 p-2 transition-all rounded-full"
+                    className="mt-2 text-slate-400 hover:text-[#1D4ED8] p-2 transition-all rounded-full"
                   >
                     <X className="w-5 h-5" />
                   </button>

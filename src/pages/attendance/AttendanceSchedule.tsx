@@ -201,7 +201,7 @@ export const Schedule: React.FC<Props> = ({ state, refresh, notify }) => {
       switch(type) {
           case 'Libur': return <CalendarOff className="w-5 h-5 text-red-500" />;
           case 'Sakit': return <Thermometer className="w-5 h-5 text-amber-500" />;
-          case 'Dinas': return <Briefcase className="w-5 h-5 text-blue-500" />;
+          case 'Dinas': return <Briefcase className="w-5 h-5 text-[#3B66F5]" />;
           default: return <AlertCircle className="w-5 h-5 text-gray-500" />;
       }
   }
@@ -210,7 +210,7 @@ export const Schedule: React.FC<Props> = ({ state, refresh, notify }) => {
     switch(type) {
         case 'Libur': return 'bg-red-50 border-red-100';
         case 'Sakit': return 'bg-amber-50 border-amber-100';
-        case 'Dinas': return 'bg-blue-50 border-blue-100';
+        case 'Dinas': return 'bg-[#3B66F5]/5 border-[#3B66F5]/20';
         default: return 'bg-gray-50 border-gray-100';
     }
   }
@@ -232,7 +232,7 @@ export const Schedule: React.FC<Props> = ({ state, refresh, notify }) => {
                 onClick={() => setActiveDay(day)}
                 className={`flex-1 min-w-[80px] px-3 py-2 rounded-full text-sm font-semibold transition-all text-center ${
                   activeDay === day 
-                    ? 'bg-white text-blue-600 shadow-sm ring-1 ring-black/5' 
+                    ? 'bg-white text-[#3B66F5] shadow-sm ring-1 ring-black/5' 
                     : 'text-gray-500 hover:text-gray-700'
                 }`}
               >
@@ -247,7 +247,7 @@ export const Schedule: React.FC<Props> = ({ state, refresh, notify }) => {
               <div className="text-center py-16 bg-white rounded-3xl border-dashed border-2 border-gray-100 text-gray-400 flex flex-col items-center justify-center h-full min-h-[300px]">
                 <Calendar className="w-16 h-16 mx-auto mb-4 opacity-10" />
                 <p className="font-medium">Belum ada jadwal hari {activeDay}.</p>
-                <Button variant="ghost" onClick={handleOpenAddSchedule} className="mt-3 text-blue-600 hover:bg-blue-50">
+                <Button variant="ghost" onClick={handleOpenAddSchedule} className="mt-3 text-[#3B66F5] hover:bg-[#3B66F5]/5">
                   + Tambah Jadwal Sekarang
                 </Button>
               </div>
@@ -264,9 +264,9 @@ export const Schedule: React.FC<Props> = ({ state, refresh, notify }) => {
                   exit={{ opacity: 0, scale: 0.95 }}
                   layout
                 >
-                  <Card className="flex items-center justify-between p-6 hover:shadow-lg transition-shadow border border-gray-100 hover:border-blue-200">
+                  <Card className="flex items-center justify-between p-6 hover:shadow-lg transition-shadow border border-gray-100 hover:border-[#3B66F5]/30">
                     <div className="flex items-center gap-6">
-                      <div className="flex flex-col items-center justify-center w-20 h-20 bg-blue-50 rounded-2xl text-blue-700 border border-blue-100 shrink-0">
+                      <div className="flex flex-col items-center justify-center w-20 h-20 bg-[#3B66F5]/5 rounded-2xl text-blue-700 border border-[#3B66F5]/20 shrink-0">
                         <span className="text-lg font-bold">{sch.startTime}</span>
                         <div className="h-px w-10 bg-blue-200 my-1"></div>
                         <span className="text-xs opacity-75 font-semibold">{sch.endTime}</span>
@@ -283,7 +283,7 @@ export const Schedule: React.FC<Props> = ({ state, refresh, notify }) => {
                     <div className="flex flex-col gap-2">
                       <button 
                         onClick={() => handleOpenEditSchedule(sch)}
-                        className="p-3 text-gray-300 hover:text-blue-500 hover:bg-blue-50 rounded-xl transition-colors"
+                        className="p-3 text-gray-300 hover:text-[#3B66F5] hover:bg-[#3B66F5]/5 rounded-xl transition-colors"
                         title="Edit Jadwal"
                       >
                         <Pencil className="w-5 h-5" />
@@ -368,13 +368,13 @@ export const Schedule: React.FC<Props> = ({ state, refresh, notify }) => {
         <div className="lg:hidden flex bg-gray-100 p-1 rounded-xl self-start">
             <button 
                 onClick={() => setTab('weekly')}
-                className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all ${tab === 'weekly' ? 'bg-white shadow text-blue-600' : 'text-gray-500'}`}
+                className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all ${tab === 'weekly' ? 'bg-white shadow text-[#3B66F5]' : 'text-gray-500'}`}
             >
                 Jadwal
             </button>
             <button 
                 onClick={() => setTab('events')}
-                className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all ${tab === 'events' ? 'bg-white shadow text-blue-600' : 'text-gray-500'}`}
+                className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all ${tab === 'events' ? 'bg-white shadow text-[#3B66F5]' : 'text-gray-500'}`}
             >
                 Kalender
             </button>
@@ -397,7 +397,7 @@ export const Schedule: React.FC<Props> = ({ state, refresh, notify }) => {
       {/* SCHEDULE MODAL */}
       <Modal isOpen={isScheduleModalOpen} onClose={() => setIsScheduleModalOpen(false)} title={editingScheduleId ? "Edit Jadwal" : `Jadwal Hari ${activeDay}`}>
         <form onSubmit={handleSaveSchedule} className="flex flex-col gap-5">
-           <div className="bg-blue-50 border border-blue-100 p-4 rounded-xl text-xs text-blue-700 leading-relaxed mb-1">
+           <div className="bg-[#3B66F5]/5 border border-[#3B66F5]/20 p-4 rounded-xl text-xs text-blue-700 leading-relaxed mb-1">
              <span className="font-bold">Info:</span> Gunakan format waktu 24 jam (Contoh: 13:00 untuk jam 1 siang).
            </div>
 
@@ -457,7 +457,7 @@ export const Schedule: React.FC<Props> = ({ state, refresh, notify }) => {
                 />
              </div>
              {(eventDate && eventEndDate && eventDate !== eventEndDate) && (
-               <div className="text-xs text-blue-600 bg-blue-50 px-3 py-2 rounded-lg">
+               <div className="text-xs text-[#3B66F5] bg-[#3B66F5]/5 px-3 py-2 rounded-lg">
                  ✓ Libur {Math.ceil((new Date(eventEndDate).getTime() - new Date(eventDate).getTime()) / (1000 * 60 * 60 * 24)) + 1} hari
                </div>
              )}
@@ -472,7 +472,7 @@ export const Schedule: React.FC<Props> = ({ state, refresh, notify }) => {
                            onClick={() => setEventType(type)}
                            className={`py-2 px-3 rounded-xl text-sm font-medium border transition-all ${
                                eventType === type 
-                               ? 'bg-blue-500 text-white border-blue-500 shadow-md' 
+                               ? 'bg-[#3B66F5]/50 text-white border-blue-500 shadow-md' 
                                : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
                            }`}
                         >
@@ -488,14 +488,14 @@ export const Schedule: React.FC<Props> = ({ state, refresh, notify }) => {
                     <button 
                         type="button"
                         onClick={() => setIsFullDay(true)}
-                        className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${isFullDay ? 'bg-blue-500 text-white shadow-sm' : 'text-gray-500'}`}
+                        className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${isFullDay ? 'bg-[#3B66F5]/50 text-white shadow-sm' : 'text-gray-500'}`}
                     >
                         Seharian
                     </button>
                     <button 
                         type="button"
                         onClick={() => setIsFullDay(false)}
-                        className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${!isFullDay ? 'bg-blue-500 text-white shadow-sm' : 'text-gray-500'}`}
+                        className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${!isFullDay ? 'bg-[#3B66F5]/50 text-white shadow-sm' : 'text-gray-500'}`}
                     >
                         Jam Tertentu
                     </button>

@@ -67,7 +67,7 @@ export const TPManagerScreen: React.FC = () => {
         setIsAddOpen(true);
     };
 
-    if (!profile) return <Layout><div className="flex items-center justify-center p-40"><Loader2 className="animate-spin text-primary" size={60}/></div></Layout>;
+    if (!profile) return <Layout><div className="flex items-center justify-center p-40"><Loader2 className="animate-spin text-[#3B66F5]" size={60}/></div></Layout>;
 
     return (
         <Layout>
@@ -90,7 +90,7 @@ export const TPManagerScreen: React.FC = () => {
                     </div>
                     <button 
                         onClick={() => { setEditingTP(null); setFormData({ kode: '', deskripsi: '' }); setIsAddOpen(true); }}
-                        className="w-full md:w-auto px-6 h-14 bg-gradient-primary text-white rounded-2xl font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-all self-end"
+                        className="w-full md:w-auto px-6 h-14 bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white rounded-2xl font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-all self-end"
                     >
                         <Plus size={18} strokeWidth={3} /> Tambah TP Baru
                     </button>
@@ -105,7 +105,7 @@ export const TPManagerScreen: React.FC = () => {
                                         {lo.kode}
                                     </div>
                                     <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <button onClick={() => openEdit(lo)} className="p-2 text-slate-400 hover:text-primary transition-colors">
+                                        <button onClick={() => openEdit(lo)} className="p-2 text-slate-400 hover:text-[#3B66F5] transition-colors">
                                             <Edit2 size={16} />
                                         </button>
                                         <button onClick={() => handleDeleteTP(lo.id)} className="p-2 text-slate-400 hover:text-red-500 transition-colors">
@@ -144,7 +144,7 @@ export const TPManagerScreen: React.FC = () => {
                                 onChange={e => setFormData({...formData, deskripsi: e.target.value})}
                                 rows={4}
                                 placeholder="Tujuan yang ingin dicapai siswa..."
-                                className="w-full bg-slate-50 border border-slate-100 rounded-2xl p-5 font-bold text-slate-700 outline-none focus:border-primary transition-all resize-none text-sm leading-relaxed"
+                                className="w-full bg-slate-50 border border-slate-100 rounded-2xl p-5 font-bold text-slate-700 outline-none focus:border-[#3B66F5] transition-all resize-none text-sm leading-relaxed"
                              />
                              <p className="text-[9px] text-slate-400 font-bold ml-1 uppercase">Tuliskan kompetensi inti yang dinilai (Akan masuk e-Rapor)</p>
                         </div>

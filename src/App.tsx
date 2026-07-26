@@ -130,7 +130,7 @@ const AttendancePageWrapper = ({ Component }: { Component: React.ComponentType<a
   if (loading || !state) {
     return (
       <div className="flex items-center justify-center min-h-[60vh] w-full">
-        <Loader2 className="w-10 h-10 text-indigo-950 animate-spin" />
+        <Loader2 className="w-10 h-10 text-[#1D4ED8] animate-spin" />
       </div>
     );
   }
@@ -138,7 +138,7 @@ const AttendancePageWrapper = ({ Component }: { Component: React.ComponentType<a
   return (
     <Suspense fallback={
       <div className="flex items-center justify-center min-h-[60vh] w-full">
-        <Loader2 className="w-10 h-10 text-indigo-950 animate-spin" />
+        <Loader2 className="w-10 h-10 text-[#1D4ED8] animate-spin" />
       </div>
     }>
       <Component state={state} refresh={loadState} notify={notify} />
@@ -193,7 +193,7 @@ const GradingPageWrapper = ({ Component }: { Component: React.ComponentType<any>
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh] w-full">
-        <Loader2 className="w-10 h-10 text-indigo-950 animate-spin" />
+        <Loader2 className="w-10 h-10 text-[#1D4ED8] animate-spin" />
       </div>
     );
   }
@@ -201,7 +201,7 @@ const GradingPageWrapper = ({ Component }: { Component: React.ComponentType<any>
   return (
     <Suspense fallback={
       <div className="flex items-center justify-center min-h-[60vh] w-full">
-        <Loader2 className="w-10 h-10 text-indigo-950 animate-spin" />
+        <Loader2 className="w-10 h-10 text-[#1D4ED8] animate-spin" />
       </div>
     }>
       <Component key={profile?.activeSchoolId} profile={profile} refreshProfile={refreshProfile} onUpdate={refreshProfile} />
@@ -451,7 +451,7 @@ export default function App() {
               <ErrorBoundary>
                 <Suspense fallback={
                   <div className="flex items-center justify-center min-h-screen bg-slate-50">
-                    <Loader2 className="w-12 h-12 text-indigo-950 animate-spin" />
+                    <Loader2 className="w-12 h-12 text-[#1D4ED8] animate-spin" />
                   </div>
                 }>
                   <AnimatedRoutes session={session} studentSession={studentSession} profileCompleted={profileCompleted} userRole={userRole} />

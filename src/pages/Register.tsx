@@ -66,9 +66,9 @@ export default function Register() {
   return (
     <div className="min-h-screen bg-white flex overflow-hidden">
       {/* Left Side - Visual/Marketing */}
-      <div className="hidden lg:flex lg:w-1/2 bg-indigo-950 relative items-center justify-center p-12 overflow-hidden">
+      <div className="hidden lg:flex lg:w-1/2 bg-[#1D4ED8] relative items-center justify-center p-12 overflow-hidden">
         <div className="absolute inset-0 opacity-20">
-          <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-500 rounded-full blur-[120px]" />
+          <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-[#3B66F5]/50 rounded-full blur-[120px]" />
           <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-500 rounded-full blur-[120px]" />
         </div>
         
@@ -82,7 +82,7 @@ export default function Register() {
               <Sparkles className="text-white w-8 h-8" />
             </div>
             <h1 className="text-5xl font-bold text-white leading-tight mb-6">
-              Bergabung dengan <span className="text-blue-400">EduTest</span>
+              Bergabung dengan <span className="text-[#3B66F5]">EduTest</span>
             </h1>
             <p className="text-slate-400 text-xl leading-relaxed mb-10">
               Mulai perjalanan Anda dalam menciptakan pengalaman ujian digital yang lebih baik untuk semua.
@@ -118,10 +118,10 @@ export default function Register() {
           className="w-full max-w-md py-12"
         >
           <div className="mb-10">
-            <div className="lg:hidden bg-indigo-950 w-12 h-12 rounded-xl flex items-center justify-center mb-6 shadow-lg">
+            <div className="lg:hidden bg-[#1D4ED8] w-12 h-12 rounded-xl flex items-center justify-center mb-6 shadow-lg">
               <GraduationCap className="text-white w-6 h-6" />
             </div>
-            <h2 className="text-3xl font-bold text-indigo-950 tracking-tight">Buat Akun Baru</h2>
+            <h2 className="text-3xl font-bold text-[#1D4ED8] tracking-tight">Buat Akun Baru</h2>
             <p className="text-slate-500">Lengkapi data di bawah untuk memulai</p>
           </div>
 
@@ -131,7 +131,7 @@ export default function Register() {
               onClick={() => setFormData({...formData, role: 'guru'})}
               className={cn(
                 "flex-1 py-3 rounded-xl text-sm font-bold transition-all",
-                formData.role === 'guru' ? "bg-white text-indigo-950 shadow-sm" : "text-slate-500 hover:text-slate-700"
+                formData.role === 'guru' ? "bg-white text-[#1D4ED8] shadow-sm" : "text-slate-500 hover:text-slate-700"
               )}
             >
               Sebagai Guru
@@ -140,7 +140,7 @@ export default function Register() {
               onClick={() => setFormData({...formData, role: 'siswa'})}
               className={cn(
                 "flex-1 py-3 rounded-xl text-sm font-bold transition-all",
-                formData.role === 'siswa' ? "bg-white text-indigo-950 shadow-sm" : "text-slate-500 hover:text-slate-700"
+                formData.role === 'siswa' ? "bg-white text-[#1D4ED8] shadow-sm" : "text-slate-500 hover:text-slate-700"
               )}
             >
               Sebagai Siswa
@@ -163,7 +163,7 @@ export default function Register() {
               <div className="space-y-2">
                 <label className="text-sm font-bold text-slate-700 ml-1">Nama Lengkap</label>
                 <div className="relative group">
-                  <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 group-focus-within:text-blue-500 transition-colors" />
+                  <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 group-focus-within:text-[#3B66F5] transition-colors" />
                   <input 
                     type="text" 
                     required
@@ -179,7 +179,7 @@ export default function Register() {
                   {formData.role === 'guru' ? 'Mata Pelajaran' : 'Kelas'}
                 </label>
                 <div className="relative group">
-                  <BookOpen className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 group-focus-within:text-blue-500 transition-colors" />
+                  <BookOpen className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 group-focus-within:text-[#3B66F5] transition-colors" />
                   <input 
                     type="text" 
                     required
@@ -195,7 +195,7 @@ export default function Register() {
             <div className="space-y-2">
               <label className="text-sm font-bold text-slate-700 ml-1">Email Address</label>
               <div className="relative group">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 group-focus-within:text-blue-500 transition-colors" />
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 group-focus-within:text-[#3B66F5] transition-colors" />
                 <input 
                   type="email" 
                   required
@@ -210,7 +210,7 @@ export default function Register() {
             <div className="space-y-2">
               <label className="text-sm font-bold text-slate-700 ml-1">Password</label>
               <div className="relative group">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 group-focus-within:text-blue-500 transition-colors" />
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 group-focus-within:text-[#3B66F5] transition-colors" />
                 <input 
                   type="password" 
                   required
@@ -225,7 +225,7 @@ export default function Register() {
             <div className="space-y-2">
               <label className="text-sm font-bold text-slate-700 ml-1">Konfirmasi Password</label>
               <div className="relative group">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 group-focus-within:text-blue-500 transition-colors" />
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 group-focus-within:text-[#3B66F5] transition-colors" />
                 <input 
                   type="password" 
                   required
@@ -256,7 +256,7 @@ export default function Register() {
           <div className="mt-10 pt-8 border-t border-slate-200 text-center">
             <p className="text-slate-500 font-medium">
               Sudah punya akun?{' '}
-              <Link to="/login" className="text-blue-600 font-bold hover:text-blue-700 transition-colors">Masuk Sekarang</Link>
+              <Link to="/login" className="text-[#3B66F5] font-bold hover:text-blue-700 transition-colors">Masuk Sekarang</Link>
             </p>
           </div>
         </motion.div>

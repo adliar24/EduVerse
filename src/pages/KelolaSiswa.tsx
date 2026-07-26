@@ -752,7 +752,7 @@ export default function KelolaSiswa() {
     <div className="space-y-6 pb-10">
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-bold text-indigo-950 tracking-tight">Kelola Murid</h2>
+          <h2 className="text-3xl font-bold text-[#1D4ED8] tracking-tight">Kelola Murid</h2>
           <p className="text-slate-500 mt-1 font-medium">Daftar nama murid untuk rekapitulasi data pengerjaan ujian.</p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -762,7 +762,7 @@ export default function KelolaSiswa() {
           <button onClick={handleExportExcel} className="bg-emerald-50 text-emerald-700 px-4 py-2.5 rounded-full font-semibold text-sm flex items-center gap-2 hover:bg-emerald-100 transition-all border border-emerald-100">
             <Download className="w-4 h-4" /> Ekspor Excel
           </button>
-          <button onClick={() => fileInputRef.current?.click()} disabled={importing} className="bg-indigo-50 text-indigo-700 px-4 py-2.5 rounded-full font-semibold text-sm flex items-center gap-2 hover:bg-indigo-100 transition-all border border-indigo-100">
+          <button onClick={() => fileInputRef.current?.click()} disabled={importing} className="bg-[#3B66F5]/10 text-indigo-700 px-4 py-2.5 rounded-full font-semibold text-sm flex items-center gap-2 hover:bg-indigo-100 transition-all border border-[#3B66F5]/20">
             {importing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />} Impor Murid
           </button>
           <input type="file" ref={fileInputRef} className="hidden" accept=".xlsx, .xls" onChange={handleImportExcel} />
@@ -783,13 +783,13 @@ export default function KelolaSiswa() {
         <div className="relative flex-1">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
           <input type="text" placeholder="Cari berdasarkan nama murid..."
-            className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 bg-white outline-none focus:ring-2 focus:ring-indigo-950/10 focus:border-indigo-950 transition-all text-sm font-medium text-slate-700"
+            className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 bg-white outline-none focus:ring-2 focus:ring-[#3B66F5]/15 focus:border-[#3B66F5] transition-all text-sm font-medium text-slate-700"
             value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
         <div className="relative min-w-[200px]">
           <Filter className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
-          <select className="w-full pl-10 pr-8 py-3 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-indigo-950/10 focus:border-indigo-950 appearance-none bg-white text-sm font-medium text-slate-700 transition-all cursor-pointer"
+          <select className="w-full pl-10 pr-8 py-3 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-[#3B66F5]/15 focus:border-[#3B66F5] appearance-none bg-white text-sm font-medium text-slate-700 transition-all cursor-pointer"
             value={selectedClass} onChange={(e) => setSelectedClass(e.target.value)}
           >
             <option value="all">Semua Kelas</option>
@@ -805,7 +805,7 @@ export default function KelolaSiswa() {
               <tr className="bg-slate-50/50 border-b border-slate-100">
                 <th className="px-6 py-4 w-12 text-center">
                   <input type="checkbox"
-                    className="w-4 h-4 rounded border-slate-300 text-indigo-950 focus:ring-indigo-950/20 cursor-pointer"
+                    className="w-4 h-4 rounded border-slate-300 text-[#1D4ED8] focus:ring-[#3B66F5]/20 cursor-pointer"
                     checked={paginatedStudents.length > 0 && paginatedStudents.every(s => selectedStudentIds.includes(s.id))}
                     onChange={(e) => {
                       if (e.target.checked) {
@@ -839,11 +839,11 @@ export default function KelolaSiswa() {
                 paginatedStudents.map((s, idx) => (
                   <motion.tr 
                     initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: idx * 0.02 }}
-                    key={s.id} className={cn("hover:bg-slate-50/50 transition-all group", selectedStudentIds.includes(s.id) && "bg-indigo-50/30 hover:bg-indigo-50/40")}
+                    key={s.id} className={cn("hover:bg-slate-50/50 transition-all group", selectedStudentIds.includes(s.id) && "bg-[#3B66F5]/10/30 hover:bg-[#3B66F5]/10/40")}
                   >
                     <td className="px-6 py-4 w-12 text-center">
                       <input type="checkbox"
-                        className="w-4 h-4 rounded border-slate-300 text-indigo-950 focus:ring-indigo-950/20 cursor-pointer"
+                        className="w-4 h-4 rounded border-slate-300 text-[#1D4ED8] focus:ring-[#3B66F5]/20 cursor-pointer"
                         checked={selectedStudentIds.includes(s.id)}
                         onChange={(e) => {
                           if (e.target.checked) {
@@ -856,10 +856,10 @@ export default function KelolaSiswa() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                        <div className="w-9 h-9 rounded-xl bg-[#3B66F5]/10 text-[#3B66F5] flex items-center justify-center">
                           <User className="w-4 h-4" />
                         </div>
-                        <span className="font-semibold text-indigo-950 text-sm">{s.name}</span>
+                        <span className="font-semibold text-[#1D4ED8] text-sm">{s.name}</span>
                       </div>
                     </td>
                     <td className="px-6 py-4">
@@ -869,7 +869,7 @@ export default function KelolaSiswa() {
                         className="hover:scale-105 active:scale-95 transition-all outline-none"
                       >
                         {s.gender === 'M' || s.gender === 'L' ? (
-                          <span className="bg-blue-50 text-blue-700 px-2.5 py-1 rounded-md text-xs font-black border border-blue-200/60 cursor-pointer">L</span>
+                          <span className="bg-[#3B66F5]/5 text-blue-700 px-2.5 py-1 rounded-md text-xs font-black border border-[#3B66F5]/30/60 cursor-pointer">L</span>
                         ) : s.gender === 'F' || s.gender === 'P' ? (
                           <span className="bg-pink-50 text-pink-700 px-2.5 py-1 rounded-md text-xs font-black border border-pink-200/60 cursor-pointer">P</span>
                         ) : (
@@ -879,9 +879,9 @@ export default function KelolaSiswa() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
-                        <span className="bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-md font-mono font-semibold text-xs tracking-wider">{s.student_code || '-'}</span>
+                        <span className="bg-[#3B66F5]/10 text-indigo-700 px-2.5 py-1 rounded-md font-mono font-semibold text-xs tracking-wider">{s.student_code || '-'}</span>
                         {s.student_code && (
-                          <button onClick={() => copyCode(s.student_code)} className="p-1 text-slate-400 hover:text-indigo-600 transition-colors">
+                          <button onClick={() => copyCode(s.student_code)} className="p-1 text-slate-400 hover:text-[#3B66F5] transition-colors">
                             <Copy className="w-3.5 h-3.5" />
                           </button>
                         )}
@@ -899,7 +899,7 @@ export default function KelolaSiswa() {
                           <Key className="w-4 h-4" />
                         </button>
                         <button onClick={() => { setEditingId(s.id); setFormData({ name: s.name, class_id: s.class_id || '', student_code: s.student_code || '', password: s.password || 'murid19', gender: s.gender || '' }); setShowForm(true); }}
-                          className="p-2 text-slate-400 hover:text-indigo-950 hover:bg-slate-100 rounded-lg transition-all"
+                          className="p-2 text-slate-400 hover:text-[#1D4ED8] hover:bg-slate-100 rounded-lg transition-all"
                         >
                           <Edit3 className="w-4 h-4" />
                         </button>
@@ -951,10 +951,10 @@ export default function KelolaSiswa() {
       <AnimatePresence>
         {showForm && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowForm(false)} className="absolute inset-0 bg-indigo-950/30 backdrop-blur-sm" />
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowForm(false)} className="absolute inset-0 bg-[#1D4ED8]/30 backdrop-blur-sm" />
             <motion.div initial={{ opacity: 0, scale: 0.97, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.97, y: 10 }} className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl p-7">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-bold text-indigo-950">{editingId ? 'Edit Data Murid' : 'Tambah Murid Baru'}</h3>
+                <h3 className="text-lg font-bold text-[#1D4ED8]">{editingId ? 'Edit Data Murid' : 'Tambah Murid Baru'}</h3>
                 <button onClick={() => setShowForm(false)} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
                   <X className="w-5 h-5 text-slate-400" />
                 </button>
@@ -963,13 +963,13 @@ export default function KelolaSiswa() {
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Nama Lengkap</label>
                   <input type="text" required placeholder="Contoh: Budi Santoso"
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 outline-none focus:ring-2 focus:ring-indigo-950/10 focus:border-indigo-950 text-sm font-medium text-indigo-950"
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 outline-none focus:ring-2 focus:ring-[#3B66F5]/15 focus:border-[#3B66F5] text-sm font-medium text-[#1D4ED8]"
                     value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   />
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Pilih Kelas</label>
-                  <select className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 outline-none focus:ring-2 focus:ring-indigo-950/10 focus:border-indigo-950 text-sm font-medium text-indigo-950"
+                  <select className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 outline-none focus:ring-2 focus:ring-[#3B66F5]/15 focus:border-[#3B66F5] text-sm font-medium text-[#1D4ED8]"
                     value={formData.class_id} onChange={(e) => setFormData({ ...formData, class_id: e.target.value })}
                   >
                     <option value="">Tanpa Kelas</option>
@@ -978,7 +978,7 @@ export default function KelolaSiswa() {
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Jenis Kelamin</label>
-                  <select className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 outline-none focus:ring-2 focus:ring-indigo-950/10 focus:border-indigo-950 text-sm font-medium text-indigo-950"
+                  <select className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 outline-none focus:ring-2 focus:ring-[#3B66F5]/15 focus:border-[#3B66F5] text-sm font-medium text-[#1D4ED8]"
                     value={formData.gender || ''} onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
                   >
                     <option value="">Pilih Jenis Kelamin</option>
@@ -989,14 +989,14 @@ export default function KelolaSiswa() {
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Username</label>
                   <input type="text" placeholder={editingId ? "Masukkan username" : "Kosongkan untuk generate otomatis"}
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 outline-none focus:ring-2 focus:ring-indigo-950/10 focus:border-indigo-950 text-sm font-medium text-indigo-950 font-mono tracking-wider"
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 outline-none focus:ring-2 focus:ring-[#3B66F5]/15 focus:border-[#3B66F5] text-sm font-medium text-[#1D4ED8] font-mono tracking-wider"
                     value={formData.student_code} onChange={(e) => setFormData({ ...formData, student_code: e.target.value })}
                   />
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Password</label>
                   <input type="text" placeholder="Kosongkan untuk default 'murid19'"
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 outline-none focus:ring-2 focus:ring-indigo-950/10 focus:border-indigo-950 text-sm font-medium text-indigo-950 font-mono"
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 outline-none focus:ring-2 focus:ring-[#3B66F5]/15 focus:border-[#3B66F5] text-sm font-medium text-[#1D4ED8] font-mono"
                     value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   />
                 </div>

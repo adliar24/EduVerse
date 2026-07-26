@@ -162,7 +162,7 @@ export default function Analisis() {
     <div className="space-y-4 pb-4">
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-2">
         <div>
-          <h2 className="text-3xl font-bold text-indigo-950 tracking-tight">Analisis Performa</h2>
+          <h2 className="text-3xl font-bold text-[#1D4ED8] tracking-tight">Analisis Performa</h2>
           <p className="text-slate-500 font-medium mt-1">Pantau statistik dan laporan detail hasil ujian siswa Anda.</p>
         </div>
         <div className="flex items-center gap-3 w-full md:w-auto overflow-x-auto pb-2 md:pb-0 no-scrollbar relative">
@@ -170,9 +170,9 @@ export default function Analisis() {
             "relative group shrink-0 min-w-[180px] transition-opacity duration-200",
             activeTab === 'statistik' ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none absolute"
           )}>
-            <Filter className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4 group-focus-within:text-indigo-950 transition-colors" />
+            <Filter className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4 group-focus-within:text-[#1D4ED8] transition-colors" />
             <select 
-              className="w-full pl-11 pr-10 py-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-indigo-950/5 focus:border-indigo-950 appearance-none bg-white font-bold text-sm text-slate-700 transition-all cursor-pointer"
+              className="w-full pl-11 pr-10 py-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-[#3B66F5]/5 focus:border-[#3B66F5] appearance-none bg-white font-bold text-sm text-slate-700 transition-all cursor-pointer"
               value={selectedExam}
               onChange={(e) => setSelectedExam(e.target.value)}
             >
@@ -207,13 +207,13 @@ export default function Analisis() {
             />
             <button 
               onClick={() => setActiveTab('statistik')}
-              className={cn("relative z-10 flex-1 px-5 py-2 rounded-lg text-sm font-bold transition-colors", activeTab === 'statistik' ? "text-indigo-950" : "text-slate-500 hover:text-indigo-950")}
+              className={cn("relative z-10 flex-1 px-5 py-2 rounded-lg text-sm font-bold transition-colors", activeTab === 'statistik' ? "text-[#1D4ED8]" : "text-slate-500 hover:text-[#1D4ED8]")}
             >
               Statistik
             </button>
             <button 
               onClick={() => setActiveTab('nilai')}
-              className={cn("relative z-10 flex-1 px-5 py-2 rounded-lg text-sm font-bold transition-colors", activeTab === 'nilai' ? "text-indigo-950" : "text-slate-500 hover:text-indigo-950")}
+              className={cn("relative z-10 flex-1 px-5 py-2 rounded-lg text-sm font-bold transition-colors", activeTab === 'nilai' ? "text-[#1D4ED8]" : "text-slate-500 hover:text-[#1D4ED8]")}
             >
               Nilai
             </button>
@@ -239,11 +239,11 @@ export default function Analisis() {
               <div className="lg:col-span-2 bg-white p-5 lg:p-6 rounded-3xl border border-slate-100 shadow-sm flex flex-col">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
                   <div>
-                    <h3 className="text-xl font-bold text-indigo-950 tracking-tight">Distribusi Nilai</h3>
+                    <h3 className="text-xl font-bold text-[#1D4ED8] tracking-tight">Distribusi Nilai</h3>
                     <p className="text-sm text-slate-400 font-medium mt-1">Persebaran skor peserta ujian</p>
                   </div>
                   <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 rounded-xl w-fit">
-                    <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                    <div className="w-2 h-2 rounded-full bg-[#3B66F5]/50"></div>
                     <span className="text-xs font-bold text-slate-500">Nilai Peserta</span>
                   </div>
                 </div>
@@ -295,7 +295,7 @@ export default function Analisis() {
 
               <div className="bg-white p-5 lg:p-6 rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between">
                 <div className="mb-2">
-                  <h3 className="text-xl font-bold text-indigo-950 tracking-tight">Status Kelulusan</h3>
+                  <h3 className="text-xl font-bold text-[#1D4ED8] tracking-tight">Status Kelulusan</h3>
                   <p className="text-sm text-slate-400 font-medium mt-1">Berdasarkan KKM 75</p>
                 </div>
                 <div className="flex-1 flex flex-col items-center justify-center">
@@ -324,7 +324,7 @@ export default function Analisis() {
                       </PieChart>
                     </ResponsiveContainer>
                     <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                      <span className="text-4xl font-bold text-indigo-950">{stats.passRate}%</span>
+                      <span className="text-4xl font-bold text-[#1D4ED8]">{stats.passRate}%</span>
                       <span className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Lulus</span>
                     </div>
                   </div>
@@ -334,14 +334,14 @@ export default function Analisis() {
                         <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
                         <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">Lulus</span>
                       </div>
-                      <p className="text-lg font-bold text-indigo-950">{stats.passRate}%</p>
+                      <p className="text-lg font-bold text-[#1D4ED8]">{stats.passRate}%</p>
                     </div>
                     <div className="bg-rose-50 p-2 lg:p-3 rounded-2xl border border-rose-100">
                       <div className="flex items-center gap-2 mb-1">
                         <div className="w-2 h-2 rounded-full bg-rose-500"></div>
                         <span className="text-[10px] font-bold text-rose-600 uppercase tracking-widest">Gagal</span>
                       </div>
-                      <p className="text-lg font-bold text-indigo-950">{100 - stats.passRate}%</p>
+                      <p className="text-lg font-bold text-[#1D4ED8]">{100 - stats.passRate}%</p>
                     </div>
                   </div>
                 </div>
@@ -366,8 +366,8 @@ export default function Analisis() {
                   <div className="flex items-center justify-between mb-3">
                     <div className={cn(
                       "w-8 h-8 rounded-lg flex items-center justify-center transition-transform group-hover:scale-110 duration-500",
-                      item.color === 'blue' ? "bg-blue-50 text-blue-600" :
-                      item.color === 'indigo' ? "bg-indigo-50 text-indigo-600" :
+                      item.color === 'blue' ? "bg-[#3B66F5]/5 text-[#3B66F5]" :
+                      item.color === 'indigo' ? "bg-[#3B66F5]/10 text-[#3B66F5]" :
                       item.color === 'emerald' ? "bg-emerald-50 text-emerald-600" :
                       "bg-rose-50 text-rose-600"
                     )}>
@@ -376,7 +376,7 @@ export default function Analisis() {
                     <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest line-clamp-1 pl-2 text-right">{item.label}</p>
                   </div>
                   <div className="flex items-baseline gap-1 mt-auto">
-                    <p className="text-2xl font-bold text-indigo-950 tracking-tight">{item.value}</p>
+                    <p className="text-2xl font-bold text-[#1D4ED8] tracking-tight">{item.value}</p>
                     <span className="text-[10px] font-bold text-slate-400">{item.suffix}</span>
                   </div>
                 </motion.div>
@@ -388,7 +388,7 @@ export default function Analisis() {
                 <div className="bg-slate-50 w-24 h-24 rounded-[2rem] flex items-center justify-center mx-auto mb-8">
                   <TrendingUp className="w-12 h-12 text-slate-200" />
                 </div>
-                <h3 className="text-2xl font-bold text-indigo-950 mb-2">Data Belum Tersedia</h3>
+                <h3 className="text-2xl font-bold text-[#1D4ED8] mb-2">Data Belum Tersedia</h3>
                 <p className="text-slate-400 font-medium max-w-sm mx-auto">
                   Belum ada peserta yang mengikuti ujian ini atau data statistik belum terkumpul.
                 </p>

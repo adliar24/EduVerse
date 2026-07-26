@@ -77,7 +77,7 @@ export const LinkPreviewCard: React.FC<LinkPreviewCardProps> = ({ url, className
     if (youtubeId) return 'from-red-600 via-red-700 to-rose-900';
     if (isGoogleForms) return 'from-purple-700 via-indigo-800 to-slate-900';
     if (isGoogleDrive) return 'from-blue-600 via-indigo-700 to-slate-900';
-    if (isQuizizz) return 'from-purple-600 via-violet-700 to-indigo-900';
+    if (isQuizizz) return 'from-purple-600 via-violet-700 to-[#2563EB]';
     if (isKahoot) return 'from-violet-700 via-indigo-900 to-slate-950';
     if (isCanva) return 'from-cyan-600 via-teal-700 to-slate-900';
     if (isPdf) return 'from-rose-600 via-red-700 to-slate-900';
@@ -181,14 +181,14 @@ export const LinkPreviewCard: React.FC<LinkPreviewCardProps> = ({ url, className
       href={formattedUrl}
       target="_blank"
       rel="noopener noreferrer"
-      className={`group block overflow-hidden rounded-2xl border border-slate-200/80 bg-white hover:border-indigo-400 hover:shadow-2xl hover:shadow-indigo-500/15 transition-all duration-300 ${className}`}
+      className={`group block overflow-hidden rounded-2xl border border-slate-200/80 bg-white hover:border-[#3B66F5]/50 hover:shadow-2xl hover:shadow-[#3B66F5]/15 transition-all duration-300 ${className}`}
     >
       {/* 16:9 Banner Container */}
       <div className="relative w-full aspect-[16/9] bg-slate-900 overflow-hidden flex items-center justify-center border-b border-slate-100">
         {loading ? (
           /* Sleek Pulse Skeleton */
           <div className="absolute inset-0 bg-slate-800/90 flex flex-col items-center justify-center p-4 text-center animate-pulse">
-            <Globe className="w-8 h-8 text-indigo-400/60 mb-2 animate-bounce" />
+            <Globe className="w-8 h-8 text-[#3B66F5]/60 mb-2 animate-bounce" />
             <p className="text-xs font-semibold text-slate-300">Memuat pratinjau tautan...</p>
             <p className="text-[10px] text-slate-400 mt-1 truncate max-w-[200px]">{domain}</p>
           </div>
@@ -246,11 +246,11 @@ export const LinkPreviewCard: React.FC<LinkPreviewCardProps> = ({ url, className
       {/* Card Info Footer */}
       <div className="p-4 flex items-center justify-between gap-3 bg-white">
         <div className="flex items-center gap-3 min-w-0">
-          <div className="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 border border-indigo-100 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+          <div className="w-9 h-9 rounded-xl bg-[#3B66F5]/10 text-[#3B66F5] flex items-center justify-center shrink-0 border border-[#3B66F5]/20 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
             <Link2 className="w-4.5 h-4.5" />
           </div>
           <div className="min-w-0">
-            <p className="text-xs font-bold text-slate-800 truncate group-hover:text-indigo-900 transition-colors">
+            <p className="text-xs font-bold text-slate-800 truncate group-hover:text-[#1D4ED8] transition-colors">
               {ogData?.title || domain}
             </p>
             <p className="text-[10px] font-medium text-slate-400 truncate mt-0.5">
@@ -258,7 +258,7 @@ export const LinkPreviewCard: React.FC<LinkPreviewCardProps> = ({ url, className
             </p>
           </div>
         </div>
-        <div className="flex items-center text-xs font-bold text-indigo-600 shrink-0 group-hover:translate-x-0.5 transition-transform">
+        <div className="flex items-center text-xs font-bold text-[#3B66F5] shrink-0 group-hover:translate-x-0.5 transition-transform">
           Buka Tautan <ExternalLink className="w-3.5 h-3.5 ml-1" />
         </div>
       </div>

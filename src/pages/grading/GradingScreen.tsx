@@ -340,20 +340,20 @@ export const GradingScreen: React.FC = () => {
                     <div className="flex items-center gap-2">
                         <button 
                             onClick={toggleSelectAll}
-                            className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white border border-slate-200 text-slate-500 hover:text-primary transition-all font-black text-[10px] uppercase tracking-widest shadow-sm"
+                            className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white border border-slate-200 text-slate-500 hover:text-[#3B66F5] transition-all font-black text-[10px] uppercase tracking-widest shadow-sm"
                         >
-                            {selectedStudentIds.size === students.length && students.length > 0 ? <CheckSquare size={16} className="text-primary" /> : <Square size={16} />}
+                            {selectedStudentIds.size === students.length && students.length > 0 ? <CheckSquare size={16} className="text-[#3B66F5]" /> : <Square size={16} />}
                             {selectedStudentIds.size === students.length ? 'Batal Semua' : 'Pilih Semua'}
                         </button>
                         {selectedStudentIds.size > 0 && (
-                            <span className="text-[10px] font-black text-primary uppercase tracking-widest">{selectedStudentIds.size} Terpilih</span>
+                            <span className="text-[10px] font-black text-[#3B66F5] uppercase tracking-widest">{selectedStudentIds.size} Terpilih</span>
                         )}
                     </div>
 
                     <div className="flex items-center gap-2 w-full sm:w-auto">
                         {meeting?.aspekPenilaian === 'Sikap' ? (
                           <select 
-                            className="w-20 bg-white border border-slate-200 rounded-xl px-3 py-2 text-center font-black text-xs outline-none focus:border-primary transition-all appearance-none cursor-pointer"
+                            className="w-20 bg-white border border-slate-200 rounded-xl px-3 py-2 text-center font-black text-xs outline-none focus:border-[#3B66F5] transition-all appearance-none cursor-pointer"
                             value={bulkScore}
                             onChange={e => setBulkScore(e.target.value)}
                           >
@@ -368,7 +368,7 @@ export const GradingScreen: React.FC = () => {
                           <input 
                               type="number" 
                               placeholder="Nilai..." 
-                              className="w-20 bg-white border border-slate-200 rounded-xl px-3 py-2 text-center font-black text-xs outline-none focus:border-primary transition-all"
+                              className="w-20 bg-white border border-slate-200 rounded-xl px-3 py-2 text-center font-black text-xs outline-none focus:border-[#3B66F5] transition-all"
                               value={bulkScore}
                               onChange={e => setBulkScore(e.target.value)}
                           />
@@ -387,7 +387,7 @@ export const GradingScreen: React.FC = () => {
                 <div className="flex items-center gap-2 flex-wrap justify-center md:justify-end w-full md:w-auto">
                    <button 
                       onClick={toggleListening}
-                      className={`flex items-center gap-2 px-3 py-2 rounded-full border-2 transition-all ${isListening ? 'bg-red-500 border-red-400 text-white' : 'bg-white border-slate-200 text-slate-600 hover:border-primary'}`}
+                      className={`flex items-center gap-2 px-3 py-2 rounded-full border-2 transition-all ${isListening ? 'bg-red-500 border-red-400 text-white' : 'bg-white border-slate-200 text-slate-600 hover:border-[#3B66F5]'}`}
                    >
                       {isListening ? <MicOff size={14} /> : <Mic size={14} />}
                       <span className="text-[10px] font-black uppercase tracking-widest">{isListening ? 'Stop' : 'Suara'}</span>
@@ -399,10 +399,10 @@ export const GradingScreen: React.FC = () => {
                       <FileText size={14} />
                       <span className="text-[10px] font-black uppercase tracking-widest">OCR</span>
                    </button>
-                   <button onClick={handleDownloadTemplate} className="text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-primary flex items-center gap-2 bg-white px-3 py-2 rounded-full border border-slate-200">
+                   <button onClick={handleDownloadTemplate} className="text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-[#3B66F5] flex items-center gap-2 bg-white px-3 py-2 rounded-full border border-slate-200">
                       <Download size={14} /> Template
                    </button>
-                   <label className="text-[10px] font-black uppercase tracking-widest text-primary hover:text-primaryDark cursor-pointer flex items-center gap-2 bg-blue-50 px-3 py-2 rounded-full border border-blue-100">
+                   <label className="text-[10px] font-black uppercase tracking-widest text-[#3B66F5] hover:text-[#3B66F5]Dark cursor-pointer flex items-center gap-2 bg-[#3B66F5]/5 px-3 py-2 rounded-full border border-[#3B66F5]/20">
                       <Upload size={14} /> Import
                       <input type="file" ref={fileInputRef} className="hidden" accept=".xlsx,.xls" onChange={handleImportExcel} disabled={isImporting} />
                    </label>
@@ -410,8 +410,8 @@ export const GradingScreen: React.FC = () => {
             </div>
 
             {isListening && transcript && (
-               <div className="bg-blue-50 px-8 py-3 border-b border-blue-100 italic text-sm text-primary font-bold animate-fade flex items-center gap-3">
-                  <div className="w-2 h-2 bg-primary rounded-full animate-bounce"/>
+               <div className="bg-[#3B66F5]/5 px-8 py-3 border-b border-[#3B66F5]/20 italic text-sm text-[#3B66F5] font-bold animate-fade flex items-center gap-3">
+                  <div className="w-2 h-2 bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] rounded-full animate-bounce"/>
                   "{transcript}..."
                </div>
             )}
@@ -472,7 +472,7 @@ export const GradingScreen: React.FC = () => {
                return (
                   <div 
                     key={std.idSiswa} 
-                    className={`p-6 md:p-8 flex items-center justify-between transition-all gap-4 border-b border-slate-50 last:border-0 ${selectedStudentIds.has(std.idSiswa) ? 'bg-blue-50/40' : 'hover:bg-slate-50'}`}
+                    className={`p-6 md:p-8 flex items-center justify-between transition-all gap-4 border-b border-slate-50 last:border-0 ${selectedStudentIds.has(std.idSiswa) ? 'bg-[#3B66F5]/5/40' : 'hover:bg-slate-50'}`}
                   >
                      <div className="flex items-center gap-4 md:gap-6 overflow-hidden">
                         <div 
@@ -482,7 +482,7 @@ export const GradingScreen: React.FC = () => {
                                 else newSelected.add(std.idSiswa);
                                 setSelectedStudentIds(newSelected);
                             }}
-                            className={`w-10 h-10 rounded-xl flex items-center justify-center cursor-pointer transition-all ${selectedStudentIds.has(std.idSiswa) ? 'bg-primary text-white shadow-md' : 'bg-white border-2 border-slate-200 text-slate-300 hover:border-primary hover:text-primary'}`}
+                            className={`w-10 h-10 rounded-xl flex items-center justify-center cursor-pointer transition-all ${selectedStudentIds.has(std.idSiswa) ? 'bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white shadow-md' : 'bg-white border-2 border-slate-200 text-slate-300 hover:border-[#3B66F5] hover:text-[#3B66F5]'}`}
                         >
                             {selectedStudentIds.has(std.idSiswa) ? <CheckSquare size={20} strokeWidth={3} /> : <Square size={20} />}
                         </div>
@@ -496,7 +496,7 @@ export const GradingScreen: React.FC = () => {
                      <div className="w-24 md:w-32">
                         {meeting?.aspekPenilaian === 'Sikap' ? (
                           <select 
-                            className={`w-full bg-white border-2 rounded-2xl py-3 text-center font-black text-lg outline-none focus:ring-4 transition-all appearance-none cursor-pointer ${score ? 'border-primary text-primary focus:ring-primary/10' : 'border-slate-200 text-slate-700 focus:border-primary focus:ring-primary/5'}`}
+                            className={`w-full bg-white border-2 rounded-2xl py-3 text-center font-black text-lg outline-none focus:ring-4 transition-all appearance-none cursor-pointer ${score ? 'border-[#3B66F5] text-[#3B66F5] focus:ring-[#3B66F5]/10' : 'border-slate-200 text-slate-700 focus:border-[#3B66F5] focus:ring-[#3B66F5]/5'}`}
                             value={score === 95 ? 'A' : score === 85 ? 'B' : score === 75 ? 'C' : score === 65 ? 'D' : score === 55 ? 'E' : ''}
                             onChange={e => {
                               const val = e.target.value === 'A' ? 95 : e.target.value === 'B' ? 85 : e.target.value === 'C' ? 75 : e.target.value === 'D' ? 65 : e.target.value === 'E' ? 55 : null;
@@ -514,7 +514,7 @@ export const GradingScreen: React.FC = () => {
                           <input 
                             type="number" 
                             placeholder="0" 
-                            className={`w-full bg-white border-2 rounded-2xl py-3 text-center font-black text-lg outline-none focus:ring-4 transition-all ${score ? 'border-primary text-primary focus:ring-primary/10' : 'border-slate-200 text-slate-700 focus:border-primary focus:ring-primary/5'}`}
+                            className={`w-full bg-white border-2 rounded-2xl py-3 text-center font-black text-lg outline-none focus:ring-4 transition-all ${score ? 'border-[#3B66F5] text-[#3B66F5] focus:ring-[#3B66F5]/10' : 'border-slate-200 text-slate-700 focus:border-[#3B66F5] focus:ring-[#3B66F5]/5'}`}
                             value={score}
                             onChange={e => {
                               const val = e.target.value ? parseFloat(e.target.value) : null;

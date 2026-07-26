@@ -89,7 +89,7 @@ export default function Login() {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="fixed inset-0 bg-indigo-950/90 backdrop-blur-xl z-[9999] flex flex-col items-center justify-center text-white"
+            className="fixed inset-0 bg-[#1D4ED8]/90 backdrop-blur-xl z-[9999] flex flex-col items-center justify-center text-white"
           >
             <motion.div
               initial={{ scale: 0.8, opacity: 0 }}
@@ -170,7 +170,7 @@ export default function Login() {
                     onClick={() => setView('login')}
                     className="group flex items-center gap-3.5 p-4 bg-white border border-slate-200 rounded-full text-left hover:border-[#3B66F5] hover:shadow-lg hover:shadow-[#3B66F5]/10 transition-all duration-300 active:scale-[0.98]"
                   >
-                    <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-[#3B66F5] group-hover:bg-[#3B66F5] group-hover:text-white transition-colors shrink-0">
+                    <div className="w-10 h-10 bg-[#3B66F5]/5 rounded-xl flex items-center justify-center text-[#3B66F5] group-hover:bg-[#3B66F5] group-hover:text-white transition-colors shrink-0">
                       <User className="w-5 h-5" />
                     </div>
                     <div className="flex-1">
@@ -184,7 +184,7 @@ export default function Login() {
                     onClick={() => setView('student-login')}
                     className="group flex items-center gap-3.5 p-4 bg-white border border-slate-200 rounded-full text-left hover:border-[#3B66F5] hover:shadow-lg hover:shadow-[#3B66F5]/10 transition-all duration-300 active:scale-[0.98]"
                   >
-                    <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-[#3B66F5] group-hover:bg-[#3B66F5] group-hover:text-white transition-colors shrink-0">
+                    <div className="w-10 h-10 bg-[#3B66F5]/5 rounded-xl flex items-center justify-center text-[#3B66F5] group-hover:bg-[#3B66F5] group-hover:text-white transition-colors shrink-0">
                       <GraduationCap className="w-5 h-5" />
                     </div>
                     <div className="flex-1">

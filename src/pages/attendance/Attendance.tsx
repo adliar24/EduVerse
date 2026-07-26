@@ -809,16 +809,16 @@ const switchCamera = async () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {schoolClasses.length === 0 ? (
             <div className="col-span-full bg-white border border-slate-100 rounded-3xl p-8 text-center max-w-lg mx-auto mt-6 shadow-sm">
-              <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-[#3B66F5]/5 text-[#3B66F5] rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <BookOpen className="w-8 h-8" />
               </div>
-              <h3 className="text-lg font-bold text-indigo-950">Belum Ada Kelas Tersedia</h3>
+              <h3 className="text-lg font-bold text-[#1D4ED8]">Belum Ada Kelas Tersedia</h3>
               <p className="text-slate-500 text-sm mt-2 leading-relaxed">
                 Anda belum membuat kelas untuk sekolah ini. Silakan buat kelas baru terlebih dahulu melalui menu Manajemen Kelola.
               </p>
               <Link 
                 to="/kelola-kelas"
-                className="mt-5 inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] hover:brightness-110 text-white rounded-full font-semibold text-sm transition-all cursor-pointer shadow-md shadow-indigo-950/20"
+                className="mt-5 inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] hover:brightness-110 text-white rounded-full font-semibold text-sm transition-all cursor-pointer shadow-md shadow-[#3B66F5]/25"
               >
                 <Plus className="w-4 h-4" />
                 Buat Kelas Baru
@@ -828,10 +828,10 @@ const switchCamera = async () => {
             schoolClasses.map(c => {
               const studentCount = state.students.filter(s => s.classId === c.id).length;
               return (
-                <Card key={c.id} onClick={() => handleSelectClass(c.id)} className="group cursor-pointer hover:shadow-md hover:border-blue-200 transition-all">
+                <Card key={c.id} onClick={() => handleSelectClass(c.id)} className="group cursor-pointer hover:shadow-md hover:border-[#3B66F5]/30 transition-all">
                   <div className="p-5 flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center group-hover:bg-blue-500 group-hover:text-white transition-colors">
+                      <div className="w-12 h-12 rounded-2xl bg-[#3B66F5]/5 text-[#3B66F5] flex items-center justify-center group-hover:bg-[#3B66F5]/50 group-hover:text-white transition-colors">
                         <BookOpen className="w-6 h-6" />
                       </div>
                       <div>
@@ -839,7 +839,7 @@ const switchCamera = async () => {
                         <p className="text-sm text-gray-500">{studentCount} Siswa</p>
                       </div>
                     </div>
-                    <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-blue-500 transition-colors" />
+                    <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-[#3B66F5] transition-colors" />
                   </div>
                 </Card>
               );
@@ -916,7 +916,7 @@ const switchCamera = async () => {
           
           {activeSchedule && (
             <div className="w-full mt-3">
-              <span className="inline-block bg-blue-500/80 text-white text-[10px] md:text-xs px-2 py-0.5 rounded font-bold">
+              <span className="inline-block bg-[#3B66F5]/50/80 text-white text-[10px] md:text-xs px-2 py-0.5 rounded font-bold">
                 JADWAL: {activeSchedule.startTime} - {activeSchedule.endTime}
               </span>
             </div>
@@ -946,7 +946,7 @@ const switchCamera = async () => {
           
           {lastDetectedText && (
             <div className="absolute bottom-4 inset-x-0 text-center">
-              <p className="text-blue-400 text-xs bg-black/60 inline-block px-3 py-1.5 rounded-lg font-mono">
+              <p className="text-[#3B66F5] text-xs bg-black/60 inline-block px-3 py-1.5 rounded-lg font-mono">
                 Terbaca: {lastDetectedText}
               </p>
             </div>
@@ -1026,7 +1026,7 @@ const switchCamera = async () => {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div className="flex flex-wrap gap-2">
           {activeSchedule ? (
-              <div className="flex items-center gap-2 text-blue-600 bg-blue-50 px-3 py-1 rounded-lg text-xs font-bold w-fit">
+              <div className="flex items-center gap-2 text-[#3B66F5] bg-[#3B66F5]/5 px-3 py-1 rounded-lg text-xs font-bold w-fit">
                  <CalendarClock className="w-4 h-4" />
                  Sesi Jadwal: {activeSchedule.startTime} - {activeSchedule.endTime}
               </div>
@@ -1069,13 +1069,13 @@ const switchCamera = async () => {
           <div className="bg-white p-1.5 rounded-2xl border border-gray-200 shadow-sm flex">
             <button 
               onClick={() => { setMode('scan'); setScanType(null); }}
-              className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-full font-bold text-sm transition-all ${mode === 'scan' ? 'bg-blue-500 text-white shadow-md' : 'text-gray-500 hover:bg-gray-50'}`}
+              className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-full font-bold text-sm transition-all ${mode === 'scan' ? 'bg-[#3B66F5]/50 text-white shadow-md' : 'text-gray-500 hover:bg-gray-50'}`}
             >
               <ScanLine className="w-4 h-4" /> Scan
             </button>
             <button 
               onClick={() => { setMode('manual'); setScanType(null); }}
-              className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-full font-bold text-sm transition-all ${mode === 'manual' ? 'bg-blue-500 text-white shadow-md' : 'text-gray-500 hover:bg-gray-50'}`}
+              className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-full font-bold text-sm transition-all ${mode === 'manual' ? 'bg-[#3B66F5]/50 text-white shadow-md' : 'text-gray-500 hover:bg-gray-50'}`}
             >
               <List className="w-4 h-4" /> Manual
             </button>
@@ -1094,15 +1094,15 @@ const switchCamera = async () => {
                      
                      return (
                        <div key={s.id} className={`flex justify-between items-center text-sm p-2 rounded-xl border transition-colors ${
-                         hasAttended ? 'bg-white border-gray-100 hover:border-blue-200' : 'bg-red-50 border-red-100 hover:border-red-200'
+                         hasAttended ? 'bg-white border-gray-100 hover:border-[#3B66F5]/30' : 'bg-red-50 border-red-100 hover:border-red-200'
                        }`}>
                          <span className={`font-semibold truncate mr-2 ${hasAttended ? 'text-gray-700' : 'text-red-700'}`}>{s.name}</span>
                          <span className={`px-2 py-0.5 rounded text-xs font-bold ${
                            hasAttended 
-                             ? record.status === 'Hadir' ? 'bg-blue-100 text-blue-700' 
+                             ? record.status === 'Hadir' ? 'bg-[#3B66F5]/10 text-blue-700' 
                              : record.status === 'Terlambat' ? 'bg-amber-100 text-amber-700'
                              : record.status === 'Alpha' ? 'bg-red-100 text-red-700'
-                             : 'bg-blue-100 text-blue-700'
+                             : 'bg-[#3B66F5]/10 text-blue-700'
                              : 'bg-red-200 text-red-800'
                          }`}>
                            {hasAttended ? (record.status === 'Hadir' ? record.timeHHMMSS : record.status) : 'Belum'}
@@ -1124,12 +1124,12 @@ const switchCamera = async () => {
                 className="flex flex-col gap-4"
               >
                 <Card 
-                  className="p-6 bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md hover:border-blue-200 transition-all cursor-pointer"
+                  className="p-6 bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md hover:border-[#3B66F5]/30 transition-all cursor-pointer"
                   onClick={() => { setScanType('qr'); setIsScanning(true); }}
                 >
                   <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 rounded-2xl bg-blue-50 flex items-center justify-center">
-                      <QrCode className="w-7 h-7 text-blue-500" />
+                    <div className="w-14 h-14 rounded-2xl bg-[#3B66F5]/5 flex items-center justify-center">
+                      <QrCode className="w-7 h-7 text-[#3B66F5]" />
                     </div>
                     <div className="flex-1">
                       <h3 className="font-bold text-gray-900 mb-1">Scan QR Code</h3>
@@ -1140,12 +1140,12 @@ const switchCamera = async () => {
                 </Card>
                 
                 <Card 
-                  className="p-6 bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md hover:border-blue-200 transition-all cursor-pointer"
+                  className="p-6 bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md hover:border-[#3B66F5]/30 transition-all cursor-pointer"
                   onClick={() => { setScanType('face'); setIsFaceScanning(true); }}
                 >
                   <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 rounded-2xl bg-blue-50 flex items-center justify-center">
-                      <ScanFace className="w-7 h-7 text-blue-500" />
+                    <div className="w-14 h-14 rounded-2xl bg-[#3B66F5]/5 flex items-center justify-center">
+                      <ScanFace className="w-7 h-7 text-[#3B66F5]" />
                     </div>
                     <div className="flex-1">
                       <h3 className="font-bold text-gray-900 mb-1">Scan Wajah</h3>
@@ -1169,10 +1169,10 @@ const switchCamera = async () => {
                             <div className="flex flex-col items-end">
                               <span className={`font-bold text-sm px-2 rounded ${
                                 hasAttended 
-                                  ? record.status === 'Hadir' ? 'bg-blue-100 text-blue-700' 
+                                  ? record.status === 'Hadir' ? 'bg-[#3B66F5]/10 text-blue-700' 
                                   : record.status === 'Terlambat' ? 'bg-amber-100 text-amber-700'
                                   : record.status === 'Alpha' ? 'bg-red-100 text-red-700'
-                                  : 'bg-blue-100 text-blue-700'
+                                  : 'bg-[#3B66F5]/10 text-blue-700'
                                   : 'bg-red-200 text-red-800'
                               }`}>
                                 {hasAttended ? record.status : 'Belum'}
@@ -1215,7 +1215,7 @@ const switchCamera = async () => {
                   <button
                     onClick={() => setShowFilter('all')}
                     className={`flex-1 py-2 rounded-full text-sm font-bold transition ${
-                      showFilter === 'all' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500'
+                      showFilter === 'all' ? 'bg-white text-[#3B66F5] shadow-sm' : 'text-gray-500'
                     }`}
                   >
                     Semua ({students.length})
@@ -1223,7 +1223,7 @@ const switchCamera = async () => {
                   <button
                     onClick={() => setShowFilter('present')}
                     className={`flex-1 py-2 rounded-full text-sm font-bold transition ${
-                      showFilter === 'present' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500'
+                      showFilter === 'present' ? 'bg-white text-[#3B66F5] shadow-sm' : 'text-gray-500'
                     }`}
                   >
                     Sudah Absen ({presentCount})
@@ -1257,8 +1257,8 @@ const switchCamera = async () => {
                       inactive: 'bg-yellow-50 text-yellow-800 hover:bg-yellow-100',
                     },
                     Izin: {
-                      active: 'bg-blue-500 text-white shadow-md shadow-blue-200',
-                      inactive: 'bg-blue-50 text-blue-700 hover:bg-blue-100',
+                      active: 'bg-[#3B66F5]/50 text-white shadow-md shadow-blue-200',
+                      inactive: 'bg-[#3B66F5]/5 text-blue-700 hover:bg-[#3B66F5]/10',
                     },
                     Alpha: {
                       active: 'bg-red-500 text-white shadow-md shadow-red-200',
@@ -1290,11 +1290,11 @@ const switchCamera = async () => {
                         <div
                           className={`shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold ${
                             status === 'Hadir'
-                              ? 'bg-blue-100 text-blue-700'
+                              ? 'bg-[#3B66F5]/10 text-blue-700'
                               : status === 'Sakit'
                                 ? 'bg-yellow-100 text-yellow-800'
                                 : status === 'Izin'
-                                  ? 'bg-blue-100 text-blue-700'
+                                  ? 'bg-[#3B66F5]/10 text-blue-700'
                                   : status === 'Terlambat'
                                     ? 'bg-orange-100 text-orange-700'
                                     : status === 'Alpha'

@@ -88,13 +88,13 @@ export const CreateMeetingScreen: React.FC = () => {
       <PageTransition className="max-w-3xl mx-auto py-6">
          <Card className="p-8 md:p-12 shadow-2xl border-2 border-blue-50 relative overflow-hidden">
             {/* Background Accent */}
-            <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50/50 rounded-bl-[5rem] -mr-10 -mt-10 pointer-events-none"></div>
+            <div className="absolute top-0 right-0 w-32 h-32 bg-[#3B66F5]/5/50 rounded-bl-[5rem] -mr-10 -mt-10 pointer-events-none"></div>
             
             <div className="space-y-10 relative z-10">
                {/* 1. KELAS & MATERI */}
                <section className="space-y-6">
                   <div className="flex items-center gap-3 mb-2">
-                     <div className="w-10 h-10 bg-primary/10 text-primary rounded-xl flex items-center justify-center">
+                     <div className="w-10 h-10 bg-[#3B66F5]/10 text-[#3B66F5] rounded-xl flex items-center justify-center">
                         <Save size={20} strokeWidth={2.5}/>
                      </div>
                      <h3 className="font-black text-slate-800 uppercase tracking-widest text-xs">Identitas Pembelajaran</h3>
@@ -181,7 +181,7 @@ export const CreateMeetingScreen: React.FC = () => {
                {/* 3. WAKTU */}
                <section className="space-y-6">
                   <div className="flex items-center gap-3 mb-2">
-                     <div className="w-10 h-10 bg-indigo-500/10 text-indigo-600 rounded-xl flex items-center justify-center">
+                     <div className="w-10 h-10 bg-[#3B66F5]/100/10 text-[#3B66F5] rounded-xl flex items-center justify-center">
                         <Calendar size={20} strokeWidth={2.5}/>
                      </div>
                      <h3 className="font-black text-slate-800 uppercase tracking-widest text-xs">Waktu Pelaksanaan</h3>

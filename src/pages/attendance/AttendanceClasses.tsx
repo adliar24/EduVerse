@@ -250,7 +250,7 @@ export const Classes: React.FC<Props> = ({ state, refresh, onNavigate, notify })
           colorClass = 'bg-amber-50 text-amber-800 border-amber-200';
           Icon = Thermometer;
       } else if (todayEvent.type === 'Dinas') {
-          colorClass = 'bg-blue-50 text-blue-800 border-blue-200';
+          colorClass = 'bg-[#3B66F5]/5 text-blue-800 border-[#3B66F5]/30';
           Icon = Briefcase;
       }
 
@@ -295,13 +295,13 @@ export const Classes: React.FC<Props> = ({ state, refresh, onNavigate, notify })
         <div className="bg-gray-100 p-1.5 rounded-2xl flex self-start md:self-auto shadow-inner">
             <button 
                 onClick={() => setViewMode('schedule')}
-                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all ${viewMode === 'schedule' ? 'bg-white text-blue-600 shadow-sm ring-1 ring-black/5' : 'text-gray-500 hover:text-gray-700'}`}
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all ${viewMode === 'schedule' ? 'bg-white text-[#3B66F5] shadow-sm ring-1 ring-black/5' : 'text-gray-500 hover:text-gray-700'}`}
             >
                 <LayoutGrid className="w-4 h-4" /> Jadwal
             </button>
             <button 
                 onClick={() => setViewMode('stats')}
-                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all ${viewMode === 'stats' ? 'bg-white text-blue-600 shadow-sm ring-1 ring-black/5' : 'text-gray-500 hover:text-gray-700'}`}
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all ${viewMode === 'stats' ? 'bg-white text-[#3B66F5] shadow-sm ring-1 ring-black/5' : 'text-gray-500 hover:text-gray-700'}`}
             >
                 <BarChart3 className="w-4 h-4" /> Statistik
             </button>
@@ -315,20 +315,20 @@ export const Classes: React.FC<Props> = ({ state, refresh, onNavigate, notify })
                 <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 gap-2">
                     <div>
                         <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                            <Calendar className="w-6 h-6 text-blue-500" />
+                            <Calendar className="w-6 h-6 text-[#3B66F5]" />
                             {todayEvent ? 'Status Hari Ini' : 'Jadwal Hari Ini'}
                         </h2>
                         <p className="text-sm text-gray-500 md:ml-8 mt-1 flex items-center gap-2">
                            <span>{todayName}, {new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long' })}</span>
                            <span className="w-1 h-1 rounded-full bg-gray-300"></span>
-                           <span className="font-bold text-blue-600 flex items-center gap-1 bg-blue-50 px-2 py-0.5 rounded-lg border border-blue-100">
+                           <span className="font-bold text-[#3B66F5] flex items-center gap-1 bg-[#3B66F5]/5 px-2 py-0.5 rounded-lg border border-[#3B66F5]/20">
                               <Clock className="w-3.5 h-3.5" />
                               {currentHHMM}
                            </span>
                         </p>
                     </div>
                     {!todayEvent && todaySchedules.length === 0 && (
-                        <Button variant="ghost" onClick={() => onNavigate('schedule')} className="text-sm font-semibold text-blue-600 hover:bg-blue-50 self-start md:self-auto">
+                        <Button variant="ghost" onClick={() => onNavigate('schedule')} className="text-sm font-semibold text-[#3B66F5] hover:bg-[#3B66F5]/5 self-start md:self-auto">
                             + Buat Jadwal
                         </Button>
                     )}
@@ -371,7 +371,7 @@ export const Classes: React.FC<Props> = ({ state, refresh, onNavigate, notify })
                             </div>
                             <button 
                                 onClick={(e) => handleUndoCancel(e, cancellation.id)}
-                                className="mt-2 flex items-center justify-center text-xs font-bold gap-1 text-gray-400 hover:text-blue-600 transition-colors w-full py-3 border border-gray-200 rounded-xl bg-white"
+                                className="mt-2 flex items-center justify-center text-xs font-bold gap-1 text-gray-400 hover:text-[#3B66F5] transition-colors w-full py-3 border border-gray-200 rounded-xl bg-white"
                             >
                                 <RefreshCcw className="w-4 h-4" /> Kembalikan Jadwal
                             </button>
@@ -419,7 +419,7 @@ export const Classes: React.FC<Props> = ({ state, refresh, onNavigate, notify })
                             </div>
                             </div>
 
-                            <div className={`mt-6 flex items-center text-sm font-bold gap-2 ${isActive ? 'text-blue-100 group-hover:text-white' : 'text-blue-600 group-hover:text-blue-700'}`}>
+                            <div className={`mt-6 flex items-center text-sm font-bold gap-2 ${isActive ? 'text-blue-100 group-hover:text-white' : 'text-[#3B66F5] group-hover:text-blue-700'}`}>
                             Buka Kelas <ArrowRight className="w-4 h-4" />
                             </div>
                         </div>
@@ -462,25 +462,25 @@ export const Classes: React.FC<Props> = ({ state, refresh, onNavigate, notify })
                             <div className="grid grid-cols-2 gap-2">
                                 <button 
                                     onClick={() => setStatsRange('week')}
-                                    className={`px-3 py-2 text-xs font-bold rounded-lg transition-all ${statsRange === 'week' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:bg-gray-200'}`}
+                                    className={`px-3 py-2 text-xs font-bold rounded-lg transition-all ${statsRange === 'week' ? 'bg-white text-[#3B66F5] shadow-sm' : 'text-gray-500 hover:bg-gray-200'}`}
                                 >
                                     Minggu
                                 </button>
                                 <button 
                                     onClick={() => setStatsRange('month')}
-                                    className={`px-3 py-2 text-xs font-bold rounded-lg transition-all ${statsRange === 'month' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:bg-gray-200'}`}
+                                    className={`px-3 py-2 text-xs font-bold rounded-lg transition-all ${statsRange === 'month' ? 'bg-white text-[#3B66F5] shadow-sm' : 'text-gray-500 hover:bg-gray-200'}`}
                                 >
                                     Bulan
                                 </button>
                                 <button 
                                     onClick={() => setStatsRange('semester')}
-                                    className={`px-3 py-2 text-xs font-bold rounded-lg transition-all ${statsRange === 'semester' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:bg-gray-200'}`}
+                                    className={`px-3 py-2 text-xs font-bold rounded-lg transition-all ${statsRange === 'semester' ? 'bg-white text-[#3B66F5] shadow-sm' : 'text-gray-500 hover:bg-gray-200'}`}
                                 >
                                     Semester
                                 </button>
                                 <button 
                                     onClick={() => setStatsRange('year')}
-                                    className={`px-3 py-2 text-xs font-bold rounded-lg transition-all ${statsRange === 'year' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:bg-gray-200'}`}
+                                    className={`px-3 py-2 text-xs font-bold rounded-lg transition-all ${statsRange === 'year' ? 'bg-white text-[#3B66F5] shadow-sm' : 'text-gray-500 hover:bg-gray-200'}`}
                                 >
                                     Tahun
                                 </button>
@@ -488,14 +488,14 @@ export const Classes: React.FC<Props> = ({ state, refresh, onNavigate, notify })
                         </Card>
 
                         <div className="grid grid-cols-2 gap-6 lg:col-span-2">
-                            <Card className="p-6 flex flex-col items-center justify-center text-center bg-gradient-to-br from-blue-50 to-white border-blue-100">
-                                <span className="text-sm font-bold text-blue-400 uppercase tracking-widest mb-2">Total Pertemuan</span>
-                                <span className="text-5xl font-bold text-blue-600">{dashboardStats?.totalMeetings || 0}</span>
+                            <Card className="p-6 flex flex-col items-center justify-center text-center bg-gradient-to-br from-blue-50 to-white border-[#3B66F5]/20">
+                                <span className="text-sm font-bold text-[#3B66F5] uppercase tracking-widest mb-2">Total Pertemuan</span>
+                                <span className="text-5xl font-bold text-[#3B66F5]">{dashboardStats?.totalMeetings || 0}</span>
                                 <span className="text-xs text-gray-400 mt-2 font-medium">{dashboardStats?.rangeLabel}</span>
                             </Card>
-                            <Card className="p-6 flex flex-col items-center justify-center text-center bg-gradient-to-br from-blue-50 to-white border-blue-100">
-                                <span className="text-sm font-bold text-blue-400 uppercase tracking-widest mb-2">Rata-Rata Kelas</span>
-                                <span className="text-5xl font-bold text-blue-600">{dashboardStats?.classAverage || 0}%</span>
+                            <Card className="p-6 flex flex-col items-center justify-center text-center bg-gradient-to-br from-blue-50 to-white border-[#3B66F5]/20">
+                                <span className="text-sm font-bold text-[#3B66F5] uppercase tracking-widest mb-2">Rata-Rata Kelas</span>
+                                <span className="text-5xl font-bold text-[#3B66F5]">{dashboardStats?.classAverage || 0}%</span>
                                 <span className="text-xs text-gray-400 mt-2 font-medium">Kehadiran (H+T)</span>
                             </Card>
                         </div>
@@ -508,7 +508,7 @@ export const Classes: React.FC<Props> = ({ state, refresh, onNavigate, notify })
                                 <h3 className="font-bold text-lg text-gray-900">Detail Kehadiran Siswa</h3>
                                 <p className="text-sm text-gray-500">Statistik individual siswa</p>
                             </div>
-                            <span className="text-xs font-bold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-100">
+                            <span className="text-xs font-bold text-[#3B66F5] bg-[#3B66F5]/5 px-3 py-1.5 rounded-lg border border-[#3B66F5]/20">
                                 Total: {dashboardStats?.studentStats.length} Siswa
                             </span>
                         </div>
@@ -517,10 +517,10 @@ export const Classes: React.FC<Props> = ({ state, refresh, onNavigate, notify })
                                 <thead className="bg-gray-50 text-gray-500 font-semibold border-b border-gray-100 uppercase text-xs tracking-wider">
                                     <tr>
                                         <th className="p-5 w-[30%]">Nama Siswa</th>
-                                        <th className="p-5 text-center text-blue-600">Hadir</th>
+                                        <th className="p-5 text-center text-[#3B66F5]">Hadir</th>
                                         {/* Updated Column Order: Hadir -> Sakit -> Izin -> Terlambat -> Alpha */}
                                         <th className="p-5 text-center text-amber-500">Sakit</th>
-                                        <th className="p-5 text-center text-blue-500">Izin</th>
+                                        <th className="p-5 text-center text-[#3B66F5]">Izin</th>
                                         <th className="p-5 text-center text-orange-500">Terlambat</th>
                                         <th className="p-5 text-center text-red-600">Alpha</th>
                                     </tr>
@@ -536,18 +536,18 @@ export const Classes: React.FC<Props> = ({ state, refresh, onNavigate, notify })
                                                 <div className="flex items-center gap-3 mt-1.5">
                                                     <div className="w-24 h-1.5 bg-gray-100 rounded-full overflow-hidden">
                                                         <div 
-                                                            className={`h-full rounded-full ${s.attendanceRate >= 80 ? 'bg-blue-500' : s.attendanceRate >= 50 ? 'bg-amber-500' : 'bg-red-500'}`}
+                                                            className={`h-full rounded-full ${s.attendanceRate >= 80 ? 'bg-[#3B66F5]/50' : s.attendanceRate >= 50 ? 'bg-amber-500' : 'bg-red-500'}`}
                                                             style={{ width: `${s.attendanceRate}%` }}
                                                         />
                                                     </div>
-                                                    <span className={`text-[10px] font-bold ${s.attendanceRate >= 80 ? 'text-blue-600' : s.attendanceRate >= 50 ? 'text-amber-600' : 'text-red-600'}`}>
+                                                    <span className={`text-[10px] font-bold ${s.attendanceRate >= 80 ? 'text-[#3B66F5]' : s.attendanceRate >= 50 ? 'text-amber-600' : 'text-red-600'}`}>
                                                         {s.attendanceRate}%
                                                     </span>
                                                 </div>
                                             </td>
-                                            <td className="p-5 text-center font-bold text-base text-gray-700 bg-blue-50/20">{s.h}</td>
+                                            <td className="p-5 text-center font-bold text-base text-gray-700 bg-[#3B66F5]/5/20">{s.h}</td>
                                             <td className="p-5 text-center font-bold text-base text-gray-700 bg-amber-50/20">{s.s}</td>
-                                            <td className="p-5 text-center font-bold text-base text-gray-700 bg-blue-50/20">{s.i}</td>
+                                            <td className="p-5 text-center font-bold text-base text-gray-700 bg-[#3B66F5]/5/20">{s.i}</td>
                                             <td className="p-5 text-center font-bold text-base text-gray-700 bg-orange-50/20">{s.t}</td>
                                             <td className="p-5 text-center font-bold text-base text-gray-700 bg-red-50/20">{s.a}</td>
                                         </tr>
@@ -561,7 +561,7 @@ export const Classes: React.FC<Props> = ({ state, refresh, onNavigate, notify })
                     <div className="md:hidden flex flex-col gap-3">
                         <div className="flex justify-between items-center px-1">
                              <h3 className="font-bold text-gray-900">Statistik Siswa</h3>
-                             <span className="text-xs text-blue-600 font-bold bg-blue-50 px-2 py-1 rounded">
+                             <span className="text-xs text-[#3B66F5] font-bold bg-[#3B66F5]/5 px-2 py-1 rounded">
                                 Total: {dashboardStats?.studentStats.length}
                              </span>
                         </div>
@@ -569,12 +569,12 @@ export const Classes: React.FC<Props> = ({ state, refresh, onNavigate, notify })
                             <div key={s.id} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex flex-col gap-3">
                                 <div className="flex justify-between items-center">
                                     <span className="font-bold text-gray-800">{s.name}</span>
-                                    <span className={`text-xs font-bold px-2 py-1 rounded ${s.attendanceRate >= 80 ? 'bg-blue-100 text-blue-700' : s.attendanceRate >= 50 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}`}>
+                                    <span className={`text-xs font-bold px-2 py-1 rounded ${s.attendanceRate >= 80 ? 'bg-[#3B66F5]/10 text-blue-700' : s.attendanceRate >= 50 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}`}>
                                         {s.attendanceRate}% Hadir
                                     </span>
                                 </div>
                                 <div className="grid grid-cols-5 gap-1.5 text-center text-xs font-medium">
-                                    <div className="bg-blue-50 text-blue-700 p-2 rounded-lg flex flex-col">
+                                    <div className="bg-[#3B66F5]/5 text-blue-700 p-2 rounded-lg flex flex-col">
                                         <span className="text-[9px] opacity-70">Hadir</span>
                                         <span className="text-sm font-bold">{s.h}</span>
                                     </div>
@@ -582,7 +582,7 @@ export const Classes: React.FC<Props> = ({ state, refresh, onNavigate, notify })
                                         <span className="text-[9px] opacity-70">Sakit</span>
                                         <span className="text-sm font-bold">{s.s}</span>
                                     </div>
-                                    <div className="bg-blue-50 text-blue-700 p-2 rounded-lg flex flex-col">
+                                    <div className="bg-[#3B66F5]/5 text-blue-700 p-2 rounded-lg flex flex-col">
                                         <span className="text-[9px] opacity-70">Izin</span>
                                         <span className="text-sm font-bold">{s.i}</span>
                                     </div>

@@ -90,7 +90,7 @@ export const PointTemplateManagerScreen: React.FC<{ profile: TeacherProfile | nu
                 title="Pengaturan Poin" 
                 subtitle="Atur daftar poin kilat untuk reward & sanksi"
                 leftElement={
-                    <button onClick={() => navigate('/home')} className="p-2 -ml-2 text-slate-400 hover:text-primary transition-colors">
+                    <button onClick={() => navigate('/home')} className="p-2 -ml-2 text-slate-400 hover:text-[#3B66F5] transition-colors">
                         <ArrowLeft size={24} />
                     </button>
                 }
@@ -160,7 +160,7 @@ export const PointTemplateManagerScreen: React.FC<{ profile: TeacherProfile | nu
                                                     </div>
                                                 </div>
                                                 <div className="flex gap-1.5 shrink-0">
-                                                    <button onClick={() => openEdit(t)} className="w-8 h-8 bg-slate-50 text-slate-400 hover:text-primary rounded-full transition-all flex items-center justify-center"><Edit2 size={14} /></button>
+                                                    <button onClick={() => openEdit(t)} className="w-8 h-8 bg-slate-50 text-slate-400 hover:text-[#3B66F5] rounded-full transition-all flex items-center justify-center"><Edit2 size={14} /></button>
                                                     <button onClick={() => setDeleteConfirm({ isOpen: true, id: t.id })} className="w-8 h-8 bg-slate-50 text-slate-400 hover:text-red-500 rounded-full transition-all flex items-center justify-center"><Trash2 size={14} /></button>
                                                 </div>
                                             </div>
@@ -190,7 +190,7 @@ export const PointTemplateManagerScreen: React.FC<{ profile: TeacherProfile | nu
                                                     </div>
                                                 </div>
                                                 <div className="flex gap-1.5 shrink-0">
-                                                    <button onClick={() => openEdit(t)} className="w-8 h-8 bg-slate-50 text-slate-400 hover:text-primary rounded-full transition-all flex items-center justify-center"><Edit2 size={14} /></button>
+                                                    <button onClick={() => openEdit(t)} className="w-8 h-8 bg-slate-50 text-slate-400 hover:text-[#3B66F5] rounded-full transition-all flex items-center justify-center"><Edit2 size={14} /></button>
                                                     <button onClick={() => setDeleteConfirm({ isOpen: true, id: t.id })} className="w-8 h-8 bg-slate-50 text-slate-400 hover:text-red-500 rounded-full transition-all flex items-center justify-center"><Trash2 size={14} /></button>
                                                 </div>
                                             </div>

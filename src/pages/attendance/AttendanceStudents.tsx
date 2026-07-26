@@ -643,7 +643,7 @@ else if (fileExt === 'csv') {
                       <div className="p-6 flex flex-col justify-between h-full min-h-[160px]">
                         <div className="flex items-start justify-between">
                           <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600 shrink-0 group-hover:bg-blue-500 group-hover:text-white transition-colors">
+                            <div className="w-12 h-12 rounded-2xl bg-[#3B66F5]/5 flex items-center justify-center text-[#3B66F5] shrink-0 group-hover:bg-[#3B66F5]/50 group-hover:text-white transition-colors">
                               <BookOpen className="w-6 h-6" />
                             </div>
                             <div>
@@ -654,7 +654,7 @@ else if (fileExt === 'csv') {
                         </div>
                         
                         <div className="mt-6 flex items-center justify-between">
-                          <span className="text-xs font-bold text-blue-700 bg-blue-100 px-3 py-1.5 rounded-lg">
+                          <span className="text-xs font-bold text-blue-700 bg-[#3B66F5]/10 px-3 py-1.5 rounded-lg">
                             {studentCount} Siswa
                           </span>
                           <button 
@@ -718,7 +718,7 @@ else if (fileExt === 'csv') {
          <div className="flex flex-col gap-2">
             <button 
                 onClick={handleBackToClasses}
-                className="flex items-center text-gray-400 hover:text-blue-600 text-xs font-bold uppercase tracking-wider transition-colors w-fit"
+                className="flex items-center text-gray-400 hover:text-[#3B66F5] text-xs font-bold uppercase tracking-wider transition-colors w-fit"
             >
                 <ArrowLeft className="w-4 h-4 mr-1" /> Kembali ke Daftar Kelas
             </button>
@@ -748,7 +748,7 @@ else if (fileExt === 'csv') {
                     onClick={handleDownloadBulkCards} 
                     disabled={isGenerating}
                     variant="secondary"
-                    className="!px-4 !py-2.5 !text-xs bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200 font-bold"
+                    className="!px-4 !py-2.5 !text-xs bg-[#3B66F5]/5 text-blue-700 hover:bg-[#3B66F5]/10 border-[#3B66F5]/30 font-bold"
                 >
                     {isGenerating ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <IdCard className="w-4 h-4 mr-2" />}
                     Unduh Semua Kartu (ZIP)
@@ -760,13 +760,13 @@ else if (fileExt === 'csv') {
       {/* MOBILE TABS (Hidden on Desktop) */}
       <div className="flex lg:hidden gap-2 mb-6 bg-gray-100 p-1 rounded-2xl max-w-md md:max-w-xs">
         <button 
-          className={`flex-1 py-2 rounded-full text-sm font-semibold transition-all ${activeTab === 'list' ? 'bg-white shadow text-blue-600' : 'text-gray-500'}`}
+          className={`flex-1 py-2 rounded-full text-sm font-semibold transition-all ${activeTab === 'list' ? 'bg-white shadow text-[#3B66F5]' : 'text-gray-500'}`}
           onClick={() => setActiveTab('list')}
         >
           Daftar Murid
         </button>
         <button 
-          className={`flex-1 py-2 rounded-full text-sm font-semibold transition-all ${activeTab === 'add' ? 'bg-white shadow text-blue-600' : 'text-gray-500'}`}
+          className={`flex-1 py-2 rounded-full text-sm font-semibold transition-all ${activeTab === 'add' ? 'bg-white shadow text-[#3B66F5]' : 'text-gray-500'}`}
           onClick={() => setActiveTab('add')}
         >
           Input / Impor
@@ -862,9 +862,9 @@ else if (fileExt === 'csv') {
                      <div className="h-px bg-gray-200 flex-1" />
                    </div>
 
-                   <Card className="p-6 md:p-6 border-dashed border-2 border-blue-100 shadow-none hover:bg-blue-50/30 transition-colors bg-white">
+                   <Card className="p-6 md:p-6 border-dashed border-2 border-[#3B66F5]/20 shadow-none hover:bg-[#3B66F5]/5/30 transition-colors bg-white">
                      <div className="flex flex-col gap-4 items-center text-center">
-                        <div className="w-14 h-14 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center shrink-0">
+                        <div className="w-14 h-14 bg-[#3B66F5]/5 text-[#3B66F5] rounded-2xl flex items-center justify-center shrink-0">
                            <FileSpreadsheet className="w-7 h-7" />
                         </div>
                         <div>
@@ -915,7 +915,7 @@ else if (fileExt === 'csv') {
             </div>
             <div className="text-center">
               <h2 className="text-2xl font-bold text-gray-900">{selectedQR.name}</h2>
-              <p className="text-blue-600 font-medium mt-1">{activeClass.name}</p>
+              <p className="text-[#3B66F5] font-medium mt-1">{activeClass.name}</p>
               <p className="text-gray-400 text-xs mt-2 font-mono">ID: {selectedQR.id}</p>
             </div>
             <div className="flex gap-3 w-full">
@@ -976,7 +976,7 @@ else if (fileExt === 'csv') {
         {selectedStudent && (
           <div className="space-y-4">
             <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-2xl">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center text-blue-600">
+              <div className="w-16 h-16 bg-[#3B66F5]/10 rounded-full flex items-center justify-center text-[#3B66F5]">
                 <User className="w-8 h-8" />
               </div>
               <div>
@@ -1020,7 +1020,7 @@ else if (fileExt === 'csv') {
                   setShowStudentPopup(false);
                   setSelectedQR(selectedStudent);
                 }}
-                className="p-4 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-100 flex flex-col items-center gap-2 transition-colors"
+                className="p-4 bg-[#3B66F5]/5 text-[#3B66F5] rounded-xl hover:bg-[#3B66F5]/10 flex flex-col items-center gap-2 transition-colors"
               >
                 <QrCode className="w-6 h-6" />
                 <span className="text-sm font-medium">Lihat QR</span>
@@ -1032,7 +1032,7 @@ else if (fileExt === 'csv') {
                   setShowStudentPopup(false);
                   handleDownloadSingleCard(selectedStudent);
                 }}
-                className="p-4 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-100 flex flex-col items-center gap-2 transition-colors"
+                className="p-4 bg-[#3B66F5]/5 text-[#3B66F5] rounded-xl hover:bg-[#3B66F5]/10 flex flex-col items-center gap-2 transition-colors"
               >
                 <IdCard className="w-6 h-6" />
                 <span className="text-sm font-medium">Kartu Siswa</span>

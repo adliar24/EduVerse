@@ -1163,7 +1163,7 @@ export default function BankSoal() {
     <div className="space-y-10 pb-20">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl sm:text-3xl font-bold text-indigo-950 tracking-tight">Bank Soal</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold text-[#1D4ED8] tracking-tight">Bank Soal</h2>
           <p className="text-slate-500 font-medium text-sm sm:text-base">Kelola dan organisir koleksi pertanyaan ujian Anda.</p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -1187,7 +1187,7 @@ export default function BankSoal() {
                 setShowTemplateDropdown(!showTemplateDropdown);
                 setShowImportDropdown(false);
               }}
-              className="bg-white text-indigo-900 border border-slate-200 px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 shadow-sm transition-all hover:bg-slate-50"
+              className="bg-white text-[#1D4ED8] border border-slate-200 px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 shadow-sm transition-all hover:bg-slate-50"
             >
               <Download className="w-4 h-4" />
               Templat
@@ -1202,7 +1202,7 @@ export default function BankSoal() {
                    handleDownloadTemplate();
                    setShowTemplateDropdown(false);
                  }}
-                 className="w-full px-4 py-3 text-left text-sm font-bold text-slate-600 hover:bg-slate-50 hover:text-indigo-950 flex items-center gap-3"
+                 className="w-full px-4 py-3 text-left text-sm font-bold text-slate-600 hover:bg-slate-50 hover:text-[#1D4ED8] flex items-center gap-3"
                >
                  <Download className="w-4 h-4 text-emerald-500" />
                  Excel Template
@@ -1212,9 +1212,9 @@ export default function BankSoal() {
                    handleDownloadDocxTemplate();
                    setShowTemplateDropdown(false);
                  }}
-                 className="w-full px-4 py-3 text-left text-sm font-bold text-slate-600 hover:bg-slate-50 hover:text-indigo-950 flex items-center gap-3 border-t border-slate-50"
+                 className="w-full px-4 py-3 text-left text-sm font-bold text-slate-600 hover:bg-slate-50 hover:text-[#1D4ED8] flex items-center gap-3 border-t border-slate-50"
                >
-                 <FileText className="w-4 h-4 text-blue-500" />
+                 <FileText className="w-4 h-4 text-[#3B66F5]" />
                  Word Template
                </button>
             </div>
@@ -1226,7 +1226,7 @@ export default function BankSoal() {
                 setShowImportDropdown(!showImportDropdown);
                 setShowTemplateDropdown(false);
               }}
-              className="bg-white text-indigo-900 border border-slate-200 px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 shadow-sm transition-all hover:bg-slate-50 disabled:opacity-50"
+              className="bg-white text-[#1D4ED8] border border-slate-200 px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 shadow-sm transition-all hover:bg-slate-50 disabled:opacity-50"
             >
               <Upload className="w-4 h-4" />
               {importing ? 'Mengimpor...' : 'Impor'}
@@ -1241,7 +1241,7 @@ export default function BankSoal() {
                    fileInputRef.current?.click();
                    setShowImportDropdown(false);
                  }}
-                 className="w-full px-4 py-3 text-left text-sm font-bold text-slate-600 hover:bg-slate-50 hover:text-indigo-950 flex items-center gap-3"
+                 className="w-full px-4 py-3 text-left text-sm font-bold text-slate-600 hover:bg-slate-50 hover:text-[#1D4ED8] flex items-center gap-3"
                >
                  <Upload className="w-4 h-4 text-emerald-500" />
                  Impor Excel
@@ -1251,9 +1251,9 @@ export default function BankSoal() {
                     docxInputRef.current?.click();
                     setShowImportDropdown(false);
                  }}
-                 className="w-full px-4 py-3 text-left text-sm font-bold text-slate-600 hover:bg-slate-50 hover:text-indigo-950 flex items-center gap-3 border-t border-slate-50"
+                 className="w-full px-4 py-3 text-left text-sm font-bold text-slate-600 hover:bg-slate-50 hover:text-[#1D4ED8] flex items-center gap-3 border-t border-slate-50"
                >
-                 <FileText className="w-4 h-4 text-blue-500" />
+                 <FileText className="w-4 h-4 text-[#3B66F5]" />
                  Impor Word
                </button>
             </div>
@@ -1276,7 +1276,7 @@ export default function BankSoal() {
             <div className="relative flex-1">
               <FolderIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
               <select 
-                className="w-full pl-10 pr-10 py-2.5 sm:py-3 rounded-xl border border-slate-200 bg-slate-50 outline-none focus:ring-2 focus:ring-indigo-950/10 transition-all font-medium text-sm text-indigo-950 appearance-none cursor-pointer"
+                className="w-full pl-10 pr-10 py-2.5 sm:py-3 rounded-xl border border-slate-200 bg-slate-50 outline-none focus:ring-2 focus:ring-[#3B66F5]/15 transition-all font-medium text-sm text-[#1D4ED8] appearance-none cursor-pointer"
                 value={currentCategoryId || ''}
                 onChange={(e) => setCurrentCategoryId(e.target.value || null)}
               >
@@ -1292,7 +1292,7 @@ export default function BankSoal() {
             <div className="flex items-center gap-2 shrink-0">
               <button 
                 onClick={() => setShowFolderForm(true)}
-                className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl font-semibold text-sm text-blue-600 bg-blue-50 hover:bg-blue-100 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl font-semibold text-sm text-[#3B66F5] bg-[#3B66F5]/5 hover:bg-[#3B66F5]/10 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                 title="Tambah Folder Baru"
               >
                 <FolderPlus className="w-4 h-4" /> Folder Baru
@@ -1317,7 +1317,7 @@ export default function BankSoal() {
           <div className="flex flex-wrap items-center gap-2 text-sm font-bold">
             <button 
               onClick={() => setCurrentCategoryId(null)}
-              className="text-slate-400 hover:text-indigo-950 transition-colors"
+              className="text-slate-400 hover:text-[#1D4ED8] transition-colors"
             >
               Semua Soal
             </button>
@@ -1328,7 +1328,7 @@ export default function BankSoal() {
                   onClick={() => setCurrentCategoryId(crumb.id)}
                   className={cn(
                     "transition-colors",
-                    idx === breadcrumbs.length - 1 ? "text-indigo-950" : "text-slate-400 hover:text-indigo-950"
+                    idx === breadcrumbs.length - 1 ? "text-[#1D4ED8]" : "text-slate-400 hover:text-[#1D4ED8]"
                   )}
                 >
                   {crumb.name}
@@ -1339,7 +1339,7 @@ export default function BankSoal() {
 
           {/* Search Bar */}
           <div className="relative group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4 group-focus-within:text-blue-500 transition-colors" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4 group-focus-within:text-[#3B66F5] transition-colors" />
             <input 
               type="text" 
               placeholder={currentCategory ? `Cari di ${currentCategory.name}...` : "Cari berdasarkan teks pertanyaan..."}
@@ -1365,12 +1365,12 @@ export default function BankSoal() {
                       setSelectedQuestionIds(allVisibleIds);
                     }
                   }}
-                  className="flex items-center gap-3 text-sm font-bold text-slate-600 hover:text-indigo-950 transition-colors"
+                  className="flex items-center gap-3 text-sm font-bold text-slate-600 hover:text-[#1D4ED8] transition-colors"
                 >
                   <div className={cn(
                     "w-6 h-6 rounded border-2 flex items-center justify-center transition-all",
                     filteredQuestions.length > 0 && filteredQuestions.every(q => selectedQuestionIds.includes(q.id))
-                      ? "bg-indigo-950 border-indigo-950 text-white"
+                      ? "bg-[#1D4ED8] border-[#3B66F5] text-white"
                       : "border-slate-300 bg-white"
                   )}>
                     {filteredQuestions.length > 0 && filteredQuestions.every(q => selectedQuestionIds.includes(q.id)) && (
@@ -1402,7 +1402,7 @@ export default function BankSoal() {
                   className={cn(
                     "bg-white border-2 rounded-[2rem] p-6 transition-all duration-500 hover:border-slate-350 group relative",
                     selectedQuestionIds.includes(q.id) 
-                      ? "border-indigo-950 bg-slate-50/50 shadow-lg shadow-slate-100" 
+                      ? "border-[#3B66F5] bg-slate-50/50 shadow-lg shadow-slate-100" 
                       : "border-slate-100"
                   )}
                 >
@@ -1420,7 +1420,7 @@ export default function BankSoal() {
                           className={cn(
                             "w-7 h-7 rounded-lg border-2 flex items-center justify-center transition-all shrink-0 cursor-pointer",
                             selectedQuestionIds.includes(q.id) 
-                              ? "bg-indigo-950 border-indigo-950 text-white" 
+                              ? "bg-[#1D4ED8] border-[#3B66F5] text-white" 
                               : "border-slate-200 bg-white group-hover:border-slate-400 text-transparent"
                           )}
                         >
@@ -1439,7 +1439,7 @@ export default function BankSoal() {
                             <img src={q.image_url} alt="Question" className="max-w-full h-auto object-contain max-h-48 p-1" loading="lazy" />
                           </div>
                         )}
-                        <p className="text-indigo-900 font-bold text-lg leading-snug group-hover:text-blue-900 transition-colors text-balance">{q.question_text}</p>
+                        <p className="text-[#1D4ED8] font-bold text-lg leading-snug group-hover:text-blue-900 transition-colors text-balance">{q.question_text}</p>
                         <div className="flex items-center gap-4 mt-4">
                           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Dibuat {new Date(q.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
                         </div>
@@ -1450,7 +1450,7 @@ export default function BankSoal() {
                         <button 
                           onClick={() => handleEdit(q)}
                           disabled={editingQuestionIds.includes(q.id)}
-                          className="p-3 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all border border-transparent hover:border-blue-100 disabled:opacity-50 disabled:cursor-wait"
+                          className="p-3 text-slate-400 hover:text-[#3B66F5] hover:bg-[#3B66F5]/5 rounded-xl transition-all border border-transparent hover:border-[#3B66F5]/20 disabled:opacity-50 disabled:cursor-wait"
                         >
                           {editingQuestionIds.includes(q.id) ? (
                             <div className="w-5 h-5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
@@ -1477,11 +1477,11 @@ export default function BankSoal() {
                 <div className="bg-slate-50 w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-6">
                   <HelpCircle className="w-10 h-10 text-slate-300" />
                 </div>
-                <h3 className="text-xl font-bold text-indigo-950 mb-2">Belum ada soal</h3>
+                <h3 className="text-xl font-bold text-[#1D4ED8] mb-2">Belum ada soal</h3>
                 <p className="text-slate-400 font-medium max-w-xs mx-auto">Mulai bangun bank soal Anda dengan menambahkan pertanyaan pertama.</p>
                 <button 
                   onClick={() => setShowAddForm(true)}
-                  className="mt-8 text-blue-600 font-bold hover:underline flex items-center gap-2 mx-auto"
+                  className="mt-8 text-[#3B66F5] font-bold hover:underline flex items-center gap-2 mx-auto"
                 >
                   Tambah Soal Sekarang <ChevronRight className="w-4 h-4" />
                 </button>
@@ -1532,7 +1532,7 @@ export default function BankSoal() {
               className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl p-8 overflow-hidden border border-slate-100"
             >
               <div className="flex items-center justify-between mb-8">
-                <h3 className="text-xl font-bold text-indigo-950">Buat Folder Baru</h3>
+                <h3 className="text-xl font-bold text-[#1D4ED8]">Buat Folder Baru</h3>
                 <button onClick={() => setShowFolderForm(false)} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
                   <Plus className="w-6 h-6 rotate-45 text-slate-400" />
                 </button>
@@ -1600,7 +1600,7 @@ export default function BankSoal() {
                 <Trash2 className="w-8 h-8 text-red-600" />
               </div>
               
-              <h3 className="text-xl font-bold text-indigo-950 text-center mb-2">Hapus Folder?</h3>
+              <h3 className="text-xl font-bold text-[#1D4ED8] text-center mb-2">Hapus Folder?</h3>
               <p className="text-slate-500 text-center mb-2">
                 Anda yakin ingin menghapus folder <strong>"{folderToDelete.name}"</strong>?
               </p>
@@ -1702,7 +1702,7 @@ export default function BankSoal() {
               className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl p-8 overflow-hidden border border-slate-100"
             >
               <div className="flex items-center justify-between mb-8">
-                <h3 className="text-xl font-bold text-indigo-950">Pindahkan {selectedQuestionIds.length} Soal</h3>
+                <h3 className="text-xl font-bold text-[#1D4ED8]">Pindahkan {selectedQuestionIds.length} Soal</h3>
                 <button onClick={() => setShowMoveModal(false)} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
                   <Plus className="w-6 h-6 rotate-45 text-slate-400" />
                 </button>
@@ -1766,7 +1766,7 @@ export default function BankSoal() {
             >
               <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-white">
                 <div>
-                  <h3 className="text-2xl font-bold text-indigo-950">{editingId ? 'Edit Soal' : 'Tambah Soal Baru'}</h3>
+                  <h3 className="text-2xl font-bold text-[#1D4ED8]">{editingId ? 'Edit Soal' : 'Tambah Soal Baru'}</h3>
                   <p className="text-sm text-slate-500 font-medium mt-1">Lengkapi detail pertanyaan di bawah ini secara lengkap.</p>
                 </div>
                 <button onClick={closeModal} className="p-2.5 hover:bg-slate-50 rounded-full transition-colors cursor-pointer border border-slate-200 bg-white shadow-sm">
@@ -1830,7 +1830,7 @@ export default function BankSoal() {
                           </button>
                         </>
                       ) : (
-                        <label className="cursor-pointer flex flex-col items-center gap-1.5 text-slate-400 hover:text-blue-500 transition-colors w-full h-full justify-center">
+                        <label className="cursor-pointer flex flex-col items-center gap-1.5 text-slate-400 hover:text-[#3B66F5] transition-colors w-full h-full justify-center">
                           <ImageIcon className="w-8 h-8" />
                           <span className="text-xs font-bold">Pilih Gambar</span>
                           <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
@@ -1842,7 +1842,7 @@ export default function BankSoal() {
                       <button 
                         type="button" 
                         onClick={() => document.getElementById('image-upload')?.click()}
-                        className="text-xs sm:text-sm font-bold text-blue-600 hover:underline cursor-pointer"
+                        className="text-xs sm:text-sm font-bold text-[#3B66F5] hover:underline cursor-pointer"
                       >
                         Ganti Gambar
                       </button>
@@ -1930,7 +1930,7 @@ export default function BankSoal() {
                                   </button>
                                 </>
                               ) : (
-                                <label className="cursor-pointer flex flex-col items-center justify-center w-full h-full text-slate-300 hover:text-blue-500 transition-colors">
+                                <label className="cursor-pointer flex flex-col items-center justify-center w-full h-full text-slate-300 hover:text-[#3B66F5] transition-colors">
                                   <ImageIcon className="w-5 h-5" />
                                   <input type="file" accept="image/*" className="hidden" onChange={(e) => handleOptionImageChange(label, e)} />
                                 </label>
@@ -1942,7 +1942,7 @@ export default function BankSoal() {
                                 <button 
                                   type="button"
                                   onClick={() => (document.getElementById(`opt-img-${label}`) as HTMLInputElement)?.click()}
-                                  className="text-xs font-bold text-blue-600 hover:underline cursor-pointer"
+                                  className="text-xs font-bold text-[#3B66F5] hover:underline cursor-pointer"
                                 >
                                   Upload Gambar
                                 </button>

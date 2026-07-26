@@ -230,7 +230,7 @@ export const FaceBulkEnrollment: React.FC<Props> = ({ state, notify }) => {
           <div className="space-y-8 pb-10">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="bg-white border border-gray-100 p-4 rounded-2xl flex items-center gap-4">
-                <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center">
+                <div className="w-10 h-10 bg-[#3B66F5]/5 text-[#3B66F5] rounded-xl flex items-center justify-center">
                   <User size={20} />
                 </div>
                 <div>
@@ -239,7 +239,7 @@ export const FaceBulkEnrollment: React.FC<Props> = ({ state, notify }) => {
                 </div>
               </div>
               <div className="bg-white border border-gray-100 p-4 rounded-2xl flex items-center gap-4">
-                <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center">
+                <div className="w-10 h-10 bg-[#3B66F5]/5 text-[#3B66F5] rounded-xl flex items-center justify-center">
                   <ImageIcon size={20} />
                 </div>
                 <div>
@@ -247,13 +247,13 @@ export const FaceBulkEnrollment: React.FC<Props> = ({ state, notify }) => {
                   <p className="text-xl font-bold text-gray-900 leading-none mt-1">{Object.keys(selectedFiles).length}</p>
                 </div>
               </div>
-              <div className="sm:col-span-2 bg-blue-600/5 border border-blue-100 p-4 rounded-2xl flex items-center gap-4">
-                <div className="w-10 h-10 bg-blue-500 text-white rounded-xl flex items-center justify-center shadow-md shadow-blue-200">
+              <div className="sm:col-span-2 bg-blue-600/5 border border-[#3B66F5]/20 p-4 rounded-2xl flex items-center gap-4">
+                <div className="w-10 h-10 bg-[#3B66F5]/50 text-white rounded-xl flex items-center justify-center shadow-md shadow-blue-200">
                   <Info size={20} />
                 </div>
                 <div className="flex-1">
                   <p className="text-xs font-bold text-blue-800 tracking-tight">Panduan: Pencocokan Siswa</p>
-                  <p className="text-[11px] text-blue-600 font-medium opacity-80 leading-relaxed mt-0.5">Tarik file foto langsung ke kotak di samping nama siswa.</p>
+                  <p className="text-[11px] text-[#3B66F5] font-medium opacity-80 leading-relaxed mt-0.5">Tarik file foto langsung ke kotak di samping nama siswa.</p>
                 </div>
               </div>
             </div>
@@ -262,9 +262,9 @@ export const FaceBulkEnrollment: React.FC<Props> = ({ state, notify }) => {
               <AnimatePresence mode="popLayout">
                 {classStudents.map((student) => (
                   <motion.div key={student.id} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.2 }} layout>
-                    <Card className={`group relative p-3 border-2 transition-all duration-300 h-full overflow-hidden ${status[student.id] === 'success' ? 'border-blue-500/20 bg-blue-50/20' :
+                    <Card className={`group relative p-3 border-2 transition-all duration-300 h-full overflow-hidden ${status[student.id] === 'success' ? 'border-blue-500/20 bg-[#3B66F5]/5/20' :
                         status[student.id] === 'error' ? 'border-red-500/20 bg-red-50/20' :
-                          previews[student.id] ? 'border-blue-500/20 bg-blue-50/10' : 'border-gray-50 bg-white hover:border-gray-200 shadow-sm'
+                          previews[student.id] ? 'border-blue-500/20 bg-[#3B66F5]/5/10' : 'border-gray-50 bg-white hover:border-gray-200 shadow-sm'
                       }`}>
                       <div className="flex flex-col h-full space-y-3">
                         <div className="flex items-start justify-between min-h-[40px]">
@@ -274,8 +274,8 @@ export const FaceBulkEnrollment: React.FC<Props> = ({ state, notify }) => {
                           </div>
                           {status[student.id] && (
                             <div className="shrink-0">
-                              {status[student.id] === 'processing' && <Loader2 className="animate-spin text-blue-500" size={16} />}
-                              {status[student.id] === 'success' && <CheckCircle className="text-blue-500" size={18} />}
+                              {status[student.id] === 'processing' && <Loader2 className="animate-spin text-[#3B66F5]" size={16} />}
+                              {status[student.id] === 'success' && <CheckCircle className="text-[#3B66F5]" size={18} />}
                               {status[student.id] === 'error' && <XCircle className="text-red-500" size={18} />}
                             </div>
                           )}
@@ -283,7 +283,7 @@ export const FaceBulkEnrollment: React.FC<Props> = ({ state, notify }) => {
                         <div
                           onDrop={(e) => handleDrop(student.id, e)} onDragOver={handleDragOver}
                           onClick={() => document.getElementById(`file-${student.id}`)?.click()}
-                          className="relative aspect-[4/3] rounded-xl border border-gray-200 flex flex-col items-center justify-center cursor-pointer overflow-hidden bg-gray-50/50 hover:bg-blue-50/30 transition-all"
+                          className="relative aspect-[4/3] rounded-xl border border-gray-200 flex flex-col items-center justify-center cursor-pointer overflow-hidden bg-gray-50/50 hover:bg-[#3B66F5]/5/30 transition-all"
                         >
                           <input id={`file-${student.id}`} type="file" className="hidden" onChange={(e) => handleFileSelect(student.id, e.target.files?.[0] || null)} accept="image/*" disabled={isProcessing} />
                           {previews[student.id] ? (
@@ -293,7 +293,7 @@ export const FaceBulkEnrollment: React.FC<Props> = ({ state, notify }) => {
                             </>
                           ) : (
                             <div className="flex flex-col items-center gap-2">
-                              <div className="w-9 h-9 bg-white rounded-xl flex items-center justify-center text-blue-400 border border-gray-100 shadow-sm">
+                              <div className="w-9 h-9 bg-white rounded-xl flex items-center justify-center text-[#3B66F5] border border-gray-100 shadow-sm">
                                 <Upload size={16} />
                               </div>
                               <span className="text-[10px] font-black text-gray-300 uppercase tracking-widest">Box Foto</span>
@@ -313,19 +313,19 @@ export const FaceBulkEnrollment: React.FC<Props> = ({ state, notify }) => {
       <AnimatePresence>
         {selectedClassId && (
           <motion.div key="action-bar" initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 20, opacity: 0 }} className="sticky bottom-0 z-50 w-full">
-            <div className="bg-white/90 border-t border-blue-100 shadow-[0_-10px_40px_rgba(16,185,129,0.1)] p-6 sm:px-10 backdrop-blur-md rounded-t-3xl">
+            <div className="bg-white/90 border-t border-[#3B66F5]/20 shadow-[0_-10px_40px_rgba(16,185,129,0.1)] p-6 sm:px-10 backdrop-blur-md rounded-t-3xl">
               <div className="flex flex-col sm:flex-row items-center gap-6">
                 <div className="flex-1 w-full space-y-3">
                   <div className="flex items-center justify-between text-gray-800">
                     <div className="flex items-center gap-3">
-                      {isProcessing ? <Loader2 className="w-5 h-5 text-blue-500 animate-spin" /> : <CloudUpload size={18} className="text-blue-500" />}
+                      {isProcessing ? <Loader2 className="w-5 h-5 text-[#3B66F5] animate-spin" /> : <CloudUpload size={18} className="text-[#3B66F5]" />}
                       <span className="text-[11px] font-black uppercase tracking-widest">
                         {isProcessing ? `Menyinkronkan... ${globalProgress}%` : `Siap Diproses • ${Object.keys(selectedFiles).length} Foto`}
                       </span>
                     </div>
                   </div>
                   <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                    <motion.div className="h-full bg-blue-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]" initial={{ width: 0 }} animate={{ width: isProcessing ? `${globalProgress}%` : `${(Object.keys(selectedFiles).length / Math.max(classStudents.length, 1)) * 100}%` }} transition={{ duration: 0.3 }} />
+                    <motion.div className="h-full bg-[#3B66F5]/50 shadow-[0_0_8px_rgba(16,185,129,0.4)]" initial={{ width: 0 }} animate={{ width: isProcessing ? `${globalProgress}%` : `${(Object.keys(selectedFiles).length / Math.max(classStudents.length, 1)) * 100}%` }} transition={{ duration: 0.3 }} />
                   </div>
                 </div>
                 <div className="shrink-0 w-full sm:w-auto">

@@ -60,7 +60,7 @@ const ToastItem: React.FC<{ toast: Toast, onRemove: (id: string) => void }> = ({
   const bgColors = {
     success: 'bg-emerald-500',
     error: 'bg-red-500',
-    info: 'bg-blue-500',
+    info: 'bg-[#3B66F5]/50',
     warning: 'bg-amber-500'
   };
 
@@ -115,11 +115,11 @@ export const Button: React.FC<React.ButtonHTMLAttributes<HTMLButtonElement> & { 
   const baseStyle = "btn-press inline-flex items-center justify-center rounded-xl font-black transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 tracking-wide";
   
   const variants = {
-    primary: "bg-gradient-primary text-white shadow-md shadow-blue-900/10 hover:shadow-lg border border-transparent",
-    accent: "bg-accent text-primaryDark shadow-md shadow-amber-500/10 hover:shadow-lg border border-transparent",
+    primary: "bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white shadow-md shadow-[#3B66F5]/10 hover:shadow-lg border border-transparent",
+    accent: "bg-accent text-[#1D4ED8] shadow-md shadow-amber-500/10 hover:shadow-lg border border-transparent",
     secondary: "bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 shadow-sm",
-    outline: "border-2 border-primary text-primary hover:bg-blue-50",
-    ghost: "text-slate-500 hover:bg-slate-50 hover:text-primary",
+    outline: "border-2 border-[#3B66F5] text-[#3B66F5] hover:bg-[#3B66F5]/5",
+    ghost: "text-slate-500 hover:bg-slate-50 hover:text-[#3B66F5]",
     danger: "bg-red-50 text-red-600 hover:bg-red-600 hover:text-white border border-red-100 transition-all"
   };
 
@@ -141,7 +141,7 @@ export const Input: React.FC<React.InputHTMLAttributes<HTMLInputElement> & { lab
   <div className="w-full flex flex-col">
     {label && <label className={`block text-[10px] font-black uppercase tracking-widest mb-1.5 ml-1 ${labelClassName || 'text-slate-500'}`}>{label}</label>}
     <input 
-      className={`w-full bg-white text-slate-700 border border-slate-200 rounded-xl px-4 py-3 focus:border-primary focus:ring-4 focus:ring-primary/5 outline-none transition-all duration-300 placeholder-slate-400 text-sm font-bold tracking-wide ${className}`}
+      className={`w-full bg-white text-slate-700 border border-slate-200 rounded-xl px-4 py-3 focus:border-[#3B66F5] focus:ring-4 focus:ring-[#3B66F5]/5 outline-none transition-all duration-300 placeholder-slate-400 text-sm font-bold tracking-wide ${className}`}
       {...props} 
     />
   </div>
@@ -152,7 +152,7 @@ export const Select: React.FC<React.SelectHTMLAttributes<HTMLSelectElement> & { 
     {label && <label className={`block text-[11px] font-black uppercase tracking-widest mb-2 ml-1 ${labelClassName || 'text-slate-500'}`}>{label}</label>}
     <div className="relative">
       <select 
-        className={`w-full bg-white text-slate-700 border border-slate-200 rounded-2xl px-5 py-3.5 appearance-none focus:border-primary focus:ring-4 focus:ring-primary/5 outline-none transition-all duration-300 text-sm font-bold tracking-wide ${className}`}
+        className={`w-full bg-white text-slate-700 border border-slate-200 rounded-2xl px-5 py-3.5 appearance-none focus:border-[#3B66F5] focus:ring-4 focus:ring-[#3B66F5]/5 outline-none transition-all duration-300 text-sm font-bold tracking-wide ${className}`}
         {...props} 
       >
         {children}
@@ -166,7 +166,7 @@ export const Select: React.FC<React.SelectHTMLAttributes<HTMLSelectElement> & { 
 
 export const Card: React.FC<{ children: React.ReactNode, className?: string, onClick?: () => void }> = ({ children, className = '', onClick }) => (
   <div 
-    className={`bg-white rounded-[1.75rem] shadow-sm border border-slate-100 p-5 transition-all duration-300 ${onClick ? 'cursor-pointer hover:shadow-lg hover:border-primary active:scale-[0.98]' : ''} ${className}`}
+    className={`bg-white rounded-[1.75rem] shadow-sm border border-slate-100 p-5 transition-all duration-300 ${onClick ? 'cursor-pointer hover:shadow-lg hover:border-[#3B66F5] active:scale-[0.98]' : ''} ${className}`}
     onClick={onClick}
   >
     {children}
@@ -214,7 +214,7 @@ export const Modal: React.FC<{ isOpen: boolean, onClose: () => void, title: Reac
         className={`bg-white rounded-3xl w-full ${fullScreen ? 'max-w-4xl h-[90vh]' : 'max-w-lg'} shadow-2xl overflow-hidden ${isClosing ? 'animate-pop-out' : 'animate-pop'} flex flex-col`}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="bg-gradient-primary px-6 py-4 flex justify-between items-center relative shrink-0">
+        <div className="bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] px-6 py-4 flex justify-between items-center relative shrink-0">
           <div className="text-white font-black text-lg tracking-wide uppercase leading-tight">{title}</div>
           <button onClick={onClose} className="text-white/60 hover:text-white bg-white/10 hover:bg-white/20 rounded-full p-2 transition-colors">✕</button>
         </div>
@@ -274,7 +274,7 @@ export const Logo: React.FC<{ size?: 'sm' | 'lg' | 'xl', invert?: boolean, minim
   return (
     <div className={`inline-flex items-center gap-3 font-black tracking-tight ${textSize} ${className}`}>
       <div className={`relative flex items-center justify-center
-        ${minimal ? 'bg-transparent' : (invert ? 'bg-white text-primary' : 'bg-gradient-primary text-white')}
+        ${minimal ? 'bg-transparent' : (invert ? 'bg-white text-[#3B66F5]' : 'bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white')}
         ${!minimal && 'rounded-xl shadow-lg'}
         transition-transform hover:scale-105 duration-500
         ${boxSize}
@@ -297,14 +297,14 @@ export const SchoolPickerModal: React.FC<{ isOpen: boolean, onClose: () => void,
           <div 
             key={school.id} 
             onClick={() => { onSelect(school.id); onClose(); }}
-            className={`p-4 rounded-2xl border-2 flex items-center justify-between cursor-pointer transition-all hover:scale-[1.01] active:scale-[0.99] ${school.id === profile.activeSchoolId ? 'border-primary bg-primary/5 shadow-md shadow-blue-500/5' : 'border-slate-100 hover:border-slate-200 bg-white'}`}
+            className={`p-4 rounded-2xl border-2 flex items-center justify-between cursor-pointer transition-all hover:scale-[1.01] active:scale-[0.99] ${school.id === profile.activeSchoolId ? 'border-[#3B66F5] bg-[#3B66F5]/5 shadow-md shadow-blue-500/5' : 'border-slate-100 hover:border-slate-200 bg-white'}`}
           >
             <div className="min-w-0">
               <h4 className="font-black text-slate-800 uppercase tracking-wide truncate">{school.nama}</h4>
               <p className="text-[10px] text-slate-500 mt-0.5 font-bold uppercase tracking-wider">TA {school.tahunAjaran} • {school.semester === '1' ? 'Ganjil' : 'Genap'} • KKM {school.kkmDefault}</p>
             </div>
             {school.id === profile.activeSchoolId && (
-              <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white shrink-0">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] flex items-center justify-center text-white shrink-0">
                 <Check size={18} strokeWidth={3} />
               </div>
             )}
@@ -339,7 +339,7 @@ export const Sidebar: React.FC<{ profile: TeacherProfile | null, refreshProfile:
   const activeSchool = profile?.schools.find(s => s.id === profile.activeSchoolId);
 
   return (
-    <aside className="hidden md:flex flex-col w-60 lg:w-64 fixed inset-y-0 left-0 bg-gradient-primary z-[50] text-white md:rounded-r-[2rem] shadow-2xl border-r border-white/5">
+    <aside className="hidden md:flex flex-col w-60 lg:w-64 fixed inset-y-0 left-0 bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] z-[50] text-white md:rounded-r-[2rem] shadow-2xl border-r border-white/5">
       <div className="p-8 pb-6">
         <Logo size="lg" invert /> 
       </div>
@@ -357,7 +357,7 @@ export const Sidebar: React.FC<{ profile: TeacherProfile | null, refreshProfile:
                 : 'text-blue-100 hover:bg-white/5 hover:text-white'
               }`}
             >
-              <item.icon size={18} className={`transition-colors ${active ? 'text-accent' : 'text-blue-300 group-hover:text-white'}`} strokeWidth={active ? 2.5 : 2} />
+              <item.icon size={18} className={`transition-colors ${active ? 'text-accent' : 'text-[#3B66F5]/70 group-hover:text-white'}`} strokeWidth={active ? 2.5 : 2} />
               {item.label}
               {active && <div className="ml-auto w-1.5 h-1.5 bg-accent rounded-full shadow-glow-gold"></div>}
             </Link>
@@ -407,14 +407,14 @@ export const BottomNav: React.FC = () => {
   return (
     <>
     <nav className="md:hidden fixed bottom-0 inset-x-0 bg-white/0 z-[50]">
-      <div className="absolute inset-x-0 bottom-0 h-[80px] bg-gradient-primary rounded-t-[2rem] shadow-[0_-10px_40px_-10px_rgba(0,0,0,0.1)] border-t border-white/10"></div>
+      <div className="absolute inset-x-0 bottom-0 h-[80px] bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] rounded-t-[2rem] shadow-[0_-10px_40px_-10px_rgba(0,0,0,0.1)] border-t border-white/10"></div>
       
       <div className="relative flex justify-around items-end pb-3 px-2 h-[80px]">
         {regularNavItems.slice(0, 2).map((item) => (
           <Link 
             key={item.path} 
             to={item.path} 
-            className={`relative flex flex-col items-center py-2 px-1 w-full transition-all duration-300 ${isActive(item.path) ? 'text-white' : 'text-blue-300'}`}
+            className={`relative flex flex-col items-center py-2 px-1 w-full transition-all duration-300 ${isActive(item.path) ? 'text-white' : 'text-[#3B66F5]/70'}`}
           >
             <div className={`p-1.5 rounded-xl transition-all duration-300 ${isActive(item.path) ? 'bg-white/20 backdrop-blur-md translate-y-[-2px]' : ''}`}>
               <item.icon size={18} strokeWidth={isActive(item.path) ? 2.5 : 2} className={`transition-all duration-500 ${isActive(item.path) ? 'text-accent' : 'opacity-60'}`} />
@@ -425,7 +425,7 @@ export const BottomNav: React.FC = () => {
 
         <div className="relative -top-6 group">
           <Link to="/point">
-            <div className={`w-16 h-16 rounded-full flex items-center justify-center shadow-glow-gold transition-all duration-300 ${isActive('/point') ? 'bg-accent text-primaryDark scale-110' : 'bg-slate-800 text-accent border-4 border-slate-700'}`}>
+            <div className={`w-16 h-16 rounded-full flex items-center justify-center shadow-glow-gold transition-all duration-300 ${isActive('/point') ? 'bg-accent text-[#1D4ED8] scale-110' : 'bg-slate-800 text-accent border-4 border-slate-700'}`}>
               <Star size={32} strokeWidth={3} fill="currentColor" />
             </div>
           </Link>
@@ -435,7 +435,7 @@ export const BottomNav: React.FC = () => {
           <Link 
             key={item.path} 
             to={item.path} 
-            className={`relative flex flex-col items-center py-2 px-1 w-full transition-all duration-300 ${isActive(item.path) ? 'text-white' : 'text-blue-300'}`}
+            className={`relative flex flex-col items-center py-2 px-1 w-full transition-all duration-300 ${isActive(item.path) ? 'text-white' : 'text-[#3B66F5]/70'}`}
           >
             <div className={`p-1.5 rounded-xl transition-all duration-300 ${isActive(item.path) ? 'bg-white/20 backdrop-blur-md translate-y-[-2px]' : ''}`}>
               <item.icon size={18} strokeWidth={isActive(item.path) ? 2.5 : 2} className={`transition-all duration-500 ${isActive(item.path) ? 'text-accent' : 'opacity-60'}`} />
@@ -447,7 +447,7 @@ export const BottomNav: React.FC = () => {
         {/* More Button */}
         <button 
           onClick={() => setShowMore(true)}
-          className={`relative flex flex-col items-center py-2 px-1 w-full transition-all duration-300 text-blue-300`}
+          className={`relative flex flex-col items-center py-2 px-1 w-full transition-all duration-300 text-[#3B66F5]/70`}
         >
           <div className="p-1.5 rounded-xl transition-all duration-300">
             <Menu size={18} strokeWidth={2} className="opacity-60" />
@@ -465,9 +465,9 @@ export const BottomNav: React.FC = () => {
               key={item.path} 
               to={item.path} 
               onClick={() => setShowMore(false)}
-              className={`p-6 rounded-3xl border-2 flex flex-col items-center gap-3 transition-all ${isActive(item.path) ? 'border-primary bg-primary/5 text-primary scale-[1.02]' : 'border-slate-100 bg-white text-slate-600 active:scale-95'}`}
+              className={`p-6 rounded-3xl border-2 flex flex-col items-center gap-3 transition-all ${isActive(item.path) ? 'border-[#3B66F5] bg-[#3B66F5]/5 text-[#3B66F5] scale-[1.02]' : 'border-slate-100 bg-white text-slate-600 active:scale-95'}`}
             >
-              <item.icon size={32} strokeWidth={isActive(item.path) ? 2.5 : 2} className={isActive(item.path) ? 'text-primary' : 'text-slate-400'} />
+              <item.icon size={32} strokeWidth={isActive(item.path) ? 2.5 : 2} className={isActive(item.path) ? 'text-[#3B66F5]' : 'text-slate-400'} />
               <span className="font-black text-xs uppercase tracking-widest">{item.label}</span>
             </Link>
           ))}
@@ -518,12 +518,12 @@ export const Header: React.FC<{
     <header className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-6 mt-0">
       <div className="flex flex-col gap-2">
         {backTo && (
-          <Link to={backTo} className="inline-flex items-center gap-1 text-xs font-bold text-slate-400 hover:text-indigo-950 transition-colors uppercase tracking-wider mb-0.5">
+          <Link to={backTo} className="inline-flex items-center gap-1 text-xs font-bold text-slate-400 hover:text-[#1D4ED8] transition-colors uppercase tracking-wider mb-0.5">
             <ChevronLeft size={14} strokeWidth={3} /> Kembali
           </Link>
         )}
         <div>
-          <h2 className="text-3xl font-bold text-indigo-950 tracking-tight leading-tight">{title}</h2>
+          <h2 className="text-3xl font-bold text-[#1D4ED8] tracking-tight leading-tight">{title}</h2>
           {subtitle && <p className="text-slate-500 font-medium mt-1">{subtitle}</p>}
         </div>
       </div>
@@ -534,7 +534,7 @@ export const Header: React.FC<{
 
 export const Layout: React.FC<{ children: React.ReactNode, showNav?: boolean, profile?: TeacherProfile | null, refreshProfile?: () => void }> = ({ children }) => {
   return (
-    <div className="w-full text-slate-700 selection:bg-indigo-500/10 selection:text-indigo-600 animate-in fade-in duration-300">
+    <div className="w-full text-slate-700 selection:bg-[#3B66F5]/100/10 selection:text-[#3B66F5] animate-in fade-in duration-300">
       <main className="w-full">
         <div className="w-full max-w-[1440px] mx-auto pt-0 pb-12">
           {children}
