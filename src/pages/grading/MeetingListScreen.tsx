@@ -234,7 +234,7 @@ export const MeetingListScreen: React.FC = () => {
                      </div>
                      <div className="flex items-center gap-3 relative z-10">
                          <Link to={`/grading/score/${m.idPertemuan}`}>
-                           <button className={`h-14 px-8 rounded-2xl flex items-center justify-center gap-2 font-black uppercase tracking-widest text-[11px] transition-all active:scale-95 shadow-md cursor-pointer ${m.assessmentCategory === 'Sumatif' ? 'bg-indigo-950 text-white shadow-indigo-950/20' : 'bg-indigo-600 text-white shadow-indigo-950/20'}`}>
+                           <button className={`h-14 px-8 rounded-2xl flex items-center justify-center gap-2 font-black uppercase tracking-widest text-[11px] transition-all active:scale-95 shadow-md cursor-pointer ${m.assessmentCategory === 'Sumatif' ? 'bg-[#3B66F5] text-white shadow-[#3B66F5]/25' : 'bg-[#3B66F5] text-white shadow-[#3B66F5]/25'}`}>
                                <ClipboardCheck size={20} />
                                <span>Input Nilai</span>
                            </button>

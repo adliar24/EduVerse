@@ -67,10 +67,11 @@ const ResultsSection: React.FC<ResultsSectionProps> = ({ groups }) => {
           </button>
           <button
             onClick={() => exportToDocx(groups)}
-            className="flex items-center justify-center gap-2 px-4 py-2 bg-indigo-950 hover:bg-indigo-900 text-white rounded-lg shadow-md transition-colors text-sm font-semibold cursor-pointer"
+            className="flex items-center justify-center gap-2 px-4 py-2 bg-[#3B66F5] hover:bg-[#2563EB] text-white rounded-lg shadow-md transition-colors text-sm font-semibold cursor-pointer"
+            title="Download DOCX"
           >
-            <FileIcon className="w-4 h-4 text-white" />
-            Ekspor .DOCX
+            <Download className="w-4 h-4" />
+            <span className="hidden sm:inline">Ekspor .DOCX</span>
           </button>
         </div>
       </div>
@@ -84,7 +85,7 @@ const ResultsSection: React.FC<ResultsSectionProps> = ({ groups }) => {
             transition={{ delay: idx * 0.05 }}
             className="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden flex flex-col transition-all hover:shadow-md"
           >
-            <div className="bg-gradient-to-r from-indigo-950 to-indigo-900 px-5 py-4 border-b border-indigo-900/10">
+            <div className="bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] px-5 py-4 border-b border-indigo-900/10">
               <h3 className="text-white font-bold text-lg leading-tight uppercase tracking-tight">{group.name}</h3>
               <p className="text-indigo-200 text-xs font-semibold mt-0.5">{group.members.length} Anggota</p>
             </div>

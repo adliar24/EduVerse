@@ -246,7 +246,7 @@ export const PointScreen: React.FC = () => {
                     onClick={() => setActiveTab('manual')}
                     className={`flex-1 py-5 px-6 rounded-[1.5rem] font-black uppercase tracking-widest text-xs transition-all cursor-pointer ${
                         activeTab === 'manual' 
-                        ? 'bg-indigo-950 text-white shadow-lg shadow-indigo-950/20 transform scale-[1.02]' 
+                        ? 'bg-[#3B66F5] text-white shadow-lg shadow-indigo-950/20 transform scale-[1.02]' 
                         : 'text-slate-400 hover:bg-slate-50'
                     }`}
                 >
@@ -256,7 +256,7 @@ export const PointScreen: React.FC = () => {
                     onClick={() => setActiveTab('qr')}
                     className={`flex-1 py-5 px-6 rounded-[1.5rem] font-black uppercase tracking-widest text-xs transition-all cursor-pointer ${
                         activeTab === 'qr' 
-                        ? 'bg-indigo-950 text-white shadow-lg shadow-indigo-950/20 transform scale-[1.02]' 
+                        ? 'bg-[#3B66F5] text-white shadow-lg shadow-indigo-950/20 transform scale-[1.02]' 
                         : 'text-slate-400 hover:bg-slate-50'
                     }`}
                 >
@@ -276,7 +276,7 @@ export const PointScreen: React.FC = () => {
                      <div className="flex gap-2">
                         <button 
                             onClick={() => { setPointForm({...pointForm, mode: 'add', source: 'manual'}); setShowModal(true); }}
-                            className="bg-indigo-950 hover:bg-indigo-900 text-white h-14 px-6 rounded-[1.5rem] font-black uppercase tracking-widest text-xs transition-all flex items-center gap-2 shadow-lg shadow-indigo-950/20 active:scale-95 group cursor-pointer"
+                            className="bg-[#3B66F5] hover:bg-indigo-900 text-white h-14 px-6 rounded-[1.5rem] font-black uppercase tracking-widest text-xs transition-all flex items-center gap-2 shadow-lg shadow-indigo-950/20 active:scale-95 group cursor-pointer"
                         >
                             <Plus size={18} strokeWidth={3} className="group-hover:scale-110 transition-transform" /> <span className="hidden sm:inline">Tambah</span>
                         </button>
@@ -501,7 +501,7 @@ export const PointScreen: React.FC = () => {
               value={pointForm.note}
               onChange={e => setPointForm({...pointForm, note: e.target.value})}
             />
-            <Button onClick={handleSubmitPoint} className={`w-full py-5 !rounded-2xl font-black uppercase tracking-widest shadow-lg ${pointForm.mode === 'add' ? 'bg-indigo-950 hover:bg-indigo-900 shadow-indigo-950/20' : 'bg-red-500 hover:bg-red-600 shadow-red-200'}`}>
+            <Button onClick={handleSubmitPoint} className={`w-full py-5 !rounded-2xl font-black uppercase tracking-widest shadow-lg ${pointForm.mode === 'add' ? 'bg-[#3B66F5] hover:bg-indigo-900 shadow-indigo-950/20' : 'bg-red-500 hover:bg-red-600 shadow-red-200'}`}>
                SIMPAN
             </Button>
          </div>

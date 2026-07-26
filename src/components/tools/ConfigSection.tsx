@@ -17,7 +17,7 @@ const ConfigSection: React.FC<ConfigSectionProps> = ({ config, setConfig, totalS
     headerBg: 'bg-slate-50/80 border-b border-slate-200/60',
     iconText: 'text-indigo-950',
     ring: 'focus:ring-2 focus:ring-indigo-950/10 focus:border-indigo-950',
-    activeTab: 'bg-indigo-950 text-white shadow-md shadow-indigo-950/10',
+    activeTab: 'bg-[#3B66F5] text-white shadow-md shadow-[#3B66F5]/20',
     link: 'text-indigo-650 hover:text-indigo-800'
   };
 

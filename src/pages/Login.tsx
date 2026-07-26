@@ -136,19 +136,19 @@ export default function Login() {
       </div>
 
       {/* Right Panel - Interactive Area */}
-      <div className="flex-1 flex flex-col justify-center p-3 sm:p-8 lg:p-24 overflow-y-auto relative z-10">
+      <div className="flex-1 flex flex-col justify-start pt-6 sm:pt-10 lg:pt-0 sm:justify-center items-center p-3 sm:p-8 lg:p-24 overflow-y-auto relative z-10">
         {/* Mobile Header Branding (Visible on mobile/tablet <lg) */}
-        <div className="lg:hidden flex flex-col items-center text-center mb-4 text-white space-y-1.5">
-          <div className="bg-white/15 backdrop-blur-md p-2.5 rounded-2xl border border-white/20 shadow-xl inline-flex items-center justify-center">
+        <div className="lg:hidden flex flex-col items-center text-center mb-4 text-white space-y-1">
+          <div className="bg-white/15 backdrop-blur-md p-2 rounded-2xl border border-white/20 shadow-xl inline-flex items-center justify-center">
             <GraduationCap className="text-white w-6 h-6" />
           </div>
-          <div className="flex items-baseline justify-center gap-1.5">
+          <div className="flex items-baseline justify-center gap-1.5 mt-1">
             <span className="text-2xl font-black tracking-tight text-white">EduVerse</span>
           </div>
           <p className="text-[11px] text-indigo-100/90 font-medium max-w-xs">Aplikasi Manajemen Kelas & Presensi Digital</p>
         </div>
 
-        <div className="w-full max-w-[340px] sm:max-w-md mx-auto bg-white/95 backdrop-blur-2xl p-5 sm:p-8 rounded-3xl shadow-2xl border border-white/60">
+        <div className="w-full max-w-[340px] sm:max-w-md mx-auto bg-white/95 backdrop-blur-2xl p-5 sm:p-8 rounded-3xl shadow-2xl border border-white/60 min-h-[390px] sm:min-h-[410px] flex flex-col justify-center">
           <AnimatePresence mode="wait">
             {view === 'selection' && (
               <motion.div
@@ -157,14 +157,14 @@ export default function Login() {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.98 }}
                 transition={{ duration: 0.2 }}
-                className="space-y-5"
+                className="space-y-4 my-auto"
               >
                 <div>
                   <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight mb-1">Pilih Peran Anda</h2>
                   <p className="text-slate-500 text-xs sm:text-sm font-medium leading-relaxed">Selamat datang di EduVerse. Silakan pilih kategori peran Anda untuk masuk.</p>
                 </div>
 
-                <div className="grid gap-3">
+                <div className="grid gap-3 pt-1">
                   {/* Teacher Option */}
                   <button
                     onClick={() => setView('login')}
@@ -203,6 +203,7 @@ export default function Login() {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -10 }}
                 transition={{ duration: 0.2 }}
+                className="my-auto"
               >
                 <button 
                   onClick={() => setView('selection')}
@@ -267,6 +268,7 @@ export default function Login() {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -10 }}
                 transition={{ duration: 0.2 }}
+                className="my-auto"
               >
                 <button 
                   onClick={() => setView('selection')}

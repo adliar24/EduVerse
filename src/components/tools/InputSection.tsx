@@ -37,8 +37,8 @@ const InputSection: React.FC<InputSectionProps> = ({ onStudentsLoaded, currentCo
     headerBg: 'bg-slate-50/80 border-b border-slate-200/60',
     iconText: 'text-indigo-950',
     badge: 'bg-indigo-50 text-indigo-950 border border-indigo-100/50',
-    tabActive: 'bg-indigo-950 text-white shadow-md shadow-indigo-950/10',
-    button: 'from-indigo-950 to-indigo-900 hover:from-indigo-900 hover:to-indigo-850 shadow-md shadow-indigo-950/10',
+    tabActive: 'bg-[#3B66F5] text-white shadow-md shadow-[#3B66F5]/20',
+    button: 'from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] hover:opacity-95 shadow-md shadow-[#3B66F5]/20',
     ring: 'focus:ring-2 focus:ring-indigo-950/10 focus:border-indigo-950',
     border: 'border-slate-200/80'
   };

@@ -798,7 +798,7 @@ export default function Profil() {
             <button 
               onClick={downloadStudentCard}
               disabled={saving}
-              className="w-[320px] bg-indigo-950 text-white py-4 rounded-2xl font-bold text-sm hover:bg-indigo-900 active:scale-[0.98] transition-all shadow-lg flex items-center justify-center gap-2"
+              className="w-[320px] bg-[#3B66F5] text-white py-4 rounded-2xl font-bold text-sm hover:bg-indigo-900 active:scale-[0.98] transition-all shadow-lg flex items-center justify-center gap-2"
             >
               Unduh Kartu Pelajar (PNG)
             </button>
@@ -848,7 +848,7 @@ export default function Profil() {
                 <button 
                   type="submit" 
                   disabled={saving}
-                  className="bg-indigo-950 text-white px-8 py-3.5 rounded-xl font-bold text-sm hover:bg-indigo-900 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="bg-[#3B66F5] text-white px-8 py-3.5 rounded-xl font-bold text-sm hover:bg-indigo-900 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {saving ? 'Menyimpan...' : 'Simpan Perubahan Akun'}
                 </button>
@@ -1069,7 +1069,7 @@ export default function Profil() {
                             placeholder="Alamat sekolah (opsional)..."
                           />
                           <button type="button" onClick={handleAddSchool} disabled={!newSchoolName.trim()}
-                            className="w-full px-4 py-2.5 bg-indigo-950 text-white rounded-xl hover:bg-indigo-900 disabled:opacity-50 transition-colors shadow-sm font-medium text-sm"
+                            className="w-full px-4 py-2.5 bg-[#3B66F5] text-white rounded-xl hover:bg-indigo-900 disabled:opacity-50 transition-colors shadow-sm font-medium text-sm"
                           >
                             + Tambah & Pilih
                           </button>
@@ -1151,7 +1151,7 @@ export default function Profil() {
                           placeholder="Tambah mata pelajaran manual..."
                         />
                         <button type="button" onClick={handleAddCustomSubject} disabled={!newCustomSubject.trim()}
-                          className="px-4 py-2.5 bg-indigo-950 text-white rounded-xl hover:bg-indigo-900 disabled:opacity-50 transition-colors shadow-sm"
+                          className="px-4 py-2.5 bg-[#3B66F5] text-white rounded-xl hover:bg-indigo-900 disabled:opacity-50 transition-colors shadow-sm"
                         >
                           <Plus className="w-4 h-4" />
                         </button>
@@ -1177,7 +1177,7 @@ export default function Profil() {
 
               <div className="pt-4">
                 <button type="submit" disabled={saving}
-                  className="bg-indigo-950 text-white px-6 py-3 rounded-xl font-semibold text-sm hover:bg-indigo-900 transition-all shadow-sm flex items-center gap-2 disabled:opacity-50 active:scale-[0.98]"
+                  className="bg-[#3B66F5] text-white px-6 py-3 rounded-xl font-semibold text-sm hover:bg-indigo-900 transition-all shadow-sm flex items-center gap-2 disabled:opacity-50 active:scale-[0.98]"
                 >
                   {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Simpan Perubahan'}
                 </button>

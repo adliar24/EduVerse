@@ -103,6 +103,11 @@
 }
 
 /* Electric Royal Blue Sidebar */
+.sidebar-gradient, .sidebar-gradient * {
+  color-scheme: light !important;
+  forced-color-adjust: none !important;
+}
+
 .sidebar-gradient {
   background: linear-gradient(180deg, #2563EB 0%, #1D4ED8 60%, #1E40AF 100%) !important;
   border-right: 1px solid rgba(255, 255, 255, 0.1) !important;

@@ -772,7 +772,7 @@ export default function KelolaSiswa() {
             </button>
           )}
           <button onClick={() => { setEditingId(null); setFormData({ name: '', class_id: '', student_code: '', password: '', gender: '' }); setShowForm(true); }}
-            className="bg-indigo-950 text-white px-5 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 hover:bg-indigo-900 transition-all shadow-lg shadow-slate-200/50 active:scale-[0.98]"
+            className="bg-[#3B66F5] text-white px-5 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 hover:bg-indigo-900 transition-all shadow-lg shadow-slate-200/50 active:scale-[0.98]"
           >
             <Plus className="w-4 h-4" /> Tambah Murid
           </button>
@@ -1002,7 +1002,7 @@ export default function KelolaSiswa() {
                 </div>
                 <div className="flex gap-3 pt-3">
                   <button type="button" onClick={() => setShowForm(false)} className="flex-1 py-3 text-sm font-medium text-slate-400 hover:bg-slate-50 rounded-xl transition-all">Batal</button>
-                  <button type="submit" disabled={submitting} className="flex-[2] bg-indigo-950 text-white py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 hover:bg-indigo-900 shadow-sm active:scale-[0.98] transition-all">
+                  <button type="submit" disabled={submitting} className="flex-[2] bg-[#3B66F5] text-white py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 hover:bg-indigo-900 shadow-sm active:scale-[0.98] transition-all">
                     {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : editingId ? 'Perbarui Data' : 'Simpan Murid'}
                   </button>
                 </div>

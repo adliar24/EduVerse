@@ -128,7 +128,7 @@ const GroupGenerator: React.FC<GroupGeneratorProps> = ({ themeColor = 'blue' }) 
     setIsGenerated(true);
   };
 
-  const buttonGradient = 'from-indigo-950 to-indigo-900 shadow-indigo-950/10';
+  const buttonGradient = 'from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] shadow-[#3B66F5]/20';
 
   return (
     <div className="animate-in fade-in duration-500 pb-20">
