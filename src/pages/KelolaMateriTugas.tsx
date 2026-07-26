@@ -627,7 +627,7 @@ export default function KelolaMateriTugas() {
         <div className="flex gap-2">
           <button 
             onClick={() => handleOpenCreateModal('material')}
-            className="bg-gradient-to-r from-blue-600 via-indigo-600 to-indigo-700 text-white px-5 py-2.5 rounded-full font-bold text-sm flex items-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-blue-600/20 border border-white/10 cursor-pointer"
+            className="bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white px-5 py-2.5 rounded-full font-bold text-sm flex items-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-[#3B66F5]/25 border border-white/10 cursor-pointer"
           >
             <Plus className="w-4 h-4 text-white" /> Tambah Materi
           </button>

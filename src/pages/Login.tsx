@@ -136,7 +136,7 @@ export default function Login() {
       </div>
 
       {/* Right Panel - Interactive Area */}
-      <div className="flex-1 flex flex-col justify-start pt-6 sm:pt-10 lg:pt-0 sm:justify-center items-center p-3 sm:p-8 lg:p-24 overflow-y-auto relative z-10">
+      <div className="flex-1 flex flex-col justify-center items-center p-3 py-6 sm:p-8 lg:p-24 overflow-y-auto relative z-10">
         {/* Mobile Header Branding (Visible on mobile/tablet <lg) */}
         <div className="lg:hidden flex flex-col items-center text-center mb-4 text-white space-y-1">
           <div className="bg-white/15 backdrop-blur-md p-2 rounded-2xl border border-white/20 shadow-xl inline-flex items-center justify-center">

@@ -494,7 +494,7 @@ export const FinalGradeRecapScreen: React.FC = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                <div className="bg-gradient-to-r from-slate-50 to-indigo-50/30 rounded-3xl p-4 border border-indigo-100 space-y-3">
                   <div className="flex items-center gap-3">
-                     <div className="w-10 h-10 bg-indigo-950 rounded-xl flex items-center justify-center text-white">
+                     <div className="w-10 h-10 bg-[#3B66F5] rounded-xl flex items-center justify-center text-white">
                         <BarChart3 size={20} />
                      </div>
                      <div>
@@ -607,7 +607,7 @@ export const FinalGradeRecapScreen: React.FC = () => {
 
                  <div className="bg-gradient-to-r from-slate-50 to-blue-50/30 rounded-3xl p-4 border border-indigo-100 space-y-3">
                   <div className="flex items-center gap-3">
-                     <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white">
+                     <div className="w-10 h-10 bg-[#3B66F5] rounded-xl flex items-center justify-center text-white">
                         <Zap size={20} />
                      </div>
                      <div>

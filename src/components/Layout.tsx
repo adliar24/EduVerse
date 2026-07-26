@@ -444,22 +444,22 @@ export default function Layout({ session }: LayoutProps) {
                         <button
                           onClick={() => toggleSubmenu(item.label)}
                           className={cn(
-                            "flex items-center justify-between w-full px-3 py-2.5 rounded-lg transition-colors duration-150 text-[13px] font-semibold text-left cursor-pointer",
+                            "flex items-center justify-between w-full px-3 py-2.5 rounded-2xl transition-all duration-150 text-[13px] font-semibold text-left cursor-pointer group",
                             isActive
-                              ? "bg-white text-indigo-950 shadow-md font-semibold"
-                              : "text-slate-400 hover:bg-white/5 hover:text-white"
+                              ? "bg-white text-[#1D4ED8] shadow-lg font-extrabold"
+                              : "text-blue-100 hover:bg-white/10 hover:text-white"
                           )}
                         >
                           <div className="flex items-center gap-3">
                             <item.icon className={cn(
                               "w-[18px] h-[18px]",
-                              isActive ? "text-indigo-900" : "text-slate-500"
+                              isActive ? "text-[#1D4ED8]" : "text-blue-200/80 group-hover:text-white"
                             )} />
-                            <span>{item.label}</span>
+                            <span className="font-semibold">{item.label}</span>
                           </div>
                           <ChevronDown className={cn(
                             "w-4 h-4 transition-transform duration-200",
-                            isActive ? "text-indigo-900" : "text-slate-500",
+                            isActive ? "text-[#1D4ED8]" : "text-blue-200/80 group-hover:text-white",
                             isSubOpen ? "transform rotate-180" : ""
                           )} />
                         </button>
@@ -483,15 +483,15 @@ export default function Layout({ session }: LayoutProps) {
                                     if (prefetch) prefetch();
                                   }}
                                   className={cn(
-                                    "flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] font-medium transition-colors",
+                                    "flex items-center gap-2.5 px-3 py-2 rounded-xl text-[12px] font-medium transition-colors",
                                     location.pathname === sub.path
-                                      ? "text-blue-400 bg-white/5 font-semibold"
-                                      : "text-slate-400 hover:text-white"
+                                      ? "text-white bg-white/20 font-bold"
+                                      : "text-blue-100/90 hover:text-white hover:bg-white/10"
                                   )}
                                 >
                                   <div className={cn(
                                     "w-1.5 h-1.5 rounded-full transition-colors",
-                                    location.pathname === sub.path ? "bg-blue-400" : "bg-slate-700"
+                                    location.pathname === sub.path ? "bg-white" : "bg-blue-300/60"
                                   )} />
                                   {sub.label}
                                 </Link>
@@ -513,14 +513,14 @@ export default function Layout({ session }: LayoutProps) {
                         if (prefetch) prefetch();
                       }}
                       className={cn(
-                        "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors duration-150 text-[13px] font-semibold",
+                        "flex items-center gap-3 px-3 py-2.5 rounded-2xl transition-all duration-150 text-[13px] font-semibold group",
                         location.pathname === item.path
-                          ? "bg-white text-indigo-950 shadow-md font-semibold"
-                          : "text-slate-400 hover:bg-white/5 hover:text-white"
+                          ? "bg-white text-[#1D4ED8] shadow-lg font-extrabold"
+                          : "text-blue-100 hover:bg-white/10 hover:text-white"
                       )}
                     >
-                      <item.icon className={cn("w-[18px] h-[18px]", location.pathname === item.path ? "text-indigo-900" : "text-slate-500")} />
-                      <span>{item.label}</span>
+                      <item.icon className={cn("w-[18px] h-[18px]", location.pathname === item.path ? "text-[#1D4ED8]" : "text-blue-200/80 group-hover:text-white")} />
+                      <span className="font-semibold">{item.label}</span>
                     </Link>
                   );
                 })}
@@ -676,6 +676,34 @@ export default function Layout({ session }: LayoutProps) {
               <Outlet />
             </motion.div>
           </Suspense>
+        </div>
+
+        {/* Animated Bottom Fluid Wave */}
+        <div className="w-full mt-auto pointer-events-none overflow-hidden h-16 sm:h-24 relative opacity-80">
+          <svg className="w-full h-full" viewBox="0 0 1440 120" preserveAspectRatio="none">
+            <motion.path
+              animate={{
+                d: [
+                  "M0,32L48,42.7C96,53,192,75,288,80C384,85,480,75,576,64C672,53,768,43,864,48C960,53,1056,75,1152,80C1248,85,1344,75,1392,70L1440,64L1440,120L1392,120C1344,120,1248,120,1152,120C1056,120,960,120,864,120C768,120,672,120,576,120C480,120,384,120,288,120C192,120,96,120,48,120L0,120Z",
+                  "M0,64L48,58.7C96,53,192,43,288,48C384,53,480,75,576,80C672,85,768,75,864,64C960,53,1056,43,1152,48C1248,53,1344,75,1392,80L1440,85L1440,120L1392,120C1344,120,1248,120,1152,120C1056,120,960,120,864,120C768,120,672,120,576,120C480,120,384,120,288,120C192,120,96,120,48,120L0,120Z",
+                  "M0,32L48,42.7C96,53,192,75,288,80C384,85,480,75,576,64C672,53,768,43,864,48C960,53,1056,75,1152,80C1248,85,1344,75,1392,70L1440,64L1440,120L1392,120C1344,120,1248,120,1152,120C1056,120,960,120,864,120C768,120,672,120,576,120C480,120,384,120,288,120C192,120,96,120,48,120L0,120Z"
+                ]
+              }}
+              transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+              fill="rgba(59, 102, 245, 0.12)"
+            />
+            <motion.path
+              animate={{
+                d: [
+                  "M0,64L48,74.7C96,85,192,107,288,101.3C384,96,480,64,576,53.3C672,43,768,53,864,64C960,75,1056,85,1152,80C1248,75,1344,53,1392,42.7L1440,32L1440,120L1392,120C1344,120,1248,120,1152,120C1056,120,960,120,864,120C768,120,672,120,576,120C480,120,384,120,288,120C192,120,96,120,48,120L0,120Z",
+                  "M0,32L48,42.7C96,53,192,75,288,64C384,53,480,43,576,53.3C672,64,768,85,864,80C960,75,1056,53,1152,48C1248,43,1344,64,1392,74.7L1440,85L1440,120L1392,120C1344,120,1248,120,1152,120C1056,120,960,120,864,120C768,120,672,120,576,120C480,120,384,120,288,120C192,120,96,120,48,120L0,120Z",
+                  "M0,64L48,74.7C96,85,192,107,288,101.3C384,96,480,64,576,53.3C672,43,768,53,864,64C960,75,1056,85,1152,80C1248,75,1344,53,1392,42.7L1440,32L1440,120L1392,120C1344,120,1248,120,1152,120C1056,120,960,120,864,120C768,120,672,120,576,120C480,120,384,120,288,120C192,120,96,120,48,120L0,120Z"
+                ]
+              }}
+              transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
+              fill="rgba(37, 99, 235, 0.18)"
+            />
+          </svg>
         </div>
       </main>
     </div>
