@@ -75,10 +75,10 @@ export const StudentListScreen: React.FC = () => {
 
   const handleDownloadTemplate = () => {
     const data = [
-      ["Nama Siswa"],
-      ["Budi Santoso"],
-      ["Ani Wijaya"],
-      ["Zulkhairil"]
+      ["Nama Siswa", "Jenis Kelamin (L/P)"],
+      ["Budi Santoso", "L"],
+      ["Ani Wijaya", "P"],
+      ["Zulkhairil", "L"]
     ];
     const ws = XLSX.utils.aoa_to_sheet(data);
     const wb = XLSX.utils.book_new();
@@ -106,16 +106,25 @@ export const StudentListScreen: React.FC = () => {
         const firstCell = firstRow[0] ? String(firstRow[0]) : "";
         const startIdx = firstCell.toLowerCase().includes("nama") ? 1 : 0;
 
+        const headers = firstCell.toLowerCase().includes("nama") ? firstRow.map((h: any) => String(h || '').trim()) : [];
+        const genderIdx = headers.findIndex((h: string) => ['Jenis Kelamin (L/P)', 'Jenis Kelamin', 'Gender', 'L/P', 'Jenis_Kelamin'].includes(h));
+
         const prof = await db.getTeacherProfile();
         const schoolId = prof?.activeSchoolId || '';
         for (let i = startIdx; i < jsonData.length; i++) {
           const row = jsonData[i];
           if (row && row[0]) {
+              const rawGender = genderIdx !== -1 ? String(row[genderIdx] || '').trim().toUpperCase() : '';
+              let genderVal: 'M' | 'F' | null = null;
+              if (rawGender === 'L' || rawGender === 'M' || rawGender === 'LAKI-LAKI') genderVal = 'M';
+              else if (rawGender === 'P' || rawGender === 'F' || rawGender === 'PEREMPUAN') genderVal = 'F';
+
               await db.saveStudent({ 
                 idSiswa: crypto.randomUUID(), 
                 schoolId,
                 idKelas: currentClassId, 
-                nama: String(row[0] || "").trim() 
+                nama: String(row[0] || "").trim(),
+                gender: genderVal
               });
             }
           }

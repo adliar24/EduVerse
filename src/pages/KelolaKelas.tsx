@@ -382,7 +382,10 @@ export default function KelolaKelas() {
   };
 
   const handleDownloadTemplate = () => {
-    const template = [{ 'Nama Lengkap': 'Ahmad Fauzi' }, { 'Nama Lengkap': 'Siti Aminah' }];
+    const template = [
+      { 'Nama Lengkap': 'Ahmad Fauzi', 'Jenis Kelamin': 'L' },
+      { 'Nama Lengkap': 'Siti Aminah', 'Jenis Kelamin': 'P' }
+    ];
     const worksheet = XLSX.utils.json_to_sheet(template);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Template Murid");
@@ -503,6 +506,7 @@ export default function KelolaKelas() {
         
         const headers = rawData[0].map((h: any) => String(h || '').trim());
         const nameIdx = headers.findIndex(h => h === 'Nama Lengkap');
+        const genderIdx = headers.findIndex(h => ['Jenis Kelamin', 'Gender', 'L/P', 'Jenis_Kelamin'].includes(h));
         
         if (nameIdx === -1) {
           throw new Error('Kolom "Nama Lengkap" tidak ditemukan. Pastikan file sesuai dengan template.');
@@ -523,13 +527,19 @@ export default function KelolaKelas() {
           }
           
           try {
+            const rawGender = genderIdx !== -1 ? String(row[genderIdx] || '').trim().toUpperCase() : '';
+            let genderVal: 'M' | 'F' | null = null;
+            if (rawGender === 'L' || rawGender === 'M' || rawGender === 'LAKI-LAKI') genderVal = 'M';
+            else if (rawGender === 'P' || rawGender === 'F' || rawGender === 'PEREMPUAN') genderVal = 'F';
+
             const { data: newStudent, error: insertError } = await supabase.from('students').insert([{ 
               name, 
               class_id: selectedClass.id, 
               teacher_id: user?.id, 
               school_id: activeSchool?.id === 'legacy' ? null : activeSchool?.id,
               student_code: generateStudentCode(),
-              password: 'murid19'
+              password: 'murid19',
+              gender: genderVal
             }]).select().single();
             
             if (insertError) {
