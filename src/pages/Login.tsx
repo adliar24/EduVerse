@@ -138,7 +138,7 @@ export default function Login() {
       {/* Right Panel - Interactive Area */}
       <div className="flex-1 flex flex-col justify-center items-center p-3 py-6 sm:p-8 lg:p-24 overflow-y-auto relative z-10">
         {/* Mobile Header Branding (Fixed Top Layer on mobile <lg) */}
-        <div className="lg:hidden absolute top-4 sm:top-6 left-0 right-0 z-20 flex flex-col items-center text-center text-white space-y-1">
+        <div className="lg:hidden absolute top-10 sm:top-14 left-0 right-0 z-20 flex flex-col items-center text-center text-white space-y-1">
           <div className="bg-white/15 backdrop-blur-md p-2 rounded-2xl border border-white/20 shadow-xl inline-flex items-center justify-center">
             <GraduationCap className="text-white w-6 h-6" />
           </div>
@@ -327,29 +327,51 @@ export default function Login() {
         </div>
       </div>
 
-      {/* Animated Bottom Fluid Wave */}
-      <div className="absolute bottom-0 inset-x-0 pointer-events-none overflow-hidden h-20 sm:h-32 z-10 opacity-70">
-        <svg className="w-full h-full" viewBox="0 0 1440 120" preserveAspectRatio="none">
+      {/* Animated Bottom Fluid Wave (Harmonized & Taller) */}
+      <div className="absolute bottom-0 inset-x-0 pointer-events-none overflow-hidden h-[35vh] sm:h-[42vh] z-10 opacity-80">
+        <svg className="w-full h-full" viewBox="0 0 1440 220" preserveAspectRatio="none">
           <motion.path
             animate={{
               d: [
-                "M0,32L48,42.7C96,53,192,75,288,80C384,85,480,75,576,64C672,53,768,43,864,48C960,53,1056,75,1152,80C1248,85,1344,75,1392,70L1440,64L1440,120L1392,120C1344,120,1248,120,1152,120C1056,120,960,120,864,120C768,120,672,120,576,120C480,120,384,120,288,120C192,120,96,120,48,120L0,120Z",
-                "M0,64L48,58.7C96,53,192,43,288,48C384,53,480,75,576,80C672,85,768,75,864,64C960,53,1056,43,1152,48C1248,53,1344,75,1392,80L1440,85L1440,120L1392,120C1344,120,1248,120,1152,120C1056,120,960,120,864,120C768,120,672,120,576,120C480,120,384,120,288,120C192,120,96,120,48,120L0,120Z",
-                "M0,32L48,42.7C96,53,192,75,288,80C384,85,480,75,576,64C672,53,768,43,864,48C960,53,1056,75,1152,80C1248,85,1344,75,1392,70L1440,64L1440,120L1392,120C1344,120,1248,120,1152,120C1056,120,960,120,864,120C768,120,672,120,576,120C480,120,384,120,288,120C192,120,96,120,48,120L0,120Z"
+                "M0,60 C320,160 480,-20 800,90 C1120,200 1300,30 1440,70 L1440,220 L0,220 Z",
+                "M0,110 C240,10 560,180 880,40 C1080,-10 1280,140 1440,60 L1440,220 L0,220 Z",
+                "M0,60 C320,160 480,-20 800,90 C1120,200 1300,30 1440,70 L1440,220 L0,220 Z"
               ]
             }}
-            transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-            fill="rgba(255, 255, 255, 0.15)"
+            transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+            fill="rgba(59, 102, 245, 0.25)"
           />
           <motion.path
             animate={{
               d: [
-                "M0,64L48,74.7C96,85,192,107,288,101.3C384,96,480,64,576,53.3C672,43,768,53,864,64C960,75,1056,85,1152,80C1248,75,1344,53,1392,42.7L1440,32L1440,120L1392,120C1344,120,1248,120,1152,120C1056,120,960,120,864,120C768,120,672,120,576,120C480,120,384,120,288,120C192,120,96,120,48,120L0,120Z",
-                "M0,32L48,42.7C96,53,192,75,288,64C384,53,480,43,576,53.3C672,64,768,85,864,80C960,75,1056,53,1152,48C1248,43,1344,64,1392,74.7L1440,85L1440,120L1392,120C1344,120,1248,120,1152,120C1056,120,960,120,864,120C768,120,672,120,576,120C480,120,384,120,288,120C192,120,96,120,48,120L0,120Z",
-                "M0,64L48,74.7C96,85,192,107,288,101.3C384,96,480,64,576,53.3C672,43,768,53,864,64C960,75,1056,85,1152,80C1248,75,1344,53,1392,42.7L1440,32L1440,120L1392,120C1344,120,1248,120,1152,120C1056,120,960,120,864,120C768,120,672,120,576,120C480,120,384,120,288,120C192,120,96,120,48,120L0,120Z"
+                "M0,120 C360,10 600,190 920,60 C1160,-20 1320,130 1440,90 L1440,220 L0,220 Z",
+                "M0,70 C280,180 520,30 800,140 C1040,10 1280,110 1440,40 L1440,220 L0,220 Z",
+                "M0,120 C360,10 600,190 920,60 C1160,-20 1320,130 1440,90 L1440,220 L0,220 Z"
+              ]
+            }}
+            transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
+            fill="rgba(37, 99, 235, 0.3)"
+          />
+          <motion.path
+            animate={{
+              d: [
+                "M0,150 C240,80 480,170 720,110 C960,50 1200,140 1440,100 L1440,220 L0,220 Z",
+                "M0,100 C280,160 520,70 760,130 C1000,70 1240,150 1440,110 L1440,220 L0,220 Z",
+                "M0,150 C240,80 480,170 720,110 C960,50 1200,140 1440,100 L1440,220 L0,220 Z"
               ]
             }}
             transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
+            fill="rgba(56, 189, 248, 0.2)"
+          />
+          <motion.path
+            animate={{
+              d: [
+                "M0,170 C300,120 600,180 900,140 C1200,100 1350,160 1440,130 L1440,220 L0,220 Z",
+                "M0,130 C320,170 620,110 920,150 C1180,110 1320,170 1440,140 L1440,220 L0,220 Z",
+                "M0,170 C300,120 600,180 900,140 C1200,100 1350,160 1440,130 L1440,220 L0,220 Z"
+              ]
+            }}
+            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
             fill="rgba(255, 255, 255, 0.25)"
           />
         </svg>
