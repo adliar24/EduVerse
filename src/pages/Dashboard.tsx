@@ -357,7 +357,7 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <Link
             to="/attendance/scan"
-            className="flex items-center gap-3 p-3 bg-gradient-to-r from-[#5649C0] via-[#4A3EB2] to-[#3F33A3] text-white rounded-full shadow-lg shadow-[#5649C0]/30 hover:shadow-[#5649C0]/50 hover:scale-[1.02] border border-white/15 transition-all group cursor-pointer"
+            className="flex items-center gap-3 p-3 bg-gradient-to-r from-[#685ECC] via-[#5C53D4] to-[#4F46E5] text-white rounded-full shadow-lg shadow-[#5C53D4]/30 hover:shadow-[#5C53D4]/50 hover:scale-[1.02] border border-white/15 transition-all group cursor-pointer"
           >
             <div className="bg-white/20 text-white p-2.5 rounded-full group-hover:scale-105 transition-transform">
               <ClipboardCheck className="w-5 h-5" />
@@ -369,7 +369,7 @@ export default function Dashboard() {
 
           <Link
             to="/grading"
-            className="flex items-center gap-3 p-3 bg-gradient-to-r from-[#2B5292] via-[#254780] to-[#1F3C6E] text-white rounded-full shadow-lg shadow-[#2B5292]/30 hover:shadow-[#2B5292]/50 hover:scale-[1.02] border border-white/15 transition-all group cursor-pointer"
+            className="flex items-center gap-3 p-3 bg-gradient-to-r from-[#685ECC] via-[#5C53D4] to-[#4F46E5] text-white rounded-full shadow-lg shadow-[#5C53D4]/30 hover:shadow-[#5C53D4]/50 hover:scale-[1.02] border border-white/15 transition-all group cursor-pointer"
           >
             <div className="bg-white/20 text-white p-2.5 rounded-full group-hover:scale-105 transition-transform">
               <Activity className="w-5 h-5" />
@@ -381,7 +381,7 @@ export default function Dashboard() {
 
           <Link
             to="/buat-ujian"
-            className="flex items-center gap-3 p-3 bg-gradient-to-r from-[#6C62D0] via-[#5F55C3] to-[#5147B5] text-white rounded-full shadow-lg shadow-[#6C62D0]/30 hover:shadow-[#6C62D0]/50 hover:scale-[1.02] border border-white/15 transition-all group cursor-pointer"
+            className="flex items-center gap-3 p-3 bg-gradient-to-r from-[#685ECC] via-[#5C53D4] to-[#4F46E5] text-white rounded-full shadow-lg shadow-[#5C53D4]/30 hover:shadow-[#5C53D4]/50 hover:scale-[1.02] border border-white/15 transition-all group cursor-pointer"
           >
             <div className="bg-white/20 text-white p-2.5 rounded-full group-hover:scale-105 transition-transform">
               <FileText className="w-5 h-5" />

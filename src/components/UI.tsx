@@ -29,7 +29,7 @@ export const Button: React.FC<ButtonProps> = ({
     primary: "bg-gradient-to-r from-[#685ECC] via-[#5C53D4] to-[#4F46E5] text-white shadow-lg shadow-[#5C53D4]/30 focus:ring-[#5C53D4] hover:scale-[1.02] border border-white/10",
     secondary: "bg-gradient-to-r from-slate-100 to-slate-200 text-slate-800 hover:shadow-md transition-all duration-300 focus:ring-slate-300",
     danger: "bg-gradient-to-r from-red-500 to-rose-600 text-white shadow-lg shadow-red-500/20 focus:ring-red-500",
-    outline: "border-2 border-indigo-600 text-indigo-600 hover:bg-indigo-50 focus:ring-indigo-600",
+    outline: "border-2 border-[#5C53D4] text-[#5C53D4] hover:bg-[#5C53D4]/10 focus:ring-[#5C53D4]",
     ghost: "bg-transparent text-gray-600 hover:bg-gray-100",
   };
 
@@ -55,7 +55,7 @@ export const Input: React.FC<InputProps> = ({ label, className = '', ...props })
     <div className="flex flex-col gap-1.5 w-full">
       {label && <label className="text-sm font-medium text-gray-700 ml-1">{label}</label>}
       <input 
-        className={`w-full bg-white text-gray-900 border border-gray-200 rounded-2xl px-4 py-3 text-base placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all outline-none ${className}`}
+        className={`w-full bg-white text-gray-900 border border-gray-200 rounded-2xl px-4 py-3 text-base placeholder:text-gray-400 focus:border-[#5C53D4] focus:ring-2 focus:ring-[#5C53D4]/20 transition-all outline-none ${className}`}
         {...props}
       />
     </div>

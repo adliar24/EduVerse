@@ -556,51 +556,6 @@ export default function Layout({ session }: LayoutProps) {
             </div>
 
             <div className="flex items-center gap-2 lg:gap-4">
-              {/* Theme Switcher Pill */}
-              <div className="relative theme-selector-container">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setIsThemeDropdownOpen(!isThemeDropdownOpen);
-                  }}
-                  className="flex items-center gap-2 px-3 py-1.5 bg-indigo-50/80 hover:bg-indigo-100/90 rounded-full border border-indigo-100 transition-all text-xs font-bold text-indigo-950 cursor-pointer shadow-sm"
-                >
-                  <Sparkles className="w-3.5 h-3.5 text-indigo-600 animate-pulse" />
-                  <span>{themeConfig.badge}</span>
-                  <ChevronDown className={cn("w-3 h-3 text-indigo-500 transition-transform", isThemeDropdownOpen && "rotate-180")} />
-                </button>
-
-                <AnimatePresence>
-                  {isThemeDropdownOpen && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 5 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 5 }}
-                      className="absolute top-full right-0 mt-2 w-48 bg-white rounded-2xl shadow-tactile-lg border border-slate-200/80 z-50 p-2 space-y-1"
-                    >
-                      <div className="px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-slate-400">Ubah Tema Warna</div>
-                      {availableThemes.map((t) => (
-                        <button
-                          key={t.id}
-                          onClick={() => {
-                            setTheme(t.id);
-                            setIsThemeDropdownOpen(false);
-                          }}
-                          className={cn(
-                            "w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer",
-                            currentTheme === t.id
-                              ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-600/20"
-                              : "text-slate-700 hover:bg-slate-100"
-                          )}
-                        >
-                          <span>{t.badge}</span>
-                          {currentTheme === t.id && <Check className="w-3.5 h-3.5 text-white" />}
-                        </button>
-                      ))}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
               {/* School Selector - Only for teachers with multiple schools */}
               {userRole === 'guru' && schools.length > 1 && !schoolLoading && (
                 <div className="relative school-selector-container">
