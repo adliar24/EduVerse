@@ -35,9 +35,9 @@ export default defineConfig(({mode}) => {
           ]
         },
         manifest: {
-          name: 'EduTest - Platform Ujian Online',
-          short_name: 'EduTest',
-          description: 'Sistem ujian online modern dan profesional untuk guru dan siswa.',
+          name: 'EduVerse - Digitalisasi Pendidikan',
+          short_name: 'EduVerse',
+          description: 'Platform pendidikan all-in-one: Ujian online, Absensi digital, dan Penilaian terintegrasi untuk guru dan siswa.',
           theme_color: '#1e1b4b',
           background_color: '#ffffff',
           display: 'standalone',
