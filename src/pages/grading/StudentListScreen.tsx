@@ -10,6 +10,7 @@ import JSZip from 'jszip';
 import QRCode from 'qrcode';
 import { ClassData, Student, Meeting } from '../../types';
 import * as db from '../../services/dbGrading';
+import { detectGenderFromName } from '../../utils/genderDetection';
 import { 
   Button, Input, Card, Modal,
   Header, Layout, PageTransition, useToast, Skeleton
@@ -118,12 +119,14 @@ export const StudentListScreen: React.FC = () => {
               let genderVal: 'M' | 'F' | null = null;
               if (rawGender === 'L' || rawGender === 'M' || rawGender === 'LAKI-LAKI') genderVal = 'M';
               else if (rawGender === 'P' || rawGender === 'F' || rawGender === 'PEREMPUAN') genderVal = 'F';
+              const studentName = String(row[0] || "").trim();
+              if (!genderVal) genderVal = detectGenderFromName(studentName);
 
               await db.saveStudent({ 
                 idSiswa: crypto.randomUUID(), 
                 schoolId,
                 idKelas: currentClassId, 
-                nama: String(row[0] || "").trim(),
+                nama: studentName,
                 gender: genderVal
               });
             }

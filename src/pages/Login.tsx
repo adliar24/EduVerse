@@ -71,7 +71,7 @@ export default function Login() {
       }));
 
       setIsRedirecting(true);
-      navigate('/student/dashboard', { replace: true });
+      navigate('/dashboard', { replace: true });
     } catch (err: any) {
       setError(err.message || 'Gagal masuk. Periksa kembali kode murid dan password Anda.');
       setLoading(false);

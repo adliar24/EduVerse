@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase';
+import { detectGenderFromName } from '../utils/genderDetection';
 import { 
   Users, 
   Plus, 
@@ -531,6 +532,7 @@ export default function KelolaKelas() {
             let genderVal: 'M' | 'F' | null = null;
             if (rawGender === 'L' || rawGender === 'M' || rawGender === 'LAKI-LAKI') genderVal = 'M';
             else if (rawGender === 'P' || rawGender === 'F' || rawGender === 'PEREMPUAN') genderVal = 'F';
+            if (!genderVal) genderVal = detectGenderFromName(name);
 
             const { data: newStudent, error: insertError } = await supabase.from('students').insert([{ 
               name, 

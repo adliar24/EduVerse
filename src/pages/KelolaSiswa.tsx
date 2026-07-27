@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
+import { detectGenderFromName } from '../utils/genderDetection';
 import { 
   Users, 
   Plus, 
@@ -657,6 +658,7 @@ export default function KelolaSiswa() {
             } else if (['P', 'F', 'PEREMPUAN', 'FEMALE', 'WOMAN', 'WANITA'].includes(rawGender)) {
               genderVal = 'F';
             }
+            if (!genderVal) genderVal = detectGenderFromName(name);
 
             const existingStudent = students.find(s => s.name.toLowerCase() === name.toLowerCase() && s.class_id === classId);
             let studentData = null;
