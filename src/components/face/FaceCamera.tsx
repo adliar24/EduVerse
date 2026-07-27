@@ -99,7 +99,8 @@ const FaceCamera = forwardRef<FaceCameraRef, FaceCameraProps>(({
         return null;
       }
 
-      const videoConstraints = forceDeviceId
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      const videoConstraints = (forceDeviceId && !isIOS)
         ? {
             width: { ideal: width, min: 320 },
             height: { ideal: height, min: 240 },
@@ -115,9 +116,7 @@ const FaceCamera = forwardRef<FaceCameraRef, FaceCameraProps>(({
 
       const attempts: Array<MediaStreamConstraints> = [
         { video: videoConstraints, audio: false },
-        forceDeviceId
-          ? { video: { deviceId: { exact: forceDeviceId } } as MediaTrackConstraints, audio: false }
-          : { video: { facingMode: 'user' }, audio: false },
+        { video: { facingMode: 'user' }, audio: false },
         { video: true, audio: false },
       ];
 

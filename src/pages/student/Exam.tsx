@@ -127,7 +127,7 @@ export default function StudentExam() {
       
       if (!pId) {
         console.log('[Exam] No participant ID found in localStorage, redirecting');
-        if (isMountedRef.current) navigate('/exam');
+        if (isMountedRef.current) navigate('/exam', { replace: true });
         return;
       }
       
@@ -232,7 +232,7 @@ export default function StudentExam() {
 
       if (!participant) {
         console.log('[Exam] Participant not found, redirecting');
-        navigate('/exam');
+        navigate('/exam', { replace: true });
         return;
       }
 
@@ -243,7 +243,7 @@ export default function StudentExam() {
         if (!exam?.offline_mode) {
           localStorage.removeItem(`exam_answers_${pId}`);
         }
-        navigate(`/exam/result/${pId}`);
+        navigate(`/exam/result/${pId}`, { replace: true });
         return;
       }
 
@@ -655,7 +655,7 @@ export default function StudentExam() {
       
       // Show blocked modal and redirect (only for regular online mode)
       alert(`AKUN TERBLOKIR! Anda terdeteksi melanggar aturan ujian (membuka tab lain) sebanyak ${limit} kali. Nilai Anda otomatis menjadi 0. Silakan hubungi Admin jika ada kesalahan.`);
-      navigate('/exam');
+      navigate('/exam', { replace: true });
       return;
     } else {
       setShowViolationWarning(true);
@@ -866,7 +866,7 @@ export default function StudentExam() {
     if (submitting) return;
     if (!participantId) {
       alert('Sesi ujian tidak ditemukan. Silakan masuk ulang.');
-      navigate('/exam');
+      navigate('/exam', { replace: true });
       return;
     }
 
@@ -969,7 +969,7 @@ export default function StudentExam() {
         localStorage.removeItem(`violations_${participantId}`);
         localStorage.removeItem(`last_position_${participantId}`);
 
-        navigate(`/exam/result/${participantId}`);
+        navigate(`/exam/result/${participantId}`, { replace: true });
         return;
       } catch (err) {
         console.error('Error generating QR offline cache:', err);
@@ -1100,7 +1100,7 @@ export default function StudentExam() {
         }
       }
 
-      navigate(`/exam/result/${participantId}`);
+      navigate(`/exam/result/${participantId}`, { replace: true });
     } catch (err) {
       console.error('Submit error:', err);
       alert('Gagal mengirim jawaban (silakan periksa koneksi internet Anda): ' + (err instanceof Error ? err.message : 'Silakan coba lagi.'));

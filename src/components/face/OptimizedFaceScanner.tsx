@@ -274,8 +274,11 @@ export default function FaceScanner({ classId, className, sessionTopic, onMatchS
       
       if (streamRef.current) streamRef.current.getTracks().forEach(t => t.stop());
       
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { deviceId: { exact: cameras[nextIndex].deviceId } },
+        video: isIOS
+          ? { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } }
+          : { deviceId: { exact: cameras[nextIndex].deviceId } },
         audio: false,
       });
       

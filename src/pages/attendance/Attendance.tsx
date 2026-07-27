@@ -393,8 +393,9 @@ const switchCamera = async () => {
 
     try {
       const deviceIdToUse = forceDeviceId || selectedDeviceId || undefined;
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
       const getStream = async () => {
-        if (deviceIdToUse) {
+        if (deviceIdToUse && !isIOS) {
           return await navigator.mediaDevices.getUserMedia({
             video: { deviceId: { exact: deviceIdToUse }, width: { ideal: 640 }, height: { ideal: 480 } },
             audio: false

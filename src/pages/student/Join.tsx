@@ -223,7 +223,7 @@ export default function StudentJoin({ isDashboardView = false }: { isDashboardVi
       }
       
       // Also pass participant ID via URL as backup
-      navigate(`/exam/start/${examCode}?p=${participantId}`);
+      navigate(`/exam/start/${examCode}?p=${participantId}`, { replace: true });
     } catch (err: any) {
       console.error('Error starting exam:', err);
       setError(err.message || 'Gagal mendaftarkan diri ke ujian. Silakan periksa koneksi Anda.');

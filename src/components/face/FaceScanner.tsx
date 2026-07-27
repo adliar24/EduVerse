@@ -157,9 +157,10 @@ export default function FaceScanner({ classId, className, sessionTopic, onMatchS
     if (!cameras[deviceIndex]) return;
     try {
       const deviceId = cameras[deviceIndex].deviceId;
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
       const videoConstraints: MediaTrackConstraints = { width: { ideal: 640 }, height: { ideal: 480 } };
       
-      if (deviceId) {
+      if (deviceId && !isIOS) {
         videoConstraints.deviceId = { exact: deviceId };
       } else {
         videoConstraints.facingMode = 'user';
@@ -467,8 +468,11 @@ const playTone = (freq: number, type: OscillatorType, duration: number, vol: num
         streamRef.current.getTracks().forEach(t => t.stop());
       }
       
+      const isSwitchIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { deviceId: { exact: cameras[nextIndex].deviceId } },
+        video: isSwitchIOS
+          ? { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } }
+          : { deviceId: { exact: cameras[nextIndex].deviceId } },
         audio: false,
       });
       
