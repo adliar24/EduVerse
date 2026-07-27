@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { TeacherProfile } from '../types';
 import { Button } from '../../components/UI';
 import { saveTeacherProfile } from '../../services/dbAttendance';
-import { v4 as uuidv4 } from 'uuid';
+import { deterministicId } from '../../lib/utils';
 import { Clock, Bell } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
@@ -84,7 +84,7 @@ export const Setup: React.FC<Props> = ({ initialData, onComplete }) => {
     setLoading(true);
 
     const profile: TeacherProfile = {
-      id: initialData?.id || uuidv4(),
+      id: initialData?.id || deterministicId('teacher-profile'),
       teacherName: resolvedProfileDetails.name,
       schools: resolvedProfileDetails.schools,
       currentSchoolIndex: initialData?.currentSchoolIndex || 0,

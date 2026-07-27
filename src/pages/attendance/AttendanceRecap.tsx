@@ -6,7 +6,7 @@ import { upsertRecord, deleteSession } from '../../services/dbAttendance';
 import { ChevronDown, Calendar, FolderArchive, Users, FileText, Trash2, FileSpreadsheet, Save, Download } from 'lucide-react';
 import { REKAP_AKHIR_TEMPLATE_B64, REKAP_PERTEMUAN_TEMPLATE_B64 } from '../../assets/templates/embeddedTemplates';
 import { motion, AnimatePresence } from 'framer-motion';
-import { v4 as uuidv4 } from 'uuid';
+import { deterministicId } from '../../lib/utils';
 import { Header } from '../Layout';
 
 
@@ -766,7 +766,7 @@ const saveSessionChanges = async (sessionId: string) => {
     const existing = state.records.find(r => r.sessionId === sessionId && r.studentId === studentId);
 
     const record: AttendanceRecord = {
-      id: existing ? existing.id : uuidv4(),
+      id: existing ? existing.id : deterministicId(`${sessionId}::${studentId}`),
       sessionId,
       studentId,
       status: status as AttendanceStatus,

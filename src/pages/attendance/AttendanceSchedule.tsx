@@ -4,7 +4,7 @@ import { compareClassName } from '../../constants';
 import { Button, Card, Input, Modal, ConfirmModal } from '../../components/UI';
 import { addSchedule, deleteSchedule, addEvent, deleteEvent } from '../../services/dbAttendance';
 import { Plus, Trash2, Calendar, Clock, BookOpen, CalendarOff, Briefcase, Thermometer, AlertCircle, ChevronDown, CheckCircle2, Pencil } from 'lucide-react';
-import { v4 as uuidv4 } from 'uuid';
+import { deterministicId } from '../../lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Header } from '../Layout';
 import { useSchool } from '../../context/SchoolContext';
@@ -121,7 +121,7 @@ export const Schedule: React.FC<Props> = ({ state, refresh, notify }) => {
     if (e) e.preventDefault();
     if (!newClassId || !startTime || !endTime) return;
     const schedule: ScheduleItem = {
-      id: editingScheduleId || uuidv4(),
+      id: editingScheduleId || deterministicId(`${newClassId}::${activeDay}::${startTime}::${endTime}`),
       dayName: activeDay,
       classId: newClassId,
       startTime,
@@ -173,7 +173,7 @@ export const Schedule: React.FC<Props> = ({ state, refresh, notify }) => {
     for (let i = 0; i < dates.length; i++) {
       const isLastDay = i === dates.length - 1;
       const event: CalendarEvent = {
-        id: i === 0 ? uuidv4() : uuidv4(),
+        id: deterministicId(`${eventType}::${dates[i]}::${eventDesc}`),
         dateISO: dates[i],
         endDateISO: dates.length > 1 && isLastDay ? dates[dates.length - 1] : undefined,
         type: eventType,

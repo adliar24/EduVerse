@@ -5,7 +5,7 @@ import { upsertSession, upsertRecord, deleteRecord, setActiveClassId } from '../
 import { ScanLine, List, CheckCircle, Clock, BookOpen, ChevronRight, ArrowRightLeft, X, Zap, ZapOff, AlertTriangle, XCircle, LogOut, UserX, CalendarClock, ScanFace, Loader2, Play, QrCode, Plus } from 'lucide-react';
 import jsQR from 'jsqr';
 import { motion, AnimatePresence } from 'framer-motion';
-import { v4 as uuidv4 } from 'uuid';
+import { deterministicId } from '../../lib/utils';
 import { Link } from 'react-router-dom';
 import { Header } from '../Layout';
 
@@ -246,7 +246,7 @@ export const Attendance: React.FC<Props> = ({ state, refresh, notify }) => {
     const meetingNumber = classSessions.length + 1;
     
     const now = new Date();
-    const newSessionId = uuidv4();
+    const newSessionId = deterministicId(`${activeClass.id}::${today}::${schoolYear}::${meetingNumber}`);
     const autoTopic = topic.trim() || `Pertemuan ${meetingNumber}`;
 
     const newSession: AttendanceSession = {
@@ -301,7 +301,7 @@ export const Attendance: React.FC<Props> = ({ state, refresh, notify }) => {
           if (unscannedStudents.length > 0) {
               for (const s of unscannedStudents) {
                   const record: AttendanceRecord = {
-                      id: uuidv4(),
+                      id: deterministicId(`${sessionId}::${s.id}`),
                       sessionId,
                       studentId: s.id,
                       status: 'Alpha',
@@ -639,7 +639,7 @@ const switchCamera = async () => {
 
     const recordTime = new Date();
     const newRecord: AttendanceRecord = {
-      id: uuidv4(),
+      id: deterministicId(`${sessionId}::${student.id}`),
       sessionId,
       studentId: student.id,
       status: status, 
@@ -708,7 +708,7 @@ const switchCamera = async () => {
     }
 
     const record: AttendanceRecord = {
-      id: uuidv4(),
+      id: deterministicId(`${sessionId}::${studentId}`),
       sessionId,
       studentId,
       status: finalStatus,
@@ -753,7 +753,7 @@ const switchCamera = async () => {
     }
 
     const record: AttendanceRecord = {
-      id: existing ? existing.id : uuidv4(), 
+      id: existing ? existing.id : deterministicId(`${sessionId}::${studentId}`), 
       sessionId,
       studentId,
       status,
@@ -788,7 +788,7 @@ const switchCamera = async () => {
     const records: AttendanceRecord[] = students.map((s) => {
       const existing = sessionRecordsRef.current.find((r) => r.studentId === s.id);
       return {
-        id: existing ? existing.id : uuidv4(),
+        id: existing ? existing.id : deterministicId(`${sessionId}::${s.id}`),
         sessionId,
         studentId: s.id,
         status: 'Hadir',

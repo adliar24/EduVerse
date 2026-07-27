@@ -4,7 +4,7 @@ import { AppState, ClassCancellation } from '../types';
 import { Button, Card, Modal, Input } from '../../components/UI';
 import { addCancellation, deleteCancellation, setActiveClassId } from '../../services/dbAttendance';
 import { Calendar, ArrowRight, Ban, RefreshCcw, LayoutGrid, Filter, BarChart3, AlertCircle, CalendarOff, Thermometer, Briefcase, Clock } from 'lucide-react';
-import { v4 as uuidv4 } from 'uuid';
+import { deterministicId } from '../../lib/utils';
 import { compareClassName } from '../../constants';
 
 interface Props {
@@ -215,7 +215,7 @@ export const Classes: React.FC<Props> = ({ state, refresh, onNavigate, notify })
   const handleConfirmCancel = async () => {
     if (!cancelClassId) return;
     const cancellation: ClassCancellation = {
-      id: uuidv4(),
+      id: deterministicId(`${cancelClassId}::${todayISO}`),
       dateISO: todayISO,
       classId: cancelClassId,
       reason: cancelReason

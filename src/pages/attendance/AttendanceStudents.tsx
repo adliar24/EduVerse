@@ -3,7 +3,7 @@ import { AppState, Student, ClassEntity, getCurrentSchoolName } from '../types';
 import { compareClassName } from '../../constants';
 import { Button, Card, Input, Modal, MultiSelect, ConfirmModal } from '../../components/UI';
 import { addStudent, importStudents, deleteStudent, addClass, deleteClassCascade, setActiveClassId } from '../../services/dbAttendance';
-import { v4 as uuidv4 } from 'uuid';
+import { deterministicId } from '../../lib/utils';
 import { Plus, Upload, Trash2, QrCode, Search, User, Download, FileSpreadsheet, FileDown, IdCard, Loader2, BookOpen, ArrowLeft, ScanFace, ImagePlus, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { processImageFile, deleteFaceEmbedding } from '../../services/face';
@@ -181,7 +181,7 @@ export const Students: React.FC<Props> = ({ state, refresh, notify }) => {
     if (!newClassName.trim() || newClassSubject.length === 0) return;
     setLoading(true);
     const cls: ClassEntity = {
-      id: uuidv4(),
+      id: deterministicId(`${newClassName}::${newClassSubject[0]}`),
       name: newClassName,
       subject: newClassSubject[0],
       schoolIndex: state.teacher?.currentSchoolIndex ?? 0,
@@ -246,7 +246,7 @@ export const Students: React.FC<Props> = ({ state, refresh, notify }) => {
     const activeSchoolId = typeof window !== 'undefined' ? localStorage.getItem('active_school_id') : null;
     const finalSchoolId = activeSchoolId === 'legacy' ? null : activeSchoolId;
     await addStudent({
-      id: uuidv4(),
+      id: deterministicId(`${activeClass.id}::${newName.trim()}`),
       classId: activeClass.id,
       class_id: activeClass.id,
       name: newName.trim(),
@@ -282,7 +282,7 @@ export const Students: React.FC<Props> = ({ state, refresh, notify }) => {
           if (name && typeof name === 'string' && name.trim().length > 0) {
               if (!newStudents.find(s => s.name.toLowerCase() === name.trim().toLowerCase())) {
                   newStudents.push({
-                      id: uuidv4(),
+                      id: deterministicId(`${activeClass!.id}::${name.trim()}`),
                       classId: activeClass!.id,
                       class_id: activeClass!.id,
                       name: name.trim(),
