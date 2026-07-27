@@ -433,6 +433,7 @@ export const syncService = {
       }
 
       // 2. Sync all other tables (non-destructive sync)
+      let allUpsertsOk = true;
       for (const tableName of TABLES) {
         const data = (state as any)[tableName] || [];
         console.log(`[pushToCloud] ${tableName}:`, data.length, 'items');
@@ -452,13 +453,13 @@ export const syncService = {
           }
 
           for (const chunk of chunks) {
-            const { error: upsertError } = await client.from(cloudTableName).upsert(chunk);
+            const { error: upsertError } = await client.from(cloudTableName).upsert(chunk, { onConflict: 'id' });
             if (upsertError) {
               console.error(`[pushToCloud] Error upserting ${cloudTableName}:`, upsertError.message, upsertError.details, upsertError.hint);
-              // Log first failed item for debugging
               if (chunk.length > 0) {
                 console.error(`[pushToCloud] Sample item that failed:`, JSON.stringify(chunk[0]).substring(0, 300));
               }
+              allUpsertsOk = false;
             }
           }
         }
@@ -485,7 +486,7 @@ export const syncService = {
         console.warn('[pushToCloud] Failed to send broadcast sync-event:', broadcastErr);
       }
 
-      return { success: true, message: 'Data berhasil disinkronisasi ke cloud' };
+      return { success: allUpsertsOk, message: allUpsertsOk ? 'Data berhasil disinkronisasi ke cloud' : 'Sebagian data gagal disinkronisasi' };
     } catch (e: any) {
       console.error('[pushToCloud] Error during push:', e);
       return { success: false, message: e.message || 'Gagal sinkronisasi' };

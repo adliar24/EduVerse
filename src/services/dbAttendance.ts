@@ -461,6 +461,7 @@ export const resetAllData = async () => {
 let syncTimeout: ReturnType<typeof setTimeout> | null = null;
 let retryTimeout: ReturnType<typeof setTimeout> | null = null;
 let skipSync = false;
+let pendingSync = false; // Records added during active sync
 let lastSyncAttempt = 0;
 const SYNC_COOLDOWN = 1000; // 1 second between actual syncs
 const MAX_RETRIES = 3;
@@ -489,6 +490,13 @@ const executeSync = async (retryCount = 0): Promise<boolean> => {
   } catch (e) {
     console.error('[Auto-sync] Failed:', e);
     return false;
+  } finally {
+    // If records were added during this sync, trigger a follow-up sync
+    if (pendingSync) {
+      pendingSync = false;
+      console.log('[Auto-sync] Retrying for records added during sync...');
+      setTimeout(() => autoSyncToCloud(), 500);
+    }
   }
 };
 
@@ -496,7 +504,8 @@ export const autoSyncToCloud = async () => {
   stateCache = { data: null, timestamp: 0 };
   
   if (skipSync) {
-    console.log('[Auto-sync] Skipped (bulk operation)');
+    console.log('[Auto-sync] Skipped (sync in progress), marking pending sync');
+    pendingSync = true;
     return;
   }
   
@@ -556,6 +565,7 @@ export const forceSyncToCloud = async () => {
 
 // Register global sync triggers (call once on app init)
 let syncListenersRegistered = false;
+let periodicSyncInterval: ReturnType<typeof setInterval> | null = null;
 export const registerSyncListeners = () => {
   if (syncListenersRegistered || typeof window === 'undefined') return;
   syncListenersRegistered = true;
@@ -591,6 +601,14 @@ export const registerSyncListeners = () => {
       forceSyncToCloud();
     }, 1000);
   });
+
+  // Periodic background sync every 30s as safety net for missed syncs
+  periodicSyncInterval = setInterval(() => {
+    if (!skipSync && !pendingSync) {
+      console.log('[Sync] Periodic background sync check...');
+      forceSyncToCloud();
+    }
+  }, 30000);
 };
 
 export const clearSyncTimeout = () => {
