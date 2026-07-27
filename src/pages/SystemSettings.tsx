@@ -362,6 +362,52 @@ export default function SystemSettings() {
       </div>
 
       <div className="max-w-5xl mx-auto space-y-6">
+        {/* Cloud Sync Card */}
+        <Card className="p-6 bg-white/70 backdrop-blur-xl border border-white/40 shadow-sm">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="bg-gradient-to-br from-[#3B66F5] to-[#1D4ED8] p-2.5 rounded-xl text-white">
+              <Cloud className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="font-bold text-indigo-950 text-lg">Sinkronisasi Cloud</h3>
+              <p className="text-slate-400 text-xs mt-0.5 font-medium">Kirim atau tarik data dari Supabase secara manual.</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <Button 
+              onClick={handleSyncToCloud}
+              disabled={isSyncing || !user}
+              className="w-full !py-3 font-semibold text-sm flex items-center justify-center gap-2 bg-gradient-to-r from-[#3B66F5] to-[#1D4ED8] text-white rounded-xl"
+            >
+              {isSyncing ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Upload className="w-4 h-4" />
+              )}
+              {isSyncing ? 'Mengirim...' : 'Upload ke Cloud'}
+            </Button>
+
+            <Button 
+              onClick={handlePullFromCloud}
+              disabled={isSyncing || !user}
+              variant="secondary"
+              className="w-full !py-3 font-semibold text-sm border border-slate-200 flex items-center justify-center gap-2"
+            >
+              {isSyncing ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Download className="w-4 h-4 text-indigo-950" />
+              )}
+              {isSyncing ? 'Memuat...' : 'Tarik dari Cloud'}
+            </Button>
+          </div>
+
+          {!user && (
+            <p className="text-amber-600 text-xs mt-3 font-medium text-center">Login terlebih dahulu untuk sinkronisasi.</p>
+          )}
+        </Card>
+
         {/* Local Backup Card */}
         <Card className="p-6 bg-white/70 backdrop-blur-xl border border-white/40 shadow-sm">
           <div className="flex items-center gap-3 mb-6">
