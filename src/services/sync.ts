@@ -388,7 +388,9 @@ export const syncService = {
       console.log('[pushToCloud] State to push:', {
         teacher: state.teacher?.teacherName,
         classes: state.classes.length,
-        students: state.students.length
+        students: state.students.length,
+        sessions: state.sessions.length,
+        records: state.records.length
       });
       
       // SMART PROTECTION: If local DB is empty (0 classes & 0 students), check if Cloud has data and restore it instantly!
@@ -404,9 +406,9 @@ export const syncService = {
         }
       }
       
-      // 1. Sync Teacher Profile
+      // 1. Sync Teacher Profile (upsert, keep existing)
       if (state.teacher) {
-        console.log('[pushToCloud] Syncing to ACTUAL schema (Strict Mode):', state.teacher);
+        console.log('[pushToCloud] Syncing teacher profile...');
         
         const teacherToPush = {
           id: String(state.teacher.id || user.id),
@@ -428,39 +430,49 @@ export const syncService = {
         if (error) {
           console.error('[pushToCloud] GAGAL unggah profil:', error.message);
         } else {
-          console.log('[pushToCloud] BERHASIL unggah profil ke Supabase.');
+          console.log('[pushToCloud] BERHASIL unggah profil.');
         }
       }
 
-      // 2. Sync all other tables (non-destructive sync)
-      let allUpsertsOk = true;
+      // 2. Delete all existing cloud data (reverse dependency order to avoid FK violations)
+      const DELETE_ORDER = [...TABLES].reverse();
+      for (const tableName of DELETE_ORDER) {
+        const cloudTableName = getCloudTableName(tableName);
+        const { error: delError } = await client.from(cloudTableName).delete().eq('teacher_id', user.id);
+        if (delError) {
+          console.warn(`[pushToCloud] Delete warning on ${cloudTableName}:`, delError.message);
+        } else {
+          console.log(`[pushToCloud] Cleared ${cloudTableName}`);
+        }
+      }
+
+      // 3. Insert all local data (forward dependency order)
+      let allInsertsOk = true;
       for (const tableName of TABLES) {
         const data = (state as any)[tableName] || [];
-        console.log(`[pushToCloud] ${tableName}:`, data.length, 'items');
+        if (data.length === 0) continue;
         
         const dataToSync = data.map((item: any) => {
           return mapToCloud(tableName, item, user.id);
         });
 
         const cloudTableName = getCloudTableName(tableName);
+        console.log(`[pushToCloud] Inserting ${dataToSync.length} items into ${cloudTableName}...`);
 
-        // Step A: Upsert current local data
-        if (dataToSync.length > 0) {
-          // Break into chunks of 100 to avoid request size limits
-          const chunks = [];
-          for (let i = 0; i < dataToSync.length; i += 100) {
-            chunks.push(dataToSync.slice(i, i + 100));
-          }
+        // Break into chunks of 100 to avoid request size limits
+        const chunks = [];
+        for (let i = 0; i < dataToSync.length; i += 100) {
+          chunks.push(dataToSync.slice(i, i + 100));
+        }
 
-          for (const chunk of chunks) {
-            const { error: upsertError } = await client.from(cloudTableName).upsert(chunk, { onConflict: 'id' });
-            if (upsertError) {
-              console.error(`[pushToCloud] Error upserting ${cloudTableName}:`, upsertError.message, upsertError.details, upsertError.hint);
-              if (chunk.length > 0) {
-                console.error(`[pushToCloud] Sample item that failed:`, JSON.stringify(chunk[0]).substring(0, 300));
-              }
-              allUpsertsOk = false;
+        for (const chunk of chunks) {
+          const { error: insertError } = await client.from(cloudTableName).insert(chunk);
+          if (insertError) {
+            console.error(`[pushToCloud] Error inserting ${cloudTableName}:`, insertError.message, insertError.details, insertError.hint);
+            if (chunk.length > 0) {
+              console.error(`[pushToCloud] Sample item:`, JSON.stringify(chunk[0]).substring(0, 300));
             }
+            allInsertsOk = false;
           }
         }
       }
@@ -486,7 +498,7 @@ export const syncService = {
         console.warn('[pushToCloud] Failed to send broadcast sync-event:', broadcastErr);
       }
 
-      return { success: allUpsertsOk, message: allUpsertsOk ? 'Data berhasil disinkronisasi ke cloud' : 'Sebagian data gagal disinkronisasi' };
+      return { success: allInsertsOk, message: allInsertsOk ? 'Data berhasil disinkronisasi ke cloud' : 'Sebagian data gagal disinkronisasi' };
     } catch (e: any) {
       console.error('[pushToCloud] Error during push:', e);
       return { success: false, message: e.message || 'Gagal sinkronisasi' };
@@ -564,7 +576,7 @@ export const syncService = {
         console.warn('[pullFromCloud] WARNING: No teacher profile found in Supabase for this user ID.');
       }
 
-      // 2. Pull all other tables
+      // 2. Pull all other tables (clear local first to avoid duplicates from different device IDs)
       for (const tableName of TABLES) {
         const cloudTableName = getCloudTableName(tableName);
         const { data, error } = await client.from(cloudTableName).select('*').eq('teacher_id', user.id);
@@ -575,16 +587,17 @@ export const syncService = {
           continue;
         }
 
+        // Clear local store then insert cloud data (avoids duplicates from different device UUIDs)
+        const tx = db.transaction(tableName as any, 'readwrite');
+        const store = tx.objectStore(tableName as any);
+        await store.clear();
         if (data && data.length > 0) {
-          // Bulk put in local IDB
-          const tx = db.transaction(tableName as any, 'readwrite');
-          const store = tx.objectStore(tableName as any);
           for (const item of data) {
             const localItem = mapToLocal(tableName, item);
             await store.put(localItem);
           }
-          await tx.done;
         }
+        await tx.done;
       }
       
       console.log('[pullFromCloud] Complete');
@@ -598,14 +611,14 @@ export const syncService = {
   },
 
   /**
-   * FULL SYNC: Pull followed by Push
+   * FULL SYNC: Push first (save local), then Pull (get latest from all devices)
    */
   async syncDrive() {
     try {
-      console.log("Starting Sync Pull...");
-      await this.pullFromCloud();
       console.log("Starting Sync Push...");
       await this.pushToCloud();
+      console.log("Starting Sync Pull...");
+      await this.pullFromCloud();
       return { success: true };
     } catch (e: any) {
       console.error("Sync Error:", e);
