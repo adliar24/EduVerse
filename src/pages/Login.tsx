@@ -69,6 +69,7 @@ export default function Login() {
         school_id: data.school_id,
         gender: data.gender
       }));
+      window.dispatchEvent(new Event('student_session_change'));
 
       setIsRedirecting(true);
       navigate('/dashboard', { replace: true });
