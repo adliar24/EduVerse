@@ -393,19 +393,35 @@ export const syncService = {
         records: state.records.length
       });
       
-      // SAFETY: Always check cloud state BEFORE any delete. If cloud has data but local is empty, just pull instead.
+      // SAFETY: Always check cloud state BEFORE any delete.
+      // If cloud has data but local has LESS or EQUAL, pull instead (never overwrite cloud with less data).
       const localClassCount = state.classes?.length || 0;
       const localStudentCount = state.students?.length || 0;
-      const { count: cloudClassesCount } = await client.from('classes').select('*', { count: 'exact', head: true }).eq('teacher_id', user.id);
-      const { count: cloudStudentsCount } = await client.from('students').select('*', { count: 'exact', head: true }).eq('teacher_id', user.id);
+      const localTotal = localClassCount + localStudentCount;
       
-      const cloudHasData = ((cloudClassesCount || 0) + (cloudStudentsCount || 0)) > 0;
-      const localIsEmpty = localClassCount === 0 && localStudentCount === 0;
+      let cloudClassesCount = 0;
+      let cloudStudentsCount = 0;
+      try {
+        const cc = await client.from('classes').select('*', { count: 'exact', head: true }).eq('teacher_id', user.id);
+        cloudClassesCount = cc.count || 0;
+        const sc = await client.from('students').select('*', { count: 'exact', head: true }).eq('teacher_id', user.id);
+        cloudStudentsCount = sc.count || 0;
+      } catch (e) {
+        console.error('[pushToCloud] Failed to check cloud state:', e);
+      }
+      const cloudTotal = cloudClassesCount + cloudStudentsCount;
       
-      console.log(`[pushToCloud] Cloud: ${cloudClassesCount} classes, ${cloudStudentsCount} students | Local: ${localClassCount} classes, ${localStudentCount} students`);
+      console.log(`[pushToCloud] Cloud: ${cloudClassesCount}C/${cloudStudentsCount}S (${cloudTotal}) | Local: ${localClassCount}C/${localStudentCount}S (${localTotal})`);
       
-      if (cloudHasData && localIsEmpty) {
-        console.log(`[pushToCloud] Cloud has data but Local is empty. Pulling from Cloud instead of pushing.`);
+      // CRITICAL: If local is empty OR local has fewer records than cloud, NEVER push (would wipe cloud data)
+      if (localTotal === 0 && cloudTotal > 0) {
+        console.log(`[pushToCloud] ABORT: Local empty but Cloud has ${cloudTotal} records. Pulling instead.`);
+        setSkipSync(false);
+        return await this.pullFromCloud();
+      }
+      
+      if (localTotal > 0 && cloudTotal > 0 && localTotal < cloudTotal) {
+        console.log(`[pushToCloud] ABORT: Local (${localTotal}) < Cloud (${cloudTotal}). Pulling instead to avoid data loss.`);
         setSkipSync(false);
         return await this.pullFromCloud();
       }

@@ -214,14 +214,6 @@ export const saveTeacherProfile = async (profile: TeacherProfile, skipCloudPush 
   
   if (!skipCloudPush) {
     autoSyncToCloud();
-    
-    // Paksa sinkronisasi instan khusus untuk profil
-    try {
-      const { syncService } = await import('./sync');
-      syncService.pushToCloud();
-    } catch (e) {
-      console.error('[saveTeacherProfile] Instant sync failed:', e);
-    }
   }
 };
 
@@ -482,10 +474,11 @@ const executeSync = async (retryCount = 0): Promise<boolean> => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return false;
     
+    // AUTO-SYNC: Only PULL from cloud (never push — push is manual-only via SystemSettings)
     lastSyncAttempt = Date.now();
     const { syncService } = await import('./sync');
-    const result = await syncService.pushToCloud();
-    console.log('[Auto-sync] Result:', result);
+    const result = await syncService.pullFromCloud();
+    console.log('[Auto-sync pull] Result:', result);
     return result.success;
   } catch (e) {
     console.error('[Auto-sync] Failed:', e);
