@@ -1152,7 +1152,24 @@ export default function StudentExam() {
   );
 
   const currentQuestion = questions && questions.length > currentIndex ? questions[currentIndex] : null;
-  
+
+  if (!loading && !initError && questions.length === 0) {
+    return (
+      <div className="min-h-screen bg-[#1D4ED8] flex flex-col items-center justify-center p-6">
+        <div className="bg-white/5 backdrop-blur-xl p-10 rounded-[3rem] border border-white/10 mb-8 text-center max-w-md shadow-2xl">
+          <div className="bg-red-500/20 w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-6">
+            <AlertCircle className="w-12 h-12 text-red-400" />
+          </div>
+          <h2 className="text-2xl font-black text-white mb-3">Tidak Ada Soal</h2>
+          <p className="text-indigo-200 font-medium mb-8 leading-relaxed">Tidak ada soal dalam ujian ini. Hubungi guru Anda.</p>
+          <button onClick={() => navigate('/exam')} className="w-full py-4 px-4 rounded-full font-black text-[#3B66F5]/70 bg-white/5 hover:bg-white/10 border border-white/5 transition-all">
+            Kembali ke Daftar Ujian
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   const getDisplayOptions = () => {
     if (!currentQuestion || !currentQuestion.question_options) return [];
     try {

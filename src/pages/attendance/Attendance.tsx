@@ -83,6 +83,7 @@ const playErrorSound = () => {
 };
 
 const getMinutesFromTime = (timeStr: string) => {
+    if (!timeStr) return -1;
     const [h, m] = timeStr.split(':').map(Number);
     return h * 60 + m;
 };

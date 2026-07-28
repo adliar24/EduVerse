@@ -393,17 +393,21 @@ export const syncService = {
         records: state.records.length
       });
       
-      // SMART PROTECTION: If local DB is empty (0 classes & 0 students), check if Cloud has data and restore it instantly!
-      const isLocalEmpty = (!state.classes || state.classes.length === 0) && (!state.students || state.students.length === 0);
-      if (isLocalEmpty) {
-        const { count: cloudClassesCount } = await client.from('classes').select('*', { count: 'exact', head: true }).eq('teacher_id', user.id);
-        const { count: cloudStudentsCount } = await client.from('students').select('*', { count: 'exact', head: true }).eq('teacher_id', user.id);
-        
-        if ((cloudClassesCount && cloudClassesCount > 0) || (cloudStudentsCount && cloudStudentsCount > 0)) {
-          console.log(`[pushToCloud] Local DB is empty, but Cloud has data (${cloudClassesCount} classes, ${cloudStudentsCount} students). Auto-restoring from Cloud...`);
-          setSkipSync(false);
-          return await this.pullFromCloud();
-        }
+      // SAFETY: Always check cloud state BEFORE any delete. If cloud has data but local is empty, just pull instead.
+      const localClassCount = state.classes?.length || 0;
+      const localStudentCount = state.students?.length || 0;
+      const { count: cloudClassesCount } = await client.from('classes').select('*', { count: 'exact', head: true }).eq('teacher_id', user.id);
+      const { count: cloudStudentsCount } = await client.from('students').select('*', { count: 'exact', head: true }).eq('teacher_id', user.id);
+      
+      const cloudHasData = ((cloudClassesCount || 0) + (cloudStudentsCount || 0)) > 0;
+      const localIsEmpty = localClassCount === 0 && localStudentCount === 0;
+      
+      console.log(`[pushToCloud] Cloud: ${cloudClassesCount} classes, ${cloudStudentsCount} students | Local: ${localClassCount} classes, ${localStudentCount} students`);
+      
+      if (cloudHasData && localIsEmpty) {
+        console.log(`[pushToCloud] Cloud has data but Local is empty. Pulling from Cloud instead of pushing.`);
+        setSkipSync(false);
+        return await this.pullFromCloud();
       }
       
       // 1. Sync Teacher Profile (upsert, keep existing)
