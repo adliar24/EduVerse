@@ -21,8 +21,8 @@ const isValidUUID = (str: any): boolean => {
 const mapToCloud = (tableName: string, item: any, userId: string): any => {
   const activeSchoolId = typeof window !== 'undefined' ? localStorage.getItem('active_school_id') : null;
   // Force activeSchoolId if it exists to prevent foreign key errors with legacy/backup school IDs
-  const rawSchoolId = (activeSchoolId && activeSchoolId !== 'legacy') ? activeSchoolId : (item.school_id || item.schoolId || null);
-  const schoolId = isValidUUID(rawSchoolId) ? rawSchoolId : null;
+  const rawSchoolId = (activeSchoolId && activeSchoolId !== 'legacy') ? activeSchoolId : (item.school_id || item.schoolId || 'fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7');
+  const schoolId = isValidUUID(rawSchoolId) ? rawSchoolId : 'fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7';
   
   let syncItem: any = { ...item, teacher_id: userId };
   
@@ -454,19 +454,8 @@ export const syncService = {
         }
       }
 
-      // 2. Delete all existing cloud data (reverse dependency order to avoid FK violations)
-      const DELETE_ORDER = [...TABLES].reverse();
-      for (const tableName of DELETE_ORDER) {
-        const cloudTableName = getCloudTableName(tableName);
-        const { error: delError } = await client.from(cloudTableName).delete().eq('teacher_id', user.id);
-        if (delError) {
-          console.warn(`[pushToCloud] Delete warning on ${cloudTableName}:`, delError.message);
-        } else {
-          console.log(`[pushToCloud] Cleared ${cloudTableName}`);
-        }
-      }
-
-      // 3. Insert all local data (forward dependency order)
+      // 2. Non-destructive sync: Use upsert instead of deleting cloud tables
+      // This prevents data loss when logging in from new devices or when network interruptions occur.
       let allInsertsOk = true;
       for (const tableName of TABLES) {
         const data = (state as any)[tableName] || [];
@@ -477,7 +466,7 @@ export const syncService = {
         });
 
         const cloudTableName = getCloudTableName(tableName);
-        console.log(`[pushToCloud] Inserting ${dataToSync.length} items into ${cloudTableName}...`);
+        console.log(`[pushToCloud] Upserting ${dataToSync.length} items into ${cloudTableName}...`);
 
         // Break into chunks of 100 to avoid request size limits
         const chunks = [];
@@ -486,9 +475,9 @@ export const syncService = {
         }
 
         for (const chunk of chunks) {
-          const { error: insertError } = await client.from(cloudTableName).insert(chunk);
-          if (insertError) {
-            console.error(`[pushToCloud] Error inserting ${cloudTableName}:`, insertError.message, insertError.details, insertError.hint);
+          const { error: upsertError } = await client.from(cloudTableName).upsert(chunk, { onConflict: 'id' });
+          if (upsertError) {
+            console.error(`[pushToCloud] Error upserting ${cloudTableName}:`, upsertError.message, upsertError.details, upsertError.hint);
             if (chunk.length > 0) {
               console.error(`[pushToCloud] Sample item:`, JSON.stringify(chunk[0]).substring(0, 300));
             }

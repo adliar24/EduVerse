@@ -73,6 +73,33 @@ export default function SystemSettings() {
     }
   };
 
+  const handleImportExcelData = async () => {
+    setIsSyncing(true);
+    try {
+      const { seedExcelDataToLocalAndCloud } = await import('../services/excelDataSeed');
+      const res = await seedExcelDataToLocalAndCloud();
+      if (res.success) {
+        showAlert({
+          title: 'Impor Berhasil!',
+          message: `Berhasil mengimpor ${res.countClasses} Kelas dan ${res.countStudents} Murid untuk SMAN 19 Bandung ke database lokal dan Cloud.`,
+          type: 'success'
+        });
+        await refreshSchools();
+      } else {
+        throw new Error('Gagal mengimpor data Excel');
+      }
+    } catch (err: any) {
+      console.error(err);
+      showAlert({
+        title: 'Gagal Impor',
+        message: err.message || 'Terjadi kesalahan saat mengimpor data.',
+        type: 'error'
+      });
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   const handleSyncToCloud = async () => {
     if (!user) return;
     setIsSyncing(true);
@@ -374,7 +401,7 @@ export default function SystemSettings() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <Button 
               onClick={handleSyncToCloud}
               disabled={isSyncing || !user}
@@ -400,6 +427,20 @@ export default function SystemSettings() {
                 <Download className="w-4 h-4 text-indigo-950" />
               )}
               {isSyncing ? 'Memuat...' : 'Tarik dari Cloud'}
+            </Button>
+
+            <Button 
+              onClick={handleImportExcelData}
+              disabled={isSyncing}
+              variant="secondary"
+              className="w-full !py-3 font-semibold text-sm bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 flex items-center justify-center gap-2 rounded-xl"
+            >
+              {isSyncing ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Database className="w-4 h-4 text-emerald-600" />
+              )}
+              Impor Excel (15 Kelas & 669 Murid)
             </Button>
           </div>
 

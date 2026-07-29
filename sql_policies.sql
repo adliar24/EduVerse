@@ -101,13 +101,30 @@ CREATE POLICY "answers_all_auth" ON public.answers FOR ALL TO authenticated USIN
 CREATE POLICY "exams_all_auth" ON public.exams FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "exam_sessions_all_auth" ON public.exam_sessions FOR ALL TO authenticated USING (true) WITH CHECK (true);
 
--- Students table (for student lookup by code)
-CREATE POLICY "students_select" ON public.students FOR SELECT TO anon USING (true);
-CREATE POLICY "students_select_auth" ON public.students FOR SELECT TO authenticated USING (true);
+-- Students table
+DROP POLICY IF EXISTS "students_all" ON public.students;
+DROP POLICY IF EXISTS "students_all_auth" ON public.students;
+CREATE POLICY "students_all" ON public.students FOR ALL TO anon USING (true) WITH CHECK (true);
+CREATE POLICY "students_all_auth" ON public.students FOR ALL TO authenticated USING (true) WITH CHECK (true);
 
--- Classes table (for class name lookup)
-CREATE POLICY "classes_select" ON public.classes FOR SELECT TO anon USING (true);
-CREATE POLICY "classes_select_auth" ON public.classes FOR SELECT TO authenticated USING (true);
+-- Classes table
+DROP POLICY IF EXISTS "classes_all" ON public.classes;
+DROP POLICY IF EXISTS "classes_all_auth" ON public.classes;
+CREATE POLICY "classes_all" ON public.classes FOR ALL TO anon USING (true) WITH CHECK (true);
+CREATE POLICY "classes_all_auth" ON public.classes FOR ALL TO authenticated USING (true) WITH CHECK (true);
+
+-- Teacher Schools table
+ALTER TABLE public.teacher_schools ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "teacher_schools_all" ON public.teacher_schools;
+DROP POLICY IF EXISTS "teacher_schools_all_auth" ON public.teacher_schools;
+CREATE POLICY "teacher_schools_all" ON public.teacher_schools FOR ALL TO anon USING (true) WITH CHECK (true);
+CREATE POLICY "teacher_schools_all_auth" ON public.teacher_schools FOR ALL TO authenticated USING (true) WITH CHECK (true);
+
+-- Schools table
+DROP POLICY IF EXISTS "schools_all" ON public.schools;
+DROP POLICY IF EXISTS "schools_all_auth" ON public.schools;
+CREATE POLICY "schools_all" ON public.schools FOR ALL TO anon USING (true) WITH CHECK (true);
+CREATE POLICY "schools_all_auth" ON public.schools FOR ALL TO authenticated USING (true) WITH CHECK (true);
 
 -- Exam questions table (for exam content)
 CREATE POLICY "exam_questions_select" ON public.exam_questions FOR SELECT TO anon USING (true);
@@ -129,10 +146,7 @@ CREATE POLICY "profiles_select_auth" ON public.profiles FOR SELECT TO authentica
 CREATE POLICY "subjects_select" ON public.subjects FOR SELECT TO anon USING (true);
 CREATE POLICY "subjects_select_auth" ON public.subjects FOR SELECT TO authenticated USING (true);
 
--- Schools table
-CREATE POLICY "schools_select" ON public.schools FOR SELECT TO anon USING (true);
-CREATE POLICY "schools_select_auth" ON public.schools FOR SELECT TO authenticated USING (true);
-
 -- Categories table
 CREATE POLICY "categories_select" ON public.categories FOR SELECT TO anon USING (true);
 CREATE POLICY "categories_select_auth" ON public.categories FOR SELECT TO authenticated USING (true);
+

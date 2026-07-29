@@ -1,6 +1,6 @@
 import React from 'react';
 import { GroupResult } from '../../types/tools';
-import { FileText, File as FileIcon, SignalHigh, SignalMedium, SignalLow, Info } from 'lucide-react';
+import { FileText, File as FileIcon, SignalHigh, SignalMedium, SignalLow, Info, Download } from 'lucide-react';
 import { exportToDocx, exportToTxt } from '../../utils/tools/exporters';
 import { motion } from 'framer-motion';
 

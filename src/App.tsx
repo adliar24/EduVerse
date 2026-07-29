@@ -323,6 +323,16 @@ export default function App() {
           await syncService.pullFromCloud();
           const dbGrading = await import('./services/dbGrading');
           await dbGrading.syncCloudToLocal();
+          
+          // Auto-seed Excel data if database is empty
+          const { getFullState } = await import('./services/dbAttendance');
+          const currentState = await getFullState();
+          if (!currentState.classes || currentState.classes.length === 0) {
+            console.log('[App] Local & Cloud empty, auto-seeding Excel data (15 classes, 669 students)...');
+            const { seedExcelDataToLocalAndCloud } = await import('./services/excelDataSeed');
+            await seedExcelDataToLocalAndCloud();
+          }
+
           console.log('[App] Initial data pull complete.');
           
           // Subscribe to realtime changes
