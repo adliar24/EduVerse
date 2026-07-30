@@ -639,9 +639,12 @@ export const syncService = {
           continue;
         }
 
-        // Additive/merge sync: Put cloud data into local IndexedDB without clearing unsynced local data
+        // Purge local classes/students before writing fresh cloud data
         const tx = db.transaction(tableName as any, 'readwrite');
         const store = tx.objectStore(tableName as any);
+        if (tableName === 'classes' || tableName === 'students') {
+          await store.clear();
+        }
         if (data && data.length > 0) {
           for (const item of data) {
             const localItem = mapToLocal(tableName, item);

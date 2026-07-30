@@ -994,6 +994,8 @@ export const syncCloudToLocal = async (existingProfile?: TeacherProfile | null):
             tx.objectStore('teacherProfile').put({ ...profile, id: 'profile' });
         }
 
+        const classStore = tx.objectStore('classes');
+        await classStore.clear();
         const classes = (cRes.data || []).map((row: any) => ({
             id: row.id || row.id_kelas,
             idKelas: row.id_kelas || row.id,
@@ -1004,8 +1006,10 @@ export const syncCloudToLocal = async (existingProfile?: TeacherProfile | null):
             subject: row.subject || row.mapel || '',
             mapel: row.mapel || row.subject || ''
         }));
-        classes.forEach(c => tx.objectStore('classes').put(c));
+        classes.forEach(c => classStore.put(c));
 
+        const studentStore = tx.objectStore('students');
+        await studentStore.clear();
         const students = (sRes.data || []).map((row: any) => ({
             id: row.id || row.id_siswa,
             idSiswa: row.id_siswa || row.id,

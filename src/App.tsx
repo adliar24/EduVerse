@@ -351,15 +351,10 @@ export default function App() {
             cloudTotal += count || 0;
           }
 
-          const needPull = localTotal === 0 || localTotal !== cloudTotal;
-          if (needPull) {
-            console.log(`[App] Pulling from cloud (local ${localTotal} vs cloud ${cloudTotal})`);
-            await syncService.pullFromCloud();
-            const dbGrading = await import('./services/dbGrading');
-            await dbGrading.syncCloudToLocal();
-          } else {
-            console.log('[App] Local data up‑to‑date; no pull needed.');
-          }
+          console.log(`[App] Initial sync pulling fresh data from cloud (local ${localTotal} vs cloud ${cloudTotal})`);
+          await syncService.pullFromCloud();
+          const dbGrading = await import('./services/dbGrading');
+          await dbGrading.syncCloudToLocal();
 
           // Auto‑seed only when both local and cloud are completely empty (first install)
           if (localTotal === 0 && cloudTotal === 0) {
