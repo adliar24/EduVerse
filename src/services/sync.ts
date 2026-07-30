@@ -586,9 +586,18 @@ export const syncService = {
       }
 
       // 2. Pull all other tables (clear local first to avoid duplicates from different device IDs)
+      const activeSchoolId = typeof window !== 'undefined' ? localStorage.getItem('active_school_id') : null;
+      const targetSchoolId = (activeSchoolId && isValidUUID(activeSchoolId)) ? activeSchoolId : 'fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7';
+
       for (const tableName of TABLES) {
         const cloudTableName = getCloudTableName(tableName);
-        const { data, error } = await client.from(cloudTableName).select('*').eq('teacher_id', user.id);
+        let query = client.from(cloudTableName).select('*');
+        if (targetSchoolId) {
+          query = query.or(`teacher_id.eq.${user.id},school_id.eq.${targetSchoolId}`);
+        } else {
+          query = query.eq('teacher_id', user.id);
+        }
+        const { data, error } = await query;
         console.log(`[pullFromCloud] ${tableName}:`, { count: data?.length, error });
         
         if (error) {
