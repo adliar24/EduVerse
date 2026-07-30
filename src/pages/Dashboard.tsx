@@ -118,11 +118,11 @@ export default function Dashboard() {
           attendanceQuery = attendanceQuery.is('school_id', null);
           scoreQuery = scoreQuery.is('school_id', null);
         } else {
-          examQuery = examQuery.eq('school_id', activeSchool.id);
-          classQuery = classQuery.eq('school_id', activeSchool.id);
-          studentQuery = studentQuery.eq('school_id', activeSchool.id);
-          attendanceQuery = attendanceQuery.eq('school_id', activeSchool.id);
-          scoreQuery = scoreQuery.eq('school_id', activeSchool.id);
+          examQuery = examQuery.or(`school_id.eq.${activeSchool.id},school_id.is.null`);
+          classQuery = classQuery.or(`school_id.eq.${activeSchool.id},school_id.is.null`);
+          studentQuery = studentQuery.or(`school_id.eq.${activeSchool.id},school_id.is.null`);
+          attendanceQuery = attendanceQuery.or(`school_id.eq.${activeSchool.id},school_id.is.null`);
+          scoreQuery = scoreQuery.or(`school_id.eq.${activeSchool.id},school_id.is.null`);
         }
       }
 

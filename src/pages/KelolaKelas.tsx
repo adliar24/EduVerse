@@ -138,11 +138,45 @@ export default function KelolaKelas() {
       const localState = await getFullState(true);
       let localClasses = localState.classes || [];
       
+      const healClassesList = async (list: any[]) => {
+        let changed = false;
+        const healed = await Promise.all(list.map(async (c) => {
+          const cSchoolId = c.school_id || c.schoolId;
+          if (!cSchoolId && activeSchool?.id && activeSchool.id !== 'legacy') {
+            changed = true;
+            const updated = {
+              ...c,
+              school_id: activeSchool.id,
+              schoolId: activeSchool.id
+            };
+            await addClass(updated as any);
+            await saveClass({
+              idKelas: c.id || c.idKelas || c.id_kelas,
+              teacherId: c.teacher_id || c.teacherId,
+              schoolId: activeSchool.id,
+              namaKelas: c.name || c.namaKelas,
+              mapel: c.subject || c.mapel
+            } as any);
+            return updated;
+          }
+          return c;
+        }));
+        return { list: healed, changed };
+      };
+
+      const firstClassHeal = await healClassesList(localClasses);
+      if (firstClassHeal.changed) {
+        localClasses = firstClassHeal.list;
+      }
+
       if (activeSchool?.id) {
         if (activeSchool.id === 'legacy') {
           localClasses = localClasses.filter(c => !(c as any).school_id && !(c as any).schoolId);
         } else {
-          localClasses = localClasses.filter(c => (c as any).school_id === activeSchool.id || (c as any).schoolId === activeSchool.id);
+          localClasses = localClasses.filter(c => {
+            const cSchoolId = (c as any).school_id || (c as any).schoolId;
+            return !cSchoolId || cSchoolId === activeSchool.id;
+          });
         }
       }
       
@@ -178,11 +212,19 @@ export default function KelolaKelas() {
           const updatedLocalState = await getFullState(true);
           let updatedClasses = updatedLocalState.classes || [];
           
+          const secondClassHeal = await healClassesList(updatedClasses);
+          if (secondClassHeal.changed) {
+            updatedClasses = secondClassHeal.list;
+          }
+
           if (activeSchool?.id) {
             if (activeSchool.id === 'legacy') {
               updatedClasses = updatedClasses.filter(c => !(c as any).school_id && !(c as any).schoolId);
             } else {
-              updatedClasses = updatedClasses.filter(c => (c as any).school_id === activeSchool.id || (c as any).schoolId === activeSchool.id);
+              updatedClasses = updatedClasses.filter(c => {
+                const cSchoolId = (c as any).school_id || (c as any).schoolId;
+                return !cSchoolId || cSchoolId === activeSchool.id;
+              });
             }
           }
           

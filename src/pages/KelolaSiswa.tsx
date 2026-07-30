@@ -152,7 +152,10 @@ export default function KelolaSiswa() {
             return !sSchoolId || (sClassId && validLegacyClassIds.has(sClassId));
           });
         } else {
-          localClasses = localClasses.filter(c => (c as any).school_id === activeSchool.id || (c as any).schoolId === activeSchool.id);
+          localClasses = localClasses.filter(c => {
+            const cSchoolId = (c as any).school_id || (c as any).schoolId;
+            return !cSchoolId || cSchoolId === activeSchool.id;
+          });
           const validClassIds = new Set(localClasses.map(c => c.id || c.idKelas || c.id_kelas).filter(Boolean));
           localStudents = localStudents.filter(s => {
             const sSchoolId = s.school_id || s.schoolId;
@@ -212,7 +215,10 @@ export default function KelolaSiswa() {
                 return !sSchoolId || (sClassId && validLegacyClassIds.has(sClassId));
               });
             } else {
-              updatedClasses = updatedClasses.filter(c => (c as any).school_id === activeSchool.id || (c as any).schoolId === activeSchool.id);
+              updatedClasses = updatedClasses.filter(c => {
+                const cSchoolId = (c as any).school_id || (c as any).schoolId;
+                return !cSchoolId || cSchoolId === activeSchool.id;
+              });
               const validClassIds = new Set(updatedClasses.map(c => c.id || c.idKelas || c.id_kelas).filter(Boolean));
               updatedStudents = updatedStudents.filter(s => {
                 const sSchoolId = s.school_id || s.schoolId;

@@ -619,7 +619,7 @@ export const syncService = {
         const cloudTableName = getCloudTableName(tableName);
         let query = client.from(cloudTableName).select('*');
         if (targetSchoolId) {
-          query = query.or(`teacher_id.eq.${user.id},school_id.eq.${targetSchoolId}`);
+          query = query.or(`teacher_id.eq.${user.id},school_id.eq.${targetSchoolId},school_id.is.null`);
         } else {
           query = query.eq('teacher_id', user.id);
         }
