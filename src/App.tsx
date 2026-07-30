@@ -319,23 +319,58 @@ export default function App() {
       if (syncService.isConfigured()) {
         const user = await syncService.getUser();
         if (user) {
-          console.log('[App] Session active, pulling data from Supabase...');
-          await syncService.pullFromCloud();
-          const dbGrading = await import('./services/dbGrading');
-          await dbGrading.syncCloudToLocal();
-          
-          // Auto-seed Excel data if database is empty
+          // Gather local state counts for all relevant entities
           const { getFullState } = await import('./services/dbAttendance');
-          const currentState = await getFullState();
-          if (!currentState.classes || currentState.classes.length === 0) {
-            console.log('[App] Local & Cloud empty, auto-seeding Excel data (15 classes, 669 students)...');
+          const localState = await getFullState();
+          const localCounts = {
+            classes: (localState.classes?.length || 0),
+            students: (localState.students?.length || 0),
+            sessions: (localState.sessions?.length || 0),
+            records: (localState.records?.length || 0),
+            schedules: (localState.schedules?.length || 0),
+            events: (localState.events?.length || 0),
+            cancellations: (localState.cancellations?.length || 0),
+            materials: (localState.materials?.length || 0),
+            assignments: (localState.assignments?.length || 0),
+          };
+          const localTotal = Object.values(localCounts).reduce((a, b) => a + b, 0);
+
+          // Determine active school ID for cloud queries
+          const client = (await import('./services/supabase')).getSupabaseClient();
+          const activeSchoolId = typeof window !== 'undefined' ? localStorage.getItem('active_school_id') : null;
+          const schoolId = (activeSchoolId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(activeSchoolId))
+            ? activeSchoolId
+            : 'fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7';
+
+          // Fetch cloud counts for each table (teacher_id OR school_id)
+          const tables = ['classes', 'students', 'sessions', 'records', 'schedules', 'events', 'cancellations', 'materials', 'assignments'];
+          let cloudTotal = 0;
+          for (const tbl of tables) {
+            const cloudName = tbl === 'sessions' ? 'attendance_sessions' : tbl === 'records' ? 'attendance_records' : tbl;
+            const { count } = await client.from(cloudName).select('*', { count: 'exact', head: true }).or(`teacher_id.eq.${user.id},school_id.eq.${schoolId}`);
+            cloudTotal += count || 0;
+          }
+
+          const needPull = localTotal === 0 || localTotal !== cloudTotal;
+          if (needPull) {
+            console.log(`[App] Pulling from cloud (local ${localTotal} vs cloud ${cloudTotal})`);
+            await syncService.pullFromCloud();
+            const dbGrading = await import('./services/dbGrading');
+            await dbGrading.syncCloudToLocal();
+          } else {
+            console.log('[App] Local data up‑to‑date; no pull needed.');
+          }
+
+          // Auto‑seed only when both local and cloud are completely empty (first install)
+          if (localTotal === 0 && cloudTotal === 0) {
+            console.log('[App] Both local & cloud empty – seeding Excel data');
             const { seedExcelDataToLocalAndCloud } = await import('./services/excelDataSeed');
             await seedExcelDataToLocalAndCloud();
           }
 
-          console.log('[App] Initial data pull complete.');
-          
-          // Subscribe to realtime changes
+          console.log('[App] Initial sync evaluation complete.');
+
+          // Subscribe to realtime changes for future updates
           syncService.subscribeToRealtimeSync(user.id, async () => {
             console.log('[App Realtime] Triggering sync pull due to changes on other device...');
             try {
@@ -343,7 +378,6 @@ export default function App() {
               await liveSync.pullFromCloud();
               const dbGrading = await import('./services/dbGrading');
               await dbGrading.syncCloudToLocal();
-              // Dispatch event to reload UI in all screens
               window.dispatchEvent(new Event('cloud_data_synced'));
             } catch (err) {
               console.error('[App Realtime] Auto-pull failed:', err);
@@ -352,7 +386,7 @@ export default function App() {
         }
       }
     } catch (err) {
-      console.error('[App] Failed to pull initial data:', err);
+      console.error('[App] Failed to evaluate sync:', err);
     } finally {
       syncInProgressRef.current = false;
       setIsInitialSyncComplete(true);
