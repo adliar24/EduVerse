@@ -189,6 +189,8 @@ const mapToLocal = (tableName: string, cloudItem: any): any => {
   let item: any = { ...cloudItem };
   
   if (tableName === 'classes') {
+    // Preserve the primary key for IndexedDB (keyPath: 'id')
+    item.id = cloudItem.id;
     item.schoolId = cloudItem.school_id;
     item.school_id = cloudItem.school_id;
     item.createdAt = cloudItem.created_at;
@@ -198,6 +200,7 @@ const mapToLocal = (tableName: string, cloudItem: any): any => {
   }
   
   if (tableName === 'students') {
+    item.id = cloudItem.id;
     item.classId = cloudItem.class_id;
     item.class_id = cloudItem.class_id;
     item.schoolId = cloudItem.school_id;
