@@ -106,11 +106,25 @@ export default function KelolaSiswa() {
 
       const findClassForStudent = (s: any, classesList: any[]) => {
         const studentClassId = s.classId || s.class_id || s.idKelas;
-        if (!studentClassId) return null;
-        return classesList.find(c => {
-          const cId = c.id || c.idKelas || c.id_kelas || c.classId;
-          return cId && String(cId) === String(studentClassId);
-        });
+        const studentClassName = (s.className || s.namaKelas || s.class_name || s.classes?.name || s.classes?.nama_kelas)?.trim()?.toUpperCase();
+
+        if (studentClassId) {
+          const matchById = classesList.find(c => {
+            const cId = c.id || c.idKelas || c.id_kelas || c.classId;
+            return cId && String(cId) === String(studentClassId);
+          });
+          if (matchById) return matchById;
+        }
+
+        if (studentClassName) {
+          const matchByName = classesList.find(c => {
+            const cName = (c.name || c.namaKelas || c.nama_kelas)?.trim()?.toUpperCase();
+            return cName && String(cName) === String(studentClassName);
+          });
+          if (matchByName) return matchByName;
+        }
+
+        return null;
       };
 
       const healStudentsList = async (list: any[], classesList: any[]) => {
@@ -138,12 +152,11 @@ export default function KelolaSiswa() {
             await addStudent(updated as any);
             await saveStudent({
               idSiswa: s.id || s.idSiswa,
-              teacherId: s.teacher_id || s.teacherId,
+              idKelas: classId || s.classId || s.class_id,
               schoolId: foundSchoolId,
-              idKelas: classId,
               nama: s.name || s.nama,
-              student_code: s.student_code,
-              password: s.password || 'murid19'
+              nisn: s.nisn || '',
+              gender: s.gender || 'L'
             } as any);
             return updated;
           }
@@ -193,12 +206,15 @@ export default function KelolaSiswa() {
       const mappedLocalStudents = localStudents.map(s => {
         const cls = findClassForStudent(s, localClasses);
         const resolvedClassId = s.classId || s.class_id || s.idKelas || (cls ? (cls.id || cls.idKelas) : null);
+        const resolvedClassName = cls ? (cls.name || cls.namaKelas) : (s.className || s.namaKelas || s.class_name || s.classes?.name || s.classes?.nama_kelas || null);
         return {
           ...s,
           class_id: resolvedClassId,
           classId: resolvedClassId,
           idKelas: resolvedClassId,
-          classes: cls ? { name: cls.name || cls.namaKelas } : null
+          className: resolvedClassName,
+          namaKelas: resolvedClassName,
+          classes: resolvedClassName ? { name: resolvedClassName } : null
         };
       });
 
@@ -260,12 +276,15 @@ export default function KelolaSiswa() {
           const remappedStudents = updatedStudents.map(s => {
             const cls = findClassForStudent(s, updatedClasses);
             const resolvedClassId = s.classId || s.class_id || s.idKelas || (cls ? (cls.id || cls.idKelas) : null);
+            const resolvedClassName = cls ? (cls.name || cls.namaKelas) : (s.className || s.namaKelas || s.class_name || s.classes?.name || s.classes?.nama_kelas || null);
             return {
               ...s,
               class_id: resolvedClassId,
               classId: resolvedClassId,
               idKelas: resolvedClassId,
-              classes: cls ? { name: cls.name || cls.namaKelas } : null
+              className: resolvedClassName,
+              namaKelas: resolvedClassName,
+              classes: resolvedClassName ? { name: resolvedClassName } : null
             };
           });
 
@@ -962,7 +981,7 @@ export default function KelolaSiswa() {
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 font-semibold text-xs border border-slate-200 whitespace-nowrap">{s.classes?.name || 'Tanpa Kelas'}</span>
+                      <span className="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 font-semibold text-xs border border-slate-200 whitespace-nowrap">{s.classes?.name || s.className || s.namaKelas || s.class_name || s.classes?.nama_kelas || 'Tanpa Kelas'}</span>
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-1">
