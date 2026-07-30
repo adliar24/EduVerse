@@ -223,6 +223,18 @@ export const addClass = async (cls: ClassEntity) => {
   autoSyncToCloud();
 };
 
+export const addClassesBulk = async (classesList: ClassEntity[]) => {
+  if (!classesList || classesList.length === 0) return;
+  const db = await initDB();
+  const tx = db.transaction('classes', 'readwrite');
+  const store = tx.objectStore('classes');
+  for (const c of classesList) {
+    await store.put(c);
+  }
+  await tx.done;
+  stateCache.data = null;
+};
+
 export const deleteClassCascade = async (classId: string) => {
   const db = await initDB();
   const tx = db.transaction(['classes', 'students', 'sessions', 'records', 'schedules', 'cancellations'], 'readwrite');
@@ -279,6 +291,18 @@ export const addStudent = async (student: Student) => {
   const db = await initDB();
   await db.put('students', student);
   autoSyncToCloud();
+};
+
+export const addStudentsBulk = async (studentsList: Student[]) => {
+  if (!studentsList || studentsList.length === 0) return;
+  const db = await initDB();
+  const tx = db.transaction('students', 'readwrite');
+  const store = tx.objectStore('students');
+  for (const s of studentsList) {
+    await store.put(s);
+  }
+  await tx.done;
+  stateCache.data = null;
 };
 
 export const deleteStudent = async (studentId: string) => {

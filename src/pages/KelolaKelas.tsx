@@ -26,7 +26,7 @@ import { cn } from '../lib/utils';
 import { useAlert } from '../context/AlertContext';
 import { staggerContainer, staggerItem } from '../lib/animations';
 import { useSchool } from '../context/SchoolContext';
-import { getFullState, addClass, deleteClassCascade, addStudent, deleteStudent } from '../services/dbAttendance';
+import { getFullState, addClass, deleteClassCascade, addStudent, deleteStudent, addClassesBulk, addStudentsBulk } from '../services/dbAttendance';
 import { saveClass, deleteClass, saveStudent, deleteStudent as deleteStudentGrading } from '../services/dbGrading';
 
 const ELECTRIC_BLUE_GRADIENT = {
@@ -142,16 +142,10 @@ export default function KelolaKelas() {
         try {
           const { SEED_CLASSES, SEED_STUDENTS } = await import('../services/excelDataSeed');
           if (localClasses.length === 0 && SEED_CLASSES && SEED_CLASSES.length > 0) {
-            for (const sc of SEED_CLASSES) {
-              await addClass(sc as any);
-              await saveClass(sc as any);
-            }
+            await addClassesBulk(SEED_CLASSES as any);
           }
           if ((localState.students || []).length === 0 && SEED_STUDENTS && SEED_STUDENTS.length > 0) {
-            for (const ss of SEED_STUDENTS) {
-              await addStudent(ss as any);
-              await saveStudent(ss as any);
-            }
+            await addStudentsBulk(SEED_STUDENTS as any);
           }
           const stateAfterSeed = await getFullState(true);
           localClasses = stateAfterSeed.classes || [];

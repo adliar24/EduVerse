@@ -91,16 +91,10 @@ export default function KelolaSiswa() {
         try {
           const { SEED_STUDENTS, SEED_CLASSES } = await import('../services/excelDataSeed');
           if (localClasses.length === 0 && SEED_CLASSES && SEED_CLASSES.length > 0) {
-            for (const sc of SEED_CLASSES) {
-              await addClass(sc as any);
-              await saveClass(sc as any);
-            }
+            await addClassesBulk(SEED_CLASSES as any);
           }
           if (SEED_STUDENTS && SEED_STUDENTS.length > 0) {
-            for (const ss of SEED_STUDENTS) {
-              await addStudent(ss as any);
-              await saveStudent(ss as any);
-            }
+            await addStudentsBulk(SEED_STUDENTS as any);
             const stateAfterSeed = await getFullState(true);
             localStudents = stateAfterSeed.students || [];
             localClasses = stateAfterSeed.classes || [];
