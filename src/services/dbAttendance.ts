@@ -474,11 +474,15 @@ const executeSync = async (retryCount = 0): Promise<boolean> => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return false;
     
-    // AUTO-SYNC: Only PULL from cloud (never push — push is manual-only via SystemSettings)
+    // AUTO-SYNC: Push local changes first, then pull latest from cloud
     lastSyncAttempt = Date.now();
     const { syncService } = await import('./sync');
+    await syncService.pushToCloud();
     const result = await syncService.pullFromCloud();
-    console.log('[Auto-sync pull] Result:', result);
+    console.log('[Auto-sync push & pull] Result:', result);
+    if (result.success && typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('cloud_data_synced'));
+    }
     return result.success;
   } catch (e) {
     console.error('[Auto-sync] Failed:', e);

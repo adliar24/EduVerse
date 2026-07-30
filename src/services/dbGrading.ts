@@ -376,7 +376,14 @@ export const saveClass = async (cls: ClassData): Promise<void> => {
     const { data: { session } } = await supabase.auth.getSession();
     if (session) {
       supabase.from('classes').upsert({
-        id_kelas: cls.idKelas, user_id: session.user.id, school_id: cls.schoolId, nama_kelas: cls.namaKelas, mapel: cls.mapel
+        id: cls.idKelas,
+        id_kelas: cls.idKelas,
+        teacher_id: session.user.id,
+        school_id: cls.schoolId,
+        name: cls.namaKelas,
+        nama_kelas: cls.namaKelas,
+        subject: cls.mapel,
+        mapel: cls.mapel
       }).then(({ error }) => { if (error) console.warn("Background sync failed:", error); });
     }
   }
@@ -389,7 +396,7 @@ export const deleteClass = async (idKelas: string): Promise<void> => {
   
   if (supabase) {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) supabase.from('classes').delete().eq('id_kelas', idKelas).then(({ error }) => { if (error) console.warn(error); });
+      if (session) supabase.from('classes').delete().or(`id.eq.${idKelas},id_kelas.eq.${idKelas}`).then(({ error }) => { if (error) console.warn(error); });
     });
   }
 
@@ -421,7 +428,15 @@ export const saveStudent = async (student: Student): Promise<void> => {
     const { data: { session } } = await supabase.auth.getSession();
     if (session) {
       supabase.from('students').upsert({
-        id_siswa: student.idSiswa, user_id: session.user.id, school_id: student.schoolId, id_kelas: student.idKelas, nama: student.nama, nisn: student.nisn
+        id: student.idSiswa,
+        id_siswa: student.idSiswa,
+        teacher_id: session.user.id,
+        school_id: student.schoolId,
+        class_id: student.idKelas,
+        id_kelas: student.idKelas,
+        name: student.nama,
+        nama: student.nama,
+        nisn: student.nisn
       }).then(({ error }) => { if (error) console.warn("Background sync failed:", error); });
     }
   }
@@ -434,7 +449,7 @@ export const deleteStudent = async (idSiswa: string): Promise<void> => {
   
   if (supabase) {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) supabase.from('students').delete().eq('id_siswa', idSiswa).then(({ error }) => { if (error) console.warn(error); });
+      if (session) supabase.from('students').delete().or(`id.eq.${idSiswa},id_siswa.eq.${idSiswa}`).then(({ error }) => { if (error) console.warn(error); });
     });
   }
 
@@ -784,13 +799,13 @@ export const syncLocalToCloud = async (): Promise<boolean> => {
 
     if (backup.classes.length > 0) {
       await supabase.from('classes').upsert(backup.classes.map(c => ({
-        id_kelas: c.idKelas, teacher_id: uid, school_id: c.schoolId, nama_kelas: c.namaKelas, subject: c.mapel
+        id: c.idKelas, id_kelas: c.idKelas, teacher_id: uid, school_id: c.schoolId, name: c.namaKelas, nama_kelas: c.namaKelas, subject: c.mapel, mapel: c.mapel
       })));
     }
     
     if (backup.students.length > 0) {
       await supabase.from('students').upsert(backup.students.map(s => ({
-        id_siswa: s.idSiswa, teacher_id: uid, school_id: s.schoolId, id_kelas: s.idKelas, nama: s.nama
+        id: s.idSiswa, id_siswa: s.idSiswa, teacher_id: uid, school_id: s.schoolId, class_id: s.idKelas, id_kelas: s.idKelas, name: s.nama, nama: s.nama, nisn: s.nisn
       })));
     }
 

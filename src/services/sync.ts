@@ -34,8 +34,12 @@ const mapToCloud = (tableName: string, item: any, userId: string): any => {
     syncItem.subject = item.subject || item.mapel;
     syncItem.created_at = item.created_at || item.createdAt;
     
+    // Add dual-schema fields for EduScore / EduCheck compatibility
+    syncItem.id_kelas = item.id || item.idKelas;
+    syncItem.nama_kelas = item.name || item.namaKelas;
+    syncItem.mapel = item.subject || item.mapel;
+    
     delete syncItem.namaKelas;
-    delete syncItem.mapel;
     delete syncItem.createdAt;
     delete syncItem.schoolId;
     delete syncItem.schoolIndex;
@@ -46,6 +50,12 @@ const mapToCloud = (tableName: string, item: any, userId: string): any => {
     syncItem.class_id = item.class_id || item.classId || item.idKelas || null;
     syncItem.name = item.name || item.nama;
     syncItem.created_at = item.created_at || item.createdAt;
+
+    // Add dual-schema fields for EduScore / EduCheck compatibility
+    syncItem.id_siswa = item.id || item.idSiswa;
+    syncItem.id_kelas = syncItem.class_id;
+    syncItem.nama = syncItem.name;
+
     if (item.face_embedding) {
       syncItem.face_vector = item.face_embedding;
       syncItem.face_embedding = item.face_embedding;
@@ -53,7 +63,6 @@ const mapToCloud = (tableName: string, item: any, userId: string): any => {
     
     delete syncItem.classId;
     delete syncItem.idKelas;
-    delete syncItem.nama;
     delete syncItem.createdAt;
     delete syncItem.schoolId;
     delete syncItem.idSiswa;
@@ -314,16 +323,25 @@ export const syncService = {
         console.log('[Realtime Sync] Received broadcast payload:', payload);
         if (payload.payload?.userId === userId && payload.payload?.senderId !== deviceId) {
           console.log('[Realtime Sync] Broadcast trigger: new updates on another device!');
-          callback();
+          this.pullFromCloud().then(() => {
+            if (typeof window !== 'undefined') window.dispatchEvent(new Event('cloud_data_synced'));
+            callback();
+          });
         }
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'attendance_sessions' }, () => {
         console.log('[Realtime Sync] Postgres changes on attendance_sessions table');
-        callback();
+        this.pullFromCloud().then(() => {
+          if (typeof window !== 'undefined') window.dispatchEvent(new Event('cloud_data_synced'));
+          callback();
+        });
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'attendance_records' }, () => {
         console.log('[Realtime Sync] Postgres changes on attendance_records table');
-        callback();
+        this.pullFromCloud().then(() => {
+          if (typeof window !== 'undefined') window.dispatchEvent(new Event('cloud_data_synced'));
+          callback();
+        });
       })
       .subscribe((status) => {
         console.log('[Realtime Sync] Subscription status:', status);
@@ -416,15 +434,9 @@ export const syncService = {
       
       console.log(`[pushToCloud] Cloud: ${cloudClassesCount}C/${cloudStudentsCount}S (${cloudTotal}) | Local: ${localClassCount}C/${localStudentCount}S (${localTotal})`);
       
-      // CRITICAL: If local is empty OR local has fewer records than cloud, NEVER push (would wipe cloud data)
+      // Non-destructive push: Always push local records to cloud (upsert safely merges records)
       if (localTotal === 0 && cloudTotal > 0) {
-        console.log(`[pushToCloud] ABORT: Local empty but Cloud has ${cloudTotal} records. Pulling instead.`);
-        setSkipSync(false);
-        return await this.pullFromCloud();
-      }
-      
-      if (localTotal > 0 && cloudTotal > 0 && localTotal < cloudTotal) {
-        console.log(`[pushToCloud] ABORT: Local (${localTotal}) < Cloud (${cloudTotal}). Pulling instead to avoid data loss.`);
+        console.log(`[pushToCloud] Local empty but Cloud has ${cloudTotal} records. Pulling to populate local state.`);
         setSkipSync(false);
         return await this.pullFromCloud();
       }
@@ -608,10 +620,9 @@ export const syncService = {
           continue;
         }
 
-        // Clear local store then insert cloud data (avoids duplicates from different device UUIDs)
+        // Additive/merge sync: Put cloud data into local IndexedDB without clearing unsynced local data
         const tx = db.transaction(tableName as any, 'readwrite');
         const store = tx.objectStore(tableName as any);
-        await store.clear();
         if (data && data.length > 0) {
           for (const item of data) {
             const localItem = mapToLocal(tableName, item);
