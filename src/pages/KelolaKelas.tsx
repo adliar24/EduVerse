@@ -185,16 +185,17 @@ export default function KelolaKelas() {
         localClasses = firstClassHeal.list;
       }
 
-      if (activeSchool?.id) {
-        if (activeSchool.id === 'legacy') {
-          localClasses = localClasses.filter(c => !(c as any).school_id && !(c as any).schoolId);
-        } else {
-          localClasses = localClasses.filter(c => {
-            const cSchoolId = (c as any).school_id || (c as any).schoolId;
-            return !cSchoolId || cSchoolId === activeSchool.id;
-          });
-        }
-      }
+      // Never filter out classes if SMAN 19 Bandung or default school is active
+      const filterClassList = (list: any[]) => {
+        if (!activeSchool?.id || activeSchool.id === 'legacy') return list;
+        return list.filter(c => {
+          const cSchoolId = (c as any).school_id || (c as any).schoolId;
+          if (!cSchoolId || cSchoolId === 'fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7') return true;
+          return cSchoolId === activeSchool.id;
+        });
+      };
+
+      localClasses = filterClassList(localClasses);
       
       // Manually count students per class locally
       const localStudents = localState.students || [];
@@ -233,16 +234,7 @@ export default function KelolaKelas() {
             updatedClasses = secondClassHeal.list;
           }
 
-          if (activeSchool?.id) {
-            if (activeSchool.id === 'legacy') {
-              updatedClasses = updatedClasses.filter(c => !(c as any).school_id && !(c as any).schoolId);
-            } else {
-              updatedClasses = updatedClasses.filter(c => {
-                const cSchoolId = (c as any).school_id || (c as any).schoolId;
-                return !cSchoolId || cSchoolId === activeSchool.id;
-              });
-            }
-          }
+          updatedClasses = filterClassList(updatedClasses);
           
           const updatedStudents = updatedLocalState.students || [];
           const remappedClasses = updatedClasses.map(c => {

@@ -399,6 +399,14 @@ export default function App() {
       setStudentSession(savedStudent ? JSON.parse(savedStudent) : null);
     };
 
+    // Ensure active school ID points to canonical SMAN 19 Bandung if set to old ID
+    if (typeof window !== 'undefined') {
+      const storedId = localStorage.getItem('active_school_id');
+      if (!storedId || storedId === '635fc13c-c85b-4e7a-8e4a-6c6e54d84076' || storedId === 'legacy') {
+        localStorage.setItem('active_school_id', 'fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7');
+      }
+    }
+
     window.addEventListener('student_session_change', handleSync);
     window.addEventListener('storage', handleSync);
 

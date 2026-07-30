@@ -182,7 +182,7 @@ export default function KelolaSiswa() {
             const cTeacherId = (c as any).teacher_id || (c as any).teacherId || (c as any).user_id;
             const cSchoolId = (c as any).school_id || (c as any).schoolId;
             if (user?.id && cTeacherId === user.id) return true;
-            return !cSchoolId || cSchoolId === activeSchool.id;
+            return !cSchoolId || cSchoolId === activeSchool.id || cSchoolId === 'fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7';
           });
           const validClassIds = new Set(localClasses.map(c => c.id || c.idKelas || c.id_kelas).filter(Boolean));
           localStudents = localStudents.filter(s => {
@@ -190,7 +190,7 @@ export default function KelolaSiswa() {
             const sSchoolId = s.school_id || s.schoolId;
             const sClassId = s.classId || s.class_id || s.idKelas;
             if (user?.id && sTeacherId === user.id) return true;
-            return !sSchoolId || sSchoolId === activeSchool.id || (sClassId && validClassIds.has(sClassId));
+            return !sSchoolId || sSchoolId === activeSchool.id || sSchoolId === 'fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7' || (sClassId && validClassIds.has(sClassId));
           });
         }
       }
