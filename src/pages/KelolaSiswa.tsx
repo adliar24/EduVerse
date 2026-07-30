@@ -87,6 +87,29 @@ export default function KelolaSiswa() {
       let localStudents = localState.students || [];
       let localClasses = localState.classes || [];
 
+      if (localStudents.length === 0) {
+        try {
+          const { SEED_STUDENTS, SEED_CLASSES } = await import('../services/excelDataSeed');
+          if (localClasses.length === 0 && SEED_CLASSES && SEED_CLASSES.length > 0) {
+            for (const sc of SEED_CLASSES) {
+              await addClass(sc as any);
+              await saveClass(sc as any);
+            }
+          }
+          if (SEED_STUDENTS && SEED_STUDENTS.length > 0) {
+            for (const ss of SEED_STUDENTS) {
+              await addStudent(ss as any);
+              await saveStudent(ss as any);
+            }
+            const stateAfterSeed = await getFullState(true);
+            localStudents = stateAfterSeed.students || [];
+            localClasses = stateAfterSeed.classes || [];
+          }
+        } catch (e) {
+          console.warn('Seed students fallback error:', e);
+        }
+      }
+
       const findClassForStudent = (s: any, classesList: any[]) => {
         const studentClassId = s.classId || s.class_id || s.idKelas;
         if (!studentClassId) return null;

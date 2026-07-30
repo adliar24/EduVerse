@@ -138,6 +138,22 @@ export default function KelolaKelas() {
       const localState = await getFullState(true);
       let localClasses = localState.classes || [];
       
+      if (localClasses.length === 0) {
+        try {
+          const { SEED_CLASSES } = await import('../services/excelDataSeed');
+          if (SEED_CLASSES && SEED_CLASSES.length > 0) {
+            for (const sc of SEED_CLASSES) {
+              await addClass(sc as any);
+              await saveClass(sc as any);
+            }
+            const stateAfterSeed = await getFullState(true);
+            localClasses = stateAfterSeed.classes || [];
+          }
+        } catch (e) {
+          console.warn('Seed classes fallback error:', e);
+        }
+      }
+      
       const healClassesList = async (list: any[]) => {
         let changed = false;
         const healed = await Promise.all(list.map(async (c) => {

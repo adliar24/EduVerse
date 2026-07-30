@@ -65,8 +65,15 @@ export function SchoolProvider({ children }: { children: ReactNode }) {
           })
           .filter((s): s is School => s !== null);
 
-        // Remove duplicates just in case
-        const uniqueSchools = Array.from(new Map(schoolList.map((s: School) => [s.id, s])).values());
+        // Deduplicate schools by name, preferring canonical ID fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7
+        const uniqueByNameMap = new Map<string, School>();
+        for (const s of schoolList) {
+          const key = s.name.toLowerCase().trim();
+          if (!uniqueByNameMap.has(key) || s.id === 'fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7') {
+            uniqueByNameMap.set(key, s);
+          }
+        }
+        const uniqueSchools = Array.from(uniqueByNameMap.values());
         
         console.log('SchoolContext - uniqueSchools:', uniqueSchools);
         if (uniqueSchools.length > 0) {
@@ -75,7 +82,7 @@ export function SchoolProvider({ children }: { children: ReactNode }) {
 
           const storedSchoolId = localStorage.getItem('active_school_id');
           const stored = storedSchoolId ? uniqueSchools.find((s: School) => s.id === storedSchoolId) : null;
-          const active = stored || uniqueSchools[0];
+          const active = stored || uniqueSchools.find(s => s.id === 'fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7') || uniqueSchools[0];
           setActiveSchoolState(active);
           if (active?.id) {
             localStorage.setItem('active_school_id', active.id);
@@ -87,14 +94,22 @@ export function SchoolProvider({ children }: { children: ReactNode }) {
       // Fallback: Fetch directly from 'schools' table if teacher_schools mapping is empty/null
       const { data: allSchools } = await supabase.from('schools').select('*');
       if (allSchools && allSchools.length > 0) {
-        const fallbackSchools: School[] = allSchools.map((s: any) => ({
+        const schoolList: School[] = allSchools.map((s: any) => ({
           id: s.id,
           name: s.name || s.nama || 'Sekolah',
           address: s.address || s.alamat || ''
         }));
+        const uniqueByNameMap = new Map<string, School>();
+        for (const s of schoolList) {
+          const key = s.name.toLowerCase().trim();
+          if (!uniqueByNameMap.has(key) || s.id === 'fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7') {
+            uniqueByNameMap.set(key, s);
+          }
+        }
+        const fallbackSchools = Array.from(uniqueByNameMap.values());
         setSchools(fallbackSchools);
         const storedSchoolId = localStorage.getItem('active_school_id');
-        const active = fallbackSchools.find(s => s.id === storedSchoolId) || fallbackSchools[0];
+        const active = fallbackSchools.find(s => s.id === storedSchoolId) || fallbackSchools.find(s => s.id === 'fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7') || fallbackSchools[0];
         setActiveSchoolState(active);
         if (active?.id) {
           localStorage.setItem('active_school_id', active.id);

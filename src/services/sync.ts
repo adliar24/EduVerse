@@ -621,7 +621,11 @@ export const syncService = {
         const cloudTableName = getCloudTableName(tableName);
         let query = client.from(cloudTableName).select('*');
         if (tableName === 'classes' || tableName === 'students') {
-          query = query.or(`teacher_id.eq.${user.id},user_id.eq.${user.id},teacher_id.is.null,user_id.is.null`);
+          if (targetSchoolId) {
+            query = query.or(`teacher_id.eq.${user.id},school_id.eq.${targetSchoolId},teacher_id.is.null,school_id.is.null`);
+          } else {
+            query = query.or(`teacher_id.eq.${user.id},teacher_id.is.null`);
+          }
         } else if (targetSchoolId) {
           query = query.or(`teacher_id.eq.${user.id},school_id.eq.${targetSchoolId},school_id.is.null`);
         } else {
