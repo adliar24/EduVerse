@@ -308,11 +308,12 @@ export default function KelolaSiswa() {
           throw new Error('Pilih sekolah terlebih dahulu di header.');
         }
 
+        const targetClassId = formData.class_id || (classes.length > 0 ? (classes[0].id || classes[0].idKelas) : null);
         const { data: newStudent, error } = await supabase.from('students').insert([{ 
           teacher_id: user.id, 
           school_id: activeSchool.id,
           name: formData.name, 
-          class_id: formData.class_id || null,
+          class_id: targetClassId,
           student_code: formData.student_code.trim() || generateStudentCode(),
           password: formData.password.trim() || 'murid19',
           gender: formData.gender || null
