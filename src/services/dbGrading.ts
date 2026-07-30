@@ -1015,7 +1015,6 @@ export const syncCloudToLocal = async (existingProfile?: TeacherProfile | null):
         }));
         if (classes.length > 0) {
           const classStore = tx.objectStore('classes');
-          await classStore.clear();
           classes.forEach(c => classStore.put(c));
         }
 

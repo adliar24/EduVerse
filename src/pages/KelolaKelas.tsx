@@ -172,24 +172,26 @@ export default function KelolaKelas() {
       
       // 1. Load classes from local IndexedDB first (instant load)
       const localState = await getFullState(true);
-      let localClasses = localState.classes || [];
+      let dbClasses = localState.classes || [];
       
-      if (localClasses.length === 0 || (localState.students || []).length === 0) {
-        try {
-          const { SEED_CLASSES, SEED_STUDENTS } = await import('../services/excelDataSeed');
-          if (localClasses.length === 0 && SEED_CLASSES && SEED_CLASSES.length > 0) {
-            await addClassesBulk(SEED_CLASSES as any);
-          }
-          if ((localState.students || []).length === 0 && SEED_STUDENTS && SEED_STUDENTS.length > 0) {
-            await addStudentsBulk(SEED_STUDENTS as any);
-          }
-          const stateAfterSeed = await getFullState(true);
-          localClasses = stateAfterSeed.classes || [];
-          localState.students = stateAfterSeed.students || [];
-        } catch (e) {
-          console.warn('Seed classes/students fallback error:', e);
-        }
+      const { SEED_CLASSES } = await import('../services/excelDataSeed');
+      const classMap = new Map<string, any>();
+      
+      if (SEED_CLASSES && SEED_CLASSES.length > 0) {
+        SEED_CLASSES.forEach(sc => {
+          const id = sc.id || sc.idKelas;
+          classMap.set(String(id), sc);
+        });
       }
+
+      dbClasses.forEach(lc => {
+        const id = lc.id || lc.idKelas || lc.id_kelas;
+        if (id) {
+          classMap.set(String(id), { ...classMap.get(String(id)), ...lc });
+        }
+      });
+
+      let localClasses = Array.from(classMap.values());
       
       const healClassesList = async (list: any[]) => {
         let changed = false;
@@ -275,7 +277,24 @@ export default function KelolaKelas() {
           await syncService.pullFromCloud();
           
           const updatedLocalState = await getFullState(true);
-          let updatedClasses = updatedLocalState.classes || [];
+          let syncDbClasses = updatedLocalState.classes || [];
+          const syncClassMap = new Map<string, any>();
+          
+          if (SEED_CLASSES && SEED_CLASSES.length > 0) {
+            SEED_CLASSES.forEach(sc => {
+              const id = sc.id || sc.idKelas;
+              syncClassMap.set(String(id), sc);
+            });
+          }
+
+          syncDbClasses.forEach(lc => {
+            const id = lc.id || lc.idKelas || lc.id_kelas;
+            if (id) {
+              syncClassMap.set(String(id), { ...syncClassMap.get(String(id)), ...lc });
+            }
+          });
+
+          let updatedClasses = Array.from(syncClassMap.values());
           
           const secondClassHeal = await healClassesList(updatedClasses);
           if (secondClassHeal.changed) {

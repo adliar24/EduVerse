@@ -673,13 +673,10 @@ export const syncService = {
           continue;
         }
 
-        // Purge local classes/students ONLY when fresh cloud data is received
+        // Merge cloud data into IndexedDB without wiping local master data
         if (data && data.length > 0) {
           const tx = db.transaction(tableName as any, 'readwrite');
           const store = tx.objectStore(tableName as any);
-          if (tableName === 'classes' || tableName === 'students') {
-            await store.clear();
-          }
           for (const item of data) {
             const localItem = mapToLocal(tableName, item);
             await store.put(localItem);
