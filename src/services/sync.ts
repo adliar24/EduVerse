@@ -620,17 +620,27 @@ export const syncService = {
       for (const tableName of TABLES) {
         const cloudTableName = getCloudTableName(tableName);
         let query = client.from(cloudTableName).select('*');
+        const validUserId = (user?.id && isValidUUID(user.id)) ? user.id : null;
+        const validSchoolId = (targetSchoolId && isValidUUID(targetSchoolId)) ? targetSchoolId : 'fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7';
+
         if (tableName === 'classes' || tableName === 'students') {
-          if (targetSchoolId) {
-            query = query.or(`teacher_id.eq.${user.id},school_id.eq.${targetSchoolId},teacher_id.is.null,school_id.is.null`);
-          } else {
-            query = query.or(`teacher_id.eq.${user.id},teacher_id.is.null`);
+          if (validUserId && validSchoolId) {
+            query = query.or(`teacher_id.eq.${validUserId},school_id.eq.${validSchoolId}`);
+          } else if (validSchoolId) {
+            query = query.eq('school_id', validSchoolId);
+          } else if (validUserId) {
+            query = query.eq('teacher_id', validUserId);
           }
-        } else if (targetSchoolId) {
-          query = query.or(`teacher_id.eq.${user.id},school_id.eq.${targetSchoolId},school_id.is.null`);
-        } else {
-          query = query.eq('teacher_id', user.id);
+        } else if (validSchoolId) {
+          if (validUserId) {
+            query = query.or(`teacher_id.eq.${validUserId},school_id.eq.${validSchoolId}`);
+          } else {
+            query = query.eq('school_id', validSchoolId);
+          }
+        } else if (validUserId) {
+          query = query.eq('teacher_id', validUserId);
         }
+
         const { data, error } = await query;
         console.log(`[pullFromCloud] ${tableName}:`, { count: data?.length, error });
         
@@ -639,19 +649,19 @@ export const syncService = {
           continue;
         }
 
-        // Purge local classes/students before writing fresh cloud data
-        const tx = db.transaction(tableName as any, 'readwrite');
-        const store = tx.objectStore(tableName as any);
-        if (tableName === 'classes' || tableName === 'students') {
-          await store.clear();
-        }
+        // Purge local classes/students ONLY when fresh cloud data is received
         if (data && data.length > 0) {
+          const tx = db.transaction(tableName as any, 'readwrite');
+          const store = tx.objectStore(tableName as any);
+          if (tableName === 'classes' || tableName === 'students') {
+            await store.clear();
+          }
           for (const item of data) {
             const localItem = mapToLocal(tableName, item);
             await store.put(localItem);
           }
+          await tx.done;
         }
-        await tx.done;
       }
       
       console.log('[pullFromCloud] Complete');

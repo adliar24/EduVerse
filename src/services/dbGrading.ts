@@ -935,10 +935,19 @@ export const syncCloudToLocal = async (existingProfile?: TeacherProfile | null):
     // Get the latest local profile to ensure we have the most recent activeSchoolId
     const profile = existingProfile || await getTeacherProfile();
 
+    const validUid = (uid && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(uid)) ? uid : null;
+    const classQuery = validUid 
+      ? supabase.from('classes').select('*').or(`teacher_id.eq.${validUid},school_id.eq.fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7`)
+      : supabase.from('classes').select('*').eq('school_id', 'fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7');
+
+    const studentQuery = validUid
+      ? supabase.from('students').select('*').or(`teacher_id.eq.${validUid},school_id.eq.fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7`)
+      : supabase.from('students').select('*').eq('school_id', 'fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7');
+
     const [schRes, cRes, sRes, mRes, msRes, spRes, fgRes, loRes, tpRes, ptRes] = await Promise.all([
       supabase.from('teacher_schools').select('school_id, academic_year, semester, schools(id, name, created_at)').eq('teacher_id', uid),
-      supabase.from('classes').select('*').or(`teacher_id.eq.${uid},school_id.eq.fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7,teacher_id.is.null,school_id.is.null`),
-      supabase.from('students').select('*').or(`teacher_id.eq.${uid},school_id.eq.fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7,teacher_id.is.null,school_id.is.null`),
+      classQuery,
+      studentQuery,
       supabase.from('meetings').select('*').eq('user_id', uid),
       supabase.from('meeting_scores').select('*').eq('user_id', uid),
       supabase.from('student_points').select('*').eq('user_id', uid),
@@ -994,8 +1003,6 @@ export const syncCloudToLocal = async (existingProfile?: TeacherProfile | null):
             tx.objectStore('teacherProfile').put({ ...profile, id: 'profile' });
         }
 
-        const classStore = tx.objectStore('classes');
-        await classStore.clear();
         const classes = (cRes.data || []).map((row: any) => ({
             id: row.id || row.id_kelas,
             idKelas: row.id_kelas || row.id,
@@ -1006,10 +1013,12 @@ export const syncCloudToLocal = async (existingProfile?: TeacherProfile | null):
             subject: row.subject || row.mapel || '',
             mapel: row.mapel || row.subject || ''
         }));
-        classes.forEach(c => classStore.put(c));
+        if (classes.length > 0) {
+          const classStore = tx.objectStore('classes');
+          await classStore.clear();
+          classes.forEach(c => classStore.put(c));
+        }
 
-        const studentStore = tx.objectStore('students');
-        await studentStore.clear();
         const students = (sRes.data || []).map((row: any) => ({
             id: row.id || row.id_siswa,
             idSiswa: row.id_siswa || row.id,
@@ -1017,12 +1026,20 @@ export const syncCloudToLocal = async (existingProfile?: TeacherProfile | null):
             school_id: row.school_id || targetSchoolId,
             classId: row.class_id || row.id_kelas,
             class_id: row.class_id || row.id_kelas,
-            idKelas: row.id_kelas || row.class_id,
+            idKelas: row.class_id || row.id_kelas,
             name: row.name || row.nama || 'Siswa',
             nama: row.nama || row.name || 'Siswa',
-            nisn: row.nisn || ''
+            studentCode: row.student_code,
+            student_code: row.student_code,
+            nisn: row.nisn || '',
+            gender: row.gender || 'L',
+            password: row.password || 'murid19'
         }));
-        students.forEach(s => tx.objectStore('students').put(s));
+        if (students.length > 0) {
+          const studentStore = tx.objectStore('students');
+          await studentStore.clear();
+          students.forEach(s => studentStore.put(s));
+        }
 
         const learningObjectives = (loRes.data || []).map((row: any) => ({
             id: row.id, schoolId: row.school_id || targetSchoolId, mapel: row.mapel, kode: row.kode, deskripsi: row.deskripsi
