@@ -106,31 +106,12 @@ export default function KelolaKelas() {
     };
   }, [showForm, showStudents, showAddStudentForm]);
 
-  const DEFAULT_SUBJECTS = [
-    { id: 'subj_1', name: 'Matematika' },
-    { id: 'subj_2', name: 'Bahasa Indonesia' },
-    { id: 'subj_3', name: 'Bahasa Inggris' },
-    { id: 'subj_4', name: 'Fisika' },
-    { id: 'subj_5', name: 'Kimia' },
-    { id: 'subj_6', name: 'Biologi' },
-    { id: 'subj_7', name: 'Informatika' },
-    { id: 'subj_8', name: 'Sejarah' },
-    { id: 'subj_9', name: 'Geografi' },
-    { id: 'subj_10', name: 'Ekonomi' },
-    { id: 'subj_11', name: 'Sosiologi' },
-    { id: 'subj_12', name: 'Pendidikan Agama' },
-    { id: 'subj_13', name: 'PPKn' },
-    { id: 'subj_14', name: 'PJOK' },
-    { id: 'subj_15', name: 'Seni Budaya' },
-    { id: 'subj_16', name: 'Prakarya' },
-    { id: 'subj_17', name: 'Umum' }
-  ];
-
   const fetchTeacherSubjects = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      let fetched: any[] = [];
+      let subjectsList: any[] = [];
 
+      // 1. Fetch from Supabase cloud teacher_subjects
       if (user) {
         const { data: teacherSubjectsData } = await supabase
           .from('teacher_subjects')
@@ -138,20 +119,50 @@ export default function KelolaKelas() {
           .eq('teacher_id', user.id);
         
         if (teacherSubjectsData && teacherSubjectsData.length > 0) {
-          fetched = teacherSubjectsData
+          subjectsList = teacherSubjectsData
             .map(ts => ts.subjects as any)
             .filter(Boolean);
         }
       }
 
-      const merged = [...fetched, ...DEFAULT_SUBJECTS];
-      const uniqueSubjects = merged.filter((subject, index, self) => 
-        index === self.findIndex(s => s && s.name && subject && subject.name && s.name.toLowerCase() === subject.name.toLowerCase())
+      // 2. Fallback to local IndexedDB teacher profile subjects if cloud is empty
+      if (subjectsList.length === 0) {
+        try {
+          const { getTeacherProfile } = await import('../services/dbGrading');
+          const localProfile = await getTeacherProfile();
+          if (localProfile?.subjects && Array.isArray(localProfile.subjects) && localProfile.subjects.length > 0) {
+            subjectsList = localProfile.subjects.map((s: any, idx: number) => 
+              typeof s === 'string' ? { id: `subj_${idx}`, name: s } : s
+            );
+          }
+        } catch (e) {
+          console.warn('Local profile subjects fetch warning:', e);
+        }
+      }
+
+      // Deduplicate by name
+      const uniqueSubjects = subjectsList.filter((subject, index, self) => 
+        subject && subject.name && index === self.findIndex(s => s && s.name && s.name.toLowerCase() === subject.name.toLowerCase())
       );
-      setTeacherSubjects(uniqueSubjects);
+
+      // If teacher has assigned subjects in profile, set ONLY those exact subjects!
+      if (uniqueSubjects.length > 0) {
+        setTeacherSubjects(uniqueSubjects);
+      } else {
+        // Fallback default if profile has not selected any subjects yet
+        setTeacherSubjects([
+          { id: 'subj_1', name: 'Matematika' },
+          { id: 'subj_2', name: 'Bahasa Indonesia' },
+          { id: 'subj_3', name: 'Bahasa Inggris' },
+          { id: 'subj_4', name: 'Fisika' },
+          { id: 'subj_5', name: 'Kimia' },
+          { id: 'subj_6', name: 'Biologi' },
+          { id: 'subj_7', name: 'Umum' }
+        ]);
+      }
     } catch (error) {
       console.error('Error fetching teacher subjects:', error);
-      setTeacherSubjects(DEFAULT_SUBJECTS);
+      setTeacherSubjects([{ id: 'default_umum', name: 'Umum' }]);
     }
   };
 
