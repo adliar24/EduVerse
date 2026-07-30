@@ -106,27 +106,52 @@ export default function KelolaKelas() {
     };
   }, [showForm, showStudents, showAddStudentForm]);
 
+  const DEFAULT_SUBJECTS = [
+    { id: 'subj_1', name: 'Matematika' },
+    { id: 'subj_2', name: 'Bahasa Indonesia' },
+    { id: 'subj_3', name: 'Bahasa Inggris' },
+    { id: 'subj_4', name: 'Fisika' },
+    { id: 'subj_5', name: 'Kimia' },
+    { id: 'subj_6', name: 'Biologi' },
+    { id: 'subj_7', name: 'Informatika' },
+    { id: 'subj_8', name: 'Sejarah' },
+    { id: 'subj_9', name: 'Geografi' },
+    { id: 'subj_10', name: 'Ekonomi' },
+    { id: 'subj_11', name: 'Sosiologi' },
+    { id: 'subj_12', name: 'Pendidikan Agama' },
+    { id: 'subj_13', name: 'PPKn' },
+    { id: 'subj_14', name: 'PJOK' },
+    { id: 'subj_15', name: 'Seni Budaya' },
+    { id: 'subj_16', name: 'Prakarya' },
+    { id: 'subj_17', name: 'Umum' }
+  ];
+
   const fetchTeacherSubjects = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-      
-      const { data: teacherSubjectsData } = await supabase
-        .from('teacher_subjects')
-        .select('subject_id, subjects(*)')
-        .eq('teacher_id', user.id);
-      
-      if (teacherSubjectsData) {
-        const allSubjects = teacherSubjectsData
-          .map(ts => ts.subjects as any)
-          .filter(Boolean);
-        const uniqueSubjects = allSubjects.filter((subject, index, self) => 
-          index === self.findIndex(s => s.name.toLowerCase() === subject.name.toLowerCase())
-        );
-        setTeacherSubjects(uniqueSubjects);
+      let fetched: any[] = [];
+
+      if (user) {
+        const { data: teacherSubjectsData } = await supabase
+          .from('teacher_subjects')
+          .select('subject_id, subjects(*)')
+          .eq('teacher_id', user.id);
+        
+        if (teacherSubjectsData && teacherSubjectsData.length > 0) {
+          fetched = teacherSubjectsData
+            .map(ts => ts.subjects as any)
+            .filter(Boolean);
+        }
       }
+
+      const merged = [...fetched, ...DEFAULT_SUBJECTS];
+      const uniqueSubjects = merged.filter((subject, index, self) => 
+        index === self.findIndex(s => s && s.name && subject && subject.name && s.name.toLowerCase() === subject.name.toLowerCase())
+      );
+      setTeacherSubjects(uniqueSubjects);
     } catch (error) {
       console.error('Error fetching teacher subjects:', error);
+      setTeacherSubjects(DEFAULT_SUBJECTS);
     }
   };
 
@@ -1163,33 +1188,59 @@ export default function KelolaKelas() {
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Mata Pelajaran</label>
-                  <input name="subject" type="text" required placeholder="Ketik mata pelajaran (Contoh: Matematika, IPA...)"
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 outline-none focus:ring-2 focus:ring-[#3B66F5]/15 focus:border-[#3B66F5] transition-all font-medium text-sm text-[#1D4ED8]"
-                    value={formData.subject} onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                  />
-                  <div className="pt-2">
-                    <p className="text-[11px] font-semibold text-slate-400 mb-1.5">Pilihan Cepat:</p>
-                    <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto p-1 bg-slate-50 rounded-xl border border-slate-100">
-                      {[
-                        "Matematika", "Bahasa Indonesia", "Bahasa Inggris", "Fisika", "Kimia",
-                        "Biologi", "Informatika", "Sejarah", "Geografi", "Ekonomi",
-                        "Sosiologi", "Pendidikan Agama", "PPKn", "PJOK", "Seni Budaya", "Prakarya", "Umum"
-                      ].map(subj => (
-                        <button
-                          key={subj}
-                          type="button"
-                          onClick={() => setFormData({ ...formData, subject: subj })}
-                          className={cn(
-                            "px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all cursor-pointer",
-                            formData.subject === subj
-                              ? "bg-[#3B66F5] text-white border-[#3B66F5] shadow-xs"
-                              : "bg-white text-slate-600 border-slate-200 hover:bg-slate-100"
-                          )}
-                        >
-                          {subj}
-                        </button>
-                      ))}
+                  <div className="relative" ref={subjectRef}>
+                    <div className="flex items-center gap-2">
+                      <input name="subject" type="text" required placeholder="Pilih atau ketik mata pelajaran..."
+                        className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 outline-none focus:ring-2 focus:ring-[#3B66F5]/15 focus:border-[#3B66F5] transition-all font-medium text-sm text-[#1D4ED8]"
+                        value={formData.subject} onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                        onFocus={() => setSubjectDropdownOpen(true)}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setSubjectDropdownOpen(!subjectDropdownOpen)}
+                        className="px-3 py-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-500 hover:bg-slate-100 transition-colors"
+                      >
+                        <ChevronDown className={cn("w-4 h-4 transition-transform", subjectDropdownOpen && "rotate-180")} />
+                      </button>
                     </div>
+
+                    <AnimatePresence>
+                      {subjectDropdownOpen && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-slate-200 z-50 max-h-52 overflow-y-auto divide-y divide-slate-100"
+                        >
+                          {teacherSubjects.map(subject => (
+                            <button
+                              key={subject.id || subject.name}
+                              type="button"
+                              onClick={() => {
+                                setFormData({ ...formData, subject: subject.name });
+                                setSubjectDropdownOpen(false);
+                              }}
+                              className={cn(
+                                "w-full flex items-center justify-between px-4 py-3 hover:bg-slate-50 transition-colors text-left cursor-pointer",
+                                formData.subject === subject.name && "bg-blue-50/60 font-bold"
+                              )}
+                            >
+                              <div className="flex items-center gap-3">
+                                <BookOpen className="w-4 h-4 text-[#3B66F5]" />
+                                <span className="text-slate-700 text-sm font-semibold">{subject.name}</span>
+                              </div>
+                              {formData.subject === subject.name && (
+                                <div className="w-4 h-4 rounded-full bg-[#1D4ED8] flex items-center justify-center">
+                                  <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                  </svg>
+                                </div>
+                              )}
+                            </button>
+                          ))}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
                 </div>
                 <div className="flex gap-3 pt-2">
