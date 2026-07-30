@@ -198,8 +198,9 @@ const mapToLocal = (tableName: string, cloudItem: any): any => {
   let item: any = { ...cloudItem };
   
   if (tableName === 'classes') {
-    // Preserve primary key and fill compatibility key aliases
-    const classId = cloudItem.id || cloudItem.id_kelas;
+    // Preserve primary key and fill compatibility key aliases (ensure non-null id for IndexedDB keyPath)
+    const rawClassId = cloudItem.id || cloudItem.id_kelas;
+    const classId = rawClassId ? String(rawClassId) : (cloudItem.name ? `class_${String(cloudItem.name).replace(/\s+/g, '_')}` : `class_${Math.random().toString(36).substring(2, 9)}`);
     const className = cloudItem.name || cloudItem.nama_kelas || 'Kelas';
     const classSubject = cloudItem.subject || cloudItem.mapel || '';
     
@@ -211,11 +212,12 @@ const mapToLocal = (tableName: string, cloudItem: any): any => {
     item.mapel = classSubject;
     item.schoolId = cloudItem.school_id;
     item.school_id = cloudItem.school_id;
-    item.createdAt = cloudItem.created_at;
+    item.createdAt = cloudItem.created_at || new Date().toISOString();
   }
   
   if (tableName === 'students') {
-    const studentId = cloudItem.id || cloudItem.id_siswa;
+    const rawStudentId = cloudItem.id || cloudItem.id_siswa;
+    const studentId = rawStudentId ? String(rawStudentId) : (cloudItem.name ? `student_${String(cloudItem.name).replace(/\s+/g, '_')}` : `student_${Math.random().toString(36).substring(2, 9)}`);
     const studentClassId = cloudItem.class_id || cloudItem.id_kelas || null;
     const studentName = cloudItem.name || cloudItem.nama || 'Siswa';
 
@@ -228,7 +230,7 @@ const mapToLocal = (tableName: string, cloudItem: any): any => {
     item.nama = studentName;
     item.schoolId = cloudItem.school_id;
     item.school_id = cloudItem.school_id;
-    item.createdAt = cloudItem.created_at;
+    item.createdAt = cloudItem.created_at || new Date().toISOString();
     
     if (cloudItem.face_vector && !cloudItem.face_embedding) {
       item.face_embedding = cloudItem.face_vector;
@@ -618,7 +620,9 @@ export const syncService = {
       for (const tableName of TABLES) {
         const cloudTableName = getCloudTableName(tableName);
         let query = client.from(cloudTableName).select('*');
-        if (targetSchoolId) {
+        if (tableName === 'classes' || tableName === 'students') {
+          query = query.or(`teacher_id.eq.${user.id},user_id.eq.${user.id},teacher_id.is.null,user_id.is.null`);
+        } else if (targetSchoolId) {
           query = query.or(`teacher_id.eq.${user.id},school_id.eq.${targetSchoolId},school_id.is.null`);
         } else {
           query = query.eq('teacher_id', user.id);
