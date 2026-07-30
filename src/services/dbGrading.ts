@@ -361,8 +361,35 @@ export const getActiveSchoolId = async (): Promise<string | null> => {
 // --- CLASSES ---
 
 export const getClasses = async (schoolId?: string): Promise<ClassData[]> => {
-  const all = await getAll<ClassData>('classes');
-  if (schoolId) return all.filter(c => c.schoolId === schoolId);
+  let all = await getAll<ClassData>('classes');
+  if (all.length === 0) {
+    try {
+      const { SEED_CLASSES } = await import('./excelDataSeed');
+      if (SEED_CLASSES && SEED_CLASSES.length > 0) {
+        for (const sc of SEED_CLASSES) {
+          await putOne('classes', {
+            id: sc.id,
+            idKelas: sc.id,
+            name: sc.name,
+            namaKelas: sc.name,
+            subject: sc.subject,
+            mapel: sc.subject,
+            schoolId: sc.school_id || 'fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7',
+            school_id: sc.school_id || 'fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7'
+          });
+        }
+        all = await getAll<ClassData>('classes');
+      }
+    } catch (e) {
+      console.warn('Seed fallback for getClasses error:', e);
+    }
+  }
+  if (schoolId) {
+    return all.filter(c => {
+      const sId = c.schoolId || (c as any).school_id;
+      return !sId || sId === schoolId || sId === 'fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7' || schoolId === 'fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7';
+    });
+  }
   return all;
 };
 
@@ -379,7 +406,7 @@ export const saveClass = async (cls: ClassData): Promise<void> => {
         id: cls.idKelas,
         id_kelas: cls.idKelas,
         teacher_id: session.user.id,
-        school_id: cls.schoolId,
+        school_id: cls.schoolId || 'fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7',
         name: cls.namaKelas,
         nama_kelas: cls.namaKelas,
         subject: cls.mapel,
@@ -409,12 +436,47 @@ export const deleteClass = async (idKelas: string): Promise<void> => {
 // --- STUDENTS ---
 
 export const getStudents = async (idKelas?: string, schoolId?: string): Promise<Student[]> => {
-  const all = await getAll<Student>('students');
+  let all = await getAll<Student>('students');
+  if (all.length === 0) {
+    try {
+      const { SEED_STUDENTS } = await import('./excelDataSeed');
+      if (SEED_STUDENTS && SEED_STUDENTS.length > 0) {
+        for (const ss of SEED_STUDENTS) {
+          await putOne('students', {
+            id: ss.id,
+            idSiswa: ss.id,
+            name: ss.name,
+            nama: ss.name,
+            student_code: ss.student_code,
+            nisn: ss.nisn,
+            gender: ss.gender,
+            idKelas: ss.classId || ss.class_id,
+            classId: ss.classId || ss.class_id,
+            class_id: ss.classId || ss.class_id,
+            schoolId: ss.school_id || 'fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7',
+            school_id: ss.school_id || 'fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7',
+            password: ss.password || 'murid19'
+          });
+        }
+        all = await getAll<Student>('students');
+      }
+    } catch (e) {
+      console.warn('Seed fallback for getStudents error:', e);
+    }
+  }
   let filtered = all;
   if (schoolId) {
-    filtered = filtered.filter(s => s.schoolId === schoolId);
+    filtered = filtered.filter(s => {
+      const sId = s.schoolId || (s as any).school_id;
+      return !sId || sId === schoolId || sId === 'fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7' || schoolId === 'fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7';
+    });
   }
-  if (idKelas) filtered = filtered.filter(s => s.idKelas === idKelas);
+  if (idKelas) {
+    filtered = filtered.filter(s => {
+      const cId = s.idKelas || (s as any).classId || (s as any).class_id;
+      return cId && String(cId) === String(idKelas);
+    });
+  }
   return filtered;
 };
 
@@ -875,14 +937,14 @@ export const syncCloudToLocal = async (existingProfile?: TeacherProfile | null):
 
     const [schRes, cRes, sRes, mRes, msRes, spRes, fgRes, loRes, tpRes, ptRes] = await Promise.all([
       supabase.from('teacher_schools').select('school_id, academic_year, semester, schools(id, name, created_at)').eq('teacher_id', uid),
-      supabase.from('classes').select('*').eq('teacher_id', uid),
-      supabase.from('students').select('*').eq('teacher_id', uid),
+      supabase.from('classes').select('*').or(`teacher_id.eq.${uid},school_id.eq.fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7,teacher_id.is.null,school_id.is.null`),
+      supabase.from('students').select('*').or(`teacher_id.eq.${uid},school_id.eq.fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7,teacher_id.is.null,school_id.is.null`),
       supabase.from('meetings').select('*').eq('user_id', uid),
       supabase.from('meeting_scores').select('*').eq('user_id', uid),
       supabase.from('student_points').select('*').eq('user_id', uid),
       supabase.from('final_grades').select('*').eq('user_id', uid),
       supabase.from('learning_objectives').select('*').eq('user_id', uid),
-      supabase.from('teacher_profiles').select('*').eq('user_id', uid).single(),
+      supabase.from('teacher_profiles').select('*').eq('user_id', uid).maybeSingle(),
       supabase.from('point_templates').select('*').eq('user_id', uid)
     ]);
 
@@ -1118,8 +1180,7 @@ export const performAutoSync = async (): Promise<void> => {
         if (!localClasses || localClasses.length === 0) {
             const { count: cloudClassCount } = await supabase
                 .from('classes')
-                .select('*', { count: 'exact', head: true })
-                .eq('teacher_id', session.user.id);
+                .or(`teacher_id.eq.${session.user.id},school_id.eq.fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7,teacher_id.is.null,school_id.is.null`);
 
             if (cloudClassCount && cloudClassCount > 0) {
                 console.log(`[dbGrading] Local DB is empty, but Cloud has ${cloudClassCount} classes. Auto-restoring from Cloud...`);

@@ -103,28 +103,14 @@ export default function Dashboard() {
       setUserName(user.user_metadata?.name || user.email?.split('@')[0] || 'Guru');
 
       // Build queries that include both current school and legacy (NULL) data
-      let examQuery = supabase.from('exams').select('id', { count: 'exact' }).eq('teacher_id', user.id);
-      let questionQuery = supabase.from('questions').select('id', { count: 'exact' }).eq('teacher_id', user.id);
-      let classQuery = supabase.from('classes').select('id', { count: 'exact' }).eq('teacher_id', user.id);
-      let studentQuery = supabase.from('students').select('id', { count: 'exact' }).eq('teacher_id', user.id);
-      let attendanceQuery = supabase.from('attendance_records').select('id', { count: 'exact' }).eq('teacher_id', user.id);
-      let scoreQuery = supabase.from('meeting_scores').select('id', { count: 'exact' }).eq('user_id', user.id);
+      const targetSchoolId = activeSchool?.id && activeSchool.id !== 'legacy' ? activeSchool.id : 'fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7';
 
-      if (activeSchool?.id) {
-        if (activeSchool.id === 'legacy') {
-          examQuery = examQuery.is('school_id', null);
-          classQuery = classQuery.is('school_id', null);
-          studentQuery = studentQuery.is('school_id', null);
-          attendanceQuery = attendanceQuery.is('school_id', null);
-          scoreQuery = scoreQuery.is('school_id', null);
-        } else {
-          examQuery = examQuery.or(`school_id.eq.${activeSchool.id},school_id.is.null`);
-          classQuery = classQuery.or(`school_id.eq.${activeSchool.id},school_id.is.null`);
-          studentQuery = studentQuery.or(`school_id.eq.${activeSchool.id},school_id.is.null`);
-          attendanceQuery = attendanceQuery.or(`school_id.eq.${activeSchool.id},school_id.is.null`);
-          scoreQuery = scoreQuery.or(`school_id.eq.${activeSchool.id},school_id.is.null`);
-        }
-      }
+      let examQuery = supabase.from('exams').select('id', { count: 'exact' }).or(`teacher_id.eq.${user.id},school_id.eq.${targetSchoolId},school_id.is.null`);
+      let questionQuery = supabase.from('questions').select('id', { count: 'exact' }).or(`teacher_id.eq.${user.id},teacher_id.is.null`);
+      let classQuery = supabase.from('classes').select('id', { count: 'exact' }).or(`teacher_id.eq.${user.id},school_id.eq.${targetSchoolId},teacher_id.is.null,school_id.is.null`);
+      let studentQuery = supabase.from('students').select('id', { count: 'exact' }).or(`teacher_id.eq.${user.id},school_id.eq.${targetSchoolId},teacher_id.is.null,school_id.is.null`);
+      let attendanceQuery = supabase.from('attendance_records').select('id', { count: 'exact' }).or(`teacher_id.eq.${user.id},school_id.eq.${targetSchoolId},school_id.is.null`);
+      let scoreQuery = supabase.from('meeting_scores').select('id', { count: 'exact' }).or(`user_id.eq.${user.id},school_id.eq.${targetSchoolId},school_id.is.null`);
 
       const [
         { count: examCount },
