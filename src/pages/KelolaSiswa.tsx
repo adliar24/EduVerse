@@ -141,26 +141,33 @@ export default function KelolaSiswa() {
         localStudents = firstHeal.list;
       }
 
-      // Filter by active school
+      // Filter by active school (never drop records belonging to current teacher)
+      const { data: { user } } = await supabase.auth.getUser();
       if (activeSchool?.id) {
         if (activeSchool.id === 'legacy') {
           const validLegacyClassIds = new Set(localClasses.filter(c => !c.school_id && !c.schoolId).map(c => c.id || c.idKelas || c.id_kelas).filter(Boolean));
           localClasses = localClasses.filter(c => !(c as any).school_id && !(c as any).schoolId);
           localStudents = localStudents.filter(s => {
+            const sTeacherId = s.teacher_id || s.teacherId || s.user_id;
             const sSchoolId = s.school_id || s.schoolId;
             const sClassId = s.classId || s.class_id || s.idKelas;
+            if (user?.id && sTeacherId === user.id) return true;
             return !sSchoolId || (sClassId && validLegacyClassIds.has(sClassId));
           });
         } else {
           localClasses = localClasses.filter(c => {
+            const cTeacherId = (c as any).teacher_id || (c as any).teacherId || (c as any).user_id;
             const cSchoolId = (c as any).school_id || (c as any).schoolId;
+            if (user?.id && cTeacherId === user.id) return true;
             return !cSchoolId || cSchoolId === activeSchool.id;
           });
           const validClassIds = new Set(localClasses.map(c => c.id || c.idKelas || c.id_kelas).filter(Boolean));
           localStudents = localStudents.filter(s => {
+            const sTeacherId = s.teacher_id || s.teacherId || s.user_id;
             const sSchoolId = s.school_id || s.schoolId;
             const sClassId = s.classId || s.class_id || s.idKelas;
-            return sSchoolId === activeSchool.id || (sClassId && validClassIds.has(sClassId));
+            if (user?.id && sTeacherId === user.id) return true;
+            return !sSchoolId || sSchoolId === activeSchool.id || (sClassId && validClassIds.has(sClassId));
           });
         }
       }
@@ -189,7 +196,6 @@ export default function KelolaSiswa() {
       }
 
       // 2. Background Pull from Supabase Cloud to update local databases and sync
-      const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         try {
           const { syncService } = await import('../services/sync');
@@ -210,20 +216,26 @@ export default function KelolaSiswa() {
               const validLegacyClassIds = new Set(updatedClasses.filter(c => !c.school_id && !c.schoolId).map(c => c.id || c.idKelas || c.id_kelas).filter(Boolean));
               updatedClasses = updatedClasses.filter(c => !(c as any).school_id && !(c as any).schoolId);
               updatedStudents = updatedStudents.filter(s => {
+                const sTeacherId = s.teacher_id || s.teacherId || s.user_id;
                 const sSchoolId = s.school_id || s.schoolId;
                 const sClassId = s.classId || s.class_id || s.idKelas;
+                if (user?.id && sTeacherId === user.id) return true;
                 return !sSchoolId || (sClassId && validLegacyClassIds.has(sClassId));
               });
             } else {
               updatedClasses = updatedClasses.filter(c => {
+                const cTeacherId = (c as any).teacher_id || (c as any).teacherId || (c as any).user_id;
                 const cSchoolId = (c as any).school_id || (c as any).schoolId;
+                if (user?.id && cTeacherId === user.id) return true;
                 return !cSchoolId || cSchoolId === activeSchool.id;
               });
               const validClassIds = new Set(updatedClasses.map(c => c.id || c.idKelas || c.id_kelas).filter(Boolean));
               updatedStudents = updatedStudents.filter(s => {
+                const sTeacherId = s.teacher_id || s.teacherId || s.user_id;
                 const sSchoolId = s.school_id || s.schoolId;
                 const sClassId = s.classId || s.class_id || s.idKelas;
-                return sSchoolId === activeSchool.id || (sClassId && validClassIds.has(sClassId));
+                if (user?.id && sTeacherId === user.id) return true;
+                return !sSchoolId || sSchoolId === activeSchool.id || (sClassId && validClassIds.has(sClassId));
               });
             }
           }
