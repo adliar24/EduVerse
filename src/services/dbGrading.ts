@@ -933,18 +933,27 @@ export const syncCloudToLocal = async (existingProfile?: TeacherProfile | null):
         }
 
         const classes = (cRes.data || []).map((row: any) => ({
+            id: row.id || row.id_kelas,
             idKelas: row.id_kelas || row.id,
             schoolId: row.school_id || targetSchoolId,
-            namaKelas: row.nama_kelas || row.name,
-            mapel: row.subject || row.mapel || ''
+            school_id: row.school_id || targetSchoolId,
+            name: row.name || row.nama_kelas || 'Kelas',
+            namaKelas: row.nama_kelas || row.name || 'Kelas',
+            subject: row.subject || row.mapel || '',
+            mapel: row.mapel || row.subject || ''
         }));
         classes.forEach(c => tx.objectStore('classes').put(c));
 
         const students = (sRes.data || []).map((row: any) => ({
+            id: row.id || row.id_siswa,
             idSiswa: row.id_siswa || row.id,
             schoolId: row.school_id || targetSchoolId,
+            school_id: row.school_id || targetSchoolId,
+            classId: row.class_id || row.id_kelas,
+            class_id: row.class_id || row.id_kelas,
             idKelas: row.id_kelas || row.class_id,
-            nama: row.nama || row.name,
+            name: row.name || row.nama || 'Siswa',
+            nama: row.nama || row.name || 'Siswa',
             nisn: row.nisn || ''
         }));
         students.forEach(s => tx.objectStore('students').put(s));

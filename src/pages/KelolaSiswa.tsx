@@ -87,40 +87,48 @@ export default function KelolaSiswa() {
       let localStudents = localState.students || [];
       let localClasses = localState.classes || [];
 
+      const findClassForStudent = (s: any, classesList: any[]) => {
+        const studentClassId = s.classId || s.class_id || s.idKelas;
+        if (!studentClassId) return null;
+        return classesList.find(c => {
+          const cId = c.id || c.idKelas || c.id_kelas || c.classId;
+          return cId && String(cId) === String(studentClassId);
+        });
+      };
+
       const healStudentsList = async (list: any[], classesList: any[]) => {
         let changed = false;
         const healed = await Promise.all(list.map(async (s) => {
-          if (!s.school_id && !s.schoolId) {
-            let foundSchoolId = null;
-            const classId = s.classId || s.class_id || s.idKelas;
-            if (classId) {
-              const cls = classesList.find(c => c.id === classId || (c as any).idKelas === classId || (c as any).classId === classId);
-              if (cls) foundSchoolId = cls.school_id || (cls as any).schoolId || (cls as any).school_id;
-            }
-            if (!foundSchoolId && activeSchool?.id && activeSchool.id !== 'legacy') {
-              foundSchoolId = activeSchool.id;
-            }
-            if (foundSchoolId) {
-              changed = true;
-              const updated = {
-                ...s,
-                school_id: foundSchoolId,
-                schoolId: foundSchoolId,
-                classId: classId,
-                class_id: classId
-              };
-              await addStudent(updated as any);
-              await saveStudent({
-                idSiswa: s.id || s.idSiswa,
-                teacherId: s.teacher_id || s.teacherId,
-                schoolId: foundSchoolId,
-                idKelas: classId,
-                nama: s.name || s.nama,
-                student_code: s.student_code,
-                password: s.password || 'murid19'
-              } as any);
-              return updated;
-            }
+          const classId = s.classId || s.class_id || s.idKelas;
+          let foundSchoolId = s.school_id || s.schoolId;
+          if (!foundSchoolId && classId) {
+            const cls = findClassForStudent(s, classesList);
+            if (cls) foundSchoolId = cls.school_id || cls.schoolId;
+          }
+          if (!foundSchoolId && activeSchool?.id && activeSchool.id !== 'legacy') {
+            foundSchoolId = activeSchool.id;
+          }
+          if (foundSchoolId && (s.school_id !== foundSchoolId || s.schoolId !== foundSchoolId || !s.classId || !s.class_id)) {
+            changed = true;
+            const updated = {
+              ...s,
+              school_id: foundSchoolId,
+              schoolId: foundSchoolId,
+              classId: classId || s.classId || s.class_id,
+              class_id: classId || s.class_id || s.classId,
+              idKelas: classId || s.idKelas || s.classId
+            };
+            await addStudent(updated as any);
+            await saveStudent({
+              idSiswa: s.id || s.idSiswa,
+              teacherId: s.teacher_id || s.teacherId,
+              schoolId: foundSchoolId,
+              idKelas: classId,
+              nama: s.name || s.nama,
+              student_code: s.student_code,
+              password: s.password || 'murid19'
+            } as any);
+            return updated;
           }
           return s;
         }));
@@ -136,21 +144,34 @@ export default function KelolaSiswa() {
       // Filter by active school
       if (activeSchool?.id) {
         if (activeSchool.id === 'legacy') {
-          localStudents = localStudents.filter(s => !(s as any).school_id && !s.schoolId);
+          const validLegacyClassIds = new Set(localClasses.filter(c => !c.school_id && !c.schoolId).map(c => c.id || c.idKelas || c.id_kelas).filter(Boolean));
           localClasses = localClasses.filter(c => !(c as any).school_id && !(c as any).schoolId);
+          localStudents = localStudents.filter(s => {
+            const sSchoolId = s.school_id || s.schoolId;
+            const sClassId = s.classId || s.class_id || s.idKelas;
+            return !sSchoolId || (sClassId && validLegacyClassIds.has(sClassId));
+          });
         } else {
-          localStudents = localStudents.filter(s => (s as any).school_id === activeSchool.id || s.schoolId === activeSchool.id);
           localClasses = localClasses.filter(c => (c as any).school_id === activeSchool.id || (c as any).schoolId === activeSchool.id);
+          const validClassIds = new Set(localClasses.map(c => c.id || c.idKelas || c.id_kelas).filter(Boolean));
+          localStudents = localStudents.filter(s => {
+            const sSchoolId = s.school_id || s.schoolId;
+            const sClassId = s.classId || s.class_id || s.idKelas;
+            return sSchoolId === activeSchool.id || (sClassId && validClassIds.has(sClassId));
+          });
         }
       }
 
       // Map classes.name for students
       const mappedLocalStudents = localStudents.map(s => {
-        const cls = localClasses.find(c => c.id === (s.classId || (s as any).class_id || (s as any).idKelas));
+        const cls = findClassForStudent(s, localClasses);
+        const resolvedClassId = s.classId || s.class_id || s.idKelas || (cls ? (cls.id || cls.idKelas) : null);
         return {
           ...s,
-          class_id: s.classId || (s as any).class_id || (s as any).idKelas,
-          classes: cls ? { name: cls.name || (cls as any).namaKelas } : null
+          class_id: resolvedClassId,
+          classId: resolvedClassId,
+          idKelas: resolvedClassId,
+          classes: cls ? { name: cls.name || cls.namaKelas } : null
         };
       });
 
@@ -158,7 +179,8 @@ export default function KelolaSiswa() {
         setStudents(mappedLocalStudents);
         setClasses(localClasses.map(c => ({
           ...c,
-          name: c.name || (c as any).namaKelas
+          id: c.id || c.idKelas || c.id_kelas,
+          name: c.name || c.namaKelas
         })));
         setSelectedStudentIds([]);
       }
@@ -182,20 +204,33 @@ export default function KelolaSiswa() {
 
           if (activeSchool?.id) {
             if (activeSchool.id === 'legacy') {
-              updatedStudents = updatedStudents.filter(s => !(s as any).school_id && !s.schoolId);
+              const validLegacyClassIds = new Set(updatedClasses.filter(c => !c.school_id && !c.schoolId).map(c => c.id || c.idKelas || c.id_kelas).filter(Boolean));
               updatedClasses = updatedClasses.filter(c => !(c as any).school_id && !(c as any).schoolId);
+              updatedStudents = updatedStudents.filter(s => {
+                const sSchoolId = s.school_id || s.schoolId;
+                const sClassId = s.classId || s.class_id || s.idKelas;
+                return !sSchoolId || (sClassId && validLegacyClassIds.has(sClassId));
+              });
             } else {
-              updatedStudents = updatedStudents.filter(s => (s as any).school_id === activeSchool.id || s.schoolId === activeSchool.id);
               updatedClasses = updatedClasses.filter(c => (c as any).school_id === activeSchool.id || (c as any).schoolId === activeSchool.id);
+              const validClassIds = new Set(updatedClasses.map(c => c.id || c.idKelas || c.id_kelas).filter(Boolean));
+              updatedStudents = updatedStudents.filter(s => {
+                const sSchoolId = s.school_id || s.schoolId;
+                const sClassId = s.classId || s.class_id || s.idKelas;
+                return sSchoolId === activeSchool.id || (sClassId && validClassIds.has(sClassId));
+              });
             }
           }
 
           const remappedStudents = updatedStudents.map(s => {
-            const cls = updatedClasses.find(c => c.id === (s.classId || (s as any).class_id || (s as any).idKelas));
+            const cls = findClassForStudent(s, updatedClasses);
+            const resolvedClassId = s.classId || s.class_id || s.idKelas || (cls ? (cls.id || cls.idKelas) : null);
             return {
               ...s,
-              class_id: s.classId || (s as any).class_id || (s as any).idKelas,
-              classes: cls ? { name: cls.name || (cls as any).namaKelas } : null
+              class_id: resolvedClassId,
+              classId: resolvedClassId,
+              idKelas: resolvedClassId,
+              classes: cls ? { name: cls.name || cls.namaKelas } : null
             };
           });
 
@@ -203,7 +238,8 @@ export default function KelolaSiswa() {
             setStudents(remappedStudents);
             setClasses(updatedClasses.map(c => ({
               ...c,
-              name: c.name || (c as any).namaKelas
+              id: c.id || c.idKelas || c.id_kelas,
+              name: c.name || c.namaKelas
             })));
           }
         } catch (syncErr) {

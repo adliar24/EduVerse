@@ -149,11 +149,17 @@ export default function KelolaKelas() {
       // Manually count students per class locally
       const localStudents = localState.students || [];
       const mappedClasses = localClasses.map(c => {
-        const studentCount = localStudents.filter(s => s.classId === c.id || (s as any).class_id === c.id || (s as any).idKelas === c.id).length;
+        const classId = c.id || c.idKelas || c.id_kelas;
+        const studentCount = localStudents.filter(s => {
+          const sClassId = s.classId || s.class_id || s.idKelas;
+          return classId && sClassId && String(sClassId) === String(classId);
+        }).length;
         return {
           ...c,
-          name: c.name || (c as any).namaKelas,
-          subject: c.subject || (c as any).mapel,
+          id: classId,
+          idKelas: classId,
+          name: c.name || c.namaKelas,
+          subject: c.subject || c.mapel,
           students: [{ count: studentCount }]
         };
       });
@@ -182,11 +188,17 @@ export default function KelolaKelas() {
           
           const updatedStudents = updatedLocalState.students || [];
           const remappedClasses = updatedClasses.map(c => {
-            const studentCount = updatedStudents.filter(s => s.classId === c.id || (s as any).class_id === c.id || (s as any).idKelas === c.id).length;
+            const classId = c.id || c.idKelas || c.id_kelas;
+            const studentCount = updatedStudents.filter(s => {
+              const sClassId = s.classId || s.class_id || s.idKelas;
+              return classId && sClassId && String(sClassId) === String(classId);
+            }).length;
             return {
               ...c,
-              name: c.name || (c as any).namaKelas,
-              subject: c.subject || (c as any).mapel,
+              id: classId,
+              idKelas: classId,
+              name: c.name || c.namaKelas,
+              subject: c.subject || c.mapel,
               students: [{ count: studentCount }]
             };
           });

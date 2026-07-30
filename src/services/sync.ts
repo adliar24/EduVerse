@@ -198,26 +198,37 @@ const mapToLocal = (tableName: string, cloudItem: any): any => {
   let item: any = { ...cloudItem };
   
   if (tableName === 'classes') {
-    // Preserve the primary key for IndexedDB (keyPath: 'id')
-    item.id = cloudItem.id;
+    // Preserve primary key and fill compatibility key aliases
+    const classId = cloudItem.id || cloudItem.id_kelas;
+    const className = cloudItem.name || cloudItem.nama_kelas || 'Kelas';
+    const classSubject = cloudItem.subject || cloudItem.mapel || '';
+    
+    item.id = classId;
+    item.idKelas = classId;
+    item.name = className;
+    item.namaKelas = className;
+    item.subject = classSubject;
+    item.mapel = classSubject;
     item.schoolId = cloudItem.school_id;
     item.school_id = cloudItem.school_id;
     item.createdAt = cloudItem.created_at;
-    item.idKelas = cloudItem.id;
-    item.namaKelas = cloudItem.name;
-    item.mapel = cloudItem.subject;
   }
   
   if (tableName === 'students') {
-    item.id = cloudItem.id;
-    item.classId = cloudItem.class_id;
-    item.class_id = cloudItem.class_id;
+    const studentId = cloudItem.id || cloudItem.id_siswa;
+    const studentClassId = cloudItem.class_id || cloudItem.id_kelas || null;
+    const studentName = cloudItem.name || cloudItem.nama || 'Siswa';
+
+    item.id = studentId;
+    item.idSiswa = studentId;
+    item.classId = studentClassId;
+    item.class_id = studentClassId;
+    item.idKelas = studentClassId;
+    item.name = studentName;
+    item.nama = studentName;
     item.schoolId = cloudItem.school_id;
     item.school_id = cloudItem.school_id;
     item.createdAt = cloudItem.created_at;
-    item.idKelas = cloudItem.class_id;
-    item.idSiswa = cloudItem.id;
-    item.nama = cloudItem.name;
     
     if (cloudItem.face_vector && !cloudItem.face_embedding) {
       item.face_embedding = cloudItem.face_vector;
