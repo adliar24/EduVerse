@@ -218,14 +218,38 @@ const mapToLocal = (tableName: string, cloudItem: any): any => {
   if (tableName === 'students') {
     const rawStudentId = cloudItem.id || cloudItem.id_siswa;
     const studentId = rawStudentId ? String(rawStudentId) : (cloudItem.name ? `student_${String(cloudItem.name).replace(/\s+/g, '_')}` : `student_${Math.random().toString(36).substring(2, 9)}`);
-    const studentClassId = cloudItem.class_id || cloudItem.id_kelas || null;
+    const studentClassId = cloudItem.class_id || cloudItem.id_kelas || cloudItem.classId || null;
     const studentName = cloudItem.name || cloudItem.nama || 'Siswa';
+    
+    const CLASS_ID_MAP: Record<string, string> = {
+      "00000000-0000-4000-8000-000009ad812f": "X-A",
+      "00000000-0000-4000-8000-00002da5570c": "X-D",
+      "00000000-0000-4000-8000-000071080c55": "X-E",
+      "00000000-0000-4000-8000-00000fb56fb6": "X-F",
+      "00000000-0000-4000-8000-0000519d2ce9": "X-G",
+      "00000000-0000-4000-8000-00004d103678": "X-H",
+      "00000000-0000-4000-8000-000014426627": "X-I",
+      "00000000-0000-4000-8000-0000759502c6": "X-J",
+      "00000000-0000-4000-8000-00002918609b": "X-K",
+      "00000000-0000-4000-8000-000018e27fd9": "XI-B",
+      "00000000-0000-4000-8000-000048701cc6": "XI-C",
+      "00000000-0000-4000-8000-0000563d469b": "XI-D",
+      "00000000-0000-4000-8000-00000b155604": "XI-E",
+      "00000000-0000-4000-8000-00006c67f2a3": "XI-F",
+      "00000000-0000-4000-8000-0000324570be": "XI-G"
+    };
+
+    const fallbackClassName = studentClassId ? CLASS_ID_MAP[studentClassId] : null;
+    const studentClassName = cloudItem.class_name || cloudItem.className || cloudItem.nama_kelas || cloudItem.namaKelas || (cloudItem.classes ? (cloudItem.classes.name || cloudItem.classes.nama_kelas) : null) || fallbackClassName;
 
     item.id = studentId;
     item.idSiswa = studentId;
     item.classId = studentClassId;
     item.class_id = studentClassId;
     item.idKelas = studentClassId;
+    item.className = studentClassName;
+    item.namaKelas = studentClassName;
+    item.class_name = studentClassName;
     item.name = studentName;
     item.nama = studentName;
     item.schoolId = cloudItem.school_id;

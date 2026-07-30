@@ -1019,14 +1019,40 @@ export const syncCloudToLocal = async (existingProfile?: TeacherProfile | null):
           classes.forEach(c => classStore.put(c));
         }
 
-        const students = (sRes.data || []).map((row: any) => ({
+        const CLASS_ID_MAP: Record<string, string> = {
+          "00000000-0000-4000-8000-000009ad812f": "X-A",
+          "00000000-0000-4000-8000-00002da5570c": "X-D",
+          "00000000-0000-4000-8000-000071080c55": "X-E",
+          "00000000-0000-4000-8000-00000fb56fb6": "X-F",
+          "00000000-0000-4000-8000-0000519d2ce9": "X-G",
+          "00000000-0000-4000-8000-00004d103678": "X-H",
+          "00000000-0000-4000-8000-000014426627": "X-I",
+          "00000000-0000-4000-8000-0000759502c6": "X-J",
+          "00000000-0000-4000-8000-00002918609b": "X-K",
+          "00000000-0000-4000-8000-000018e27fd9": "XI-B",
+          "00000000-0000-4000-8000-000048701cc6": "XI-C",
+          "00000000-0000-4000-8000-0000563d469b": "XI-D",
+          "00000000-0000-4000-8000-00000b155604": "XI-E",
+          "00000000-0000-4000-8000-00006c67f2a3": "XI-F",
+          "00000000-0000-4000-8000-0000324570be": "XI-G"
+        };
+
+        const students = (sRes.data || []).map((row: any) => {
+          const cId = row.class_id || row.id_kelas || row.classId || null;
+          const fallbackName = cId ? CLASS_ID_MAP[cId] : null;
+          const cName = row.class_name || row.className || row.nama_kelas || row.namaKelas || (row.classes ? (row.classes.name || row.classes.nama_kelas) : null) || fallbackName;
+
+          return {
             id: row.id || row.id_siswa,
             idSiswa: row.id_siswa || row.id,
             schoolId: row.school_id || targetSchoolId,
             school_id: row.school_id || targetSchoolId,
-            classId: row.class_id || row.id_kelas,
-            class_id: row.class_id || row.id_kelas,
-            idKelas: row.class_id || row.id_kelas,
+            classId: cId,
+            class_id: cId,
+            idKelas: cId,
+            className: cName,
+            namaKelas: cName,
+            class_name: cName,
             name: row.name || row.nama || 'Siswa',
             nama: row.nama || row.name || 'Siswa',
             studentCode: row.student_code,
@@ -1034,7 +1060,8 @@ export const syncCloudToLocal = async (existingProfile?: TeacherProfile | null):
             nisn: row.nisn || '',
             gender: row.gender || 'L',
             password: row.password || 'murid19'
-        }));
+          };
+        });
         if (students.length > 0) {
           const studentStore = tx.objectStore('students');
           await studentStore.clear();

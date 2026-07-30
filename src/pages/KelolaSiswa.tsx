@@ -104,6 +104,24 @@ export default function KelolaSiswa() {
         }
       }
 
+      const CLASS_ID_MAP: Record<string, string> = {
+        "00000000-0000-4000-8000-000009ad812f": "X-A",
+        "00000000-0000-4000-8000-00002da5570c": "X-D",
+        "00000000-0000-4000-8000-000071080c55": "X-E",
+        "00000000-0000-4000-8000-00000fb56fb6": "X-F",
+        "00000000-0000-4000-8000-0000519d2ce9": "X-G",
+        "00000000-0000-4000-8000-00004d103678": "X-H",
+        "00000000-0000-4000-8000-000014426627": "X-I",
+        "00000000-0000-4000-8000-0000759502c6": "X-J",
+        "00000000-0000-4000-8000-00002918609b": "X-K",
+        "00000000-0000-4000-8000-000018e27fd9": "XI-B",
+        "00000000-0000-4000-8000-000048701cc6": "XI-C",
+        "00000000-0000-4000-8000-0000563d469b": "XI-D",
+        "00000000-0000-4000-8000-00000b155604": "XI-E",
+        "00000000-0000-4000-8000-00006c67f2a3": "XI-F",
+        "00000000-0000-4000-8000-0000324570be": "XI-G"
+      };
+
       const findClassForStudent = (s: any, classesList: any[]) => {
         const studentClassId = s.classId || s.class_id || s.idKelas;
         const studentClassName = (s.className || s.namaKelas || s.class_name || s.classes?.name || s.classes?.nama_kelas)?.trim()?.toUpperCase();
@@ -114,6 +132,10 @@ export default function KelolaSiswa() {
             return cId && String(cId) === String(studentClassId);
           });
           if (matchById) return matchById;
+          
+          if (CLASS_ID_MAP[studentClassId]) {
+            return { id: studentClassId, idKelas: studentClassId, name: CLASS_ID_MAP[studentClassId], namaKelas: CLASS_ID_MAP[studentClassId] };
+          }
         }
 
         if (studentClassName) {
@@ -122,6 +144,8 @@ export default function KelolaSiswa() {
             return cName && String(cName) === String(studentClassName);
           });
           if (matchByName) return matchByName;
+          
+          return { id: studentClassId || 'legacy', idKelas: studentClassId || 'legacy', name: studentClassName, namaKelas: studentClassName };
         }
 
         return null;
