@@ -97,9 +97,15 @@ const isTimeMatch = (now: Date, start: string, end: string) => {
 
 export const Attendance: React.FC<Props> = ({ state, refresh, notify }) => {
   const currentSchoolIndex = state.teacher?.currentSchoolIndex ?? 0;
-  const schoolClasses = state.classes.filter(c => (c.schoolIndex ?? 0) === currentSchoolIndex);
-  const activeClass = schoolClasses.find(c => c.id === state.activeClassId);
-  const students = state.students.filter(s => s.classId === state.activeClassId);
+  const schoolClasses = state.classes;
+  const activeClass = schoolClasses.find(c => c.id === state.activeClassId) || (schoolClasses.length > 0 ? schoolClasses[0] : undefined);
+  const students = state.students.filter(s => {
+    const sCid = s.classId || (s as any).class_id || (s as any).idKelas;
+    const activeCid = activeClass?.id || state.activeClassId;
+    if (activeCid && sCid && String(sCid) === String(activeCid)) return true;
+    if (activeClass?.name && s.className && activeClass.name.toUpperCase() === String(s.className).toUpperCase()) return true;
+    return false;
+  });
   const sortedStudents = useMemo(() => 
     [...students].sort((a, b) => a.name.localeCompare(b.name)), 
     [students]

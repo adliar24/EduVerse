@@ -39,8 +39,7 @@ export interface RecapProps {
 }
 
 export const Recap: React.FC<RecapProps> = ({ state, refresh, notify }) => {
-  const currentSchoolIndex = state.teacher?.currentSchoolIndex ?? 0;
-  const schoolClasses = state.classes.filter(c => (c.schoolIndex ?? 0) === currentSchoolIndex);
+  const schoolClasses = state.classes;
   const schoolClassIds = new Set(schoolClasses.map(c => c.id));
   
   const [selectedClassId, setSelectedClassId] = useState<string>('all'); // 'all' | classId

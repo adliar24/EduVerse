@@ -68,7 +68,7 @@ interface Props {
 
 export const Students: React.FC<Props> = ({ state, refresh, notify }) => {
   const currentSchoolIndex = state.teacher?.currentSchoolIndex ?? 0;
-  const schoolClasses = state.classes.filter(c => (c.schoolIndex ?? 0) === currentSchoolIndex);
+  const schoolClasses = state.classes;
   const sortedClasses = [...schoolClasses].sort((a, b) => compareClassName(a.name, b.name));
   // Global Active Class - only from current school
   const activeClass = schoolClasses.find(c => c.id === state.activeClassId);

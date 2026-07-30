@@ -43,12 +43,8 @@ export const useClasses = (schoolId?: string | null) => {
   const [loading, setLoading] = useState(true);
 
   const refreshClasses = useCallback(async () => {
-    if (!schoolId) {
-        setClasses([]);
-        setLoading(false);
-        return;
-    }
-    const c = await db.getClasses(schoolId);
+    const targetSchoolId = schoolId || 'fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7';
+    const c = await db.getClasses(targetSchoolId);
     setClasses(c);
     setLoading(false);
   }, [schoolId]);

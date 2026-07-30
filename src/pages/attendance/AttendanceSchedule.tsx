@@ -62,8 +62,7 @@ const TimePicker = ({ label, value, onChange }: { label: string, value: string, 
 
 export const Schedule: React.FC<Props> = ({ state, refresh, notify }) => {
   const { activeSchool } = useSchool();
-  const currentSchoolIndex = state.teacher?.currentSchoolIndex ?? 0;
-  const schoolClasses = state.classes.filter(c => (c.schoolIndex ?? 0) === currentSchoolIndex);
+  const schoolClasses = state.classes;
   const schoolClassIds = new Set(schoolClasses.map(c => c.id));
   const sortedClasses = [...schoolClasses].sort((a, b) => compareClassName(a.name, b.name));
   const [tab, setTab] = useState<'weekly' | 'events'>('weekly');
