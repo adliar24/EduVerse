@@ -138,19 +138,26 @@ export default function KelolaKelas() {
       const localState = await getFullState(true);
       let localClasses = localState.classes || [];
       
-      if (localClasses.length === 0) {
+      if (localClasses.length === 0 || (localState.students || []).length === 0) {
         try {
-          const { SEED_CLASSES } = await import('../services/excelDataSeed');
-          if (SEED_CLASSES && SEED_CLASSES.length > 0) {
+          const { SEED_CLASSES, SEED_STUDENTS } = await import('../services/excelDataSeed');
+          if (localClasses.length === 0 && SEED_CLASSES && SEED_CLASSES.length > 0) {
             for (const sc of SEED_CLASSES) {
               await addClass(sc as any);
               await saveClass(sc as any);
             }
-            const stateAfterSeed = await getFullState(true);
-            localClasses = stateAfterSeed.classes || [];
           }
+          if ((localState.students || []).length === 0 && SEED_STUDENTS && SEED_STUDENTS.length > 0) {
+            for (const ss of SEED_STUDENTS) {
+              await addStudent(ss as any);
+              await saveStudent(ss as any);
+            }
+          }
+          const stateAfterSeed = await getFullState(true);
+          localClasses = stateAfterSeed.classes || [];
+          localState.students = stateAfterSeed.students || [];
         } catch (e) {
-          console.warn('Seed classes fallback error:', e);
+          console.warn('Seed classes/students fallback error:', e);
         }
       }
       
@@ -197,14 +204,25 @@ export default function KelolaKelas() {
 
       localClasses = filterClassList(localClasses);
       
+      // Multi-fallback function to accurately count students per class
+      const countStudents = (c: any, studentsList: any[]) => {
+        const classId = String(c.id || c.idKelas || c.id_kelas || '');
+        const className = String(c.name || c.namaKelas || c.nama_kelas || '').trim().toUpperCase();
+        return studentsList.filter(s => {
+          const sClassId = String(s.classId || s.class_id || s.idKelas || '');
+          if (classId && sClassId && classId === sClassId) return true;
+          // Fallback check by class name
+          const sClassName = String(s.className || s.namaKelas || s.class_name || (s.classes ? (s.classes.name || s.classes.nama_kelas) : '')).trim().toUpperCase();
+          if (className && sClassName && className === sClassName) return true;
+          return false;
+        }).length;
+      };
+
       // Manually count students per class locally
       const localStudents = localState.students || [];
       const mappedClasses = localClasses.map(c => {
         const classId = c.id || c.idKelas || c.id_kelas;
-        const studentCount = localStudents.filter(s => {
-          const sClassId = s.classId || s.class_id || s.idKelas;
-          return classId && sClassId && String(sClassId) === String(classId);
-        }).length;
+        const studentCount = countStudents(c, localStudents);
         return {
           ...c,
           id: classId,
@@ -239,10 +257,7 @@ export default function KelolaKelas() {
           const updatedStudents = updatedLocalState.students || [];
           const remappedClasses = updatedClasses.map(c => {
             const classId = c.id || c.idKelas || c.id_kelas;
-            const studentCount = updatedStudents.filter(s => {
-              const sClassId = s.classId || s.class_id || s.idKelas;
-              return classId && sClassId && String(sClassId) === String(classId);
-            }).length;
+            const studentCount = countStudents(c, updatedStudents);
             return {
               ...c,
               id: classId,
