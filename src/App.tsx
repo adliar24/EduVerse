@@ -319,51 +319,14 @@ export default function App() {
       if (syncService.isConfigured()) {
         const user = await syncService.getUser();
         if (user) {
-          // Gather local state counts for all relevant entities
-          const { getFullState } = await import('./services/dbAttendance');
-          const localState = await getFullState();
-          const localCounts = {
-            classes: (localState.classes?.length || 0),
-            students: (localState.students?.length || 0),
-            sessions: (localState.sessions?.length || 0),
-            records: (localState.records?.length || 0),
-            schedules: (localState.schedules?.length || 0),
-            events: (localState.events?.length || 0),
-            cancellations: (localState.cancellations?.length || 0),
-            materials: (localState.materials?.length || 0),
-            assignments: (localState.assignments?.length || 0),
-          };
-          const localTotal = Object.values(localCounts).reduce((a, b) => a + b, 0);
-
-          // Determine active school ID for cloud queries
-          const client = (await import('./services/supabase')).getSupabaseClient();
-          const activeSchoolId = typeof window !== 'undefined' ? localStorage.getItem('active_school_id') : null;
-          const schoolId = (activeSchoolId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(activeSchoolId))
-            ? activeSchoolId
-            : 'fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7';
-
-          // Fetch cloud counts for each table (teacher_id OR school_id)
-          const tables = ['classes', 'students', 'sessions', 'records', 'schedules', 'events', 'cancellations', 'materials', 'assignments'];
-          let cloudTotal = 0;
-          for (const tbl of tables) {
-            const cloudName = tbl === 'sessions' ? 'attendance_sessions' : tbl === 'records' ? 'attendance_records' : tbl;
-            const { count } = await client.from(cloudName).select('*', { count: 'exact', head: true }).or(`teacher_id.eq.${user.id},school_id.eq.${schoolId}`);
-            cloudTotal += count || 0;
-          }
-
-          console.log(`[App] Initial sync pulling fresh data from cloud (local ${localTotal} vs cloud ${cloudTotal})`);
-          await syncService.pullFromCloud();
+          console.log('[App] Background sync starting...');
           const dbGrading = await import('./services/dbGrading');
-          await dbGrading.syncCloudToLocal();
-
-          // Auto‑seed only when both local and cloud are completely empty (first install)
-          if (localTotal === 0 && cloudTotal === 0) {
-            console.log('[App] Both local & cloud empty – seeding Excel data');
-            const { seedExcelDataToLocalAndCloud } = await import('./services/excelDataSeed');
-            await seedExcelDataToLocalAndCloud();
-          }
-
-          console.log('[App] Initial sync evaluation complete.');
+          await Promise.all([
+            syncService.pullFromCloud().catch(err => console.warn('[App] syncService pull error:', err)),
+            dbGrading.syncCloudToLocal().catch(err => console.warn('[App] dbGrading sync error:', err))
+          ]);
+          window.dispatchEvent(new Event('cloud_data_synced'));
+          console.log('[App] Background sync complete.');
 
           // Subscribe to realtime changes for future updates
           syncService.subscribeToRealtimeSync(user.id, async () => {
@@ -371,8 +334,8 @@ export default function App() {
             try {
               const { syncService: liveSync } = await import('./services/sync');
               await liveSync.pullFromCloud();
-              const dbGrading = await import('./services/dbGrading');
-              await dbGrading.syncCloudToLocal();
+              const liveGrading = await import('./services/dbGrading');
+              await liveGrading.syncCloudToLocal();
               window.dispatchEvent(new Event('cloud_data_synced'));
             } catch (err) {
               console.error('[App Realtime] Auto-pull failed:', err);
@@ -410,25 +373,25 @@ export default function App() {
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
+      setIsInitialSyncComplete(true);
       if (session) {
         setLoading(true);
         checkProfileCompletion(session.user.id, session);
         triggerInitialSync();
       } else {
-        setIsInitialSyncComplete(true);
         setLoading(false);
       }
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
+      setIsInitialSyncComplete(true);
       if (session) {
         setLoading(true);
         checkProfileCompletion(session.user.id, session);
         triggerInitialSync();
       } else {
         setProfileCompleted(null);
-        setIsInitialSyncComplete(true);
         setLoading(false);
       }
     });
