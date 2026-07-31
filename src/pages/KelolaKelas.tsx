@@ -222,9 +222,31 @@ export default function KelolaKelas() {
     return 'Umum';
   };
 
+  const getDeletedClassIds = (): string[] => {
+    try {
+      if (typeof window !== 'undefined') {
+        return JSON.parse(localStorage.getItem('deleted_class_ids') || '[]');
+      }
+      return [];
+    } catch { return []; }
+  };
+
+  const addDeletedClassId = (classId: string) => {
+    try {
+      if (typeof window !== 'undefined' && classId) {
+        const list = getDeletedClassIds();
+        if (!list.includes(classId)) {
+          list.push(classId);
+          localStorage.setItem('deleted_class_ids', JSON.stringify(list));
+        }
+      }
+    } catch (e) { console.warn(e); }
+  };
+
   const fetchClasses = async () => {
     try {
       setLoading(true);
+      const deletedIds = new Set(getDeletedClassIds());
       
       // 1. Load classes from local IndexedDB first (instant load)
       const localState = await getFullState(true);
@@ -236,15 +258,17 @@ export default function KelolaKelas() {
       if (SEED_CLASSES && SEED_CLASSES.length > 0) {
         SEED_CLASSES.forEach(sc => {
           const id = String(sc.id || sc.idKelas);
-          const className = sc.name || sc.namaKelas;
-          const subj = resolveSubjectForClass(id, className, sc.subject, sc.mapel);
-          classMap.set(id, { ...sc, id, idKelas: id, subject: subj, mapel: subj });
+          if (!deletedIds.has(id)) {
+            const className = sc.name || sc.namaKelas;
+            const subj = resolveSubjectForClass(id, className, sc.subject, sc.mapel);
+            classMap.set(id, { ...sc, id, idKelas: id, subject: subj, mapel: subj });
+          }
         });
       }
 
       dbClasses.forEach(lc => {
         const id = String(lc.id || lc.idKelas || lc.id_kelas || '');
-        if (id) {
+        if (id && !deletedIds.has(id)) {
           const existing = classMap.get(id) || {};
           const className = lc.name || lc.namaKelas || existing.name;
           const subj = resolveSubjectForClass(id, className, lc.subject, lc.mapel);
@@ -997,6 +1021,7 @@ export default function KelolaKelas() {
           if (classDeleteError) throw classDeleteError;
 
           // Delete locally
+          addDeletedClassId(cls.id);
           await deleteClassCascade(cls.id);
           await deleteClass(cls.id);
 

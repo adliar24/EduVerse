@@ -78,10 +78,33 @@ export default function KelolaSiswa() {
     };
   }, [showForm]);
 
+  const getDeletedStudentIds = (): string[] => {
+    try {
+      if (typeof window !== 'undefined') {
+        return JSON.parse(localStorage.getItem('deleted_student_ids') || '[]');
+      }
+      return [];
+    } catch { return []; }
+  };
+
+  const addDeletedStudentId = (studentId: string) => {
+    try {
+      if (typeof window !== 'undefined' && studentId) {
+        const list = getDeletedStudentIds();
+        if (!list.includes(studentId)) {
+          list.push(studentId);
+          localStorage.setItem('deleted_student_ids', JSON.stringify(list));
+        }
+      }
+    } catch (e) { console.warn(e); }
+  };
+
   const fetchData = async () => {    
     setLoading(true);
     setError(null);
     try {
+      const deletedIds = new Set(getDeletedStudentIds());
+
       // 1. Load from local IndexedDB & merge with SEED_STUDENTS and SEED_CLASSES
       const localState = await getFullState(true);
       const { SEED_STUDENTS, SEED_CLASSES } = await import('../services/excelDataSeed');
@@ -106,12 +129,14 @@ export default function KelolaSiswa() {
       if (SEED_STUDENTS && SEED_STUDENTS.length > 0) {
         SEED_STUDENTS.forEach(ss => {
           const id = String(ss.id || ss.idSiswa);
-          studentMap.set(id, { ...ss, id, idSiswa: id, school_id: 'fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7', schoolId: 'fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7' });
+          if (!deletedIds.has(id)) {
+            studentMap.set(id, { ...ss, id, idSiswa: id, school_id: 'fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7', schoolId: 'fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7' });
+          }
         });
       }
       (localState.students || []).forEach(ls => {
         const id = String(ls.id || ls.idSiswa || ls.id_siswa || '');
-        if (id) {
+        if (id && !deletedIds.has(id)) {
           const existing = studentMap.get(id) || {};
           studentMap.set(id, { ...existing, ...ls, id, idSiswa: id, school_id: 'fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7', schoolId: 'fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7' });
         }
@@ -498,8 +523,12 @@ export default function KelolaSiswa() {
       title: 'Hapus Murid?', message: 'Data murid akan terhapus secara permanen.', type: 'confirm', confirmText: 'Ya, Hapus',
       onConfirm: async () => {
         try {
-          const { error } = await supabase.from('students').delete().eq('id', id);
-          if (error) throw error;
+          addDeletedStudentId(id);
+          try {
+            await supabase.from('students').delete().eq('id', id);
+          } catch (cloudErr) {
+            console.warn('Cloud delete student warning:', cloudErr);
+          }
           
           await deleteStudent(id);
           await deleteStudentGrading(id);
@@ -573,10 +602,14 @@ export default function KelolaSiswa() {
       confirmText: 'Ya, Hapus Semua',
       onConfirm: async () => {
         try {
-          const { error } = await supabase.from('students').delete().in('id', selectedStudentIds);
-          if (error) throw error;
+          try {
+            await supabase.from('students').delete().in('id', selectedStudentIds);
+          } catch (cloudErr) {
+            console.warn('Cloud bulk delete students warning:', cloudErr);
+          }
 
           for (const id of selectedStudentIds) {
+            addDeletedStudentId(id);
             await deleteStudent(id);
             await deleteStudentGrading(id);
           }
