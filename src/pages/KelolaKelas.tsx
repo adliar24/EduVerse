@@ -166,6 +166,28 @@ export default function KelolaKelas() {
     }
   };
 
+  const DEFAULT_CLASS_SUBJECTS: Record<string, string> = {
+    "X-A": "Seni Rupa",
+    "X-B": "Seni Rupa",
+    "X-C": "Seni Rupa",
+    "X-D": "Seni Rupa",
+    "X-E": "Seni Rupa",
+    "X-F": "Informatika",
+    "X-G": "Informatika",
+    "X-H": "Informatika",
+    "X-I": "Informatika",
+    "X-J": "Informatika",
+    "X-K": "Informatika",
+    "XI-A": "PKWU",
+    "XI-B": "PKWU",
+    "XI-C": "PKWU",
+    "XI-D": "PKWU",
+    "XI-E": "PKWU",
+    "XI-F": "PKWU",
+    "XI-G": "PKWU",
+    "XI-H": "Seni Rupa"
+  };
+
   const getSubjectOverrides = (): Record<string, string> => {
     try {
       if (typeof window !== 'undefined') {
@@ -185,10 +207,24 @@ export default function KelolaKelas() {
     } catch (e) { console.warn(e); }
   };
 
+  const resolveSubjectForClass = (classId: string, className: string, rawSubj?: string, rawMapel?: string): string => {
+    const overrides = getSubjectOverrides();
+    if (overrides[classId]) return overrides[classId];
+
+    const normName = (className || '').trim().toUpperCase();
+    if (DEFAULT_CLASS_SUBJECTS[normName]) {
+      return DEFAULT_CLASS_SUBJECTS[normName];
+    }
+
+    if (rawSubj && rawSubj !== 'Umum') return rawSubj;
+    if (rawMapel && rawMapel !== 'Umum') return rawMapel;
+
+    return 'Umum';
+  };
+
   const fetchClasses = async () => {
     try {
       setLoading(true);
-      const overrides = getSubjectOverrides();
       
       // 1. Load classes from local IndexedDB first (instant load)
       const localState = await getFullState(true);
@@ -200,7 +236,8 @@ export default function KelolaKelas() {
       if (SEED_CLASSES && SEED_CLASSES.length > 0) {
         SEED_CLASSES.forEach(sc => {
           const id = String(sc.id || sc.idKelas);
-          const subj = overrides[id] || sc.subject || sc.mapel || 'Umum';
+          const className = sc.name || sc.namaKelas;
+          const subj = resolveSubjectForClass(id, className, sc.subject, sc.mapel);
           classMap.set(id, { ...sc, id, idKelas: id, subject: subj, mapel: subj });
         });
       }
@@ -209,8 +246,9 @@ export default function KelolaKelas() {
         const id = String(lc.id || lc.idKelas || lc.id_kelas || '');
         if (id) {
           const existing = classMap.get(id) || {};
-          const subj = overrides[id] || lc.subject || lc.mapel || existing.subject || 'Umum';
-          classMap.set(id, { ...existing, ...lc, id, idKelas: id, subject: subj, mapel: subj });
+          const className = lc.name || lc.namaKelas || existing.name;
+          const subj = resolveSubjectForClass(id, className, lc.subject, lc.mapel);
+          classMap.set(id, { ...existing, ...lc, id, idKelas: id, name: className, namaKelas: className, subject: subj, mapel: subj });
         }
       });
 
@@ -220,7 +258,8 @@ export default function KelolaKelas() {
         let changed = false;
         const healed = await Promise.all(list.map(async (c) => {
           const cId = String(c.id || c.idKelas || c.id_kelas);
-          const subj = overrides[cId] || c.subject || c.mapel || 'Umum';
+          const cName = c.name || c.namaKelas;
+          const subj = resolveSubjectForClass(cId, cName, c.subject, c.mapel);
           const cSchoolId = c.school_id || c.schoolId;
 
           if (!cSchoolId && activeSchool?.id && activeSchool.id !== 'legacy') {
@@ -237,7 +276,7 @@ export default function KelolaKelas() {
               idKelas: cId,
               teacherId: c.teacher_id || c.teacherId,
               schoolId: activeSchool.id,
-              namaKelas: c.name || c.namaKelas,
+              namaKelas: cName,
               mapel: subj
             } as any);
             return updated;
@@ -274,13 +313,14 @@ export default function KelolaKelas() {
       const localStudents = localState.students || [];
       const mappedClasses = localClasses.map(c => {
         const classId = String(c.id || c.idKelas || c.id_kelas);
+        const className = c.name || c.namaKelas;
         const studentCount = countStudents(c, localStudents);
-        const subj = overrides[classId] || c.subject || c.mapel || 'Umum';
+        const subj = resolveSubjectForClass(classId, className, c.subject, c.mapel);
         return {
           ...c,
           id: classId,
           idKelas: classId,
-          name: c.name || c.namaKelas,
+          name: className,
           subject: subj,
           mapel: subj,
           students: [{ count: studentCount }]
@@ -305,7 +345,8 @@ export default function KelolaKelas() {
           if (SEED_CLASSES && SEED_CLASSES.length > 0) {
             SEED_CLASSES.forEach(sc => {
               const id = String(sc.id || sc.idKelas);
-              const subj = overrides[id] || sc.subject || sc.mapel || 'Umum';
+              const className = sc.name || sc.namaKelas;
+              const subj = resolveSubjectForClass(id, className, sc.subject, sc.mapel);
               syncClassMap.set(id, { ...sc, id, idKelas: id, subject: subj, mapel: subj });
             });
           }
@@ -314,8 +355,9 @@ export default function KelolaKelas() {
             const id = String(lc.id || lc.idKelas || lc.id_kelas || '');
             if (id) {
               const existing = syncClassMap.get(id) || {};
-              const subj = overrides[id] || lc.subject || lc.mapel || existing.subject || 'Umum';
-              syncClassMap.set(id, { ...existing, ...lc, id, idKelas: id, subject: subj, mapel: subj });
+              const className = lc.name || lc.namaKelas || existing.name;
+              const subj = resolveSubjectForClass(id, className, lc.subject, lc.mapel);
+              syncClassMap.set(id, { ...existing, ...lc, id, idKelas: id, name: className, namaKelas: className, subject: subj, mapel: subj });
             }
           });
 
@@ -331,13 +373,14 @@ export default function KelolaKelas() {
           const updatedStudents = updatedLocalState.students || [];
           const remappedClasses = updatedClasses.map(c => {
             const classId = String(c.id || c.idKelas || c.id_kelas);
+            const className = c.name || c.namaKelas;
             const studentCount = countStudents(c, updatedStudents);
-            const subj = overrides[classId] || c.subject || c.mapel || 'Umum';
+            const subj = resolveSubjectForClass(classId, className, c.subject, c.mapel);
             return {
               ...c,
               id: classId,
               idKelas: classId,
-              name: c.name || c.namaKelas,
+              name: className,
               subject: subj,
               mapel: subj,
               students: [{ count: studentCount }]
