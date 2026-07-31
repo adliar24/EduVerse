@@ -34,152 +34,162 @@ export const SEED_CLASSES: SeedClass[] = [
   {
     "id": "00000000-0000-4000-8000-000009ad812f",
     "name": "X-A",
-    "subject": "Umum",
+    "subject": "Seni Rupa",
     "schoolId": "fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7",
     "school_id": "fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7",
     "idKelas": "00000000-0000-4000-8000-000009ad812f",
     "namaKelas": "X-A",
-    "mapel": "Umum"
+    "mapel": "Seni Rupa"
   },
   {
     "id": "00000000-0000-4000-8000-00002da5570c",
     "name": "X-D",
-    "subject": "Umum",
+    "subject": "Seni Rupa",
     "schoolId": "fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7",
     "school_id": "fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7",
     "idKelas": "00000000-0000-4000-8000-00002da5570c",
     "namaKelas": "X-D",
-    "mapel": "Umum"
+    "mapel": "Seni Rupa"
   },
   {
     "id": "00000000-0000-4000-8000-000071080c55",
     "name": "X-E",
-    "subject": "Umum",
+    "subject": "Seni Rupa",
     "schoolId": "fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7",
     "school_id": "fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7",
     "idKelas": "00000000-0000-4000-8000-000071080c55",
     "namaKelas": "X-E",
-    "mapel": "Umum"
+    "mapel": "Seni Rupa"
   },
   {
     "id": "00000000-0000-4000-8000-00000fb56fb6",
     "name": "X-F",
-    "subject": "Umum",
+    "subject": "Informatika",
     "schoolId": "fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7",
     "school_id": "fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7",
     "idKelas": "00000000-0000-4000-8000-00000fb56fb6",
     "namaKelas": "X-F",
-    "mapel": "Umum"
+    "mapel": "Informatika"
   },
   {
     "id": "00000000-0000-4000-8000-0000519d2ce9",
     "name": "X-G",
-    "subject": "Umum",
+    "subject": "Informatika",
     "schoolId": "fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7",
     "school_id": "fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7",
     "idKelas": "00000000-0000-4000-8000-0000519d2ce9",
     "namaKelas": "X-G",
-    "mapel": "Umum"
+    "mapel": "Informatika"
   },
   {
     "id": "00000000-0000-4000-8000-00004d103678",
     "name": "X-H",
-    "subject": "Umum",
+    "subject": "Informatika",
     "schoolId": "fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7",
     "school_id": "fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7",
     "idKelas": "00000000-0000-4000-8000-00004d103678",
     "namaKelas": "X-H",
-    "mapel": "Umum"
+    "mapel": "Informatika"
   },
   {
     "id": "00000000-0000-4000-8000-000014426627",
     "name": "X-I",
-    "subject": "Umum",
+    "subject": "Informatika",
     "schoolId": "fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7",
     "school_id": "fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7",
     "idKelas": "00000000-0000-4000-8000-000014426627",
     "namaKelas": "X-I",
-    "mapel": "Umum"
+    "mapel": "Informatika"
   },
   {
     "id": "00000000-0000-4000-8000-0000759502c6",
     "name": "X-J",
-    "subject": "Umum",
+    "subject": "Informatika",
     "schoolId": "fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7",
     "school_id": "fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7",
     "idKelas": "00000000-0000-4000-8000-0000759502c6",
     "namaKelas": "X-J",
-    "mapel": "Umum"
+    "mapel": "Informatika"
   },
   {
     "id": "00000000-0000-4000-8000-00002918609b",
     "name": "X-K",
-    "subject": "Umum",
+    "subject": "Informatika",
     "schoolId": "fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7",
     "school_id": "fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7",
     "idKelas": "00000000-0000-4000-8000-00002918609b",
     "namaKelas": "X-K",
-    "mapel": "Umum"
+    "mapel": "Informatika"
   },
   {
     "id": "00000000-0000-4000-8000-000018e27fd9",
     "name": "XI-B",
-    "subject": "Umum",
+    "subject": "PKWU",
     "schoolId": "fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7",
     "school_id": "fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7",
     "idKelas": "00000000-0000-4000-8000-000018e27fd9",
     "namaKelas": "XI-B",
-    "mapel": "Umum"
+    "mapel": "PKWU"
   },
   {
     "id": "00000000-0000-4000-8000-000048701cc6",
     "name": "XI-C",
-    "subject": "Umum",
+    "subject": "PKWU",
     "schoolId": "fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7",
     "school_id": "fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7",
     "idKelas": "00000000-0000-4000-8000-000048701cc6",
     "namaKelas": "XI-C",
-    "mapel": "Umum"
+    "mapel": "PKWU"
   },
   {
     "id": "00000000-0000-4000-8000-0000563d469b",
     "name": "XI-D",
-    "subject": "Umum",
+    "subject": "PKWU",
     "schoolId": "fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7",
     "school_id": "fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7",
     "idKelas": "00000000-0000-4000-8000-0000563d469b",
     "namaKelas": "XI-D",
-    "mapel": "Umum"
+    "mapel": "PKWU"
   },
   {
     "id": "00000000-0000-4000-8000-00000b155604",
     "name": "XI-E",
-    "subject": "Umum",
+    "subject": "PKWU",
     "schoolId": "fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7",
     "school_id": "fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7",
     "idKelas": "00000000-0000-4000-8000-00000b155604",
     "namaKelas": "XI-E",
-    "mapel": "Umum"
+    "mapel": "PKWU"
   },
   {
     "id": "00000000-0000-4000-8000-00006c67f2a3",
     "name": "XI-F",
-    "subject": "Umum",
+    "subject": "PKWU",
     "schoolId": "fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7",
     "school_id": "fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7",
     "idKelas": "00000000-0000-4000-8000-00006c67f2a3",
     "namaKelas": "XI-F",
-    "mapel": "Umum"
+    "mapel": "PKWU"
   },
   {
     "id": "00000000-0000-4000-8000-0000324570be",
     "name": "XI-G",
-    "subject": "Umum",
+    "subject": "PKWU",
     "schoolId": "fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7",
     "school_id": "fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7",
     "idKelas": "00000000-0000-4000-8000-0000324570be",
     "namaKelas": "XI-G",
-    "mapel": "Umum"
+    "mapel": "PKWU"
+  },
+  {
+    "id": "00000000-0000-4000-8000-000099887766",
+    "name": "XI-H",
+    "subject": "Seni Rupa",
+    "schoolId": "fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7",
+    "school_id": "fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7",
+    "idKelas": "00000000-0000-4000-8000-000099887766",
+    "namaKelas": "XI-H",
+    "mapel": "Seni Rupa"
   }
 ];
 
