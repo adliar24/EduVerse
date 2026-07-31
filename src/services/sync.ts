@@ -202,14 +202,23 @@ const mapToLocal = (tableName: string, cloudItem: any): any => {
     const rawClassId = cloudItem.id || cloudItem.id_kelas;
     const classId = rawClassId ? String(rawClassId) : (cloudItem.name ? `class_${String(cloudItem.name).replace(/\s+/g, '_')}` : `class_${Math.random().toString(36).substring(2, 9)}`);
     const className = cloudItem.name || cloudItem.nama_kelas || 'Kelas';
-    const classSubject = cloudItem.subject || cloudItem.mapel || '';
+    let classSubject = cloudItem.subject || cloudItem.mapel || '';
+
+    try {
+      if (typeof window !== 'undefined') {
+        const overrides = JSON.parse(localStorage.getItem('class_subject_overrides') || '{}');
+        if (overrides[classId]) {
+          classSubject = overrides[classId];
+        }
+      }
+    } catch (e) {}
     
     item.id = classId;
     item.idKelas = classId;
     item.name = className;
     item.namaKelas = className;
-    item.subject = classSubject;
-    item.mapel = classSubject;
+    item.subject = classSubject || 'Umum';
+    item.mapel = classSubject || 'Umum';
     item.schoolId = cloudItem.school_id;
     item.school_id = cloudItem.school_id;
     item.createdAt = cloudItem.created_at || new Date().toISOString();

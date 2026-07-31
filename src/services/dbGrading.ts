@@ -1003,16 +1003,28 @@ export const syncCloudToLocal = async (existingProfile?: TeacherProfile | null):
             tx.objectStore('teacherProfile').put({ ...profile, id: 'profile' });
         }
 
-        const classes = (cRes.data || []).map((row: any) => ({
-            id: row.id || row.id_kelas,
+        let subjectOverrides: Record<string, string> = {};
+        try {
+          if (typeof window !== 'undefined') {
+            subjectOverrides = JSON.parse(localStorage.getItem('class_subject_overrides') || '{}');
+          }
+        } catch (e) {}
+
+        const classes = (cRes.data || []).map((row: any) => {
+          const cId = row.id || row.id_kelas;
+          const overrideSubj = subjectOverrides[cId];
+          const finalSubj = overrideSubj || row.subject || row.mapel || 'Umum';
+          return {
+            id: cId,
             idKelas: row.id_kelas || row.id,
             schoolId: row.school_id || targetSchoolId,
             school_id: row.school_id || targetSchoolId,
             name: row.name || row.nama_kelas || 'Kelas',
             namaKelas: row.nama_kelas || row.name || 'Kelas',
-            subject: row.subject || row.mapel || '',
-            mapel: row.mapel || row.subject || ''
-        }));
+            subject: finalSubj,
+            mapel: finalSubj
+          };
+        });
         if (classes.length > 0) {
           const classStore = tx.objectStore('classes');
           classes.forEach(c => classStore.put(c));

@@ -166,9 +166,29 @@ export default function KelolaKelas() {
     }
   };
 
+  const getSubjectOverrides = (): Record<string, string> => {
+    try {
+      if (typeof window !== 'undefined') {
+        return JSON.parse(localStorage.getItem('class_subject_overrides') || '{}');
+      }
+      return {};
+    } catch { return {}; }
+  };
+
+  const setSubjectOverride = (classId: string, subject: string) => {
+    try {
+      if (typeof window !== 'undefined' && classId) {
+        const map = getSubjectOverrides();
+        map[classId] = subject;
+        localStorage.setItem('class_subject_overrides', JSON.stringify(map));
+      }
+    } catch (e) { console.warn(e); }
+  };
+
   const fetchClasses = async () => {
     try {
       setLoading(true);
+      const overrides = getSubjectOverrides();
       
       // 1. Load classes from local IndexedDB first (instant load)
       const localState = await getFullState(true);
@@ -179,15 +199,18 @@ export default function KelolaKelas() {
       
       if (SEED_CLASSES && SEED_CLASSES.length > 0) {
         SEED_CLASSES.forEach(sc => {
-          const id = sc.id || sc.idKelas;
-          classMap.set(String(id), sc);
+          const id = String(sc.id || sc.idKelas);
+          const subj = overrides[id] || sc.subject || sc.mapel || 'Umum';
+          classMap.set(id, { ...sc, id, idKelas: id, subject: subj, mapel: subj });
         });
       }
 
       dbClasses.forEach(lc => {
-        const id = lc.id || lc.idKelas || lc.id_kelas;
+        const id = String(lc.id || lc.idKelas || lc.id_kelas || '');
         if (id) {
-          classMap.set(String(id), { ...classMap.get(String(id)), ...lc });
+          const existing = classMap.get(id) || {};
+          const subj = overrides[id] || lc.subject || lc.mapel || existing.subject || 'Umum';
+          classMap.set(id, { ...existing, ...lc, id, idKelas: id, subject: subj, mapel: subj });
         }
       });
 
@@ -196,25 +219,30 @@ export default function KelolaKelas() {
       const healClassesList = async (list: any[]) => {
         let changed = false;
         const healed = await Promise.all(list.map(async (c) => {
+          const cId = String(c.id || c.idKelas || c.id_kelas);
+          const subj = overrides[cId] || c.subject || c.mapel || 'Umum';
           const cSchoolId = c.school_id || c.schoolId;
+
           if (!cSchoolId && activeSchool?.id && activeSchool.id !== 'legacy') {
             changed = true;
             const updated = {
               ...c,
+              subject: subj,
+              mapel: subj,
               school_id: activeSchool.id,
               schoolId: activeSchool.id
             };
             await addClass(updated as any);
             await saveClass({
-              idKelas: c.id || c.idKelas || c.id_kelas,
+              idKelas: cId,
               teacherId: c.teacher_id || c.teacherId,
               schoolId: activeSchool.id,
               namaKelas: c.name || c.namaKelas,
-              mapel: c.subject || c.mapel
+              mapel: subj
             } as any);
             return updated;
           }
-          return c;
+          return { ...c, subject: subj, mapel: subj };
         }));
         return { list: healed, changed };
       };
@@ -224,15 +252,8 @@ export default function KelolaKelas() {
         localClasses = firstClassHeal.list;
       }
 
-      // Never filter out classes if SMAN 19 Bandung or default school is active
-      const filterClassList = (list: any[]) => {
-        if (!activeSchool?.id || activeSchool.id === 'legacy') return list;
-        return list.filter(c => {
-          const cSchoolId = (c as any).school_id || (c as any).schoolId;
-          if (!cSchoolId || cSchoolId === 'fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7') return true;
-          return cSchoolId === activeSchool.id;
-        });
-      };
+      // Always show all classes (never filter out master or user classes)
+      const filterClassList = (list: any[]) => list;
 
       localClasses = filterClassList(localClasses);
       
@@ -243,7 +264,6 @@ export default function KelolaKelas() {
         return studentsList.filter(s => {
           const sClassId = String(s.classId || s.class_id || s.idKelas || '');
           if (classId && sClassId && classId === sClassId) return true;
-          // Fallback check by class name
           const sClassName = String(s.className || s.namaKelas || s.class_name || (s.classes ? (s.classes.name || s.classes.nama_kelas) : '')).trim().toUpperCase();
           if (className && sClassName && className === sClassName) return true;
           return false;
@@ -253,14 +273,16 @@ export default function KelolaKelas() {
       // Manually count students per class locally
       const localStudents = localState.students || [];
       const mappedClasses = localClasses.map(c => {
-        const classId = c.id || c.idKelas || c.id_kelas;
+        const classId = String(c.id || c.idKelas || c.id_kelas);
         const studentCount = countStudents(c, localStudents);
+        const subj = overrides[classId] || c.subject || c.mapel || 'Umum';
         return {
           ...c,
           id: classId,
           idKelas: classId,
           name: c.name || c.namaKelas,
-          subject: c.subject || c.mapel,
+          subject: subj,
+          mapel: subj,
           students: [{ count: studentCount }]
         };
       });
@@ -282,15 +304,18 @@ export default function KelolaKelas() {
           
           if (SEED_CLASSES && SEED_CLASSES.length > 0) {
             SEED_CLASSES.forEach(sc => {
-              const id = sc.id || sc.idKelas;
-              syncClassMap.set(String(id), sc);
+              const id = String(sc.id || sc.idKelas);
+              const subj = overrides[id] || sc.subject || sc.mapel || 'Umum';
+              syncClassMap.set(id, { ...sc, id, idKelas: id, subject: subj, mapel: subj });
             });
           }
 
           syncDbClasses.forEach(lc => {
-            const id = lc.id || lc.idKelas || lc.id_kelas;
+            const id = String(lc.id || lc.idKelas || lc.id_kelas || '');
             if (id) {
-              syncClassMap.set(String(id), { ...syncClassMap.get(String(id)), ...lc });
+              const existing = syncClassMap.get(id) || {};
+              const subj = overrides[id] || lc.subject || lc.mapel || existing.subject || 'Umum';
+              syncClassMap.set(id, { ...existing, ...lc, id, idKelas: id, subject: subj, mapel: subj });
             }
           });
 
@@ -305,14 +330,16 @@ export default function KelolaKelas() {
           
           const updatedStudents = updatedLocalState.students || [];
           const remappedClasses = updatedClasses.map(c => {
-            const classId = c.id || c.idKelas || c.id_kelas;
+            const classId = String(c.id || c.idKelas || c.id_kelas);
             const studentCount = countStudents(c, updatedStudents);
+            const subj = overrides[classId] || c.subject || c.mapel || 'Umum';
             return {
               ...c,
               id: classId,
               idKelas: classId,
               name: c.name || c.namaKelas,
-              subject: c.subject || c.mapel,
+              subject: subj,
+              mapel: subj,
               students: [{ count: studentCount }]
             };
           });
@@ -779,6 +806,8 @@ export default function KelolaKelas() {
       const teacherId = user?.id || '91c05fb7-bd6c-413e-a8dd-4f320824332e';
 
       if (editingId) {
+        setSubjectOverride(editingId, updatedSubject);
+
         // Try Cloud update safely
         try {
           const { error } = await supabase
@@ -830,6 +859,7 @@ export default function KelolaKelas() {
         }
 
         const finalClassId = newCls?.id || newClassId;
+        setSubjectOverride(finalClassId, updatedSubject);
 
         await addClass({
           id: finalClassId,
