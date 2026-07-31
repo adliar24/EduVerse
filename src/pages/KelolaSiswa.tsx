@@ -82,27 +82,41 @@ export default function KelolaSiswa() {
     setLoading(true);
     setError(null);
     try {
-      // 1. Load from local IndexedDB first so it's instantly visible!
+      // 1. Load from local IndexedDB & merge with SEED_STUDENTS and SEED_CLASSES
       const localState = await getFullState(true);
-      let localStudents = localState.students || [];
-      let localClasses = localState.classes || [];
+      const { SEED_STUDENTS, SEED_CLASSES } = await import('../services/excelDataSeed');
 
-      if (localStudents.length === 0) {
-        try {
-          const { SEED_STUDENTS, SEED_CLASSES } = await import('../services/excelDataSeed');
-          if (localClasses.length === 0 && SEED_CLASSES && SEED_CLASSES.length > 0) {
-            await addClassesBulk(SEED_CLASSES as any);
-          }
-          if (SEED_STUDENTS && SEED_STUDENTS.length > 0) {
-            await addStudentsBulk(SEED_STUDENTS as any);
-            const stateAfterSeed = await getFullState(true);
-            localStudents = stateAfterSeed.students || [];
-            localClasses = stateAfterSeed.classes || [];
-          }
-        } catch (e) {
-          console.warn('Seed students fallback error:', e);
-        }
+      const classMap = new Map<string, any>();
+      if (SEED_CLASSES && SEED_CLASSES.length > 0) {
+        SEED_CLASSES.forEach(sc => {
+          const id = String(sc.id || sc.idKelas);
+          classMap.set(id, { ...sc, id, idKelas: id, school_id: 'fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7', schoolId: 'fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7' });
+        });
       }
+      (localState.classes || []).forEach(lc => {
+        const id = String(lc.id || lc.idKelas || lc.id_kelas || '');
+        if (id) {
+          const existing = classMap.get(id) || {};
+          classMap.set(id, { ...existing, ...lc, id, idKelas: id, school_id: 'fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7', schoolId: 'fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7' });
+        }
+      });
+      let localClasses = Array.from(classMap.values());
+
+      const studentMap = new Map<string, any>();
+      if (SEED_STUDENTS && SEED_STUDENTS.length > 0) {
+        SEED_STUDENTS.forEach(ss => {
+          const id = String(ss.id || ss.idSiswa);
+          studentMap.set(id, { ...ss, id, idSiswa: id, school_id: 'fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7', schoolId: 'fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7' });
+        });
+      }
+      (localState.students || []).forEach(ls => {
+        const id = String(ls.id || ls.idSiswa || ls.id_siswa || '');
+        if (id) {
+          const existing = studentMap.get(id) || {};
+          studentMap.set(id, { ...existing, ...ls, id, idSiswa: id, school_id: 'fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7', schoolId: 'fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7' });
+        }
+      });
+      let localStudents = Array.from(studentMap.values());
 
       const CLASS_ID_MAP: Record<string, string> = {
         "00000000-0000-4000-8000-000009ad812f": "X-A",

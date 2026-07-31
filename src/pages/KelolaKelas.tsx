@@ -309,8 +309,21 @@ export default function KelolaKelas() {
         }).length;
       };
 
-      // Manually count students per class locally
-      const localStudents = localState.students || [];
+      // Manually count students per class locally (merging SEED_STUDENTS for 100% accuracy)
+      const { SEED_STUDENTS } = await import('../services/excelDataSeed');
+      const studentMap = new Map<string, any>();
+      if (SEED_STUDENTS && SEED_STUDENTS.length > 0) {
+        SEED_STUDENTS.forEach(ss => {
+          const id = String(ss.id || ss.idSiswa);
+          studentMap.set(id, ss);
+        });
+      }
+      (localState.students || []).forEach(ls => {
+        const id = String(ls.id || ls.idSiswa || ls.id_siswa || '');
+        if (id) studentMap.set(id, { ...(studentMap.get(id) || {}), ...ls });
+      });
+      const localStudents = Array.from(studentMap.values());
+
       const mappedClasses = localClasses.map(c => {
         const classId = String(c.id || c.idKelas || c.id_kelas);
         const className = c.name || c.namaKelas;
@@ -370,7 +383,19 @@ export default function KelolaKelas() {
 
           updatedClasses = filterClassList(updatedClasses);
           
-          const updatedStudents = updatedLocalState.students || [];
+          const syncStudentMap = new Map<string, any>();
+          if (SEED_STUDENTS && SEED_STUDENTS.length > 0) {
+            SEED_STUDENTS.forEach(ss => {
+              const id = String(ss.id || ss.idSiswa);
+              syncStudentMap.set(id, ss);
+            });
+          }
+          (updatedLocalState.students || []).forEach(ls => {
+            const id = String(ls.id || ls.idSiswa || ls.id_siswa || '');
+            if (id) syncStudentMap.set(id, { ...(syncStudentMap.get(id) || {}), ...ls });
+          });
+          const updatedStudents = Array.from(syncStudentMap.values());
+
           const remappedClasses = updatedClasses.map(c => {
             const classId = String(c.id || c.idKelas || c.id_kelas);
             const className = c.name || c.namaKelas;
