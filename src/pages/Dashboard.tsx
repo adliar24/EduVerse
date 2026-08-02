@@ -318,7 +318,7 @@ export default function Dashboard() {
       className="space-y-4 pb-2"
     >
       {/* Banner Sambutan Guru */}
-      <div className="bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white rounded-3xl p-5 relative overflow-hidden shadow-xl border border-white/20">
+      <div className="bg-gradient-to-r from-[#0F172A] via-[#1E1B4B] to-[#172554] text-white rounded-3xl p-5 relative overflow-hidden shadow-xl border border-white/20">
         <div className="absolute right-0 top-0 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
         <div className="absolute left-1/3 bottom-0 w-48 h-48 bg-cyan-400/10 rounded-full blur-2xl"></div>
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">

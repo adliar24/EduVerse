@@ -339,7 +339,7 @@ export const Sidebar: React.FC<{ profile: TeacherProfile | null, refreshProfile:
   const activeSchool = profile?.schools.find(s => s.id === profile.activeSchoolId);
 
   return (
-    <aside className="hidden md:flex flex-col w-60 lg:w-64 fixed inset-y-0 left-0 bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] z-[50] text-white md:rounded-r-[2rem] shadow-2xl border-r border-white/5">
+    <aside className="hidden md:flex flex-col w-60 lg:w-64 fixed inset-y-0 left-0 bg-gradient-to-br from-[#0F172A] via-[#1E1B4B] to-[#0F172A] z-[50] text-white md:rounded-r-[2rem] shadow-2xl border-r border-white/10">
       <div className="p-8 pb-6">
         <Logo size="lg" invert /> 
       </div>
