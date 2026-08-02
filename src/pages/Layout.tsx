@@ -340,8 +340,11 @@ export const Sidebar: React.FC<{ profile: TeacherProfile | null, refreshProfile:
 
   return (
     <aside className="hidden md:flex flex-col w-60 lg:w-64 fixed inset-y-0 left-0 bg-gradient-to-br from-[#0F172A] via-[#1E1B4B] to-[#0F172A] z-[50] text-white md:rounded-r-[2rem] shadow-2xl border-r border-white/10">
-      <div className="p-8 pb-6">
-        <Logo size="lg" invert /> 
+      <div className="p-6 flex items-center gap-3 relative z-10 border-b border-white/10">
+        <div className="w-9 h-9 rounded-xl bg-white/15 backdrop-blur-md flex items-center justify-center border border-white/20 text-white shadow-sm shrink-0">
+          <GraduationCap className="w-5 h-5 text-white" />
+        </div>
+        <span className="text-xl font-extrabold tracking-tight text-white">EduVerse</span>
       </div>
       <div className="flex-1 px-4 py-2 space-y-1 overflow-y-auto custom-scrollbar">
         <div className="text-[10px] font-black text-blue-200 uppercase tracking-widest px-4 mb-4 opacity-40">NAVIGASI</div>

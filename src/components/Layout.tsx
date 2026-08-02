@@ -311,10 +311,10 @@ export default function Layout({ session }: LayoutProps) {
       {!isFullScreenScanMode && (
         <aside className="w-[240px] sidebar-gradient hidden lg:flex flex-col sticky top-0 h-screen z-40 transition-all duration-300 shadow-xl">
           <div className="p-6 flex items-center gap-3 relative z-10 border-b border-white/10">
-            <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center border border-white/20 text-white shadow-sm">
-              <GraduationCap className="w-5 h-5" />
+            <div className="w-9 h-9 rounded-xl bg-white/15 backdrop-blur-md flex items-center justify-center border border-white/20 text-white shadow-sm shrink-0">
+              <GraduationCap className="w-5 h-5 text-white" />
             </div>
-            <span className="text-xl font-extrabold tracking-tight text-white">Edu<span className="text-cyan-300">Verse</span></span>
+            <span className="text-xl font-extrabold tracking-tight text-white">EduVerse</span>
           </div>
 
           <nav className="flex-1 px-3 py-4 space-y-1 relative z-10 overflow-y-auto max-h-[calc(100vh-140px)] scrollbar-none">
@@ -439,13 +439,19 @@ export default function Layout({ session }: LayoutProps) {
               transition={{ type: 'tween', ease: 'easeInOut', duration: 0.2 }}
               className="fixed inset-y-0 left-0 w-[240px] sidebar-gradient z-50 lg:hidden flex flex-col shadow-xl overflow-y-auto scrollbar-none"
             >
-              <div className="p-6 flex items-center justify-between sticky top-0 bg-[#1D4ED8]/40 z-10 border-b border-white/5">
-                <div className="flex items-center gap-2.5">
-                  <GraduationCap className="w-6 h-6 text-white" />
-                  <span className="text-lg font-bold text-white">Edu<span className="text-[#3B66F5]">Verse</span></span>
+              <div className="p-6 flex items-center justify-between relative z-10 border-b border-white/10">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-white/15 backdrop-blur-md flex items-center justify-center border border-white/20 text-white shadow-sm shrink-0">
+                    <GraduationCap className="w-5 h-5 text-white" />
+                  </div>
+                  <span className="text-xl font-extrabold tracking-tight text-white">EduVerse</span>
                 </div>
-                <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 hover:bg-white/5 rounded-full transition-colors bg-white/5">
-                  <X className="w-4 h-4 text-slate-400" />
+                <button 
+                  onClick={() => setIsMobileMenuOpen(false)} 
+                  className="p-2 hover:bg-white/10 rounded-full transition-colors bg-white/10 text-white"
+                  title="Tutup Menu"
+                >
+                  <X className="w-4 h-4 text-white" />
                 </button>
               </div>
               <nav className="flex-1 px-3 py-3 space-y-0.5">
