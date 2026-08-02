@@ -78,6 +78,9 @@ const InputSection: React.FC<InputSectionProps> = ({ onStudentsLoaded, currentCo
         })).filter(s => s.name);
         setClassStudents(mapped);
         setCheckedStudentIds(new Set(mapped.map(s => s.id)));
+        if (mapped.length > 0) {
+          onStudentsLoaded(mapped);
+        }
       } catch (err) {
         console.error('Gagal memuat siswa kelas:', err);
       } finally {
@@ -85,7 +88,7 @@ const InputSection: React.FC<InputSectionProps> = ({ onStudentsLoaded, currentCo
       }
     };
     loadStudents();
-  }, [selectedClassId]);
+  }, [selectedClassId, onStudentsLoaded]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {

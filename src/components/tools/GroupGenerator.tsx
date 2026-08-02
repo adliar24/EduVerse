@@ -29,7 +29,7 @@ const GroupGenerator: React.FC<GroupGeneratorProps> = ({ themeColor = 'blue' }) 
   
   const [config, setConfig] = useState<GroupConfig>({
     mode: GroupingMode.BY_COUNT,
-    value: 0,
+    value: 4,
     strategy: DistributionStrategy.RANDOM,
     namingPattern: '',
     namingType: 'auto',
@@ -114,16 +114,26 @@ const GroupGenerator: React.FC<GroupGeneratorProps> = ({ themeColor = 'blue' }) 
   };
 
   const handleGenerate = () => {
-    if (enrichedStudents.length === 0) {
-      alert("Mohon masukkan data siswa terlebih dahulu.");
-      return;
-    }
-    if (config.value <= 0) {
-      alert("Mohon masukkan jumlah kelompok atau ukuran kelompok yang valid.");
+    if (enrichedStudents.length < 2) {
+      alert("Mohon masukkan minimal 2 data siswa terlebih dahulu.");
       return;
     }
 
-    const newGroups = generateGroups(enrichedStudents, config.mode, config.value, config.strategy, config.namingPattern, config.customNames, config.namingType);
+    let targetVal = config.value;
+    if (!targetVal || targetVal <= 0) {
+      targetVal = Math.min(4, Math.max(1, Math.floor(enrichedStudents.length / 2)));
+      setConfig(prev => ({ ...prev, value: targetVal }));
+    }
+
+    const newGroups = generateGroups(
+      enrichedStudents, 
+      config.mode, 
+      targetVal, 
+      config.strategy, 
+      config.namingPattern, 
+      config.customNames, 
+      config.namingType
+    );
     setGroups(newGroups);
     setIsGenerated(true);
   };
@@ -211,9 +221,9 @@ const GroupGenerator: React.FC<GroupGeneratorProps> = ({ themeColor = 'blue' }) 
 
           <button
             onClick={handleGenerate}
-            disabled={enrichedStudents.length < 2 || config.value <= 0}
+            disabled={enrichedStudents.length < 2}
             className={`w-full py-4 rounded-full font-bold text-lg shadow-lg flex items-center justify-center gap-3 transition-all transform active:scale-95 cursor-pointer ${
-              enrichedStudents.length >= 2 && config.value > 0
+              enrichedStudents.length >= 2
                 ? `bg-gradient-to-r ${buttonGradient} text-white hover:shadow-xl hover:translate-y-[-2px]`
                 : 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
             }`}
