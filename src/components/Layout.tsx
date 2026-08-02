@@ -272,7 +272,7 @@ export default function Layout({ session }: LayoutProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-slate-950 z-[9999] flex flex-col items-center justify-center text-white font-sans overflow-hidden"
+            className="fixed inset-0 bg-[#0F172A] z-[9999] flex flex-col items-center justify-center text-white font-sans overflow-hidden"
           >
             {/* 60fps Fluid Wave Canvas */}
             <FluidCanvas />

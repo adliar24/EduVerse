@@ -90,7 +90,7 @@ export default function Login() {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="fixed inset-0 bg-[#1D4ED8]/90 backdrop-blur-xl z-[9999] flex flex-col items-center justify-center text-white"
+            className="fixed inset-0 bg-[#0F172A]/90 backdrop-blur-xl z-[9999] flex flex-col items-center justify-center text-white"
           >
             <motion.div
               initial={{ scale: 0.8, opacity: 0 }}

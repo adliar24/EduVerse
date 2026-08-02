@@ -13,7 +13,6 @@ import {
   GraduationCap,
   ClipboardCheck,
   Activity,
-  Sparkles,
   Loader2,
   Calendar
 } from 'lucide-react';
@@ -324,7 +323,6 @@ export default function Dashboard() {
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/15 rounded-full text-xs font-semibold tracking-wide text-white mb-2 backdrop-blur-md border border-white/20">
-              <Sparkles className="w-3.5 h-3.5 text-cyan-300" />
               Tahun Ajaran {activeSchool?.academic_year || '2026/2027'} • Semester {activeSchool?.semester || 'Ganjil'}
             </div>
             <h2 className="text-xl md:text-2xl font-bold tracking-tight text-white">
