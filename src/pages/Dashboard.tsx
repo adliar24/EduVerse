@@ -238,10 +238,8 @@ export default function Dashboard() {
       value: stats.totalExams, 
       icon: FileText, 
       domainType: 'ujian' as const,
-      cardClass: 'bg-white border border-amber-100/80 text-slate-900 shadow-sm hover:shadow-md transition-all hover:scale-[1.01] card-domain-ujian',
-      badgeClass: 'bg-amber-50 text-amber-700 border-amber-200',
-      mutedColor: 'text-slate-500',
-      textColor: 'text-slate-900 font-extrabold',
+      solidBg: 'bg-gradient-to-br from-amber-500 via-amber-600 to-orange-600 text-white shadow-lg shadow-amber-500/25 border border-white/20',
+      badgeClass: 'bg-white/20 text-white border-white/20 backdrop-blur-md',
       desc: `${stats.totalQuestions} Soal di Bank Soal`
     },
     { 
@@ -249,10 +247,8 @@ export default function Dashboard() {
       value: stats.totalClasses, 
       icon: BookOpen, 
       domainType: 'kelas' as const,
-      cardClass: 'bg-white border border-sky-100/80 text-slate-900 shadow-sm hover:shadow-md transition-all hover:scale-[1.01] card-domain-kelas',
-      badgeClass: 'bg-sky-50 text-sky-700 border-sky-200',
-      mutedColor: 'text-slate-500',
-      textColor: 'text-slate-900 font-extrabold',
+      solidBg: 'bg-gradient-to-br from-sky-500 via-sky-600 to-blue-600 text-white shadow-lg shadow-sky-500/25 border border-white/20',
+      badgeClass: 'bg-white/20 text-white border-white/20 backdrop-blur-md',
       desc: 'Kelas Aktif Terdaftar'
     },
     { 
@@ -260,10 +256,8 @@ export default function Dashboard() {
       value: stats.totalStudents, 
       icon: Users, 
       domainType: 'kelas' as const,
-      cardClass: 'bg-white border border-sky-100/80 text-slate-900 shadow-sm hover:shadow-md transition-all hover:scale-[1.01] card-domain-kelas',
-      badgeClass: 'bg-sky-50 text-sky-700 border-sky-200',
-      mutedColor: 'text-slate-500',
-      textColor: 'text-slate-900 font-extrabold',
+      solidBg: 'bg-gradient-to-br from-sky-500 via-sky-600 to-blue-600 text-white shadow-lg shadow-sky-500/25 border border-white/20',
+      badgeClass: 'bg-white/20 text-white border-white/20 backdrop-blur-md',
       desc: 'Murid Aktif Terdaftar'
     },
     { 
@@ -271,10 +265,8 @@ export default function Dashboard() {
       value: `${overallAttendance}%`, 
       icon: CheckCircle, 
       domainType: 'materi' as const,
-      cardClass: 'bg-white border border-rose-100/80 text-slate-900 shadow-sm hover:shadow-md transition-all hover:scale-[1.01] card-domain-materi',
-      badgeClass: 'bg-rose-50 text-rose-700 border-rose-200',
-      mutedColor: 'text-slate-500',
-      textColor: 'text-slate-900 font-extrabold',
+      solidBg: 'bg-gradient-to-br from-rose-500 via-rose-600 to-pink-600 text-white shadow-lg shadow-rose-500/25 border border-white/20',
+      badgeClass: 'bg-white/20 text-white border-white/20 backdrop-blur-md',
       desc: 'Rata-rata absensi kelas'
     },
     { 
@@ -282,10 +274,8 @@ export default function Dashboard() {
       value: overallGradeAvg, 
       icon: TrendingUp, 
       domainType: 'tugas' as const,
-      cardClass: 'bg-white border border-purple-100/80 text-slate-900 shadow-sm hover:shadow-md transition-all hover:scale-[1.01] card-domain-tugas',
-      badgeClass: 'bg-purple-50 text-purple-700 border-purple-200',
-      mutedColor: 'text-slate-500',
-      textColor: 'text-slate-900 font-extrabold',
+      solidBg: 'bg-gradient-to-br from-purple-600 via-violet-600 to-indigo-700 text-white shadow-lg shadow-purple-500/25 border border-white/20',
+      badgeClass: 'bg-white/20 text-white border-white/20 backdrop-blur-md',
       desc: 'Rerata nilai formatif/sumatif'
     },
     { 
@@ -293,10 +283,8 @@ export default function Dashboard() {
       value: overallExamAvg, 
       icon: GraduationCap, 
       domainType: 'ujian' as const,
-      cardClass: 'bg-white border border-amber-100/80 text-slate-900 shadow-sm hover:shadow-md transition-all hover:scale-[1.01] card-domain-ujian',
-      badgeClass: 'bg-amber-50 text-amber-700 border-amber-200',
-      mutedColor: 'text-slate-500',
-      textColor: 'text-slate-900 font-extrabold',
+      solidBg: 'bg-gradient-to-br from-amber-500 via-amber-600 to-orange-600 text-white shadow-lg shadow-amber-500/25 border border-white/20',
+      badgeClass: 'bg-white/20 text-white border-white/20 backdrop-blur-md',
       desc: 'Rerata nilai ujian digital'
     }
   ];
@@ -346,82 +334,73 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Quick Action Launcher */}
+      {/* Quick Action Launcher - 3 Distinct Colors */}
       <div className="space-y-1.5">
         <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Aksi Cepat</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <Link
             to="/attendance/scan"
-            className="flex items-center gap-3 p-3 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 text-white rounded-full shadow-lg shadow-emerald-600/25 hover:scale-[1.02] border border-white/20 transition-all group cursor-pointer"
+            className="flex items-center gap-3 p-3.5 bg-gradient-to-r from-emerald-500 via-teal-600 to-emerald-700 text-white rounded-full shadow-lg shadow-emerald-600/30 hover:scale-[1.02] border border-white/20 transition-all group cursor-pointer"
           >
-            <div className="bg-white/20 text-white p-2.5 rounded-full group-hover:scale-105 transition-transform backdrop-blur-md">
+            <div className="bg-white/20 text-white p-2.5 rounded-full group-hover:scale-105 transition-transform backdrop-blur-md border border-white/20">
               <ClipboardCheck className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="font-bold text-white text-xs uppercase tracking-tight">Scan Kehadiran</h4>
+              <h4 className="font-extrabold text-white text-xs uppercase tracking-tight">Scan Kehadiran</h4>
             </div>
           </Link>
 
           <Link
             to="/grading"
-            className="flex items-center gap-3 p-3 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 text-white rounded-full shadow-lg shadow-blue-600/25 hover:scale-[1.02] border border-white/20 transition-all group cursor-pointer"
+            className="flex items-center gap-3 p-3.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 text-white rounded-full shadow-lg shadow-blue-600/30 hover:scale-[1.02] border border-white/20 transition-all group cursor-pointer"
           >
-            <div className="bg-white/20 text-white p-2.5 rounded-full group-hover:scale-105 transition-transform backdrop-blur-md">
+            <div className="bg-white/20 text-white p-2.5 rounded-full group-hover:scale-105 transition-transform backdrop-blur-md border border-white/20">
               <Activity className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="font-bold text-white text-xs uppercase tracking-tight">Input Nilai Baru</h4>
+              <h4 className="font-extrabold text-white text-xs uppercase tracking-tight">Input Nilai Baru</h4>
             </div>
           </Link>
 
           <Link
             to="/buat-ujian"
-            className="flex items-center gap-3 p-3 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-white rounded-full shadow-lg shadow-amber-500/25 hover:scale-[1.02] border border-white/20 transition-all group cursor-pointer"
+            className="flex items-center gap-3 p-3.5 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-white rounded-full shadow-lg shadow-amber-500/30 hover:scale-[1.02] border border-white/20 transition-all group cursor-pointer"
           >
-            <div className="bg-white/20 text-white p-2.5 rounded-full group-hover:scale-105 transition-transform backdrop-blur-md">
+            <div className="bg-white/20 text-white p-2.5 rounded-full group-hover:scale-105 transition-transform backdrop-blur-md border border-white/20">
               <FileText className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="font-bold text-white text-xs uppercase tracking-tight">Buat Ujian Baru</h4>
+              <h4 className="font-extrabold text-white text-xs uppercase tracking-tight">Buat Ujian Baru</h4>
             </div>
           </Link>
         </div>
       </div>
 
-      {/* Stats Grid - Solid Domain Cards */}
+      {/* Stats Grid - Full Solid Gradient Cards */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-        {statCards.map((stat, index) => {
-          const solidBgClass = {
-            ujian: 'bg-gradient-to-br from-amber-500 via-amber-600 to-orange-600 text-white shadow-amber-500/20',
-            kelas: 'bg-gradient-to-br from-sky-500 via-sky-600 to-blue-600 text-white shadow-sky-500/20',
-            materi: 'bg-gradient-to-br from-rose-500 via-rose-600 to-pink-600 text-white shadow-rose-500/20',
-            tugas: 'bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-700 text-white shadow-purple-500/20',
-          }[stat.domainType];
-
-          return (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.05, duration: 0.3 }}
-              className={`rounded-2xl p-3.5 shadow-md hover:shadow-xl transition-all duration-300 hover:scale-[1.02] border border-white/20 flex flex-col justify-between ${solidBgClass}`}
-            >
-              <div className="flex items-center justify-between mb-2">
-                <div className="bg-white/20 p-2 rounded-xl text-white backdrop-blur-md">
-                  <stat.icon className="w-4 h-4" />
-                </div>
-                <div className="bg-white/20 text-white px-2 py-0.5 rounded text-[8px] font-extrabold flex items-center gap-0.5 border border-white/20 backdrop-blur-md uppercase tracking-wider">
-                  <ArrowUpRight className="w-2 h-2" />
-                  Info
-                </div>
+        {statCards.map((stat, index) => (
+          <motion.div
+            key={index}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.05, duration: 0.3 }}
+            className={`rounded-2xl p-3.5 shadow-md hover:shadow-xl transition-all duration-300 hover:scale-[1.02] flex flex-col justify-between ${stat.solidBg}`}
+          >
+            <div className="flex items-center justify-between mb-2">
+              <div className="bg-white/20 p-2 rounded-xl text-white backdrop-blur-md border border-white/20">
+                <stat.icon className="w-4 h-4" />
               </div>
-              <div>
-                <p className="text-white/80 text-[9px] font-black uppercase tracking-widest leading-none">{stat.label}</p>
-                <h3 className="text-xl font-black mt-1 tracking-tight leading-none text-white">{stat.value}</h3>
+              <div className={`${stat.badgeClass} px-2 py-0.5 rounded text-[8px] font-extrabold flex items-center gap-0.5 border uppercase tracking-wider`}>
+                <ArrowUpRight className="w-2 h-2" />
+                Info
               </div>
-            </motion.div>
-          );
-        })}
+            </div>
+            <div>
+              <p className="text-white/80 text-[9px] font-black uppercase tracking-widest leading-none">{stat.label}</p>
+              <h3 className="text-2xl font-black mt-1 tracking-tight leading-none text-white">{stat.value}</h3>
+            </div>
+          </motion.div>
+        ))}
       </div>
 
       {/* Main Bento Grid */}
