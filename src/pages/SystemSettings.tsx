@@ -358,15 +358,16 @@ export default function SystemSettings() {
       // Clear databases
       await resetAllData();
       await resetGradingDB();
-      // Sign out from Supabase
-      await supabase.auth.signOut();
       localStorage.removeItem('student_session');
       window.dispatchEvent(new Event('student_session_change'));
 
       showAlert({
         title: 'Sistem Direset',
-        message: 'Seluruh database telah dibersihkan. Kembali ke halaman login.',
-        type: 'success'
+        message: 'Seluruh database telah dibersihkan. Memuat ulang sistem...',
+        type: 'success',
+        onConfirm: () => {
+          window.dispatchEvent(new Event('trigger_fluid_logout'));
+        }
       });
       setTimeout(() => {
         window.location.href = '/login';

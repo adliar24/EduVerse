@@ -437,9 +437,8 @@ export default function Profil() {
     } finally { setSaving(false); }
   };
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate('/login');
+  const handleLogout = () => {
+    window.dispatchEvent(new Event('trigger_fluid_logout'));
   };
 
   const handleResetData = async () => {

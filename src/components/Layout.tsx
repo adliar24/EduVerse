@@ -33,6 +33,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAlert } from '../context/AlertContext';
 import { useSchool } from '../context/SchoolContext';
 import { useTheme } from '../context/ThemeContext';
+import FluidCanvas from './FluidCanvas';
 
 const prefetchMap: Record<string, () => Promise<any>> = {
   '/dashboard': () => import('../pages/Dashboard'),
@@ -230,7 +231,7 @@ export default function Layout({ session }: LayoutProps) {
     setOpenSubmenu(openSubmenu === label ? null : label);
   };
 
-  const handleLogout = async () => {
+  const handleLogout = useCallback(async () => {
     setIsLoggingOut(true);
     localStorage.removeItem('student_session');
     window.dispatchEvent(new Event('student_session_change'));
@@ -242,36 +243,52 @@ export default function Layout({ session }: LayoutProps) {
       console.warn("Failed to clear sync timeout on logout:", e);
     }
 
-    await supabase.auth.signOut();
+    try {
+      await supabase.auth.signOut();
+    } catch (e) {
+      console.warn("SignOut error:", e);
+    }
+
     setTimeout(() => {
-      navigate('/login');
+      navigate('/login', { replace: true });
       setIsLoggingOut(false);
-    }, 850);
-  };
+    }, 1200);
+  }, [navigate]);
+
+  useEffect(() => {
+    const handleLogoutEvent = () => {
+      handleLogout();
+    };
+    window.addEventListener('trigger_fluid_logout', handleLogoutEvent);
+    return () => window.removeEventListener('trigger_fluid_logout', handleLogoutEvent);
+  }, [handleLogout]);
 
   return (
     <div className="flex min-h-screen bg-slate-50 relative overflow-x-hidden">
-      {/* Logout Transition Overlay */}
+      {/* Logout Transition Overlay - Fluid Canvas Matching Login */}
       <AnimatePresence>
         {isLoggingOut && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-gradient-to-br from-[#2563EB] via-[#1D4ED8] to-[#1E40AF] z-[9999] flex flex-col items-center justify-center text-white"
+            className="fixed inset-0 bg-slate-950 z-[9999] flex flex-col items-center justify-center text-white font-sans overflow-hidden"
           >
+            {/* 60fps Fluid Wave Canvas */}
+            <FluidCanvas />
+
             <motion.div
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ delay: 0.1, duration: 0.4 }}
-              className="flex flex-col items-center text-center space-y-6"
+              className="flex flex-col items-center text-center space-y-6 relative z-10"
             >
-              <div className="bg-white/10 p-5 rounded-[2rem] border border-white/10 shadow-2xl relative">
+              <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-5 rounded-full shadow-2xl shadow-indigo-600/30 border border-white/20">
                 <Loader2 className="w-12 h-12 text-white animate-spin" />
               </div>
               <div className="space-y-1">
                 <h3 className="text-2xl font-black tracking-tight">Mengamankan Sesi</h3>
-                <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">Sedang keluar dari sistem...</p>
+                <p className="text-indigo-200 text-xs font-bold uppercase tracking-widest">Sampai jumpa kembali...</p>
               </div>
             </motion.div>
           </motion.div>

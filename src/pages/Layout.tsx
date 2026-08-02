@@ -372,16 +372,9 @@ export const Sidebar: React.FC<{ profile: TeacherProfile | null, refreshProfile:
           <Cloud size={16} />
           <span className="font-black text-[10px] uppercase">Cloud Sync</span>
         </button>
-        <button onClick={async () => {
+        <button onClick={() => {
           if (confirm("Anda yakin ingin keluar?")) {
-            try {
-              const { clearSyncTimeout } = await import('../services/dbAttendance');
-              clearSyncTimeout();
-            } catch (e) {
-              console.warn("Failed to clear sync timeout on logout:", e);
-            }
-            await supabase.auth.signOut();
-            window.location.reload();
+            window.dispatchEvent(new Event('trigger_fluid_logout'));
           }
         }}
           className="w-full bg-red-500/30 hover:bg-red-600 text-red-400 hover:text-white rounded-xl p-3 transition-all flex items-center justify-center gap-2 border-none"
@@ -482,16 +475,10 @@ export const BottomNav: React.FC = () => {
             <span className="font-black text-xs uppercase tracking-widest">Cloud Sync</span>
           </button>
           <button 
-            onClick={async () => {
+            onClick={() => {
               if (confirm("Anda yakin ingin keluar?")) {
-                try {
-                  const { clearSyncTimeout } = await import('../services/dbAttendance');
-                  clearSyncTimeout();
-                } catch (e) {
-                  console.warn("Failed to clear sync timeout on logout:", e);
-                }
-                await supabase.auth.signOut();
-                window.location.reload();
+                setShowMore(false);
+                window.dispatchEvent(new Event('trigger_fluid_logout'));
               }
             }}
             className="p-6 rounded-3xl border-none bg-red-50 text-red-600 flex flex-col items-center gap-3 active:scale-95 transition-all"
