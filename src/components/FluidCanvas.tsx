@@ -27,50 +27,50 @@ export const FluidCanvas: React.FC<{ className?: string }> = ({ className = "" }
     const waves = [
       // 1. Upper Rolling Liquid Crests
       { 
-        yRatio: 0.28, 
-        amp1: 50, amp2: 30, amp3: 20,
-        w1: 0.005, w2: 0.003, w3: 0.008,
-        s1: 0.014, s2: 0.011, s3: 0.017,
+        yRatio: 0.25, 
+        amp1: 70, amp2: 45, amp3: 25,
+        w1: 0.0035, w2: 0.0020, w3: 0.0060,
+        s1: 0.012, s2: 0.009, s3: 0.015,
         color: 'rgba(59, 102, 245, 0.45)' // Electric Royal Blue
       },
       // 2. Upper-Mid Liquid Swell
       { 
-        yRatio: 0.42, 
-        amp1: 65, amp2: 40, amp3: 22,
-        w1: 0.0045, w2: 0.0025, w3: 0.007,
-        s1: 0.012, s2: 0.014, s3: 0.016,
+        yRatio: 0.40, 
+        amp1: 75, amp2: 45, amp3: 25,
+        w1: 0.0038, w2: 0.0022, w3: 0.0065,
+        s1: 0.011, s2: 0.013, s3: 0.014,
         color: 'rgba(56, 189, 248, 0.38)' // Sky Cyan
       },
       // 3. Center Liquid Flow
       { 
-        yRatio: 0.58, 
+        yRatio: 0.55, 
         amp1: 75, amp2: 45, amp3: 25,
-        w1: 0.004, w2: 0.0035, w3: 0.0065,
+        w1: 0.0036, w2: 0.0025, w3: 0.0060,
         s1: 0.013, s2: 0.010, s3: 0.015,
         color: 'rgba(37, 99, 235, 0.40)' // Sapphire Blue
       },
       // 4. Lower-Mid Rolling Deep Swell
       { 
-        yRatio: 0.72, 
-        amp1: 70, amp2: 40, amp3: 22,
-        w1: 0.0048, w2: 0.003, w3: 0.0075,
-        s1: 0.014, s2: 0.012, s3: 0.017,
+        yRatio: 0.70, 
+        amp1: 75, amp2: 45, amp3: 25,
+        w1: 0.0035, w2: 0.0022, w3: 0.0065,
+        s1: 0.012, s2: 0.011, s3: 0.014,
         color: 'rgba(96, 165, 250, 0.32)' // Soft Cyan Blue
       },
       // 5. Deep Base Fluid Flow
       { 
-        yRatio: 0.84, 
-        amp1: 60, amp2: 35, amp3: 20,
-        w1: 0.0042, w2: 0.0028, w3: 0.007,
-        s1: 0.013, s2: 0.011, s3: 0.016,
+        yRatio: 0.85, 
+        amp1: 75, amp2: 45, amp3: 25,
+        w1: 0.0037, w2: 0.0024, w3: 0.0060,
+        s1: 0.011, s2: 0.012, s3: 0.015,
         color: 'rgba(37, 99, 235, 0.50)' // Deep Sapphire Base
       },
       // 6. Surface Liquid Foam Highlight
       { 
-        yRatio: 0.91, 
-        amp1: 45, amp2: 25, amp3: 15,
-        w1: 0.0052, w2: 0.0032, w3: 0.008,
-        s1: 0.015, s2: 0.013, s3: 0.018,
+        yRatio: 0.95, 
+        amp1: 70, amp2: 40, amp3: 20,
+        w1: 0.0035, w2: 0.0021, w3: 0.0065,
+        s1: 0.013, s2: 0.010, s3: 0.016,
         color: 'rgba(255, 255, 255, 0.22)' // Pure White Crest Highlight
       }
     ];
