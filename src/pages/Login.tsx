@@ -123,11 +123,11 @@ export default function Login() {
 
         <div className="my-auto py-8 relative max-w-lg">
           <h1 className="text-4xl lg:text-[42px] font-black leading-[1.15] tracking-tight text-white mb-4 text-center lg:text-left">
-            Aplikasi Manajemen Kelas &{' '}
-            <span className="text-cyan-300">Presensi Digital Terpadu</span>
+            Solusi Edukasi Terpadu &{' '}
+            <span className="text-cyan-300">Kemudahan Mengajar Guru</span>
           </h1>
           <p className="text-indigo-100/90 text-base leading-relaxed font-medium text-center lg:text-left">
-            Kelola absensi murid (QR & Wajah), buku nilai, rekapitulasi, dan perangkat mengajar Anda secara terpadu.
+            EduVerse dirancang untuk membantu dan memudahkan guru dalam mengelola pembelajaran, presensi, hingga penilaian secara praktis dan efisien.
           </p>
         </div>
 
@@ -146,7 +146,7 @@ export default function Login() {
           <div className="flex items-baseline justify-center gap-1.5 mt-0.5">
             <span className="text-2xl font-black tracking-tight text-white">EduVerse</span>
           </div>
-          <p className="text-[11px] text-indigo-100/90 font-medium max-w-xs">Aplikasi Manajemen Kelas & Presensi Digital</p>
+          <p className="text-[11px] text-indigo-100/90 font-medium max-w-xs">Solusi Cerdas & Kemudahan Mengajar Guru</p>
         </div>
 
         <div className="relative z-30 w-full max-w-[340px] sm:max-w-md mx-auto bg-white/98 backdrop-blur-2xl p-5 sm:p-8 rounded-3xl shadow-2xl border border-white/80 min-h-[390px] sm:min-h-[410px] flex flex-col justify-center">
