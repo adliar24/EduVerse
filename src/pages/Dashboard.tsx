@@ -24,6 +24,7 @@ import { slideUp } from '../lib/animations';
 import { ComposedChart, Line, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useSchool } from '../context/SchoolContext';
 import { getFullState } from '../services/dbAttendance';
+import DomainTileIcon from '../components/DomainTileIcon';
 
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
@@ -236,66 +237,66 @@ export default function Dashboard() {
       label: 'Ujian Digital', 
       value: stats.totalExams, 
       icon: FileText, 
-      cardClass: 'bg-white border border-slate-200/80 text-indigo-950 shadow-tactile hover:shadow-tactile-lg transition-all hover:scale-[1.01]',
-      iconBg: 'bg-indigo-50 text-indigo-600',
-      badgeClass: 'bg-indigo-50 text-indigo-700 border-indigo-100',
+      domainType: 'ujian' as const,
+      cardClass: 'bg-white border border-amber-100/80 text-slate-900 shadow-sm hover:shadow-md transition-all hover:scale-[1.01] card-domain-ujian',
+      badgeClass: 'bg-amber-50 text-amber-700 border-amber-200',
       mutedColor: 'text-slate-500',
-      textColor: 'text-indigo-950 font-black',
+      textColor: 'text-slate-900 font-extrabold',
       desc: `${stats.totalQuestions} Soal di Bank Soal`
     },
     { 
       label: 'Jumlah Kelas', 
       value: stats.totalClasses, 
       icon: BookOpen, 
-      cardClass: 'bg-white border border-slate-200/80 text-indigo-950 shadow-tactile hover:shadow-tactile-lg transition-all hover:scale-[1.01]',
-      iconBg: 'bg-blue-50 text-blue-600',
-      badgeClass: 'bg-blue-50 text-blue-700 border-blue-100',
+      domainType: 'kelas' as const,
+      cardClass: 'bg-white border border-sky-100/80 text-slate-900 shadow-sm hover:shadow-md transition-all hover:scale-[1.01] card-domain-kelas',
+      badgeClass: 'bg-sky-50 text-sky-700 border-sky-200',
       mutedColor: 'text-slate-500',
-      textColor: 'text-indigo-950 font-black',
+      textColor: 'text-slate-900 font-extrabold',
       desc: 'Kelas Aktif Terdaftar'
     },
     { 
       label: 'Manajemen Murid', 
       value: stats.totalStudents, 
       icon: Users, 
-      cardClass: 'bg-white border border-slate-200/80 text-indigo-950 shadow-tactile hover:shadow-tactile-lg transition-all hover:scale-[1.01]',
-      iconBg: 'bg-purple-50 text-purple-600',
-      badgeClass: 'bg-purple-50 text-purple-700 border-purple-100',
+      domainType: 'kelas' as const,
+      cardClass: 'bg-white border border-sky-100/80 text-slate-900 shadow-sm hover:shadow-md transition-all hover:scale-[1.01] card-domain-kelas',
+      badgeClass: 'bg-sky-50 text-sky-700 border-sky-200',
       mutedColor: 'text-slate-500',
-      textColor: 'text-indigo-950 font-black',
+      textColor: 'text-slate-900 font-extrabold',
       desc: 'Murid Aktif Terdaftar'
     },
     { 
       label: 'Kehadiran Total', 
       value: `${overallAttendance}%`, 
       icon: CheckCircle, 
-      cardClass: 'bg-white border border-slate-200/80 text-indigo-950 shadow-tactile hover:shadow-tactile-lg transition-all hover:scale-[1.01]',
-      iconBg: 'bg-indigo-50 text-indigo-600',
-      badgeClass: 'bg-indigo-50 text-indigo-700 border-indigo-100',
+      domainType: 'materi' as const,
+      cardClass: 'bg-white border border-rose-100/80 text-slate-900 shadow-sm hover:shadow-md transition-all hover:scale-[1.01] card-domain-materi',
+      badgeClass: 'bg-rose-50 text-rose-700 border-rose-200',
       mutedColor: 'text-slate-500',
-      textColor: 'text-indigo-950 font-black',
+      textColor: 'text-slate-900 font-extrabold',
       desc: 'Rata-rata absensi kelas'
     },
     { 
       label: 'Rerata Nilai', 
       value: overallGradeAvg, 
       icon: TrendingUp, 
-      cardClass: 'bg-white border border-slate-200/80 text-indigo-950 shadow-tactile hover:shadow-tactile-lg transition-all hover:scale-[1.01]',
-      iconBg: 'bg-blue-50 text-blue-600',
-      badgeClass: 'bg-blue-50 text-blue-700 border-blue-100',
+      domainType: 'tugas' as const,
+      cardClass: 'bg-white border border-purple-100/80 text-slate-900 shadow-sm hover:shadow-md transition-all hover:scale-[1.01] card-domain-tugas',
+      badgeClass: 'bg-purple-50 text-purple-700 border-purple-200',
       mutedColor: 'text-slate-500',
-      textColor: 'text-indigo-950 font-black',
+      textColor: 'text-slate-900 font-extrabold',
       desc: 'Rerata nilai formatif/sumatif'
     },
     { 
       label: 'Rerata Ujian', 
       value: overallExamAvg, 
       icon: GraduationCap, 
-      cardClass: 'bg-white border border-slate-200/80 text-indigo-950 shadow-tactile hover:shadow-tactile-lg transition-all hover:scale-[1.01]',
-      iconBg: 'bg-purple-50 text-purple-600',
-      badgeClass: 'bg-purple-50 text-purple-700 border-purple-100',
+      domainType: 'ujian' as const,
+      cardClass: 'bg-white border border-amber-100/80 text-slate-900 shadow-sm hover:shadow-md transition-all hover:scale-[1.01] card-domain-ujian',
+      badgeClass: 'bg-amber-50 text-amber-700 border-amber-200',
       mutedColor: 'text-slate-500',
-      textColor: 'text-indigo-950 font-black',
+      textColor: 'text-slate-900 font-extrabold',
       desc: 'Rerata nilai ujian digital'
     }
   ];
@@ -397,10 +398,8 @@ export default function Dashboard() {
             transition={{ delay: index * 0.05, duration: 0.3 }}
             className={`border rounded-2xl p-3 hover:scale-[1.01] transition-all duration-300 group ${stat.cardClass}`}
           >
-            <div className="flex items-center justify-between mb-1.5">
-              <div className={`${stat.iconBg} p-1.5 rounded-xl transition-transform duration-300 group-hover:scale-110`}>
-                <stat.icon className="w-3.5 h-3.5" />
-              </div>
+            <div className="flex items-center justify-between mb-2">
+              <DomainTileIcon type={stat.domainType} icon={stat.icon} size="sm" />
               <div className={`${stat.badgeClass} px-1.5 py-0.5 rounded text-[8px] font-bold flex items-center gap-0.5 border`}>
                 <ArrowUpRight className="w-2 h-2" />
                 Info

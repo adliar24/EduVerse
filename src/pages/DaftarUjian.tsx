@@ -30,8 +30,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '../lib/utils';
 import { useAlert } from '../context/AlertContext';
-
 import { useSchool } from '../context/SchoolContext';
+import DomainTileIcon from '../components/DomainTileIcon';
 
 export default function DaftarUjian() {
   const navigate = useNavigate();
@@ -440,22 +440,25 @@ export default function DaftarUjian() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.05 }}
               key={exam.id}
-              className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm group hover:shadow-2xl hover:shadow-slate-200/50 hover:border-[#3B66F5]/30 transition-all duration-500 flex flex-col"
+              className="bg-white rounded-[2.5rem] border border-amber-100/80 shadow-sm group hover:shadow-2xl hover:shadow-amber-200/30 hover:border-amber-400/40 transition-all duration-500 flex flex-col card-domain-ujian"
             >
               <div className="pt-8 px-8 pb-5 flex-1">
                 {/* Card Top Header: Token & Action Dropdown */}
                 <div className="flex justify-between items-center mb-6">
-                  <button 
-                    onClick={() => {
-                      navigator.clipboard.writeText(exam.exam_code);
-                      showAlert({ title: 'Salin Kode', message: `Token / Kode Bypass "${exam.exam_code}" berhasil disalin!`, type: 'success' });
-                    }}
-                    title="Klik untuk salin token & kode bypass"
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 border border-slate-200/60 rounded-xl text-slate-500 hover:text-[#1D4ED8] hover:bg-slate-100 hover:border-slate-300 font-bold transition-all text-[11px] group/token cursor-pointer"
-                  >
-                    <span className="font-mono text-[#1D4ED8] tracking-wider">Token / Bypass: {exam.exam_code}</span>
-                    <Copy className="w-3 h-3 text-slate-400 group-hover/token:text-[#1D4ED8] group-hover/token:scale-105 transition-all" />
-                  </button>
+                  <div className="flex items-center gap-3">
+                    <DomainTileIcon type="ujian" icon={FileText} size="sm" />
+                    <button 
+                      onClick={() => {
+                        navigator.clipboard.writeText(exam.exam_code);
+                        showAlert({ title: 'Salin Kode', message: `Token / Kode Bypass "${exam.exam_code}" berhasil disalin!`, type: 'success' });
+                      }}
+                      title="Klik untuk salin token & kode bypass"
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-50/80 border border-amber-200/60 rounded-xl text-amber-900 hover:text-amber-950 hover:bg-amber-100 font-bold transition-all text-[11px] group/token cursor-pointer"
+                    >
+                      <span className="font-mono text-amber-700 tracking-wider">Token: {exam.exam_code}</span>
+                      <Copy className="w-3 h-3 text-amber-500 group-hover/token:scale-105 transition-all" />
+                    </button>
+                  </div>
                   
                   <button 
                     onClick={() => deleteExam(exam.id)}
@@ -467,7 +470,7 @@ export default function DaftarUjian() {
                 </div>
 
                 {/* Title & Duration/Questions */}
-                <h3 className="text-xl font-bold text-[#1D4ED8] mb-2 group-hover:text-blue-900 transition-colors line-clamp-2 leading-tight min-h-[3.5rem] flex items-center">{exam.title}</h3>
+                <h3 className="text-xl font-bold text-slate-900 mb-2 group-hover:text-amber-700 transition-colors line-clamp-2 leading-tight min-h-[3.5rem] flex items-center">{exam.title}</h3>
                 
                 <div className="flex flex-wrap items-center gap-2 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-6">
                   <div className="flex items-center gap-1.5 bg-slate-50 px-2.5 py-1.5 rounded-xl border border-slate-150">

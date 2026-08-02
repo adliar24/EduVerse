@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { detectGenderFromName } from '../utils/genderDetection';
+import DomainTileIcon from '../components/DomainTileIcon';
 import { 
   Users, 
   Plus, 
@@ -1073,7 +1074,6 @@ export default function KelolaKelas() {
           [1,2,3].map(i => <div key={i} className="h-40 bg-slate-100 animate-pulse rounded-2xl"></div>)
         ) : filteredClasses.length > 0 ? (
           filteredClasses.map((cls, index) => {
-            const cardStyle = CARD_STYLES[index % CARD_STYLES.length];
             return (
               <motion.div 
                 initial={{ opacity: 0, y: 10 }}
@@ -1081,32 +1081,29 @@ export default function KelolaKelas() {
                 transition={{ delay: index * 0.03 }}
                 key={cls.id}
                 onClick={() => viewClass(cls)}
-                className={`p-6 rounded-2xl border shadow-sm hover:shadow-lg transition-all group flex flex-col justify-between cursor-pointer relative overflow-hidden ${cardStyle.bg}`}
+                className="p-5 rounded-2xl bg-white border border-sky-100/90 shadow-sm hover:shadow-xl transition-all duration-300 group flex flex-col justify-between cursor-pointer relative overflow-hidden card-domain-kelas"
               >
-                <div className="absolute top-0 right-14 p-5 opacity-[0.05] group-hover:scale-110 transition-transform">
-                  <School className="w-24 h-24 text-white" />
-                </div>
-
-                <div className="flex justify-between items-start relative z-10">
-                  <div className="flex-1">
-                    <h3 className="text-xl font-bold mb-0.5 uppercase tracking-tight text-white">{cls.name}</h3>
-                    <p className={`font-semibold text-[11px] uppercase tracking-widest mb-3 ${cardStyle.textMuted}`}>{cls.subject || 'Belum Ada Mapel'}</p>
-                    <div className="flex items-center gap-1.5 px-2 py-1 bg-white/20 border border-white/10 text-white rounded-lg inline-flex">
-                      <Users className="w-3.5 h-3.5 text-white" />
-                      <span className="text-[10px] font-semibold uppercase tracking-wider">{cls.students?.[0]?.count || 0} Murid</span>
+                <div className="flex justify-between items-start gap-3 relative z-10">
+                  <DomainTileIcon type="kelas" icon={School} size="md" />
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-lg font-bold uppercase tracking-tight text-slate-900 truncate">{cls.name}</h3>
+                    <p className="font-semibold text-[11px] uppercase tracking-wider text-sky-600 mb-2">{cls.subject || 'Belum Ada Mapel'}</p>
+                    <div className="flex items-center gap-1.5 px-2.5 py-1 bg-sky-50 border border-sky-200/80 text-sky-700 rounded-full inline-flex">
+                      <Users className="w-3.5 h-3.5 text-sky-600" />
+                      <span className="text-[10px] font-extrabold uppercase tracking-wider">{cls.students?.[0]?.count || 0} Murid</span>
                     </div>
                   </div>
-                  <div className="flex flex-col gap-1">
+                  <div className="flex items-center gap-1">
                     <button 
                       onClick={(e) => { e.stopPropagation(); handleEdit(cls); }} 
-                      className={`p-2 rounded-full transition-colors ${cardStyle.btnEdit}`}
+                      className="p-2 rounded-full text-slate-400 hover:text-sky-600 hover:bg-sky-50 transition-colors"
                       title="Edit Kelas"
                     >
                       <Edit3 className="w-4 h-4" />
                     </button>
                     <button 
                       onClick={(e) => handleDelete(cls, e)} 
-                      className={`p-2 rounded-full transition-colors ${cardStyle.btnDelete}`}
+                      className="p-2 rounded-full text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
                       title="Hapus Kelas"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -1114,9 +1111,9 @@ export default function KelolaKelas() {
                   </div>
                 </div>
 
-                <div className={`mt-6 pt-4 border-t ${cardStyle.divider} flex items-center justify-between relative z-10`}>
-                  <span className={`text-xs font-medium ${cardStyle.textMuted}`}>Klik untuk Kelola Murid</span>
-                  <div className="bg-white/20 text-white p-2 rounded-full group-hover:translate-x-0.5 transition-all border border-white/10">
+                <div className="mt-5 pt-3.5 border-t border-slate-100 flex items-center justify-between relative z-10">
+                  <span className="text-xs font-semibold text-slate-400 group-hover:text-sky-600 transition-colors">Kelola Murid & Absensi</span>
+                  <div className="bg-sky-50 text-sky-600 p-1.5 rounded-full group-hover:translate-x-1 transition-all border border-sky-100">
                     <ChevronRight className="w-4 h-4" />
                   </div>
                 </div>

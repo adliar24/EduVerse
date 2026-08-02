@@ -24,6 +24,7 @@ import { getFullState, addMaterial, deleteMaterial, addAssignment, deleteAssignm
 import { ClassEntity, Student, Material, Assignment } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 import LinkPreviewCard from '../components/LinkPreviewCard';
+import DomainTileIcon from '../components/DomainTileIcon';
 
 const ELECTRIC_BLUE_GRADIENT = {
   bg: 'bg-gradient-to-br from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white border border-white/20 hover:scale-[1.01] transition-all shadow-xl shadow-[#3B66F5]/20',
@@ -737,59 +738,59 @@ export default function KelolaMateriTugas() {
         // MATERIALS LIST
         filteredMaterialsList.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
-            {filteredMaterialsList.map((m, index) => {
-              const cardStyle = CARD_STYLES[index % CARD_STYLES.length];
+            {filteredMaterialsList.map((m) => {
               return (
-                 <div key={m.id} className={`p-4 rounded-2xl flex flex-col justify-between gap-3 relative transition-all duration-300 border ${
-                  selectedIds.includes(m.id) ? cardStyle.selectedBg : `${cardStyle.bg} shadow-sm`
+                 <div key={m.id} className={`p-4 rounded-2xl flex flex-col justify-between gap-3 relative transition-all duration-300 bg-white border border-rose-100/90 shadow-sm hover:shadow-md card-domain-materi ${
+                  selectedIds.includes(m.id) ? 'ring-2 ring-rose-400 bg-rose-50/30' : ''
                 }`}>
-                  <div className="space-y-2">
+                  <div className="space-y-2.5">
                     <div className="flex items-center justify-between gap-2 flex-wrap">
                       <div className="flex items-center gap-2 flex-wrap">
                         <input 
                           type="checkbox"
                           checked={selectedIds.includes(m.id)}
                           onChange={() => handleToggleSelect(m.id)}
-                          className="w-4 h-4 rounded text-[#3B66F5] border-white/20 focus:ring-indigo-500 cursor-pointer bg-white/10"
+                          className="w-4 h-4 rounded text-rose-600 border-slate-300 focus:ring-rose-500 cursor-pointer"
                         />
+                        <DomainTileIcon type="materi" icon={BookOpen} size="sm" />
                         {(m.classIds || []).map((cid: string) => {
                           const cls = classes.find(c => c.id === cid);
                           return (
-                            <span key={cid} className={`text-[11px] font-bold px-2.5 py-1 rounded-md border ${cardStyle.badge}`}>
+                            <span key={cid} className="text-[11px] font-bold px-2.5 py-1 rounded-full border bg-rose-50 text-rose-700 border-rose-200">
                               {cls?.name || 'Semua Kelas'}
                             </span>
                           );
                         })}
                       </div>
                       {m.target_type === 'students' && (
-                        <span className="bg-white/20 text-white text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1 border border-white/10">
+                        <span className="bg-rose-50 text-rose-700 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 border border-rose-200">
                           <Users className="w-3.5 h-3.5" />
                           {m.student_ids?.length || 0} Murid
                         </span>
                       )}
                     </div>
-                    <h3 className="text-base font-extrabold text-white leading-snug">{m.title}</h3>
-                    <p className="text-xs sm:text-sm text-white/80 leading-relaxed line-clamp-3 whitespace-pre-line">{m.description}</p>
+                    <h3 className="text-base font-extrabold text-slate-900 leading-snug">{m.title}</h3>
+                    <p className="text-xs sm:text-sm text-slate-600 leading-relaxed line-clamp-3 whitespace-pre-line">{m.description}</p>
                   </div>
 
                   {m.link && (
-                    <div className={`border-t ${cardStyle.divider} pt-3 mt-2`}>
+                    <div className="border-t border-slate-100 pt-3 mt-2">
                       <LinkPreviewCard url={m.link} />
                     </div>
                   )}
 
-                  <div className={`border-t ${cardStyle.divider} pt-3 flex items-center justify-end mt-1`}>
+                  <div className="border-t border-slate-100 pt-3 flex items-center justify-end mt-1">
                     <div className="flex gap-1.5">
                       <button 
                         onClick={() => handleOpenEditModal(m, 'material')}
-                        className={`p-2 rounded-full transition-colors ${cardStyle.btnEdit}`}
+                        className="p-2 rounded-full text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
                         title="Edit Materi"
                       >
                         <Edit3 className="w-4 h-4" />
                       </button>
                       <button 
                         onClick={() => handleDelete(m.ids || [m.id], m.title, 'material')}
-                        className={`p-2 rounded-full transition-colors ${cardStyle.btnDelete}`}
+                        className="p-2 rounded-full text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
                         title="Hapus Materi"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -811,30 +812,30 @@ export default function KelolaMateriTugas() {
         // ASSIGNMENTS LIST
         filteredAssignmentsList.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
-            {filteredAssignmentsList.map((a, index) => {
-              const cardStyle = CARD_STYLES[(index + 2) % CARD_STYLES.length];
+            {filteredAssignmentsList.map((a) => {
               // Deadline check
               const hasDeadline = !!a.deadline;
               const deadlineDate = hasDeadline ? new Date(a.deadline!) : null;
               const isOverdue = deadlineDate ? deadlineDate.getTime() < Date.now() : false;
               
               return (
-                 <div key={a.id} className={`p-4 sm:p-5 rounded-2xl flex flex-col justify-between gap-3 relative transition-all duration-300 border ${
-                  selectedIds.includes(a.id) ? cardStyle.selectedBg : `${cardStyle.bg} shadow-sm`
+                 <div key={a.id} className={`p-4 sm:p-5 rounded-2xl flex flex-col justify-between gap-3 relative transition-all duration-300 bg-white border border-purple-100/90 shadow-sm hover:shadow-md card-domain-tugas ${
+                  selectedIds.includes(a.id) ? 'ring-2 ring-purple-400 bg-purple-50/30' : ''
                 }`}>
-                  <div className="space-y-2">
+                  <div className="space-y-2.5">
                     <div className="flex items-center justify-between gap-2 flex-wrap">
                       <div className="flex items-center gap-2 flex-wrap">
                         <input 
                           type="checkbox"
                           checked={selectedIds.includes(a.id)}
                           onChange={() => handleToggleSelect(a.id)}
-                          className="w-4 h-4 rounded text-[#3B66F5] border-white/20 focus:ring-indigo-500 cursor-pointer bg-white/10"
+                          className="w-4 h-4 rounded text-purple-600 border-slate-300 focus:ring-purple-500 cursor-pointer"
                         />
+                        <DomainTileIcon type="tugas" icon={FileText} size="sm" />
                         {(a.classIds || []).map((cid: string) => {
                           const cls = classes.find(c => c.id === cid);
                           return (
-                            <span key={cid} className={`text-[11px] font-bold px-2.5 py-1 rounded-md border ${cardStyle.badge}`}>
+                            <span key={cid} className="text-[11px] font-bold px-2.5 py-1 rounded-full border bg-purple-50 text-purple-700 border-purple-200">
                               {cls?.name || 'Semua Kelas'}
                             </span>
                           );
@@ -842,47 +843,47 @@ export default function KelolaMateriTugas() {
                       </div>
                       <div className="flex gap-1 flex-wrap">
                         {a.isGraded !== false && a.is_graded !== false ? (
-                          <span className="bg-white/25 text-white text-[10px] font-bold px-2 py-0.5 rounded-md border border-white/10">
+                          <span className="bg-purple-50 text-purple-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-purple-200">
                             Diberi Nilai
                           </span>
                         ) : (
-                          <span className="bg-white/10 text-white/70 text-[10px] font-bold px-2 py-0.5 rounded-md border border-white/5">
+                          <span className="bg-slate-50 text-slate-500 text-[10px] font-bold px-2 py-0.5 rounded-full border border-slate-200">
                             Tanpa Nilai
                           </span>
                         )}
                         {a.target_type === 'students' && (
-                          <span className="bg-white/20 text-white text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1 border border-white/10">
+                          <span className="bg-purple-50 text-purple-700 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 border border-purple-200">
                             <Users className="w-3.5 h-3.5" />
                             {a.student_ids?.length || 0} Murid
                           </span>
                         )}
                         {hasDeadline ? (
-                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1 border ${
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 border ${
                             isOverdue 
-                              ? 'bg-rose-500/25 text-rose-100 border-rose-400/20' 
-                              : 'bg-white/20 text-white border-white/10'
+                              ? 'bg-rose-50 text-rose-700 border-rose-200' 
+                              : 'bg-purple-50 text-purple-700 border-purple-200'
                           }`}>
                             <Clock className="w-3.5 h-3.5" />
                             {isOverdue ? 'Selesai' : 'Aktif'}
                           </span>
                         ) : (
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1 border bg-white/20 text-white border-white/10">
-                            <Clock className="w-3.5 h-3.5 text-white" />
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 border bg-slate-50 text-slate-600 border-slate-200">
+                            <Clock className="w-3.5 h-3.5 text-slate-500" />
                             Tanpa Tenggat
                           </span>
                         )}
                       </div>
                     </div>
                     
-                    <h3 className="text-base font-extrabold text-white leading-snug">{a.title}</h3>
-                    <p className="text-xs sm:text-sm text-white/80 leading-relaxed line-clamp-3 whitespace-pre-line">{a.description}</p>
+                    <h3 className="text-base font-extrabold text-slate-900 leading-snug">{a.title}</h3>
+                    <p className="text-xs sm:text-sm text-slate-600 leading-relaxed line-clamp-3 whitespace-pre-line">{a.description}</p>
                   </div>
 
                   <div className="space-y-3 mt-2">
                     {hasDeadline ? (
-                      <div className={`flex items-center gap-1.5 text-xs font-semibold bg-white/10 p-2.5 rounded-xl border border-white/10 text-white/90`}>
-                        <Calendar className="w-4 h-4 text-white" />
-                        Tenggat: <span className={isOverdue ? 'text-rose-200 font-bold' : 'text-white font-bold'}>
+                      <div className="flex items-center gap-1.5 text-xs font-semibold bg-purple-50/60 p-2.5 rounded-xl border border-purple-100 text-purple-900">
+                        <Calendar className="w-4 h-4 text-purple-600" />
+                        Tenggat: <span className={isOverdue ? 'text-rose-600 font-bold' : 'text-purple-800 font-bold'}>
                           {new Date(a.deadline!).toLocaleDateString('id-ID', {
                             weekday: 'long',
                             year: 'numeric',
@@ -894,8 +895,8 @@ export default function KelolaMateriTugas() {
                         </span>
                       </div>
                     ) : (
-                      <div className="flex items-center gap-1.5 text-xs font-semibold bg-white/10 p-2.5 rounded-xl border border-white/10 text-white/90">
-                        <Calendar className="w-4 h-4 text-white" />
+                      <div className="flex items-center gap-1.5 text-xs font-semibold bg-slate-50 p-2.5 rounded-xl border border-slate-200 text-slate-600">
+                        <Calendar className="w-4 h-4 text-slate-400" />
                         Tenggat: <span className="font-bold">Tanpa Tenggat</span>
                       </div>
                     )}
@@ -906,18 +907,18 @@ export default function KelolaMateriTugas() {
                       </div>
                     )}
 
-                    <div className={`border-t ${cardStyle.divider} pt-3 flex items-center justify-end`}>
+                    <div className="border-t border-slate-100 pt-3 flex items-center justify-end">
                       <div className="flex gap-1.5">
                         <button 
                           onClick={() => handleOpenEditModal(a, 'assignment')}
-                          className={`p-2 rounded-full transition-colors ${cardStyle.btnEdit}`}
+                          className="p-2 rounded-full text-slate-400 hover:text-purple-600 hover:bg-purple-50 transition-colors"
                           title="Edit Tugas"
                         >
                           <Edit3 className="w-4 h-4" />
                         </button>
                         <button 
                           onClick={() => handleDelete(a.ids || [a.id], a.title, 'assignment')}
-                          className={`p-2 rounded-full transition-colors ${cardStyle.btnDelete}`}
+                          className="p-2 rounded-full text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
                           title="Hapus Tugas"
                         >
                           <Trash2 className="w-4 h-4" />
