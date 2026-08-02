@@ -352,9 +352,9 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <Link
             to="/attendance/scan"
-            className="flex items-center gap-3 p-3 bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white rounded-full shadow-lg shadow-[#3B66F5]/25 hover:scale-[1.02] border border-white/15 transition-all group cursor-pointer"
+            className="flex items-center gap-3 p-3 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 text-white rounded-full shadow-lg shadow-emerald-600/25 hover:scale-[1.02] border border-white/20 transition-all group cursor-pointer"
           >
-            <div className="bg-white/20 text-white p-2.5 rounded-full group-hover:scale-105 transition-transform">
+            <div className="bg-white/20 text-white p-2.5 rounded-full group-hover:scale-105 transition-transform backdrop-blur-md">
               <ClipboardCheck className="w-5 h-5" />
             </div>
             <div>
@@ -364,9 +364,9 @@ export default function Dashboard() {
 
           <Link
             to="/grading"
-            className="flex items-center gap-3 p-3 bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white rounded-full shadow-lg shadow-[#3B66F5]/25 hover:scale-[1.02] border border-white/15 transition-all group cursor-pointer"
+            className="flex items-center gap-3 p-3 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 text-white rounded-full shadow-lg shadow-blue-600/25 hover:scale-[1.02] border border-white/20 transition-all group cursor-pointer"
           >
-            <div className="bg-white/20 text-white p-2.5 rounded-full group-hover:scale-105 transition-transform">
+            <div className="bg-white/20 text-white p-2.5 rounded-full group-hover:scale-105 transition-transform backdrop-blur-md">
               <Activity className="w-5 h-5" />
             </div>
             <div>
@@ -376,9 +376,9 @@ export default function Dashboard() {
 
           <Link
             to="/buat-ujian"
-            className="flex items-center gap-3 p-3 bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white rounded-full shadow-lg shadow-[#3B66F5]/25 hover:scale-[1.02] border border-white/15 transition-all group cursor-pointer"
+            className="flex items-center gap-3 p-3 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-white rounded-full shadow-lg shadow-amber-500/25 hover:scale-[1.02] border border-white/20 transition-all group cursor-pointer"
           >
-            <div className="bg-white/20 text-white p-2.5 rounded-full group-hover:scale-105 transition-transform">
+            <div className="bg-white/20 text-white p-2.5 rounded-full group-hover:scale-105 transition-transform backdrop-blur-md">
               <FileText className="w-5 h-5" />
             </div>
             <div>
@@ -388,29 +388,40 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Stats Grid */}
+      {/* Stats Grid - Solid Domain Cards */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-        {statCards.map((stat, index) => (
-          <motion.div
-            key={index}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.05, duration: 0.3 }}
-            className={`border rounded-2xl p-3 hover:scale-[1.01] transition-all duration-300 group ${stat.cardClass}`}
-          >
-            <div className="flex items-center justify-between mb-2">
-              <DomainTileIcon type={stat.domainType} icon={stat.icon} size="sm" />
-              <div className={`${stat.badgeClass} px-1.5 py-0.5 rounded text-[8px] font-bold flex items-center gap-0.5 border`}>
-                <ArrowUpRight className="w-2 h-2" />
-                Info
+        {statCards.map((stat, index) => {
+          const solidBgClass = {
+            ujian: 'bg-gradient-to-br from-amber-500 via-amber-600 to-orange-600 text-white shadow-amber-500/20',
+            kelas: 'bg-gradient-to-br from-sky-500 via-sky-600 to-blue-600 text-white shadow-sky-500/20',
+            materi: 'bg-gradient-to-br from-rose-500 via-rose-600 to-pink-600 text-white shadow-rose-500/20',
+            tugas: 'bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-700 text-white shadow-purple-500/20',
+          }[stat.domainType];
+
+          return (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.05, duration: 0.3 }}
+              className={`rounded-2xl p-3.5 shadow-md hover:shadow-xl transition-all duration-300 hover:scale-[1.02] border border-white/20 flex flex-col justify-between ${solidBgClass}`}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <div className="bg-white/20 p-2 rounded-xl text-white backdrop-blur-md">
+                  <stat.icon className="w-4 h-4" />
+                </div>
+                <div className="bg-white/20 text-white px-2 py-0.5 rounded text-[8px] font-extrabold flex items-center gap-0.5 border border-white/20 backdrop-blur-md uppercase tracking-wider">
+                  <ArrowUpRight className="w-2 h-2" />
+                  Info
+                </div>
               </div>
-            </div>
-            <div>
-              <p className={`${stat.mutedColor} text-[8px] font-black uppercase tracking-widest leading-none`}>{stat.label}</p>
-              <h3 className={`text-lg font-extrabold mt-1 tracking-tight leading-none ${stat.textColor}`}>{stat.value}</h3>
-            </div>
-          </motion.div>
-        ))}
+              <div>
+                <p className="text-white/80 text-[9px] font-black uppercase tracking-widest leading-none">{stat.label}</p>
+                <h3 className="text-xl font-black mt-1 tracking-tight leading-none text-white">{stat.value}</h3>
+              </div>
+            </motion.div>
+          );
+        })}
       </div>
 
       {/* Main Bento Grid */}

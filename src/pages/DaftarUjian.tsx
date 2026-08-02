@@ -440,44 +440,49 @@ export default function DaftarUjian() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.05 }}
               key={exam.id}
-              className="bg-white rounded-[2.5rem] border border-amber-100/80 shadow-sm group hover:shadow-2xl hover:shadow-amber-200/30 hover:border-amber-400/40 transition-all duration-500 flex flex-col card-domain-ujian"
+              className="bg-gradient-to-br from-amber-500 via-amber-600 to-orange-600 text-white rounded-[2rem] border border-white/20 shadow-lg shadow-amber-500/20 group hover:shadow-2xl hover:scale-[1.01] transition-all duration-300 flex flex-col overflow-hidden"
             >
-              <div className="pt-8 px-8 pb-5 flex-1">
+              <div className="pt-7 px-7 pb-5 flex-1">
                 {/* Card Top Header: Token & Action Dropdown */}
-                <div className="flex justify-between items-center mb-6">
-                  <div className="flex items-center gap-3">
-                    <DomainTileIcon type="ujian" icon={FileText} size="sm" />
+                <div className="flex justify-between items-center mb-5">
+                  <div className="flex items-center gap-2.5">
+                    <div className="bg-white/20 p-2 rounded-xl text-white backdrop-blur-md border border-white/20">
+                      <FileText className="w-5 h-5" />
+                    </div>
                     <button 
                       onClick={() => {
                         navigator.clipboard.writeText(exam.exam_code);
                         showAlert({ title: 'Salin Kode', message: `Token / Kode Bypass "${exam.exam_code}" berhasil disalin!`, type: 'success' });
                       }}
                       title="Klik untuk salin token & kode bypass"
-                      className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-50/80 border border-amber-200/60 rounded-xl text-amber-900 hover:text-amber-950 hover:bg-amber-100 font-bold transition-all text-[11px] group/token cursor-pointer"
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-white/20 border border-white/20 backdrop-blur-md rounded-xl text-white hover:bg-white/30 font-bold transition-all text-[11px] group/token cursor-pointer"
                     >
-                      <span className="font-mono text-amber-700 tracking-wider">Token: {exam.exam_code}</span>
-                      <Copy className="w-3 h-3 text-amber-500 group-hover/token:scale-105 transition-all" />
+                      <span className="font-mono text-white tracking-wider">Token: {exam.exam_code}</span>
+                      <Copy className="w-3 h-3 text-white/80 group-hover/token:scale-105 transition-all" />
                     </button>
                   </div>
                   
                   <button 
                     onClick={() => deleteExam(exam.id)}
                     title="Hapus Ujian"
-                    className="p-2 rounded-full border border-red-100 bg-red-50 text-red-500 hover:text-red-700 hover:bg-red-100 hover:border-red-200 transition-all cursor-pointer flex items-center justify-center button-hover"
+                    className="p-2 rounded-full border border-white/20 bg-white/10 text-white hover:bg-rose-500/30 hover:border-white/30 transition-all cursor-pointer flex items-center justify-center"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
 
                 {/* Title & Duration/Questions */}
-                <h3 className="text-xl font-bold text-slate-900 mb-2 group-hover:text-amber-700 transition-colors line-clamp-2 leading-tight min-h-[3.5rem] flex items-center">{exam.title}</h3>
+                <h3 className="text-xl font-extrabold text-white mb-2 line-clamp-2 leading-tight min-h-[3.5rem] flex items-center">{exam.title}</h3>
                 
-                <div className="flex flex-wrap items-center gap-2 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-6">
-                  <div className="flex items-center gap-1.5 bg-slate-50 px-2.5 py-1.5 rounded-xl border border-slate-150">
-                    <Clock className="w-3.5 h-3.5 text-[#1D4ED8]/60" />
+                <div className="flex flex-wrap items-center gap-2 text-[10px] font-extrabold text-white/90 uppercase tracking-wider mb-5">
+                  <div className="flex items-center gap-1.5 bg-white/20 px-2.5 py-1.5 rounded-xl border border-white/20 backdrop-blur-md">
+                    <Clock className="w-3.5 h-3.5 text-white" />
                     <span>{exam.duration} Menit</span>
                   </div>
-                  <div className="flex items-center gap-1.5 bg-slate-50 px-2.5 py-1.5 rounded-xl border border-slate-150">
+                  <div className="flex items-center gap-1.5 bg-white/20 px-2.5 py-1.5 rounded-xl border border-white/20 backdrop-blur-md">
+                    <FileText className="w-3.5 h-3.5 text-white" />
+                    <span>{exam.total_questions} Soal</span>
+                  </div>
                     <FileText className="w-3.5 h-3.5 text-[#1D4ED8]/60" />
                     <span>{exam.total_questions} Soal</span>
                   </div>

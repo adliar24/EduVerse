@@ -740,8 +740,8 @@ export default function KelolaMateriTugas() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
             {filteredMaterialsList.map((m) => {
               return (
-                 <div key={m.id} className={`p-4 rounded-2xl flex flex-col justify-between gap-3 relative transition-all duration-300 bg-white border border-rose-100/90 shadow-sm hover:shadow-md card-domain-materi ${
-                  selectedIds.includes(m.id) ? 'ring-2 ring-rose-400 bg-rose-50/30' : ''
+                 <div key={m.id} className={`p-5 rounded-2xl flex flex-col justify-between gap-3 relative transition-all duration-300 bg-gradient-to-br from-rose-500 via-rose-600 to-pink-600 text-white shadow-lg shadow-rose-500/20 border border-white/20 hover:scale-[1.01] ${
+                  selectedIds.includes(m.id) ? 'ring-2 ring-white scale-[1.02]' : ''
                 }`}>
                   <div className="space-y-2.5">
                     <div className="flex items-center justify-between gap-2 flex-wrap">
@@ -750,47 +750,49 @@ export default function KelolaMateriTugas() {
                           type="checkbox"
                           checked={selectedIds.includes(m.id)}
                           onChange={() => handleToggleSelect(m.id)}
-                          className="w-4 h-4 rounded text-rose-600 border-slate-300 focus:ring-rose-500 cursor-pointer"
+                          className="w-4 h-4 rounded text-rose-600 border-white/30 focus:ring-rose-500 cursor-pointer bg-white/20"
                         />
-                        <DomainTileIcon type="materi" icon={BookOpen} size="sm" />
+                        <div className="bg-white/20 p-1.5 rounded-xl text-white backdrop-blur-md border border-white/20">
+                          <BookOpen className="w-4 h-4" />
+                        </div>
                         {(m.classIds || []).map((cid: string) => {
                           const cls = classes.find(c => c.id === cid);
                           return (
-                            <span key={cid} className="text-[11px] font-bold px-2.5 py-1 rounded-full border bg-rose-50 text-rose-700 border-rose-200">
+                            <span key={cid} className="text-[11px] font-bold px-2.5 py-1 rounded-full border bg-white/20 text-white border-white/20 backdrop-blur-md">
                               {cls?.name || 'Semua Kelas'}
                             </span>
                           );
                         })}
                       </div>
                       {m.target_type === 'students' && (
-                        <span className="bg-rose-50 text-rose-700 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 border border-rose-200">
+                        <span className="bg-white/20 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1 border border-white/20 backdrop-blur-md">
                           <Users className="w-3.5 h-3.5" />
                           {m.student_ids?.length || 0} Murid
                         </span>
                       )}
                     </div>
-                    <h3 className="text-base font-extrabold text-slate-900 leading-snug">{m.title}</h3>
-                    <p className="text-xs sm:text-sm text-slate-600 leading-relaxed line-clamp-3 whitespace-pre-line">{m.description}</p>
+                    <h3 className="text-base font-extrabold text-white leading-snug">{m.title}</h3>
+                    <p className="text-xs sm:text-sm text-white/90 leading-relaxed line-clamp-3 whitespace-pre-line">{m.description}</p>
                   </div>
 
                   {m.link && (
-                    <div className="border-t border-slate-100 pt-3 mt-2">
+                    <div className="border-t border-white/15 pt-3 mt-2">
                       <LinkPreviewCard url={m.link} />
                     </div>
                   )}
 
-                  <div className="border-t border-slate-100 pt-3 flex items-center justify-end mt-1">
+                  <div className="border-t border-white/15 pt-3 flex items-center justify-end mt-1">
                     <div className="flex gap-1.5">
                       <button 
                         onClick={() => handleOpenEditModal(m, 'material')}
-                        className="p-2 rounded-full text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                        className="p-2 rounded-full text-white/80 hover:text-white hover:bg-white/20 transition-colors"
                         title="Edit Materi"
                       >
                         <Edit3 className="w-4 h-4" />
                       </button>
                       <button 
                         onClick={() => handleDelete(m.ids || [m.id], m.title, 'material')}
-                        className="p-2 rounded-full text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                        className="p-2 rounded-full text-white/80 hover:text-rose-200 hover:bg-rose-500/30 transition-colors"
                         title="Hapus Materi"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -819,8 +821,8 @@ export default function KelolaMateriTugas() {
               const isOverdue = deadlineDate ? deadlineDate.getTime() < Date.now() : false;
               
               return (
-                 <div key={a.id} className={`p-4 sm:p-5 rounded-2xl flex flex-col justify-between gap-3 relative transition-all duration-300 bg-white border border-purple-100/90 shadow-sm hover:shadow-md card-domain-tugas ${
-                  selectedIds.includes(a.id) ? 'ring-2 ring-purple-400 bg-purple-50/30' : ''
+                 <div key={a.id} className={`p-4 sm:p-5 rounded-2xl flex flex-col justify-between gap-3 relative transition-all duration-300 bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-700 text-white shadow-lg shadow-purple-500/20 border border-white/20 hover:scale-[1.01] ${
+                  selectedIds.includes(a.id) ? 'ring-2 ring-white scale-[1.02]' : ''
                 }`}>
                   <div className="space-y-2.5">
                     <div className="flex items-center justify-between gap-2 flex-wrap">
@@ -829,13 +831,15 @@ export default function KelolaMateriTugas() {
                           type="checkbox"
                           checked={selectedIds.includes(a.id)}
                           onChange={() => handleToggleSelect(a.id)}
-                          className="w-4 h-4 rounded text-purple-600 border-slate-300 focus:ring-purple-500 cursor-pointer"
+                          className="w-4 h-4 rounded text-purple-600 border-white/30 focus:ring-purple-500 cursor-pointer bg-white/20"
                         />
-                        <DomainTileIcon type="tugas" icon={FileText} size="sm" />
+                        <div className="bg-white/20 p-1.5 rounded-xl text-white backdrop-blur-md border border-white/20">
+                          <FileText className="w-4 h-4" />
+                        </div>
                         {(a.classIds || []).map((cid: string) => {
                           const cls = classes.find(c => c.id === cid);
                           return (
-                            <span key={cid} className="text-[11px] font-bold px-2.5 py-1 rounded-full border bg-purple-50 text-purple-700 border-purple-200">
+                            <span key={cid} className="text-[11px] font-bold px-2.5 py-1 rounded-full border bg-white/20 text-white border-white/20 backdrop-blur-md">
                               {cls?.name || 'Semua Kelas'}
                             </span>
                           );
@@ -843,47 +847,47 @@ export default function KelolaMateriTugas() {
                       </div>
                       <div className="flex gap-1 flex-wrap">
                         {a.isGraded !== false && a.is_graded !== false ? (
-                          <span className="bg-purple-50 text-purple-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-purple-200">
+                          <span className="bg-white/20 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-white/20 backdrop-blur-md">
                             Diberi Nilai
                           </span>
                         ) : (
-                          <span className="bg-slate-50 text-slate-500 text-[10px] font-bold px-2 py-0.5 rounded-full border border-slate-200">
+                          <span className="bg-white/10 text-white/70 text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-white/10">
                             Tanpa Nilai
                           </span>
                         )}
                         {a.target_type === 'students' && (
-                          <span className="bg-purple-50 text-purple-700 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 border border-purple-200">
+                          <span className="bg-white/20 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1 border border-white/20 backdrop-blur-md">
                             <Users className="w-3.5 h-3.5" />
                             {a.student_ids?.length || 0} Murid
                           </span>
                         )}
                         {hasDeadline ? (
-                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 border ${
+                          <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1 border backdrop-blur-md ${
                             isOverdue 
-                              ? 'bg-rose-50 text-rose-700 border-rose-200' 
-                              : 'bg-purple-50 text-purple-700 border-purple-200'
+                              ? 'bg-rose-500/30 text-rose-100 border-rose-400/30' 
+                              : 'bg-white/20 text-white border-white/20'
                           }`}>
                             <Clock className="w-3.5 h-3.5" />
                             {isOverdue ? 'Selesai' : 'Aktif'}
                           </span>
                         ) : (
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 border bg-slate-50 text-slate-600 border-slate-200">
-                            <Clock className="w-3.5 h-3.5 text-slate-500" />
+                          <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1 border bg-white/20 text-white border-white/20 backdrop-blur-md">
+                            <Clock className="w-3.5 h-3.5 text-white" />
                             Tanpa Tenggat
                           </span>
                         )}
                       </div>
                     </div>
                     
-                    <h3 className="text-base font-extrabold text-slate-900 leading-snug">{a.title}</h3>
-                    <p className="text-xs sm:text-sm text-slate-600 leading-relaxed line-clamp-3 whitespace-pre-line">{a.description}</p>
+                    <h3 className="text-base font-extrabold text-white leading-snug">{a.title}</h3>
+                    <p className="text-xs sm:text-sm text-white/90 leading-relaxed line-clamp-3 whitespace-pre-line">{a.description}</p>
                   </div>
 
                   <div className="space-y-3 mt-2">
                     {hasDeadline ? (
-                      <div className="flex items-center gap-1.5 text-xs font-semibold bg-purple-50/60 p-2.5 rounded-xl border border-purple-100 text-purple-900">
-                        <Calendar className="w-4 h-4 text-purple-600" />
-                        Tenggat: <span className={isOverdue ? 'text-rose-600 font-bold' : 'text-purple-800 font-bold'}>
+                      <div className="flex items-center gap-1.5 text-xs font-semibold bg-white/15 p-2.5 rounded-xl border border-white/20 text-white backdrop-blur-md">
+                        <Calendar className="w-4 h-4 text-white" />
+                        Tenggat: <span className={isOverdue ? 'text-rose-200 font-bold' : 'text-white font-bold'}>
                           {new Date(a.deadline!).toLocaleDateString('id-ID', {
                             weekday: 'long',
                             year: 'numeric',
@@ -895,8 +899,8 @@ export default function KelolaMateriTugas() {
                         </span>
                       </div>
                     ) : (
-                      <div className="flex items-center gap-1.5 text-xs font-semibold bg-slate-50 p-2.5 rounded-xl border border-slate-200 text-slate-600">
-                        <Calendar className="w-4 h-4 text-slate-400" />
+                      <div className="flex items-center gap-1.5 text-xs font-semibold bg-white/15 p-2.5 rounded-xl border border-white/20 text-white/80 backdrop-blur-md">
+                        <Calendar className="w-4 h-4 text-white/70" />
                         Tenggat: <span className="font-bold">Tanpa Tenggat</span>
                       </div>
                     )}
@@ -907,18 +911,18 @@ export default function KelolaMateriTugas() {
                       </div>
                     )}
 
-                    <div className="border-t border-slate-100 pt-3 flex items-center justify-end">
+                    <div className="border-t border-white/15 pt-3 flex items-center justify-end">
                       <div className="flex gap-1.5">
                         <button 
                           onClick={() => handleOpenEditModal(a, 'assignment')}
-                          className="p-2 rounded-full text-slate-400 hover:text-purple-600 hover:bg-purple-50 transition-colors"
+                          className="p-2 rounded-full text-white/80 hover:text-white hover:bg-white/20 transition-colors"
                           title="Edit Tugas"
                         >
                           <Edit3 className="w-4 h-4" />
                         </button>
                         <button 
                           onClick={() => handleDelete(a.ids || [a.id], a.title, 'assignment')}
-                          className="p-2 rounded-full text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                          className="p-2 rounded-full text-white/80 hover:text-rose-200 hover:bg-rose-500/30 transition-colors"
                           title="Hapus Tugas"
                         >
                           <Trash2 className="w-4 h-4" />

@@ -1081,29 +1081,35 @@ export default function KelolaKelas() {
                 transition={{ delay: index * 0.03 }}
                 key={cls.id}
                 onClick={() => viewClass(cls)}
-                className="p-5 rounded-2xl bg-white border border-sky-100/90 shadow-sm hover:shadow-xl transition-all duration-300 group flex flex-col justify-between cursor-pointer relative overflow-hidden card-domain-kelas"
+                className="p-5 rounded-2xl bg-gradient-to-br from-[#0284C7] via-[#0369A1] to-[#075985] text-white shadow-lg shadow-sky-600/20 border border-white/20 hover:shadow-2xl transition-all duration-300 group flex flex-col justify-between cursor-pointer relative overflow-hidden"
               >
+                <div className="absolute top-0 right-10 p-4 opacity-10 group-hover:scale-110 transition-transform">
+                  <School className="w-24 h-24 text-white" />
+                </div>
+
                 <div className="flex justify-between items-start gap-3 relative z-10">
-                  <DomainTileIcon type="kelas" icon={School} size="md" />
+                  <div className="bg-white/20 p-3 rounded-2xl text-white backdrop-blur-md border border-white/20 shrink-0">
+                    <School className="w-6 h-6" />
+                  </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-lg font-bold uppercase tracking-tight text-slate-900 truncate">{cls.name}</h3>
-                    <p className="font-semibold text-[11px] uppercase tracking-wider text-sky-600 mb-2">{cls.subject || 'Belum Ada Mapel'}</p>
-                    <div className="flex items-center gap-1.5 px-2.5 py-1 bg-sky-50 border border-sky-200/80 text-sky-700 rounded-full inline-flex">
-                      <Users className="w-3.5 h-3.5 text-sky-600" />
+                    <h3 className="text-lg font-extrabold uppercase tracking-tight text-white truncate">{cls.name}</h3>
+                    <p className="font-bold text-[11px] uppercase tracking-wider text-sky-200 mb-2">{cls.subject || 'Belum Ada Mapel'}</p>
+                    <div className="flex items-center gap-1.5 px-2.5 py-1 bg-white/20 border border-white/20 text-white rounded-full inline-flex backdrop-blur-md">
+                      <Users className="w-3.5 h-3.5 text-white" />
                       <span className="text-[10px] font-extrabold uppercase tracking-wider">{cls.students?.[0]?.count || 0} Murid</span>
                     </div>
                   </div>
                   <div className="flex items-center gap-1">
                     <button 
                       onClick={(e) => { e.stopPropagation(); handleEdit(cls); }} 
-                      className="p-2 rounded-full text-slate-400 hover:text-sky-600 hover:bg-sky-50 transition-colors"
+                      className="p-2 rounded-full text-white/80 hover:text-white hover:bg-white/20 transition-colors"
                       title="Edit Kelas"
                     >
                       <Edit3 className="w-4 h-4" />
                     </button>
                     <button 
                       onClick={(e) => handleDelete(cls, e)} 
-                      className="p-2 rounded-full text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                      className="p-2 rounded-full text-white/80 hover:text-rose-200 hover:bg-rose-500/30 transition-colors"
                       title="Hapus Kelas"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -1111,9 +1117,9 @@ export default function KelolaKelas() {
                   </div>
                 </div>
 
-                <div className="mt-5 pt-3.5 border-t border-slate-100 flex items-center justify-between relative z-10">
-                  <span className="text-xs font-semibold text-slate-400 group-hover:text-sky-600 transition-colors">Kelola Murid & Absensi</span>
-                  <div className="bg-sky-50 text-sky-600 p-1.5 rounded-full group-hover:translate-x-1 transition-all border border-sky-100">
+                <div className="mt-5 pt-3.5 border-t border-white/15 flex items-center justify-between relative z-10">
+                  <span className="text-xs font-bold text-sky-100 group-hover:text-white transition-colors">Kelola Murid & Absensi</span>
+                  <div className="bg-white/20 text-white p-1.5 rounded-full group-hover:translate-x-1 transition-all border border-white/20 backdrop-blur-md">
                     <ChevronRight className="w-4 h-4" />
                   </div>
                 </div>
