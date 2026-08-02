@@ -483,9 +483,6 @@ export default function DaftarUjian() {
                     <FileText className="w-3.5 h-3.5 text-white" />
                     <span>{exam.total_questions} Soal</span>
                   </div>
-                    <FileText className="w-3.5 h-3.5 text-[#1D4ED8]/60" />
-                    <span>{exam.total_questions} Soal</span>
-                  </div>
                 </div>
 
                 {/* Exam Settings Toggles (Icon + Premium Tooltip) */}
