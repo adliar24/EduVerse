@@ -347,15 +347,14 @@ export default function StudentDashboard() {
             </div>
 
             <div className="space-y-4">
-              {latestMaterials.length > 0 ? latestMaterials.map((m, index) => {
-                const cardStyle = CARD_STYLES[index % CARD_STYLES.length];
+              {latestMaterials.length > 0 ? latestMaterials.map((m) => {
                 return (
-                  <div key={m.id} className={`p-4 rounded-2xl border transition-all space-y-1 ${cardStyle.bg}`}>
+                  <div key={m.id} className="p-4 rounded-2xl bg-gradient-to-br from-rose-500 via-rose-600 to-pink-600 text-white border border-white/20 shadow-md hover:scale-[1.01] transition-all space-y-1">
                     <div className="flex items-center justify-between">
-                      <h4 className="font-bold text-sm truncate">{m.title}</h4>
+                      <h4 className="font-bold text-sm truncate text-white">{m.title}</h4>
                       {m.link && <Link2 className="w-3.5 h-3.5 text-white shrink-0" />}
                     </div>
-                    <p className={`text-xs line-clamp-2 leading-relaxed ${cardStyle.textMuted}`}>{m.description}</p>
+                    <p className="text-xs text-white/90 line-clamp-2 leading-relaxed">{m.description}</p>
                   </div>
                 );
               }) : (
@@ -383,36 +382,35 @@ export default function StudentDashboard() {
             </div>
 
             <div className="space-y-4">
-              {latestAssignments.length > 0 ? latestAssignments.map((a, index) => {
-                const cardStyle = CARD_STYLES[(index + 2) % CARD_STYLES.length];
+              {latestAssignments.length > 0 ? latestAssignments.map((a) => {
                 const deadlineDate = a.deadline ? new Date(a.deadline) : null;
                 const isOverdue = deadlineDate ? deadlineDate.getTime() < Date.now() : false;
                 return (
-                  <div key={a.id} className={`p-4 rounded-2xl border transition-all space-y-2 ${cardStyle.bg}`}>
+                  <div key={a.id} className="p-4 rounded-2xl bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-700 text-white border border-white/20 shadow-md hover:scale-[1.01] transition-all space-y-2">
                     <div className="flex items-center justify-between gap-2">
-                      <h4 className="font-bold text-sm truncate">{a.title}</h4>
+                      <h4 className="font-bold text-sm truncate text-white">{a.title}</h4>
                       {a.deadline ? (
-                        <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-md border ${
-                          isOverdue ? 'bg-rose-500/25 text-rose-100 border-rose-400/20' : 'bg-white/20 text-white border-white/10'
+                        <span className={`text-[9px] font-black px-2 py-0.5 rounded-full border backdrop-blur-md ${
+                          isOverdue ? 'bg-rose-500/30 text-rose-100 border-rose-400/30' : 'bg-white/20 text-white border-white/20'
                         }`}>
                           {isOverdue ? 'Selesai' : 'Aktif'}
                         </span>
                       ) : (
-                        <span className="text-[9px] font-black px-1.5 py-0.5 rounded-md bg-white/20 text-white border border-white/10">
+                        <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-white/20 text-white border border-white/20 backdrop-blur-md">
                           Tanpa Tenggat
                         </span>
                       )}
                     </div>
                     {a.deadline ? (
-                      <p className={`text-[10px] flex items-center gap-1 font-bold ${cardStyle.textMuted}`}>
+                      <p className="text-[10px] flex items-center gap-1 font-bold text-white/90">
                         <Calendar className="w-3.5 h-3.5 text-white" />
                         Tenggat: {new Date(a.deadline).toLocaleDateString('id-ID', {
                           month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
                         })}
                       </p>
                     ) : (
-                      <p className={`text-[10px] flex items-center gap-1 font-bold ${cardStyle.textMuted}`}>
-                        <Calendar className="w-3.5 h-3.5 text-white" />
+                      <p className="text-[10px] flex items-center gap-1 font-bold text-white/80">
+                        <Calendar className="w-3.5 h-3.5 text-white/70" />
                         Tenggat: <span>Tanpa Tenggat</span>
                       </p>
                     )}

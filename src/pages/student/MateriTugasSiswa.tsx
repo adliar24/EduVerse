@@ -174,20 +174,20 @@ export default function MateriTugasSiswa() {
         filteredMaterials.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
             {filteredMaterials.map((m) => (
-              <div key={m.id} className="bg-gradient-to-br from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white p-4 rounded-2xl border border-white/20 shadow-md hover:scale-[1.01] transition-all flex flex-col justify-between gap-3">
+              <div key={m.id} className="bg-gradient-to-br from-rose-500 via-rose-600 to-pink-600 text-white p-5 rounded-2xl border border-white/20 shadow-lg shadow-rose-500/20 hover:scale-[1.01] transition-all flex flex-col justify-between gap-3">
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="bg-white/20 text-white text-[10px] font-black px-2.5 py-0.5 rounded-md uppercase tracking-wider border border-white/10">
+                    <span className="bg-white/20 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider border border-white/20 backdrop-blur-md">
                       Materi Belajar
                     </span>
                     {m.target_type === 'students' && (
-                      <span className="bg-white/20 text-white text-[9px] font-bold px-2 py-0.5 rounded-md border border-white/10">
+                      <span className="bg-white/20 text-white text-[9px] font-bold px-2 py-0.5 rounded-full border border-white/20 backdrop-blur-md">
                         Khusus Anda
                       </span>
                     )}
                   </div>
                   <h3 className="text-base font-extrabold text-white leading-snug">{m.title}</h3>
-                  <p className="text-white/85 text-xs sm:text-sm leading-relaxed whitespace-pre-line">{m.description}</p>
+                  <p className="text-white/90 text-xs sm:text-sm leading-relaxed whitespace-pre-line">{m.description}</p>
                 </div>
 
                 {m.link && (
@@ -215,7 +215,7 @@ export default function MateriTugasSiswa() {
               const isOverdue = deadlineDate ? deadlineDate.getTime() < Date.now() : false;
               
               return (
-                <div key={a.id} className="bg-gradient-to-br from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white p-4 rounded-2xl border border-white/20 shadow-md hover:scale-[1.01] transition-all flex flex-col justify-between gap-3">
+                <div key={a.id} className="bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-700 text-white p-5 rounded-2xl border border-white/20 shadow-lg shadow-purple-500/20 hover:scale-[1.01] transition-all flex flex-col justify-between gap-3">
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="bg-white/20 text-white text-[10px] font-black px-2.5 py-0.5 rounded-md uppercase tracking-wider border border-white/10">
