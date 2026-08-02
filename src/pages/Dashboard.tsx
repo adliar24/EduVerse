@@ -247,7 +247,7 @@ export default function Dashboard() {
       value: stats.totalClasses, 
       icon: BookOpen, 
       domainType: 'kelas' as const,
-      solidBg: 'bg-gradient-to-br from-sky-500 via-sky-600 to-blue-600 text-white shadow-lg shadow-sky-500/25 border border-white/20',
+      solidBg: 'bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 text-white shadow-lg shadow-blue-600/25 border border-white/20',
       badgeClass: 'bg-white/20 text-white border-white/20 backdrop-blur-md',
       desc: 'Kelas Aktif Terdaftar'
     },
@@ -256,7 +256,7 @@ export default function Dashboard() {
       value: stats.totalStudents, 
       icon: Users, 
       domainType: 'kelas' as const,
-      solidBg: 'bg-gradient-to-br from-sky-500 via-sky-600 to-blue-600 text-white shadow-lg shadow-sky-500/25 border border-white/20',
+      solidBg: 'bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 text-white shadow-lg shadow-blue-600/25 border border-white/20',
       badgeClass: 'bg-white/20 text-white border-white/20 backdrop-blur-md',
       desc: 'Murid Aktif Terdaftar'
     },
@@ -265,7 +265,7 @@ export default function Dashboard() {
       value: `${overallAttendance}%`, 
       icon: CheckCircle, 
       domainType: 'materi' as const,
-      solidBg: 'bg-gradient-to-br from-rose-500 via-rose-600 to-pink-600 text-white shadow-lg shadow-rose-500/25 border border-white/20',
+      solidBg: 'bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-700 text-white shadow-lg shadow-emerald-500/25 border border-white/20',
       badgeClass: 'bg-white/20 text-white border-white/20 backdrop-blur-md',
       desc: 'Rata-rata absensi kelas'
     },
@@ -274,7 +274,7 @@ export default function Dashboard() {
       value: overallGradeAvg, 
       icon: TrendingUp, 
       domainType: 'tugas' as const,
-      solidBg: 'bg-gradient-to-br from-purple-600 via-violet-600 to-indigo-700 text-white shadow-lg shadow-purple-500/25 border border-white/20',
+      solidBg: 'bg-gradient-to-br from-rose-500 via-rose-600 to-red-600 text-white shadow-lg shadow-rose-500/25 border border-white/20',
       badgeClass: 'bg-white/20 text-white border-white/20 backdrop-blur-md',
       desc: 'Rerata nilai formatif/sumatif'
     },

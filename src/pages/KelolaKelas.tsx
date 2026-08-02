@@ -1081,7 +1081,7 @@ export default function KelolaKelas() {
                 transition={{ delay: index * 0.03 }}
                 key={cls.id}
                 onClick={() => viewClass(cls)}
-                className="p-5 rounded-2xl bg-gradient-to-br from-[#0284C7] via-[#0369A1] to-[#075985] text-white shadow-lg shadow-sky-600/20 border border-white/20 hover:shadow-2xl transition-all duration-300 group flex flex-col justify-between cursor-pointer relative overflow-hidden"
+                className="p-5 rounded-2xl bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 text-white shadow-lg shadow-blue-600/25 border border-white/20 hover:shadow-2xl transition-all duration-300 group flex flex-col justify-between cursor-pointer relative overflow-hidden"
               >
                 <div className="absolute top-0 right-10 p-4 opacity-10 group-hover:scale-110 transition-transform">
                   <School className="w-24 h-24 text-white" />
