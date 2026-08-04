@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, Suspense, lazy, useMemo } from 'react';
-import { AppState, AttendanceSession, AttendanceRecord, AttendanceStatus, Student, ScheduleItem } from '../types';
+import { AppState, AttendanceSession, AttendanceRecord, AttendanceStatus, Student, ScheduleItem, ClassEntity } from '../types';
 import { Button, Input, Card } from '../../components/UI';
 import { upsertSession, upsertRecord, deleteRecord, setActiveClassId } from '../../services/dbAttendance';
 import { ScanLine, List, CheckCircle, Clock, BookOpen, ChevronRight, ArrowRightLeft, X, Zap, ZapOff, AlertTriangle, XCircle, LogOut, UserX, CalendarClock, ScanFace, Loader2, Play, QrCode, Plus } from 'lucide-react';
@@ -98,7 +98,7 @@ const isTimeMatch = (now: Date, start: string, end: string) => {
 export const Attendance: React.FC<Props> = ({ state, refresh, notify }) => {
   const currentSchoolIndex = state.teacher?.currentSchoolIndex ?? 0;
   const schoolClasses = state.classes;
-  const activeClass = schoolClasses.find(c => c.id === state.activeClassId) || (schoolClasses.length > 0 ? schoolClasses[0] : undefined);
+  const activeClass = schoolClasses.find(c => c.id === state.activeClassId);
   const students = state.students.filter(s => {
     const sCid = s.classId || (s as any).class_id || (s as any).idKelas;
     const activeCid = activeClass?.id || state.activeClassId;
@@ -135,6 +135,7 @@ export const Attendance: React.FC<Props> = ({ state, refresh, notify }) => {
   
   const [isScanning, setIsScanning] = useState(false);
   const [isFaceScanning, setIsFaceScanning] = useState(false);
+  const [showScanClassPicker, setShowScanClassPicker] = useState(false);
   const [hasFlash, setHasFlash] = useState(false);
   const [flashOn, setFlashOn] = useState(false);
   const [videoDevices, setVideoDevices] = useState<MediaDeviceInfo[]>([]);
@@ -232,40 +233,69 @@ export const Attendance: React.FC<Props> = ({ state, refresh, notify }) => {
     return () => window.removeEventListener('stop_scan', handleStop);
   }, []);
 
-  const ensureSession = async (): Promise<string> => {
-    if (currentSession) {
+  const ensureSession = async (forClass?: ClassEntity): Promise<string> => {
+    const cls = forClass ?? activeClass;
+
+    // Fast path: reuse the session already bound to the current class
+    if (!forClass && currentSession && currentSession.classId === cls?.id) {
       if (topic && currentSession.topic !== topic) {
         const updated = { ...currentSession, topic };
         await upsertSession(updated);
         setCurrentSession(updated);
       }
-      sessionIdRef.current = currentSession.id; 
+      sessionIdRef.current = currentSession.id;
       return currentSession.id;
     }
 
-    if (!activeClass) throw new Error("No class active");
+    if (!cls) throw new Error("No class active");
+
+    const now = new Date();
+    const scheduleForNow = state.schedules.find(s =>
+        s.classId === cls.id &&
+        s.dayName === todayName &&
+        isTimeMatch(now, s.startTime, s.endTime)
+    );
+    const todaysSessions = state.sessions.filter(s => s.classId === cls.id && s.dateISO === today);
+
+    let matchingSession: AttendanceSession | undefined;
+    if (scheduleForNow) {
+        matchingSession = todaysSessions.find(s => s.scheduleId === scheduleForNow.id);
+    } else {
+        matchingSession = todaysSessions.find(s => !s.scheduleId) || todaysSessions[todaysSessions.length - 1];
+    }
+
+    if (matchingSession) {
+        if (topic && matchingSession.topic !== topic) {
+            const updated = { ...matchingSession, topic };
+            await upsertSession(updated);
+            setCurrentSession(updated);
+        } else {
+            setCurrentSession(matchingSession);
+        }
+        sessionIdRef.current = matchingSession.id;
+        return matchingSession.id;
+    }
 
     const schoolYear = state.teacher?.schoolYear || "2026/2027";
-    const classSessions = state.sessions.filter(s => 
-        s.classId === activeClass.id && 
+    const classSessions = state.sessions.filter(s =>
+        s.classId === cls.id &&
         s.schoolYear === schoolYear
     );
     const meetingNumber = classSessions.length + 1;
-    
-    const now = new Date();
-    const newSessionId = deterministicId(`${activeClass.id}::${today}::${schoolYear}::${meetingNumber}`);
+
+    const newSessionId = deterministicId(`${cls.id}::${today}::${schoolYear}::${meetingNumber}`);
     const autoTopic = topic.trim() || `Pertemuan ${meetingNumber}`;
 
     const newSession: AttendanceSession = {
       id: newSessionId,
-      classId: activeClass.id,
+      classId: cls.id,
       schoolYear: schoolYear,
       dateISO: today,
       dayName: todayName,
       dateLabel: now.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }),
       meetingNumber,
       topic: autoTopic,
-      scheduleId: activeSchedule?.id,
+      scheduleId: scheduleForNow?.id,
       createdAt: now.toISOString()
     };
 
@@ -278,12 +308,39 @@ export const Attendance: React.FC<Props> = ({ state, refresh, notify }) => {
 
   const handleSelectClass = (id: string) => {
     setActiveClassId(id);
-    refresh();
+    refresh(true);
   };
 
   const handleChangeClass = () => {
     setActiveClassId(null);
-    refresh();
+    refresh(true);
+  };
+
+  // Switch class while the QR scan overlay is open, without stopping the camera
+  const handlePickScanClass = async (id: string) => {
+    if (id === activeClass?.id) {
+      setShowScanClassPicker(false);
+      return;
+    }
+    const cls = schoolClasses.find(c => c.id === id);
+    if (!cls) return;
+
+    setShowScanClassPicker(false);
+    isPausedRef.current = true;
+    setScanFeedback(null);
+    lastScannedCodeRef.current = null;
+
+    setActiveClassId(id);
+    await refresh(true);
+
+    try {
+      await ensureSession(cls);
+    } catch (e) {
+      console.error("Gagal memuat sesi kelas baru:", e);
+    }
+
+    isPausedRef.current = false;
+    setScanFeedback(null);
   };
 
   const handleCloseSession = async () => {
@@ -914,6 +971,14 @@ const switchCamera = async () => {
               )}
               <motion.button 
                 whileTap={{ scale: 0.95 }}
+                onClick={() => setShowScanClassPicker(true)}
+                title="Ganti Kelas"
+                className="w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl bg-white/10 backdrop-blur-md flex items-center justify-center text-white hover:bg-white/20 transition-all border border-white/10"
+              >
+                <BookOpen className="w-5 h-5 md:w-7 md:h-7" />
+              </motion.button>
+              <motion.button 
+                whileTap={{ scale: 0.95 }}
                 onClick={stopScan}
                 className="w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl bg-red-500/80 backdrop-blur-md flex items-center justify-center text-white hover:bg-red-600 transition-all shadow-lg shadow-red-900/40 border border-red-400/30"
               >
@@ -930,6 +995,40 @@ const switchCamera = async () => {
             </div>
           )}
         </div>
+
+        {showScanClassPicker && (
+          <div className="absolute inset-0 z-40 bg-black/50" onClick={() => setShowScanClassPicker(false)} />
+        )}
+        {showScanClassPicker && (
+          <div className="absolute z-50 right-4 md:right-12 top-36 md:top-44 w-80 max-w-[calc(100vw-2rem)] bg-gray-900/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
+              <span className="text-xs font-bold text-white/60 uppercase tracking-wider">Ganti Kelas</span>
+              <X className="w-4 h-4 text-white/50 cursor-pointer" onClick={() => setShowScanClassPicker(false)} />
+            </div>
+            <div className="max-h-[45vh] overflow-y-auto">
+              {schoolClasses.map(c => {
+                const count = state.students.filter(s => s.classId === c.id).length;
+                const isActive = c.id === activeClass?.id;
+                return (
+                  <button
+                    key={c.id}
+                    onClick={() => handlePickScanClass(c.id)}
+                    className={`w-full flex items-center justify-between gap-3 px-4 py-3 text-left hover:bg-white/10 transition-colors ${isActive ? 'bg-blue-500/20' : ''}`}
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <BookOpen className="w-4 h-4 text-white/60 shrink-0" />
+                      <span className="text-sm font-semibold text-white truncate">{c.name}</span>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="text-xs text-white/40">{count} siswa</span>
+                      {isActive && <CheckCircle className="w-4 h-4 text-blue-400" />}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         <div className="flex-1 flex items-center justify-center relative">
           <div className="relative w-72 h-72 md:w-96 md:h-96">

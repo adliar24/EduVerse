@@ -473,6 +473,9 @@ export const setActiveClassId = (id: string | null) => {
   } else {
     localStorage.removeItem(storageKey);
   }
+
+  // Invalidate cache so the next getFullState() re-reads activeClassId from localStorage
+  stateCache = { data: null, timestamp: 0 };
 };
 
 export const resetAllData = async () => {
