@@ -21,13 +21,11 @@ import {
   Copy
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import * as XLSX from 'xlsx';
-import XLSXStyle from 'xlsx-js-style';
 import { cn } from '../lib/utils';
 import { useAlert } from '../context/AlertContext';
 import { staggerContainer, staggerItem } from '../lib/animations';
 import { useSchool } from '../context/SchoolContext';
-import { getFullState, addClass, deleteClassCascade, addStudent, deleteStudent, addClassesBulk, addStudentsBulk } from '../services/dbAttendance';
+import { getScopedState, addClass, deleteClassCascade, addStudent, deleteStudent, addClassesBulk, addStudentsBulk } from '../services/dbAttendance';
 import { saveClass, deleteClass, saveStudent, deleteStudent as deleteStudentGrading } from '../services/dbGrading';
 
 const ELECTRIC_BLUE_GRADIENT = {
@@ -250,7 +248,7 @@ export default function KelolaKelas() {
       const deletedIds = new Set(getDeletedClassIds());
       
       // 1. Load classes from local IndexedDB first (instant load)
-      const localState = await getFullState(true);
+      const localState = await getScopedState(['classes', 'students']);
       let dbClasses = localState.classes || [];
       
       const { SEED_CLASSES } = await import('../services/excelDataSeed');
@@ -376,7 +374,7 @@ export default function KelolaKelas() {
           const { syncService } = await import('../services/sync');
           await syncService.pullFromCloud();
           
-          const updatedLocalState = await getFullState(true);
+          const updatedLocalState = await getScopedState(['classes', 'students']);
           let syncDbClasses = updatedLocalState.classes || [];
           const syncClassMap = new Map<string, any>();
           
@@ -455,7 +453,7 @@ export default function KelolaKelas() {
     setLoadingStudents(true);
     try {
       // 1. Load students locally first
-      const localState = await getFullState(true);
+      const localState = await getScopedState(['students']);
       const localStudents = localState.students || [];
       const classStudentsLocal = localStudents.filter(s => s.classId === classId || (s as any).class_id === classId || (s as any).idKelas === classId);
       const sortedLocal = [...classStudentsLocal].sort((a, b) => a.name.localeCompare(b.name, 'id', { sensitivity: 'base' }));
@@ -505,7 +503,7 @@ export default function KelolaKelas() {
           }
           
           // Re-load from local to ensure correct state representation
-          const updatedState = await getFullState(true);
+          const updatedState = await getScopedState(['students']);
           const updatedStudents = updatedState.students || [];
           const classStudentsUpdated = updatedStudents.filter(s => s.classId === classId || (s as any).class_id === classId || (s as any).idKelas === classId);
           const sortedUpdated = [...classStudentsUpdated].sort((a, b) => a.name.localeCompare(b.name, 'id', { sensitivity: 'base' }));
@@ -628,7 +626,8 @@ export default function KelolaKelas() {
     showAlert({ title: 'Disalin!', message: 'Kode unik berhasil disalin.', type: 'success' });
   };
 
-  const handleDownloadTemplate = () => {
+  const handleDownloadTemplate = async () => {
+    const XLSX = await import('xlsx');
     const template = [
       { 'Nama Lengkap': 'Ahmad Fauzi', 'Jenis Kelamin': 'L' },
       { 'Nama Lengkap': 'Siti Aminah', 'Jenis Kelamin': 'P' }
@@ -639,7 +638,8 @@ export default function KelolaKelas() {
     XLSX.writeFile(workbook, `Template_Murid_${selectedClass?.name || 'Kelas'}.xlsx`);
   };
 
-  const handleExportExcel = () => {
+  const handleExportExcel = async () => {
+    const { default: XLSXStyle } = await import('xlsx-js-style');
     if (!selectedClass) return;
     if (classStudents.length === 0) {
       showAlert({ title: 'Kosong', message: 'Tidak ada data murid untuk diekspor.', type: 'warning' });
@@ -742,6 +742,7 @@ export default function KelolaKelas() {
           throw new Error('Gagal membaca file. Silakan coba lagi.');
         }
         
+        const XLSX = await import('xlsx');
         const arrayBuffer = event.target.result as ArrayBuffer;
         const workbook = XLSX.read(new Uint8Array(arrayBuffer), { type: 'array' });
         const sheet = workbook.Sheets[workbook.SheetNames[0]];

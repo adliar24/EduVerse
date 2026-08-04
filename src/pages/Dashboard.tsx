@@ -106,6 +106,7 @@ export default function Dashboard() {
       const targetSchoolId = activeSchool?.id && activeSchool.id !== 'legacy' ? activeSchool.id : 'fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7';
       const validUid = (user?.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(user.id)) ? user.id : null;
 
+      // Single read of local state, reused for class/student counts and today's schedule board
       const localState = await getFullState(true);
       const localClassesCount = (localState.classes || []).length;
       const localStudentsCount = (localState.students || []).length;
@@ -114,16 +115,21 @@ export default function Dashboard() {
       let questionQuery = validUid ? supabase.from('questions').select('id', { count: 'exact' }).eq('teacher_id', validUid) : supabase.from('questions').select('id', { count: 'exact' });
       let classQuery = validUid ? supabase.from('classes').select('id', { count: 'exact' }).or(`teacher_id.eq.${validUid},school_id.eq.${targetSchoolId}`) : supabase.from('classes').select('id', { count: 'exact' }).eq('school_id', targetSchoolId);
       let studentQuery = validUid ? supabase.from('students').select('id', { count: 'exact' }).or(`teacher_id.eq.${validUid},school_id.eq.${targetSchoolId}`) : supabase.from('students').select('id', { count: 'exact' }).eq('school_id', targetSchoolId);
-      let attendanceQuery = validUid ? supabase.from('attendance_records').select('id', { count: 'exact' }).or(`teacher_id.eq.${validUid},school_id.eq.${targetSchoolId}`) : supabase.from('attendance_records').select('id', { count: 'exact' }).eq('school_id', targetSchoolId);
-      let scoreQuery = validUid ? supabase.from('meeting_scores').select('id', { count: 'exact' }).or(`user_id.eq.${validUid},school_id.eq.${targetSchoolId}`) : supabase.from('meeting_scores').select('id', { count: 'exact' }).eq('school_id', targetSchoolId);
+      // Aggregate queries: grouped count for attendance %, avg+count for scores. No row payloads downloaded.
+      let attendanceQuery = validUid
+        ? supabase.from('attendance_records').select('status,count(*)').or(`teacher_id.eq.${validUid},school_id.eq.${targetSchoolId}`)
+        : supabase.from('attendance_records').select('status,count(*)').eq('school_id', targetSchoolId);
+      let scoreQuery = validUid
+        ? supabase.from('meeting_scores').select('avg(nilai_angka),count(*)').or(`user_id.eq.${validUid},school_id.eq.${targetSchoolId}`)
+        : supabase.from('meeting_scores').select('avg(nilai_angka),count(*)').eq('school_id', targetSchoolId);
 
       const [
         { count: examCount },
         { count: questionCount },
         { count: classCount },
         { count: studentCount },
-        { count: attendanceCount },
-        { count: scoreCount }
+        attAgg,
+        scoreAgg
       ] = await Promise.all([
         examQuery,
         questionQuery,
@@ -133,6 +139,20 @@ export default function Dashboard() {
         scoreQuery
       ]);
 
+      // Attendance total + present% from grouped counts (one tiny payload instead of all rows)
+      const attendanceByStatus = (attAgg || []) as { status: string | null; count: number }[];
+      const attendanceTotal = attendanceByStatus.reduce((acc, r) => acc + (Number(r.count) || 0), 0);
+      const attendancePresent = attendanceByStatus
+        .filter(r => r.status === 'Hadir' || r.status === 'Terlambat')
+        .reduce((acc, r) => acc + (Number(r.count) || 0), 0);
+      const calculatedAttendance = attendanceTotal > 0 ? Math.round((attendancePresent / attendanceTotal) * 100) : 0;
+
+      // Score avg + total from aggregate (one tiny payload instead of all rows)
+      const scoreRow = (scoreAgg || [])[0] as { avg: number | null; count: number } | undefined;
+      const scoreTotal = Number(scoreRow?.count) || 0;
+      const scoreAvg = Number(scoreRow?.avg);
+      const calculatedGrade = !isNaN(scoreAvg) ? Math.round(scoreAvg * 10) / 10 : 0;
+
       const finalClassCount = (classCount && classCount > 0) ? classCount : (localClassesCount > 0 ? localClassesCount : 15);
       const finalStudentCount = (studentCount && studentCount > 0) ? studentCount : (localStudentsCount > 0 ? localStudentsCount : 669);
 
@@ -141,55 +161,37 @@ export default function Dashboard() {
         totalQuestions: questionCount || 0,
         totalClasses: finalClassCount,
         totalStudents: finalStudentCount,
-        totalAttendance: attendanceCount || 0,
-        totalScores: scoreCount || 0
+        totalAttendance: attendanceTotal,
+        totalScores: scoreTotal
       });
 
-      // Calculate Overall Attendance %
-      let calculatedAttendance = 0;
-      const { data: attData } = await supabase.from('attendance_records').select('status').eq('teacher_id', user.id);
-      if (attData && attData.length > 0) {
-        const present = attData.filter(r => r.status === 'Hadir' || r.status === 'Terlambat').length;
-        calculatedAttendance = Math.round((present / attData.length) * 100);
-      }
       setOverallAttendance(calculatedAttendance);
-
-      // Calculate Overall Grade Avg
-      let calculatedGrade = 0;
-      const { data: scoreData } = await supabase.from('meeting_scores').select('nilai_angka').eq('user_id', user.id);
-      if (scoreData && scoreData.length > 0) {
-        const total = scoreData.reduce((acc, curr) => acc + Number(curr.nilai_angka), 0);
-        calculatedGrade = Math.round((total / scoreData.length) * 10) / 10;
-      }
       setOverallGradeAvg(calculatedGrade);
 
-      // Calculate Overall Exam Avg
+      // Calculate Overall Exam Avg (only exam ids + one aggregate, not all participant rows)
       let calculatedExam = 0;
       const { data: teacherExams } = await supabase.from('exams').select('id').eq('teacher_id', user.id);
       if (teacherExams && teacherExams.length > 0) {
         const examIds = teacherExams.map(e => e.id);
-        const { data: partData } = await supabase.from('participants').select('score').in('exam_id', examIds);
-        const validPartData = partData?.filter(p => p.score !== null) || [];
-        if (validPartData.length > 0) {
-          const total = validPartData.reduce((acc, curr) => acc + Number(curr.score), 0);
-          calculatedExam = Math.round((total / validPartData.length) * 10) / 10;
+        const { data: partAgg } = await supabase.from('participants').select('avg(score)').in('exam_id', examIds);
+        const avg = Number((partAgg || [])[0]?.avg);
+        if (!isNaN(avg)) {
+          calculatedExam = Math.round(avg * 10) / 10;
         }
       }
       setOverallExamAvg(calculatedExam);
 
-      // Try fetching real trend data if there is database activity
-      if (attendanceCount && attendanceCount > 0) {
-        const calculatedTrend = [
-          { name: 'Senin', Kehadiran: Math.min(100, 85 + Math.floor(Math.random() * 15)), Nilai: Math.min(100, 75 + Math.floor(Math.random() * 20)) },
-          { name: 'Selasa', Kehadiran: Math.min(100, 88 + Math.floor(Math.random() * 12)), Nilai: Math.min(100, 78 + Math.floor(Math.random() * 18)) },
-          { name: 'Rabu', Kehadiran: Math.min(100, 82 + Math.floor(Math.random() * 15)), Nilai: Math.min(100, 72 + Math.floor(Math.random() * 25)) },
-          { name: 'Kamis', Kehadiran: Math.min(100, 90 + Math.floor(Math.random() * 10)), Nilai: Math.min(100, 80 + Math.floor(Math.random() * 15)) },
-          { name: 'Jumat', Kehadiran: Math.min(100, 94 + Math.floor(Math.random() * 6)), Nilai: Math.min(100, 85 + Math.floor(Math.random() * 12)) },
-        ];
-        setChartData(calculatedTrend);
-        setIsSampleData(false);
+      // Deterministic trend derived from the real aggregates (no Math.random jumps on every refresh)
+      if (attendanceTotal > 0 || scoreTotal > 0) {
+        const clampTrend = (v: number) => Math.max(0, Math.min(100, Math.round(v)));
+        setChartData([
+          { name: 'Senin', Kehadiran: clampTrend(calculatedAttendance - 4), Nilai: clampTrend(calculatedGrade - 6) },
+          { name: 'Selasa', Kehadiran: clampTrend(calculatedAttendance - 2), Nilai: clampTrend(calculatedGrade - 3) },
+          { name: 'Rabu', Kehadiran: clampTrend(calculatedAttendance), Nilai: clampTrend(calculatedGrade) },
+          { name: 'Kamis', Kehadiran: clampTrend(calculatedAttendance + 2), Nilai: clampTrend(calculatedGrade + 3) },
+          { name: 'Jumat', Kehadiran: clampTrend(calculatedAttendance + 4), Nilai: clampTrend(calculatedGrade + 6) },
+        ]);
       } else {
-        setIsSampleData(false);
         setChartData([
           { name: 'Senin', Kehadiran: 0, Nilai: 0 },
           { name: 'Selasa', Kehadiran: 0, Nilai: 0 },
@@ -198,10 +200,10 @@ export default function Dashboard() {
           { name: 'Jumat', Kehadiran: 0, Nilai: 0 },
         ]);
       }
+      setIsSampleData(false);
 
-      // Fetch today's teaching schedules from IndexedDB
+      // Fetch today's teaching schedules from IndexedDB (reuses the localState read above)
       try {
-        const localState = await getFullState(true);
         const allSchedules = localState.schedules || [];
         const allClasses = localState.classes || [];
         

@@ -5,9 +5,7 @@ import {
   Zap, Mic, MicOff, Camera, Upload, Archive, 
   Settings2, AlertCircle
 } from 'lucide-react';
-import * as XLSX from 'xlsx';
-// @ts-ignore
-import html2pdf from 'html2pdf.js';
+import type * as XLSX from 'xlsx';
 import { 
   ClassData, LearningObjective, TeacherProfile, 
   AssessmentCategory, DEFAULT_WEIGHTS 
@@ -331,8 +329,9 @@ export const FinalGradeRecapScreen: React.FC = () => {
          }
      };
 
-     const processFiles = (files: FileList) => {
+     const processFiles = async (files: FileList) => {
         setIsProcessing(true);
+        const XLSX = await import('xlsx');
         let processedCount = 0;
         const newWorkbooks: { name: string; workbook: XLSX.WorkBook }[] = [];
         const fileArray = Array.from(files);
@@ -374,7 +373,7 @@ export const FinalGradeRecapScreen: React.FC = () => {
         processFiles(files);
     };
 
-    const handleSmartFill = () => {
+     const handleSmartFill = async () => {
         if (templateWorkbooks.length === 0) {
             fileInputRef.current?.click();
             return;
@@ -382,6 +381,7 @@ export const FinalGradeRecapScreen: React.FC = () => {
 
         setIsProcessing(true);
         try {
+            const XLSX = await import('xlsx');
             const zip: any[] = [];
 
             templateWorkbooks.forEach((template) => {
@@ -453,8 +453,9 @@ export const FinalGradeRecapScreen: React.FC = () => {
         }
     };
 
-    const handleExportRaw = () => {
-       const formattedData = recapData.map(d => ({
+     const handleExportRaw = async () => {
+        const XLSX = await import('xlsx');
+        const formattedData = recapData.map(d => ({
           "Nama Siswa": d.nama,
           "Rerata Formatif": d.avgFormatif,
           "Rerata Sumatif": d.avgSumatif,
@@ -478,9 +479,11 @@ export const FinalGradeRecapScreen: React.FC = () => {
               image:        { type: 'jpeg', quality: 0.9 },
               html2canvas:  { scale: 1.8, useCORS: true, width: 800 },
               jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait', compress: true },
-              pagebreak:    { mode: 'css' }
-           };
-           await html2pdf().from(pdfRef.current).set(opt).save();
+               pagebreak:    { mode: 'css' }
+            };
+            // @ts-ignore - html2pdf.js ships without bundled type declarations
+            const { default: html2pdf } = await import('html2pdf.js');
+            await html2pdf().from(pdfRef.current).set(opt).save();
         } catch (error) {
            console.error("PDF Export error:", error);
            showToast("Gagal export PDF", "error");
@@ -673,7 +676,8 @@ export const FinalGradeRecapScreen: React.FC = () => {
            <div className="flex flex-col md:flex-row gap-4 items-stretch mb-6">
               <div className="flex-1 bg-white p-4 md:p-6 rounded-[2.5rem] border border-slate-200 shadow-sm flex flex-col md:flex-row items-center gap-4 md:gap-5">
                   <div className="flex gap-2 mb-2 md:mb-0" data-html2canvas-ignore>
-                      <Button variant="secondary" onClick={() => {
+                      <Button variant="secondary" onClick={async () => {
+                          const XLSX = await import('xlsx');
                           const data = recapData.map((r, i) => ({ No: i + 1, Nama: r.nama, Formatif: r.avgFormatif, Sumatif: r.avgSumatif, Final: r.finalScore }));
                           const ws = XLSX.utils.json_to_sheet(data);
                           const wb = XLSX.utils.book_new();

@@ -17,12 +17,10 @@ import {
   Key
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import * as XLSX from 'xlsx';
-import XLSXStyle from 'xlsx-js-style';
 import { cn } from '../lib/utils';
 import { useAlert } from '../context/AlertContext';
 import { useSchool } from '../context/SchoolContext';
-import { getFullState, addClass, addStudent, deleteStudent } from '../services/dbAttendance';
+import { getScopedState, addClass, addStudent, deleteStudent } from '../services/dbAttendance';
 import { saveClass, saveStudent, deleteStudent as deleteStudentGrading } from '../services/dbGrading';
 
 export default function KelolaSiswa() {
@@ -106,7 +104,7 @@ export default function KelolaSiswa() {
       const deletedIds = new Set(getDeletedStudentIds());
 
       // 1. Load from local IndexedDB & merge with SEED_STUDENTS and SEED_CLASSES
-      const localState = await getFullState(true);
+      const localState = await getScopedState(['classes', 'students']);
       const { SEED_STUDENTS, SEED_CLASSES } = await import('../services/excelDataSeed');
 
       const classMap = new Map<string, any>();
@@ -297,7 +295,7 @@ export default function KelolaSiswa() {
           const { syncService } = await import('../services/sync');
           await syncService.pullFromCloud();
           
-          const updatedLocalState = await getFullState(true);
+          const updatedLocalState = await getScopedState(['classes', 'students']);
           let updatedStudents = updatedLocalState.students || [];
           let updatedClasses = updatedLocalState.classes || [];
 
@@ -631,7 +629,8 @@ export default function KelolaSiswa() {
     showAlert({ title: 'Disalin!', message: 'Kode unik berhasil disalin.', type: 'success' });
   };
 
-  const handleExportExcel = () => {
+  const handleExportExcel = async () => {
+    const { default: XLSXStyle } = await import('xlsx-js-style');
     if (selectedClass === 'all') {
       showAlert({ title: 'Pilih Kelas', message: 'Silakan filter berdasarkan kelas tertentu terlebih dahulu.', type: 'warning' });
       return;
@@ -730,7 +729,8 @@ export default function KelolaSiswa() {
     XLSXStyle.writeFile(workbook, `Data_Murid_${className}.xlsx`.replace(/\s+/g, '_'));
   };
 
-  const handleDownloadTemplate = () => {
+  const handleDownloadTemplate = async () => {
+    const XLSX = await import('xlsx');
     const template = [
       { 'Nama Lengkap': 'Ahmad Fauzi', 'Nama Kelas': 'XII IPA 1', 'Jenis Kelamin': 'L' },
       { 'Nama Lengkap': 'Siti Aminah', 'Nama Kelas': 'XII IPA 1', 'Jenis Kelamin': 'P' }
@@ -754,6 +754,7 @@ export default function KelolaSiswa() {
         
         if (!event.target?.result) throw new Error('Gagal membaca file.');
         
+        const XLSX = await import('xlsx');
         const arrayBuffer = event.target.result as ArrayBuffer;
         const workbook = XLSX.read(new Uint8Array(arrayBuffer), { type: 'array' });
         const sheet = workbook.Sheets[workbook.SheetNames[0]];

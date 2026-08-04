@@ -21,7 +21,6 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../../lib/utils';
 import React from 'react';
-import QRCode from 'qrcode';
 
 // Timer Component Isolated to prevent parent re-renders every 1 second
 const ExamTimer = React.memo(({ endTime, onTimeUp }: { endTime: number, onTimeUp: () => void }) => {
@@ -931,6 +930,7 @@ export default function StudentExam() {
         const finalScore = Math.round(score * 100) / 100;
 
         // Generate QR data URL immediately (not on result page)
+        const { default: QRCode } = await import('qrcode');
         const qrPayload = `EDUTEST#${participantId}#${finalScore}#${answersString}`;
         const qrDataUrl = await QRCode.toDataURL(qrPayload, {
           width: 350, margin: 2,

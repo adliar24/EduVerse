@@ -1,4 +1,4 @@
-import { openDB, DBSchema, IDBPDatabase } from 'idb';
+import { openDB, DBSchema, IDBPDatabase, StoreNames } from 'idb';
 import { TeacherProfile, ClassEntity, Student, AttendanceSession, AttendanceRecord, AppState, ScheduleItem, CalendarEvent, ClassCancellation, Material, Assignment } from '../types';
 import { getSupabaseClientOrNull, supabase } from './supabase';
 
@@ -201,6 +201,49 @@ export const getFullState = async (forceRefresh = false): Promise<AppState> => {
     };
     stateCache = { data: emptyState, timestamp: Date.now() };
     return emptyState;
+  }
+};
+
+// Scoped read: fetch only the object stores a page actually needs, instead of
+// pulling every table via getFullState (avoids reading huge records/sessions).
+export const getScopedState = async (stores: StoreNames<EduTrackDB>[]): Promise<AppState> => {
+  try {
+    const db = await initDB();
+    const tx = db.transaction(stores, 'readonly');
+    const result: AppState = {
+      teacher: null,
+      classes: [],
+      students: [],
+      sessions: [],
+      records: [],
+      schedules: [],
+      events: [],
+      cancellations: [],
+      materials: [],
+      assignments: [],
+      activeClassId: typeof window !== 'undefined' ? localStorage.getItem(getScopedStorageKey(ACTIVE_CLASS_KEY)) : null,
+    };
+    for (const store of stores) {
+      const rows = await (tx.objectStore(store) as any).getAll();
+      (result as any)[store] = rows || [];
+    }
+    await tx.done;
+    return result;
+  } catch (error) {
+    console.error('Error in getScopedState:', error);
+    return {
+      teacher: null,
+      classes: [],
+      students: [],
+      sessions: [],
+      records: [],
+      schedules: [],
+      events: [],
+      cancellations: [],
+      materials: [],
+      assignments: [],
+      activeClassId: null,
+    };
   }
 };
 
@@ -478,6 +521,7 @@ let syncTimeout: ReturnType<typeof setTimeout> | null = null;
 let retryTimeout: ReturnType<typeof setTimeout> | null = null;
 let skipSync = false;
 let pendingSync = false; // Records added during active sync
+let isSyncRunning = false; // Guards against overlapping full syncs
 let lastSyncAttempt = 0;
 const SYNC_COOLDOWN = 1000; // 1 second between actual syncs
 const MAX_RETRIES = 3;
@@ -491,6 +535,14 @@ export const clearStateCache = () => {
 };
 
 const executeSync = async (retryCount = 0): Promise<boolean> => {
+  // Coalesce: if a sync is already running, mark pending and let the running
+  // sync's finally block trigger a follow-up. Prevents stacked full syncs from
+  // visibilitychange/online/realtime events.
+  if (isSyncRunning) {
+    pendingSync = true;
+    return false;
+  }
+  isSyncRunning = true;
   try {
     const supabase = getSupabaseClientOrNull();
     if (!supabase) return false;
@@ -503,7 +555,6 @@ const executeSync = async (retryCount = 0): Promise<boolean> => {
     const { syncService } = await import('./sync');
     await syncService.pushToCloud();
     const result = await syncService.pullFromCloud();
-    console.log('[Auto-sync push & pull] Result:', result);
     if (result.success && typeof window !== 'undefined') {
       window.dispatchEvent(new Event('cloud_data_synced'));
     }
@@ -512,6 +563,7 @@ const executeSync = async (retryCount = 0): Promise<boolean> => {
     console.error('[Auto-sync] Failed:', e);
     return false;
   } finally {
+    isSyncRunning = false;
     // If records were added during this sync, trigger a follow-up sync
     if (pendingSync) {
       pendingSync = false;
@@ -586,50 +638,23 @@ export const forceSyncToCloud = async () => {
 
 // Register global sync triggers (call once on app init)
 let syncListenersRegistered = false;
-let periodicSyncInterval: ReturnType<typeof setInterval> | null = null;
 export const registerSyncListeners = () => {
   if (syncListenersRegistered || typeof window === 'undefined') return;
   syncListenersRegistered = true;
 
-  // Sync when app comes back to foreground
+  // Sync when app comes back to foreground (single push+pull via forceSync)
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') {
-      console.log('[Sync] App resumed, triggering sync pull and push...');
-      (async () => {
-        try {
-          const { syncService } = await import('./sync');
-          await syncService.pullFromCloud();
-          window.dispatchEvent(new Event('cloud_data_synced'));
-        } catch (e) {
-          console.warn('[Sync] Auto-pull on app resume failed:', e);
-        }
-        forceSyncToCloud();
-      })();
+      console.log('[Sync] App resumed, triggering sync push & pull...');
+      forceSyncToCloud();
     }
   });
 
-  // Sync when network reconnects
+  // Sync when network reconnects (single push+pull via forceSync)
   window.addEventListener('online', () => {
     console.log('[Sync] Network online, triggering sync...');
-    setTimeout(async () => {
-      try {
-        const { syncService } = await import('./sync');
-        await syncService.pullFromCloud();
-        window.dispatchEvent(new Event('cloud_data_synced'));
-      } catch (e) {
-        console.warn('[Sync] Auto-pull on network online failed:', e);
-      }
-      forceSyncToCloud();
-    }, 1000);
+    setTimeout(() => forceSyncToCloud(), 1000);
   });
-
-  // Periodic background sync every 30s as safety net for missed syncs
-  periodicSyncInterval = setInterval(() => {
-    if (!skipSync && !pendingSync) {
-      console.log('[Sync] Periodic background sync check...');
-      forceSyncToCloud();
-    }
-  }, 30000);
 };
 
 export const clearSyncTimeout = () => {

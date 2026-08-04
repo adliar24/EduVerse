@@ -20,7 +20,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAlert } from '../context/AlertContext';
 import { useSchool } from '../context/SchoolContext';
-import { getFullState, addMaterial, deleteMaterial, addAssignment, deleteAssignment } from '../services/dbAttendance';
+import { getScopedState, addMaterial, deleteMaterial, addAssignment, deleteAssignment } from '../services/dbAttendance';
 import { ClassEntity, Student, Material, Assignment } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 import LinkPreviewCard from '../components/LinkPreviewCard';
@@ -118,7 +118,7 @@ export default function KelolaMateriTugas() {
     try {
       setLoading(true);
       // Load local state
-      const localState = await getFullState(true);
+      const localState = await getScopedState(['classes', 'students', 'materials', 'assignments']);
       let localClasses = localState.classes || [];
       let localStudents = localState.students || [];
       let localMaterials = (localState as any).materials || [];
@@ -156,7 +156,7 @@ export default function KelolaMateriTugas() {
           const { syncService } = await import('../services/sync');
           await syncService.pullFromCloud();
           
-          const freshState = await getFullState(true);
+          const freshState = await getScopedState(['classes', 'students', 'materials', 'assignments']);
           let freshClasses = freshState.classes || [];
           let freshStudents = freshState.students || [];
           let freshMaterials = (freshState as any).materials || [];

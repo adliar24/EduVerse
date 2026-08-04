@@ -1,7 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Mic, MicOff, FileText, Camera, Save } from 'lucide-react';
-// @ts-ignore
-import Tesseract from 'tesseract.js';
 import { 
   ClassData, Student, AssessmentCategory 
 } from '../../types';
@@ -175,6 +173,8 @@ export const QuickInputModal: React.FC<{ isOpen: boolean, onClose: () => void }>
         setOcrStatus('Memproses OCR...');
         setOcrProgress(0);
         try {
+            // @ts-ignore - tesseract.js ships without bundled type declarations
+            const { default: Tesseract } = await import('tesseract.js');
             const { data: { text } } = await Tesseract.recognize(ocrImage, 'ind+eng', {
                 logger: (m: any) => {
                     if (m.status === 'recognizing text') setOcrProgress(Math.round(m.progress * 100));

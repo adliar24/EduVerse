@@ -352,6 +352,14 @@ const mapToLocal = (tableName: string, cloudItem: any): any => {
 const deviceId = Math.random().toString(36).substring(2, 15);
 let syncSubscription: any = null;
 
+// Single-flight guards so overlapping syncs (realtime events, visibilitychange,
+// login triggers, page wrappers) coalesce into one execution instead of stacking
+// multiple full push/pull passes.
+let pushInFlight: Promise<{ success: boolean; message: string }> | null = null;
+let pushQueued = false;
+let pullInFlight: Promise<{ success: boolean; message: string }> | null = null;
+let pullQueued = false;
+
 export const syncService = {
   subscribeToRealtimeSync(userId: string, callback: () => void) {
     if (syncSubscription) {
@@ -435,6 +443,27 @@ export const syncService = {
    * PUSH: Menyalin data IndexedDB lokal ke Supabase Cloud
    */
   async pushToCloud(): Promise<{ success: boolean; message: string }> {
+    if (pushInFlight) {
+      pushQueued = true;
+      return pushInFlight;
+    }
+    const execute = async (): Promise<{ success: boolean; message: string }> => {
+      do {
+        pushQueued = false;
+        const result = await this.runPush();
+        if (!pushQueued) return result;
+      } while (true);
+    };
+    pushInFlight = execute().finally(() => {
+      pushInFlight = null;
+    });
+    return pushInFlight;
+  },
+
+  /**
+   * PUSH IMPLEMENTATION (internal, wrapped by pushToCloud single-flight)
+   */
+  async runPush(): Promise<{ success: boolean; message: string }> {
     if (!supabase) {
       console.warn('Supabase not configured, skipping push');
       return { success: false, message: 'Supabase belum dikonfigurasi' };
@@ -581,6 +610,27 @@ export const syncService = {
    * PULL: Mengambil data dari Cloud dan memperbarui database lokal
    */
   async pullFromCloud(): Promise<{ success: boolean; message: string }> {
+    if (pullInFlight) {
+      pullQueued = true;
+      return pullInFlight;
+    }
+    const execute = async (): Promise<{ success: boolean; message: string }> => {
+      do {
+        pullQueued = false;
+        const result = await this.runPull();
+        if (!pullQueued) return result;
+      } while (true);
+    };
+    pullInFlight = execute().finally(() => {
+      pullInFlight = null;
+    });
+    return pullInFlight;
+  },
+
+  /**
+   * PULL IMPLEMENTATION (internal, wrapped by pullFromCloud single-flight)
+   */
+  async runPull(): Promise<{ success: boolean; message: string }> {
     if (!supabase) {
       console.warn('Supabase not configured, skipping pull');
       return { success: false, message: 'Supabase belum dikonfigurasi' };

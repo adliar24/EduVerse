@@ -254,7 +254,7 @@ export const Recap: React.FC<RecapProps> = ({ state, refresh, notify }) => {
         await saveBlob(new Blob([buf]), `${filenameBase}.xlsx`);
       } 
       else if (format === 'pdf') {
-        const { jsPDF } = await import('jspdf');
+        const { default: jsPDF } = await import('jspdf');
         const autoTable = (await import('jspdf-autotable')).default;
         const doc = new jsPDF();
 
@@ -588,7 +588,7 @@ export const Recap: React.FC<RecapProps> = ({ state, refresh, notify }) => {
         await saveBlob(new Blob([buf]), `${finalFilename}.xlsx`);
       } 
       else if (exportFormat === 'pdf') {
-        const { jsPDF } = await import('jspdf');
+        const { default: jsPDF } = await import('jspdf');
         const autoTable = (await import('jspdf-autotable')).default;
         
         const doc = new jsPDF();

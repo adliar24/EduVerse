@@ -4,8 +4,6 @@ import {
   Mic, MicOff, FileText, Download, Upload, 
   Camera, CheckSquare, Square, Loader2
 } from 'lucide-react';
-import * as XLSX from 'xlsx';
-import Tesseract from 'tesseract.js';
 import { Student, Meeting, MeetingScore } from '../../types';
 import * as db from '../../services/dbGrading';
 import { 
@@ -48,6 +46,7 @@ export const GradingScreen: React.FC = () => {
     
     setIsImporting(true);
     try {
+      const XLSX = await import('xlsx');
       const data = await file.arrayBuffer();
       const workbook = XLSX.read(data);
       const sheetName = workbook.SheetNames[0];
@@ -90,7 +89,8 @@ export const GradingScreen: React.FC = () => {
     }
   };
 
-  const handleDownloadTemplate = () => {
+  const handleDownloadTemplate = async () => {
+    const XLSX = await import('xlsx');
     const ws = XLSX.utils.json_to_sheet(students.map(s => ({ Nama: s.nama, Nilai: '' })));
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Nilai');
@@ -219,6 +219,7 @@ export const GradingScreen: React.FC = () => {
     setOcrProgress(0);
     
     try {
+      const { default: Tesseract } = await import('tesseract.js');
       const { data: { text } } = await Tesseract.recognize(ocrImage, 'ind+eng', {
         logger: (m) => {
           if (m.status === 'recognizing text') {

@@ -6,9 +6,6 @@ import {
   CheckCircle2, ClipboardCheck, Database, Trash2,
   Plus, BookOpen
 } from 'lucide-react';
-import * as XLSX from 'xlsx';
-// @ts-ignore
-import html2pdf from 'html2pdf.js';
 import { Student, StudentPoint, TeacherProfile } from '../../types';
 import * as db from '../../services/dbGrading';
 import { 
@@ -133,8 +130,9 @@ const ReportDetailView: React.FC<{ idKelas: string }> = ({ idKelas }) => {
       load();
    }, [idKelas]);
 
-   const exportExcel = () => {
+   const exportExcel = async () => {
       if (students.length === 0) return;
+      const XLSX = await import('xlsx');
       const data = students.sort((a,b) => a.nama.localeCompare(b.nama)).map((s, i) => ({
          No: i + 1,
          Nama: s.nama,
@@ -169,6 +167,8 @@ const ReportDetailView: React.FC<{ idKelas: string }> = ({ idKelas }) => {
             jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait', compress: true },
             pagebreak:    { mode: 'css' }
          };
+         // @ts-ignore - html2pdf.js ships without bundled type declarations
+         const { default: html2pdf } = await import('html2pdf.js');
          await html2pdf().from(pdfRef.current).set(opt).save();
       } catch (error) {
          console.error("PDF Export error:", error);

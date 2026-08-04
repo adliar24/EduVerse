@@ -16,7 +16,17 @@ export default defineConfig(({mode}) => {
           enabled: true
         },
         workbox: {
-          globPatterns: ['**/*.{js,css,html,ico,png,svg,json}'],
+          globPatterns: [
+            'index.html',
+            'manifest.webmanifest',
+            'logo.svg',
+            'assets/*.css',
+            'assets/index-*.js',
+            'assets/react-*.js',
+            'assets/supabase-*.js',
+            'assets/icons-*.js',
+            'assets/motion-*.js'
+          ],
           runtimeCaching: [
             {
               urlPattern: /\/models\/.*\.(json|bin)$/,
@@ -26,6 +36,22 @@ export default defineConfig(({mode}) => {
                 expiration: {
                   maxEntries: 30,
                   maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
+                },
+                cacheableResponse: {
+                  statuses: [0, 200]
+                }
+              }
+            },
+            {
+              // Lazy chunks (route pages + deferred heavy libs like xlsx/html2pdf)
+              // are NOT precached, so they download on first use instead of at install.
+              urlPattern: /\/assets\/.*\.(js|css)$/,
+              handler: 'CacheFirst',
+              options: {
+                cacheName: 'app-chunks',
+                expiration: {
+                  maxEntries: 80,
+                  maxAgeSeconds: 60 * 60 * 24 * 30,
                 },
                 cacheableResponse: {
                   statuses: [0, 200]

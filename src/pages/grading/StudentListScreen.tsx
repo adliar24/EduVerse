@@ -5,9 +5,7 @@ import {
   FileSpreadsheet, QrCode, Trophy, BookOpen, ChevronRight,
   X, AlertCircle, User, Loader2
 } from 'lucide-react';
-import * as XLSX from 'xlsx';
 import JSZip from 'jszip';
-import QRCode from 'qrcode';
 import { ClassData, Student, Meeting } from '../../types';
 import * as db from '../../services/dbGrading';
 import { detectGenderFromName } from '../../utils/genderDetection';
@@ -74,7 +72,8 @@ export const StudentListScreen: React.FC = () => {
     }
   };
 
-  const handleDownloadTemplate = () => {
+  const handleDownloadTemplate = async () => {
+    const XLSX = await import('xlsx');
     const data = [
       ["Nama Siswa", "Jenis Kelamin (L/P)"],
       ["Budi Santoso", "L"],
@@ -97,6 +96,7 @@ export const StudentListScreen: React.FC = () => {
       try {
         const target = event.target;
         if (!target?.result) return;
+        const XLSX = await import('xlsx');
         const data = new Uint8Array(target.result as ArrayBuffer);
         const workbook = XLSX.read(data, { type: 'array' });
         const sheetName = String(workbook.SheetNames[0]);
@@ -370,6 +370,7 @@ export const StudentQRModal: React.FC<{
 
   const generateAllQRs = async () => {
     setIsGenerating(true);
+    const { default: QRCode } = await import('qrcode');
     const urls: Record<string, string> = {};
     for (const s of students) {
       try {

@@ -1,4 +1,3 @@
-import * as XLSX from 'xlsx';
 import { Student, BulkCertificateData, CertificateGrade, CertificateThemeColor } from '../../types/tools';
 import { robustSaveAs } from './exporters';
 
@@ -90,6 +89,7 @@ export const parseTextFile = async (file: File): Promise<ParsedStudent[]> => {
 };
 
 export const parseExcelFile = async (file: File): Promise<ParsedStudent[]> => {
+  const XLSX = await import('xlsx');
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -147,6 +147,7 @@ export const parseExcelFile = async (file: File): Promise<ParsedStudent[]> => {
 };
 
 export const parseCertificateExcel = async (file: File): Promise<BulkCertificateData[]> => {
+  const XLSX = await import('xlsx');
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -232,7 +233,8 @@ export const parseCertificateExcel = async (file: File): Promise<BulkCertificate
   });
 };
 
-export const generateSampleCertificateExcel = () => {
+export const generateSampleCertificateExcel = async () => {
+  const XLSX = await import('xlsx');
   const ws = XLSX.utils.json_to_sheet([
     {
       "Nama Murid": "Budi Santoso",
@@ -258,7 +260,8 @@ export const generateSampleCertificateExcel = () => {
   robustSaveAs(blob, "Template_Sertifikat.xlsx");
 };
 
-export const generateStudentListTemplate = () => {
+export const generateStudentListTemplate = async () => {
+  const XLSX = await import('xlsx');
   const ws = XLSX.utils.json_to_sheet([
     { "Nama Murid": "Andi Pratama", "Jenis Kelamin (L/P)": "L", "Kemampuan (Mahir/Cakap/Dasar/Intervensi)": "Mahir" },
     { "Nama Murid": "Siti Aminah", "Jenis Kelamin (L/P)": "P", "Kemampuan (Mahir/Cakap/Dasar/Intervensi)": "Cakap" },

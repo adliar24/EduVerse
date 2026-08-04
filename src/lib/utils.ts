@@ -1,8 +1,30 @@
-import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
+type ClassValue = string | number | null | boolean | undefined | ClassValue[] | Record<string, unknown>;
+
+// Inline clsx implementation (avoid pulling the tiny clsx package into the
+// entry graph, which previously caused Rollup to hoist clsx into the heavy
+// recharts 'charts' chunk and forced a static import edge from the entry).
+function clsx(...inputs: ClassValue[]): string {
+  let out = '';
+  for (const input of inputs) {
+    if (!input) continue;
+    if (typeof input === 'string' || typeof input === 'number') {
+      out += (out ? ' ' : '') + input;
+    } else if (Array.isArray(input)) {
+      const nested = clsx(...input);
+      if (nested) out += (out ? ' ' : '') + nested;
+    } else if (typeof input === 'object') {
+      for (const key in input) {
+        if (input[key]) out += (out ? ' ' : '') + key;
+      }
+    }
+  }
+  return out;
+}
+
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
+  return twMerge(clsx(...inputs));
 }
 
 export function generateExamCode() {

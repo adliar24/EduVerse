@@ -26,7 +26,7 @@ import {
   Loader2,
   Wrench
 } from 'lucide-react';
-import { useState, useEffect, lazy, Suspense, useCallback } from 'react';
+import { useState, useEffect, lazy, Suspense, useCallback, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
 import { cn } from '../lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -73,14 +73,31 @@ export default function Layout({ session }: LayoutProps) {
   const { showAlert } = useAlert();
   const { schools, activeSchool, setActiveSchool, loading: schoolLoading } = useSchool();
 
-  const studentSessionStr = localStorage.getItem('student_session');
-  const student = studentSessionStr ? JSON.parse(studentSessionStr) : null;
-  const userRole = session ? (session.user?.user_metadata?.role || 'guru') : (student ? 'siswa' : 'guru');
-  const userName = session 
-    ? (session.user?.user_metadata?.name || session.user?.email?.split('@')[0]) 
-    : (student ? student.name : '');
+  const [studentSessionStr, setStudentSessionStr] = useState<string | null>(() => localStorage.getItem('student_session'));
 
-  console.log('Layout - schools.length:', schools.length, 'schoolLoading:', schoolLoading);
+  useEffect(() => {
+    const handleStudentSessionChange = () => {
+      setStudentSessionStr(localStorage.getItem('student_session'));
+    };
+    window.addEventListener('student_session_change', handleStudentSessionChange);
+    window.addEventListener('storage', handleStudentSessionChange);
+    return () => {
+      window.removeEventListener('student_session_change', handleStudentSessionChange);
+      window.removeEventListener('storage', handleStudentSessionChange);
+    };
+  }, []);
+
+  const student = useMemo(() => {
+    return studentSessionStr ? JSON.parse(studentSessionStr) : null;
+  }, [studentSessionStr]);
+
+  const userRole = session ? (session.user?.user_metadata?.role || 'guru') : (student ? 'siswa' : 'guru');
+
+  const userName = useMemo(() => {
+    return session
+      ? (session.user?.user_metadata?.name || session.user?.email?.split('@')[0])
+      : (student ? student.name : '');
+  }, [session, student]);
 
   // Sync fullscreen scanning state based on URL path
   useEffect(() => {
@@ -690,9 +707,8 @@ export default function Layout({ session }: LayoutProps) {
             </div>
           }>
             <motion.div
-              key={location.pathname}
-              initial={{ opacity: 0, y: 4 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
               transition={{ duration: 0.15, ease: 'easeInOut' }}
               className="w-full h-full"
             >

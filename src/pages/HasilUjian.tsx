@@ -1,7 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
-import * as XLSX from 'xlsx';
-import XLSXStyle from 'xlsx-js-style';
 import { 
   Search, 
   Download, 
@@ -26,8 +24,6 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import React from 'react';
 import { cn } from '../lib/utils';
-import { jsPDF } from 'jspdf';
-import autoTable from 'jspdf-autotable';
 import { useSchool } from '../context/SchoolContext';
 import { createPortal } from 'react-dom';
 import { useLocation } from 'react-router-dom';
@@ -308,7 +304,8 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
     return temp;
   }, [results, searchTerm, sortBy]);
 
-  const exportToExcel = () => {
+  const exportToExcel = async () => {
+    const { default: XLSXStyle } = await import('xlsx-js-style');
     const headers = ['NAMA SISWA', 'KELAS', 'UJIAN', 'NILAI', 'WAKTU SELESAI'];
     const rows = filteredResults.map(r => [
       r.name,
@@ -398,7 +395,9 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
     XLSXStyle.writeFile(workbook, `Hasil_Ujian_${new Date().toISOString().slice(0, 10)}.xlsx`);
   };
 
-  const generatePDF = () => {
+  const generatePDF = async () => {
+    const { default: jsPDF } = await import('jspdf');
+    const { default: autoTable } = await import('jspdf-autotable');
     const doc = new jsPDF() as any;
     const selectedExamData = exams.find(e => e.id === selectedExam);
     const selectedSessionData = sessions.find(s => s.id === selectedSession);

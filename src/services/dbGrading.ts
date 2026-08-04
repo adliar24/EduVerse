@@ -37,6 +37,16 @@ export const subscribeToSyncStatus = (cb: (status: boolean) => void) => {
   };
 };
 
+// Serializes all cloud syncs (push & pull) so overlapping triggers (login init,
+// realtime events, page wrappers, auto-sync) run one after another instead of
+// stacking multiple full read/write passes against the local DB.
+let gradingSyncChain: Promise<boolean> = Promise.resolve(true);
+const enqueueGradingSync = (task: () => Promise<boolean>): Promise<boolean> => {
+  const run = gradingSyncChain.then(task, task);
+  gradingSyncChain = run.catch(() => false);
+  return run;
+};
+
 // --- CORE DB CONNECTION ---
 
 let _dbInstance: IDBDatabase | null = null;
@@ -819,7 +829,9 @@ export const restoreBackup = async (data: any, mode: 'full' | 'master' = 'full')
 
 // --- SYNC ENGINE ---
 
-export const syncLocalToCloud = async (): Promise<boolean> => {
+export const syncLocalToCloud = (): Promise<boolean> => enqueueGradingSync(_syncLocalToCloudImpl);
+
+const _syncLocalToCloudImpl = async (): Promise<boolean> => {
   if (!supabase) return false;
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) return false;
@@ -924,7 +936,10 @@ export const syncLocalToCloud = async (): Promise<boolean> => {
   }
 };
 
-export const syncCloudToLocal = async (existingProfile?: TeacherProfile | null): Promise<boolean> => {
+export const syncCloudToLocal = (existingProfile?: TeacherProfile | null): Promise<boolean> =>
+  enqueueGradingSync(() => _syncCloudToLocalImpl(existingProfile));
+
+const _syncCloudToLocalImpl = async (existingProfile?: TeacherProfile | null): Promise<boolean> => {
   if (!supabase) return false;
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) return false;

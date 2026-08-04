@@ -26,8 +26,6 @@ import {
   Trash2,
   FileText
 } from 'lucide-react';
-import html2canvas from 'html2canvas';
-import { jsPDF } from 'jspdf';
 import JSZip from 'jszip';
 
 const COLOR_THEMES: Record<CertificateThemeColor, { gradient: string; text: string; ring: string; iconBg: string; shadow: string }> = {
@@ -329,6 +327,7 @@ const CertificateGenerator: React.FC = () => {
 
     try {
       await document.fonts.ready;
+      const { default: html2canvas } = await import('html2canvas');
       const canvas = await html2canvas(clone, { 
         scale: 2.5, 
         useCORS: true,
@@ -393,6 +392,7 @@ const CertificateGenerator: React.FC = () => {
     setIsProcessingBulk(true);
     setBulkProgress({ current: 0, total: checkedCount, type: 'PDF' });
     try {
+      const { default: jsPDF } = await import('jspdf');
       const pdf = new jsPDF(orientation === 'landscape' ? 'l' : 'p', 'mm', 'a4');
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
@@ -477,6 +477,7 @@ const CertificateGenerator: React.FC = () => {
     try {
       const activeRecipient = recipients[activeIndex];
       const imgData = await captureHighQuality(certificateRef.current, 'image/jpeg', 0.85);
+      const { default: jsPDF } = await import('jspdf');
       const pdf = new jsPDF(orientation === 'landscape' ? 'l' : 'p', 'mm', 'a4');
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();

@@ -1,5 +1,4 @@
 import { GroupResult } from '../../types/tools';
-import { Document, Packer, Paragraph, HeadingLevel, AlignmentType } from 'docx';
 
 // Helper function untuk download yang ramah Mobile/WebView
 export const robustSaveAs = (blob: Blob, filename: string) => {
@@ -34,6 +33,7 @@ export const exportToTxt = (groups: GroupResult[]) => {
 };
 
 export const exportToDocx = async (groups: GroupResult[]) => {
+  const { Document, Packer, Paragraph, HeadingLevel, AlignmentType } = await import('docx');
   const children = [];
 
   // Title

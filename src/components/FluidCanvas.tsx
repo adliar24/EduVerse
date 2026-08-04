@@ -11,15 +11,27 @@ export const FluidCanvas: React.FC<{ className?: string }> = ({ className = "" }
     if (!ctx) return;
 
     let animationFrameId: number;
-    let width = (canvas.width = window.innerWidth);
-    let height = (canvas.height = window.innerHeight);
+    let width = 0;
+    let height = 0;
+
+    const prefersReducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches || false;
+
+    const setCanvasSize = () => {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      width = window.innerWidth;
+      height = window.innerHeight;
+      canvas.width = Math.floor(width * dpr);
+      canvas.height = Math.floor(height * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
 
     const handleResize = () => {
       if (!canvas) return;
-      width = canvas.width = window.innerWidth;
-      height = canvas.height = window.innerHeight;
+      setCanvasSize();
+      if (prefersReducedMotion) render();
     };
 
+    setCanvasSize();
     window.addEventListener('resize', handleResize);
 
     // Multi-harmonic liquid fluid wave parameters spanning upper, center, and bottom using 4 brand colors
@@ -130,6 +142,8 @@ export const FluidCanvas: React.FC<{ className?: string }> = ({ className = "" }
       radialGradient.addColorStop(1, 'transparent');
       ctx.fillStyle = radialGradient;
       ctx.fillRect(0, 0, width, height);
+
+      if (prefersReducedMotion) return;
 
       if (!document.hidden) {
         animationFrameId = requestAnimationFrame(render);

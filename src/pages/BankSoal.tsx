@@ -29,10 +29,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import React, { useRef } from 'react';
 import { cn } from '../lib/utils';
-import * as XLSX from 'xlsx';
 import { useAlert } from '../context/AlertContext';
-import mammoth from 'mammoth';
-import { Document, Packer, Paragraph, TextRun } from 'docx';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { saveAs } from 'file-saver';
 import { useSchool } from '../context/SchoolContext';
@@ -702,7 +699,8 @@ export default function BankSoal() {
 
   const totalPages = Math.ceil(filteredQuestions.length / ITEMS_PER_PAGE);
 
-  const handleDownloadTemplate = () => {
+  const handleDownloadTemplate = async () => {
+    const XLSX = await import('xlsx');
     const template = [
       {
         'Mata Pelajaran': 'Matematika',
@@ -786,6 +784,7 @@ export default function BankSoal() {
         }
 
         const arrayBuffer = event.target.result as ArrayBuffer;
+        const XLSX = await import('xlsx');
         const workbook = XLSX.read(new Uint8Array(arrayBuffer), { type: 'array' });
         const sheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[sheetName];
@@ -991,6 +990,7 @@ export default function BankSoal() {
   };
 
   const handleDownloadDocxTemplate = async () => {
+    const { Document, Packer, Paragraph, TextRun } = await import('docx');
     const doc = new Document({
       sections: [{
         properties: {},
@@ -1065,6 +1065,7 @@ export default function BankSoal() {
     reader.onload = async (event) => {
       try {
         const arrayBuffer = event.target?.result as ArrayBuffer;
+        const { default: mammoth } = await import('mammoth');
         const result = await mammoth.extractRawText({ arrayBuffer });
         const text = result.value;
 

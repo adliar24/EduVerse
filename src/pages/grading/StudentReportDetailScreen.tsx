@@ -5,9 +5,6 @@ import {
   TrendingUp, Star, Info, CheckCircle2, 
   ClipboardCheck, GraduationCap, Database, Plus, Trash2
 } from 'lucide-react';
-import * as XLSX from 'xlsx';
-// @ts-ignore
-import html2pdf from 'html2pdf.js';
 import { Student, StudentPoint, DEFAULT_WEIGHTS } from '../../types';
 import * as db from '../../services/dbGrading';
 import { 
@@ -138,6 +135,8 @@ export const StudentReportDetailScreen: React.FC = () => {
     showToast("Menyiapkan PDF...");
     
     try {
+       // @ts-ignore - html2pdf.js ships without bundled type declarations
+       const { default: html2pdf } = await import('html2pdf.js');
        const opt: any = {
           margin:       [10, 10, 10, 10],
           filename:     `Laporan_${student.nama}.pdf`,
@@ -162,7 +161,8 @@ export const StudentReportDetailScreen: React.FC = () => {
         backTo={`/reports/view/${idKelas}`} 
         rightAction={
           <div className="flex gap-2 px-1">
-            <Button variant="secondary" onClick={() => {
+            <Button variant="secondary" onClick={async () => {
+                const XLSX = await import('xlsx');
                 const data = reportData.map(r => ({
                     Materi: r.materi,
                     Aspek: r.aspekPenilaian,
@@ -208,7 +208,8 @@ export const StudentReportDetailScreen: React.FC = () => {
             </div>
 
             <div className="flex gap-3 md:hidden" data-html2canvas-ignore>
-                <Button variant="secondary" onClick={() => {
+                <Button variant="secondary" onClick={async () => {
+                    const XLSX = await import('xlsx');
                     const data = reportData.map(r => ({ Materi: r.materi, Aspek: r.aspekPenilaian, Nilai: r.score }));
                     const ws = XLSX.utils.json_to_sheet(data);
                     ws['!cols'] = autoFitColumns(data);

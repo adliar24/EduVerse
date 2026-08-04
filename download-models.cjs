@@ -79,6 +79,20 @@ function downloadFile(url, dest) {
 }
 
 async function downloadModels() {
+  // Skip if every model file already exists locally (keeps builds fast)
+  const allExist = MODEL_URLS.every((model) =>
+    fs.existsSync(path.join(OUTPUT_DIR, model.file))
+  );
+  if (allExist) {
+    console.log('All model files already present, skipping download.\n');
+    const files = fs.readdirSync(OUTPUT_DIR);
+    for (const f of files) {
+      const stats = fs.statSync(path.join(OUTPUT_DIR, f));
+      console.log(`  ${f} - ${(stats.size / 1024 / 1024).toFixed(2)} MB`);
+    }
+    return;
+  }
+
   console.log('Starting model download...\n');
   
   // Create directory if not exists

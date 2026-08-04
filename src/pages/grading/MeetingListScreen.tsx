@@ -4,9 +4,8 @@ import {
   Plus, FileSpreadsheet, FileText, Trash2, ChevronRight, 
   Trophy, BookOpen, ClipboardCheck, X, Zap, GraduationCap
 } from 'lucide-react';
-import * as XLSX from 'xlsx';
-import { Meeting } from '../../types';
 import * as db from '../../services/dbGrading';
+import { Meeting } from '../../types';
 import { 
   Button, Select, Modal, Card,
   Header, Layout, PageTransition, useToast
@@ -66,6 +65,7 @@ export const MeetingListScreen: React.FC = () => {
       return;
     }
     showToast("Menyiapkan data...");
+    const XLSX = await import('xlsx');
     const schoolId = profile?.activeSchoolId || '';
     const s = await db.getStudents(selectedClass, schoolId);
     const m = await db.getMeetings(selectedClass, schoolId);
