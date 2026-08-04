@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 
 export default function ModernLoader() {
   return (
-    <div className="fixed inset-0 bg-gradient-to-br from-[#2563EB] via-[#1D4ED8] to-[#1E40AF] flex flex-col items-center justify-center overflow-hidden z-[99999]">
+    <div className="fixed inset-0 sidebar-gradient flex flex-col items-center justify-center overflow-hidden z-[99999]">
       {/* Ambient background glow */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <motion.div
@@ -17,7 +17,7 @@ export default function ModernLoader() {
             repeat: Infinity,
             ease: "easeInOut"
           }}
-          className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-cyan-400/20 rounded-full blur-[120px]"
+          className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-indigo-500/15 rounded-full blur-[120px]"
         />
         <motion.div
           animate={{
@@ -30,7 +30,7 @@ export default function ModernLoader() {
             repeat: Infinity,
             ease: "easeInOut"
           }}
-          className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-blue-300/20 rounded-full blur-[140px]"
+          className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-blue-600/15 rounded-full blur-[140px]"
         />
       </div>
 
@@ -75,7 +75,7 @@ export default function ModernLoader() {
           className="absolute w-[45%] h-[45%] bg-white shadow-[0_0_25px_rgba(255,255,255,0.8)] flex items-center justify-center"
         >
           {/* A tiny accent circle in the center */}
-          <div className="w-3 h-3 rounded-full bg-[#2563EB] shadow-[0_0_8px_rgba(37,99,235,0.8)] animate-pulse" />
+          <div className="w-3 h-3 rounded-full bg-[#0F172A] shadow-[0_0_8px_rgba(15,23,42,0.8)] animate-pulse" />
         </motion.div>
       </div>
     </div>
