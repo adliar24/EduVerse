@@ -297,13 +297,13 @@ export default function Layout({ session }: LayoutProps) {
       {/* Decorative Background Elements */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden bg-slate-50/20">
         <motion.div 
-          className="absolute top-[-10%] left-[-10%] w-[45%] h-[45%] bg-blue-400/15 rounded-full blur-[120px] animate-float-slow" 
+          className="absolute top-[-10%] left-[-10%] w-[45%] h-[45%] bg-blue-400/15 rounded-full blur-[120px] animate-float-slow transform-gpu hidden sm:block" 
         />
         <motion.div 
-          className="absolute bottom-[-10%] right-[-15%] w-[55%] h-[55%] bg-purple-400/10 rounded-full blur-[140px] animate-float-reverse" 
+          className="absolute bottom-[-10%] right-[-15%] w-[55%] h-[55%] bg-purple-400/10 rounded-full blur-[140px] animate-float-reverse transform-gpu hidden sm:block" 
         />
         <motion.div 
-          className="absolute top-[35%] left-[45%] w-[35%] h-[35%] bg-indigo-400/8 rounded-full blur-[100px] animate-float-slow" 
+          className="absolute top-[35%] left-[45%] w-[35%] h-[35%] bg-indigo-400/8 rounded-full blur-[100px] animate-float-slow transform-gpu hidden sm:block" 
         />
       </div>
 

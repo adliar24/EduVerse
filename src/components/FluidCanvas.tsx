@@ -131,7 +131,13 @@ export const FluidCanvas: React.FC<{ className?: string }> = ({ className = "" }
       ctx.fillStyle = radialGradient;
       ctx.fillRect(0, 0, width, height);
 
-      animationFrameId = requestAnimationFrame(render);
+      if (!document.hidden) {
+        animationFrameId = requestAnimationFrame(render);
+      } else {
+        setTimeout(() => {
+          animationFrameId = requestAnimationFrame(render);
+        }, 300);
+      }
     };
 
     render();
