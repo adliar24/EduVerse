@@ -34,6 +34,7 @@ import { useAlert } from '../context/AlertContext';
 import { useSchool } from '../context/SchoolContext';
 import { useTheme } from '../context/ThemeContext';
 import FluidCanvas from './FluidCanvas';
+import { InstallPWA } from './InstallPWA';
 
 const prefetchMap: Record<string, () => Promise<any>> = {
   '/dashboard': () => import('../pages/Dashboard'),
@@ -717,6 +718,7 @@ export default function Layout({ session }: LayoutProps) {
           </Suspense>
         </div>
       </main>
+      <InstallPWA />
     </div>
   );
 }
