@@ -173,24 +173,20 @@ export default function Dashboard() {
       let calculatedGrade = 0;
 
       try {
-        let examQuery = validUid ? supabase.from('exams').select('id', { count: 'exact' }).or(`teacher_id.eq.${validUid},school_id.eq.${targetSchoolId}`) : supabase.from('exams').select('id', { count: 'exact' });
-        let questionQuery = validUid ? supabase.from('questions').select('id', { count: 'exact' }).eq('teacher_id', validUid) : supabase.from('questions').select('id', { count: 'exact' });
-        let classQuery = validUid ? supabase.from('classes').select('id', { count: 'exact' }).or(`teacher_id.eq.${validUid},school_id.eq.${targetSchoolId}`) : supabase.from('classes').select('id', { count: 'exact' });
-        let studentQuery = validUid ? supabase.from('students').select('id', { count: 'exact' }).or(`teacher_id.eq.${validUid},school_id.eq.${targetSchoolId}`) : supabase.from('students').select('id', { count: 'exact' });
-        let attendanceQuery = validUid
-          ? supabase.from('attendance_records').select('status,count(*)').or(`teacher_id.eq.${validUid},school_id.eq.${targetSchoolId}`)
-          : supabase.from('attendance_records').select('status,count(*)').eq('school_id', targetSchoolId);
-        let scoreQuery = validUid
-          ? supabase.from('meeting_scores').select('avg(nilai_angka),count(*)').or(`user_id.eq.${validUid},school_id.eq.${targetSchoolId}`)
-          : supabase.from('meeting_scores').select('avg(nilai_angka),count(*)').eq('school_id', targetSchoolId);
+        let examQuery = supabase.from('exams').select('id', { count: 'exact' });
+        let questionQuery = supabase.from('questions').select('id', { count: 'exact' });
+        let classQuery = supabase.from('classes').select('id', { count: 'exact' });
+        let studentQuery = supabase.from('students').select('id', { count: 'exact' });
+        let attendanceQuery = supabase.from('attendance_records').select('id, status');
+        let scoreQuery = supabase.from('meeting_scores').select('nilai_angka');
 
         const [
           examRes,
           questionRes,
           classRes,
           studentRes,
-          attAgg,
-          scoreAgg
+          attRes,
+          scoreRes
         ] = await Promise.all([
           examQuery,
           questionQuery,
@@ -205,17 +201,15 @@ export default function Dashboard() {
         classCount = classRes.count ?? (classRes.data?.length || 0);
         studentCount = studentRes.count ?? (studentRes.data?.length || 0);
 
-        const attendanceByStatus = (attAgg.data as unknown as { status: string | null; count: number }[]) || [];
-        attendanceTotal = attendanceByStatus.reduce((acc, r) => acc + (Number(r.count) || 0), 0);
-        const attendancePresent = attendanceByStatus
-          .filter(r => r.status === 'Hadir' || r.status === 'Terlambat')
-          .reduce((acc, r) => acc + (Number(r.count) || 0), 0);
+        const attRecords = attRes.data || [];
+        attendanceTotal = attRecords.length;
+        const attendancePresent = attRecords.filter((r: any) => r.status === 'Hadir' || r.status === 'Terlambat').length;
         calculatedAttendance = attendanceTotal > 0 ? Math.round((attendancePresent / attendanceTotal) * 100) : 0;
 
-        const scoreRow = (scoreAgg.data as unknown as { avg: number | null; count: number }[])?.[0];
-        scoreTotal = Number(scoreRow?.count) || 0;
-        const scoreAvg = Number(scoreRow?.avg);
-        calculatedGrade = !isNaN(scoreAvg) ? Math.round(scoreAvg * 10) / 10 : 0;
+        const scoresList = (scoreRes.data || []).map((s: any) => Number(s.nilai_angka)).filter((v: number) => !isNaN(v) && v > 0);
+        scoreTotal = scoresList.length;
+        const scoreSum = scoresList.reduce((acc: number, v: number) => acc + v, 0);
+        calculatedGrade = scoreTotal > 0 ? Math.round((scoreSum / scoreTotal) * 10) / 10 : 0;
       } catch (err) {
         console.warn('Supabase query error in dashboard, using local fallback:', err);
       }
