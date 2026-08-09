@@ -218,7 +218,7 @@ export const Schedule: React.FC<Props> = ({ state, refresh, notify }) => {
   }
 
   // --- SUB-COMPONENTS FOR SPLIT VIEW ---
-  const WeeklyView = () => (
+  const weeklyViewNode = (
       <div className="flex flex-col h-full">
           {/* Day Tabs */}
           <div className="flex justify-between items-center mb-4">
@@ -307,7 +307,7 @@ export const Schedule: React.FC<Props> = ({ state, refresh, notify }) => {
       </div>
   );
 
-  const EventsView = () => (
+  const eventsViewNode = (
       <div className="flex flex-col h-full">
           <div className="flex justify-between items-center mb-4">
              <h3 className="font-bold text-gray-700 text-lg">Kalender Sekolah</h3>
@@ -385,13 +385,13 @@ export const Schedule: React.FC<Props> = ({ state, refresh, notify }) => {
       <div className="flex flex-col lg:flex-row gap-8 items-start h-full">
          
          {/* LEFT (MAIN SCHEDULE) - Always visible on Desktop, Toggled on Mobile */}
-         <div className={`flex-1 w-full ${(tab === 'weekly' || window.innerWidth >= 1024) ? 'block' : 'hidden'}`}>
-             <WeeklyView />
+         <div className={`flex-1 w-full ${tab === 'weekly' ? 'block' : 'hidden lg:block'}`}>
+             {weeklyViewNode}
          </div>
 
          {/* RIGHT (EVENTS SIDEBAR) - Always visible on Desktop, Toggled on Mobile */}
-         <div className={`w-full lg:w-96 shrink-0 lg:sticky lg:top-8 ${(tab === 'events' || window.innerWidth >= 1024) ? 'block' : 'hidden'}`}>
-             <EventsView />
+         <div className={`w-full lg:w-96 shrink-0 lg:sticky lg:top-8 ${tab === 'events' ? 'block' : 'hidden lg:block'}`}>
+             {eventsViewNode}
          </div>
 
       </div>
