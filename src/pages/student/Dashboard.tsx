@@ -9,7 +9,8 @@ import {
   BookOpen,
   Calendar,
   Link2,
-  GraduationCap
+  GraduationCap,
+  Camera
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -171,13 +172,23 @@ export default function StudentDashboard() {
             <p className="text-purple-200/90 text-xs sm:text-sm font-medium">Pantau progres ujian dan hasil belajar Anda secara real-time.</p>
           </div>
         </div>
-        <Link 
-          to="/daftar-ujian-siswa"
-          className="bg-white text-[#6D28D9] hover:bg-purple-50 px-6 py-3.5 rounded-full font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-black/10 shrink-0 cursor-pointer relative z-10"
-        >
-          <Zap className="w-4 h-4 text-amber-500 fill-amber-500 animate-bounce" />
-          <span>Ikuti Ujian Baru</span>
-        </Link>
+        <div className="flex flex-wrap items-center gap-3 relative z-10">
+          <Link 
+            to="/scan-presensi-siswa"
+            className="bg-amber-400 hover:bg-amber-300 text-amber-950 px-5 py-3.5 rounded-full font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shrink-0 cursor-pointer border border-amber-300"
+          >
+            <Camera className="w-4 h-4 text-amber-950" />
+            <span>Scan Presensi Kelas</span>
+          </Link>
+
+          <Link 
+            to="/daftar-ujian-siswa"
+            className="bg-white text-[#6D28D9] hover:bg-purple-50 px-5 py-3.5 rounded-full font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-black/10 shrink-0 cursor-pointer"
+          >
+            <Zap className="w-4 h-4 text-amber-500 fill-amber-500 animate-bounce" />
+            <span>Ikuti Ujian Baru</span>
+          </Link>
+        </div>
       </div>
 
       {/* Ongoing Exams Banner (Compact Alert Strip) */}

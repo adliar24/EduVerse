@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, Suspense } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { 
   Database, 
@@ -10,10 +10,12 @@ import {
   Loader2, 
   User, 
   ShieldAlert,
-  Save
+  Save,
+  MapPin,
+  QrCode,
+  CheckCircle2
 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { Header } from './Layout';
 import { Button, Card, Modal, ConfirmModal } from '../components/UI';
 import { useAlert } from '../context/AlertContext';
 import { useSchool } from '../context/SchoolContext';
@@ -31,72 +33,223 @@ export default function SystemSettings() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [user, setUser] = useState<any>(null);
+  const [userRole, setUserRole] = useState<string>('guru');
   const [isSyncing, setIsSyncing] = useState(false);
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
-  const [canInstall, setCanInstall] = useState(false);
+
+  // Super Admin Location Settings State
+  const [lat, setLat] = useState<string>('-6.914744');
+  const [lng, setLng] = useState<string>('107.609810');
+  const [radius, setRadius] = useState<number>(150);
+  const [isSavingGps, setIsSavingGps] = useState(false);
+  const [isGeneratingBulkQr, setIsGeneratingBulkQr] = useState(false);
 
   useEffect(() => {
-    // Check PWA installer availability
-    const handleInstallable = (e: any) => {
-      if (e.detail) setCanInstall(true);
-    };
-    window.addEventListener('pwa-installable', handleInstallable);
-    
-    if (window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone) {
-      setCanInstall(false);
-    }
-
-    // Get current auth user
+    // Check current auth user & role
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user || null);
+      const u = session?.user || null;
+      setUser(u);
+      if (u) {
+        const role = u.user_metadata?.role || 'guru';
+        setUserRole(role);
+      }
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user || null);
+      const u = session?.user || null;
+      setUser(u);
+      if (u) {
+        const role = u.user_metadata?.role || 'guru';
+        setUserRole(role);
+      }
     });
 
+    // Load School GPS config
+    loadSchoolGpsSettings();
+
     return () => {
-      window.removeEventListener('pwa-installable', handleInstallable);
       subscription.unsubscribe();
     };
-  }, []);
+  }, [activeSchool]);
 
-  const handleInstallApp = async () => {
-    const win = window as any;
-    if (win.deferredPrompt) {
-      win.deferredPrompt.prompt();
-      const { outcome } = await win.deferredPrompt.userChoice;
-      if (outcome === 'accepted') {
-        setCanInstall(false);
-        win.deferredPrompt = null;
+  const loadSchoolGpsSettings = async () => {
+    const localLat = localStorage.getItem('school_lat') || '-6.914744';
+    const localLng = localStorage.getItem('school_lng') || '107.609810';
+    const localRadius = localStorage.getItem('school_radius') || '150';
+
+    setLat(localLat);
+    setLng(localLng);
+    setRadius(parseInt(localRadius));
+
+    if (activeSchool?.id) {
+      try {
+        const { data } = await supabase
+          .from('schools')
+          .select('latitude, longitude, radius_meters')
+          .eq('id', activeSchool.id)
+          .maybeSingle();
+
+        if (data) {
+          if (data.latitude) {
+            setLat(String(data.latitude));
+            localStorage.setItem('school_lat', String(data.latitude));
+          }
+          if (data.longitude) {
+            setLng(String(data.longitude));
+            localStorage.setItem('school_lng', String(data.longitude));
+          }
+          if (data.radius_meters) {
+            setRadius(data.radius_meters);
+            localStorage.setItem('school_radius', String(data.radius_meters));
+          }
+        }
+      } catch (e) {
+        console.warn("School GPS fetch notice:", e);
       }
     }
   };
 
-  const handleImportExcelData = async () => {
-    setIsSyncing(true);
+  const handleSaveGpsSettings = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSavingGps(true);
     try {
-      const { seedExcelDataToLocalAndCloud } = await import('../services/excelDataSeed');
-      const res = await seedExcelDataToLocalAndCloud();
-      if (res.success) {
-        showAlert({
-          title: 'Impor Berhasil!',
-          message: `Berhasil mengimpor ${res.countClasses} Kelas dan ${res.countStudents} Murid untuk SMAN 19 Bandung ke database lokal dan Cloud.`,
-          type: 'success'
-        });
-        await refreshSchools();
-      } else {
-        throw new Error('Gagal mengimpor data Excel');
+      localStorage.setItem('school_lat', lat.trim());
+      localStorage.setItem('school_lng', lng.trim());
+      localStorage.setItem('school_radius', String(radius));
+
+      if (activeSchool?.id && activeSchool.id !== 'legacy') {
+        await supabase
+          .from('schools')
+          .update({
+            latitude: parseFloat(lat.trim()),
+            longitude: parseFloat(lng.trim()),
+            radius_meters: radius
+          })
+          .eq('id', activeSchool.id);
       }
-    } catch (err: any) {
-      console.error(err);
+
       showAlert({
-        title: 'Gagal Impor',
-        message: err.message || 'Terjadi kesalahan saat mengimpor data.',
+        title: 'Berhasil Disimpan',
+        message: `Koordinat GPS (${lat}, ${lng}) dan radius ${radius}m berhasil diperbarui untuk seluruh murid.`,
+        type: 'success'
+      });
+    } catch (err: any) {
+      showAlert({
+        title: 'Gagal',
+        message: err.message || 'Gagal menyimpan pengaturan lokasi GPS.',
         type: 'error'
       });
     } finally {
-      setIsSyncing(false);
+      setIsSavingGps(false);
+    }
+  };
+
+  const handleGetCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      showAlert({ title: 'Gagal', message: 'Browser Anda tidak mendukung Geolocation.', type: 'error' });
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setLat(pos.coords.latitude.toFixed(6));
+        setLng(pos.coords.longitude.toFixed(6));
+        showAlert({ title: 'Lokasi Terdeteksi', message: 'Koordinat GPS terkini berhasil dipasang.', type: 'success' });
+      },
+      (err) => {
+        showAlert({ title: 'Gagal', message: `Gagal mengambil lokasi: ${err.message}`, type: 'error' });
+      },
+      { enableHighAccuracy: true }
+    );
+  };
+
+  const handleBulkPrintClassQr = async () => {
+    setIsGeneratingBulkQr(true);
+    try {
+      const localState = await getFullState();
+      const classesList = localState.classes || [];
+      if (classesList.length === 0) {
+        showAlert({ title: 'Peringatan', message: 'Belum ada kelas terdaftar untuk dicetak QR.', type: 'error' });
+        return;
+      }
+
+      const QRCode = (await import('qrcode')).default;
+      const JSZip = (await import('jszip')).default;
+      const zip = new JSZip();
+      const folder = zip.folder("QR_CODE_POSTER_KELAS");
+
+      for (const cls of classesList) {
+        const cId = String(cls.id || cls.idKelas);
+        const cName = cls.name || cls.namaKelas || 'Kelas';
+
+        // Draw Poster Canvas 600x800
+        const canvas = document.createElement('canvas');
+        canvas.width = 600;
+        canvas.height = 800;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) continue;
+
+        // Background
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, 600, 800);
+
+        // Header Gradient
+        const grd = ctx.createLinearGradient(0, 0, 600, 0);
+        grd.addColorStop(0, "#4C1D95");
+        grd.addColorStop(1, "#7C3AED");
+        ctx.fillStyle = grd;
+        ctx.fillRect(0, 0, 600, 160);
+
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "bold 34px 'Inter', sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText("QR CODE ABSENSI KELAS", 300, 75);
+
+        ctx.font = "500 18px 'Inter', sans-serif";
+        ctx.fillStyle = "#E9D5FF";
+        ctx.fillText(activeSchool?.name || "SMAN 19 BANDUNG", 300, 115);
+
+        // Draw QR
+        const qrDataUrl = await QRCode.toDataURL(`CLASS_QR:${cId}`, { width: 380, margin: 1 });
+        const qrImg = new Image();
+        qrImg.src = qrDataUrl;
+        await new Promise(r => qrImg.onload = r);
+        ctx.drawImage(qrImg, 110, 220, 380, 380);
+
+        // Footer Box
+        ctx.fillStyle = "#F5F3FF";
+        ctx.fillRect(50, 640, 500, 100);
+        ctx.strokeStyle = "#DDD6FE";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(50, 640, 500, 100);
+
+        ctx.fillStyle = "#4C1D95";
+        ctx.font = "bold 36px 'Inter', sans-serif";
+        ctx.fillText(`KELAS ${cName.toUpperCase()}`, 300, 690);
+
+        ctx.fillStyle = "#6B7280";
+        ctx.font = "bold 14px 'Inter', sans-serif";
+        ctx.fillText("Scan via Aplikasi EduVerse • Jam 06.30 - 06.45 WIB", 300, 722);
+
+        const blob = await new Promise<Blob | null>(res => canvas.toBlob(res, 'image/png'));
+        if (blob && folder) {
+          folder.file(`POSTER_QR_KELAS_${cName.replace(/\s+/g, '_')}.png`, blob);
+        }
+      }
+
+      const zipContent = await zip.generateAsync({ type: "blob" });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(zipContent);
+      link.download = `SEMAU_POSTER_QR_KELAS_${new Date().toISOString().slice(0, 10)}.zip`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      showAlert({ title: 'Berhasil', message: `Berhasil mengunduh ${classesList.length} poster QR Code kelas dalam file ZIP.`, type: 'success' });
+    } catch (err: any) {
+      console.error(err);
+      showAlert({ title: 'Gagal', message: 'Terjadi kesalahan saat generate massal QR kelas.', type: 'error' });
+    } finally {
+      setIsGeneratingBulkQr(false);
     }
   };
 
@@ -104,11 +257,8 @@ export default function SystemSettings() {
     if (!user) return;
     setIsSyncing(true);
     try {
-      // 1. Sync Attendance Database
       const syncService = await loadSyncService();
       await syncService.syncDrive();
-
-      // 2. Sync Grading Database
       await syncLocalToCloud();
       await syncCloudToLocal();
 
@@ -140,11 +290,8 @@ export default function SystemSettings() {
       onConfirm: async () => {
         setIsSyncing(true);
         try {
-          // 1. Pull Attendance
           const syncService = await loadSyncService();
           await syncService.pullFromCloud();
-
-          // 2. Pull Grading
           await syncCloudToLocal();
 
           showAlert({
@@ -189,358 +336,184 @@ export default function SystemSettings() {
       link.click();
       document.body.removeChild(link);
 
-      showAlert({
-        title: 'Backup Berhasil',
-        message: 'File cadangan (.json) berhasil diunduh.',
-        type: 'success'
-      });
+      showAlert({ title: 'Backup Berhasil', message: 'File cadangan (.json) berhasil diunduh.', type: 'success' });
     } catch (err: any) {
       console.error(err);
-      showAlert({
-        title: 'Backup Gagal',
-        message: 'Gagal membuat file cadangan sistem.',
-        type: 'error'
-      });
-    }
-  };
-
-  const handleRestoreFromFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = async (ev) => {
-      try {
-        const data = JSON.parse(ev.target?.result as string);
-
-        if (data.app !== 'EduVerse') {
-          throw new Error('Format file tidak dikenal. Harus berupa file backup EduVerse.');
-        }
-
-        showAlert({
-          title: 'Pulihkan Sistem?',
-          message: 'Ini akan menimpa seluruh database lokal (Absensi & Nilai) dengan data dari file backup. Tindakan ini tidak dapat dibatalkan. Lanjutkan?',
-          type: 'confirm',
-          confirmText: 'Ya, Pulihkan',
-          onConfirm: async () => {
-            try {
-              // 1. Restore Attendance
-              if (data.attendance) {
-                const db = await initDB();
-                const tx = db.transaction(
-                  ['teacher', 'classes', 'students', 'sessions', 'records', 'schedules', 'events', 'cancellations'],
-                  'readwrite'
-                );
-                
-                const targetSchoolId = activeSchool?.id;
-                
-                if (data.attendance.teacher) await tx.objectStore('teacher').put(data.attendance.teacher);
-                if (data.attendance.classes && Array.isArray(data.attendance.classes)) {
-                  for (const c of data.attendance.classes) {
-                    if (targetSchoolId) {
-                      c.school_id = targetSchoolId;
-                      c.schoolId = targetSchoolId;
-                    }
-                    await tx.objectStore('classes').put(c);
-                  }
-                }
-                if (data.attendance.students && Array.isArray(data.attendance.students)) {
-                  for (const s of data.attendance.students) {
-                    if (targetSchoolId) {
-                      s.school_id = targetSchoolId;
-                      s.schoolId = targetSchoolId;
-                    }
-                    await tx.objectStore('students').put(s);
-                  }
-                }
-                if (data.attendance.sessions && Array.isArray(data.attendance.sessions)) {
-                  for (const s of data.attendance.sessions) {
-                    if (targetSchoolId) {
-                      s.school_id = targetSchoolId;
-                      s.schoolId = targetSchoolId;
-                    }
-                    await tx.objectStore('sessions').put(s);
-                  }
-                }
-                if (data.attendance.records && Array.isArray(data.attendance.records)) {
-                  for (const r of data.attendance.records) {
-                    if (targetSchoolId) {
-                      r.school_id = targetSchoolId;
-                      r.schoolId = targetSchoolId;
-                    }
-                    await tx.objectStore('records').put(r);
-                  }
-                }
-                if (data.attendance.schedules && Array.isArray(data.attendance.schedules)) {
-                  for (const s of data.attendance.schedules) {
-                    if (targetSchoolId) {
-                      s.school_id = targetSchoolId;
-                      s.schoolId = targetSchoolId;
-                    }
-                    await tx.objectStore('schedules').put(s);
-                  }
-                }
-                if (data.attendance.events && Array.isArray(data.attendance.events)) {
-                  for (const ev of data.attendance.events) {
-                    if (targetSchoolId) {
-                      ev.school_id = targetSchoolId;
-                      ev.schoolId = targetSchoolId;
-                    }
-                    await tx.objectStore('events').put(ev);
-                  }
-                }
-                if (data.attendance.cancellations && Array.isArray(data.attendance.cancellations)) {
-                  for (const c of data.attendance.cancellations) {
-                    if (targetSchoolId) {
-                      c.school_id = targetSchoolId;
-                      c.schoolId = targetSchoolId;
-                    }
-                    await tx.objectStore('cancellations').put(c);
-                  }
-                }
-                await tx.done;
-              }
-
-              // 2. Restore Grading
-              if (data.grading) {
-                await restoreBackup(data.grading, 'full');
-              }
-
-              // 3. Auto-push restored data to Supabase Cloud
-              try {
-                const { syncService } = await import('../services/sync');
-                if (syncService.isConfigured()) {
-                  const user = await syncService.getUser();
-                  if (user) {
-                    await syncService.pushToCloud();
-                    const { syncLocalToCloud } = await import('../services/dbGrading');
-                    await syncLocalToCloud();
-                  }
-                }
-              } catch (syncErr) {
-                console.error("Auto sync after restore failed:", syncErr);
-              }
-
-              showAlert({
-                title: 'Berhasil',
-                message: 'Pemulihan data selesai. Data telah disinkronkan ke Cloud dan sistem akan dimuat ulang.',
-                type: 'success'
-              });
-              setTimeout(() => {
-                window.location.reload();
-              }, 1500);
-            } catch (restoreErr: any) {
-              console.error("Restore error in database transaction:", restoreErr);
-              showAlert({
-                title: 'Gagal Memulihkan',
-                message: restoreErr.message || 'Gagal menyimpan data ke IndexedDB. Periksa konsol browser.',
-                type: 'error'
-              });
-            }
-          }
-        });
-      } catch (err: any) {
-        console.error(err);
-        showAlert({
-          title: 'Gagal Pulihkan',
-          message: err.message || 'File tidak valid atau rusak.',
-          type: 'error'
-        });
-      } finally {
-        if (fileInputRef.current) fileInputRef.current.value = '';
-      }
-    };
-    reader.readAsText(file);
-  };
-
-  const handleConfirmReset = async () => {
-    try {
-      // Clear databases
-      await resetAllData();
-      await resetGradingDB();
-      localStorage.removeItem('student_session');
-      window.dispatchEvent(new Event('student_session_change'));
-
-      showAlert({
-        title: 'Sistem Direset',
-        message: 'Seluruh database telah dibersihkan. Memuat ulang sistem...',
-        type: 'success',
-        onConfirm: () => {
-          window.dispatchEvent(new Event('trigger_fluid_logout'));
-        }
-      });
-      setTimeout(() => {
-        window.location.href = '/login';
-      }, 1500);
-    } catch (err: any) {
-      console.error(err);
-      showAlert({
-        title: 'Gagal Reset',
-        message: 'Gagal membersihkan database.',
-        type: 'error'
-      });
+      showAlert({ title: 'Backup Gagal', message: 'Gagal membuat file cadangan sistem.', type: 'error' });
     }
   };
 
   return (
-    <div className="space-y-6 pb-10">
-      <div>
-        <h2 className="text-3xl font-bold text-indigo-950 tracking-tight">Cadangan & Pemulihan</h2>
-        <p className="text-slate-500 font-medium mt-1">Kelola pencadangan dan pemulihan data sistem EduVerse secara manual.</p>
+    <div className="space-y-6 max-w-5xl mx-auto pb-12">
+      {/* Header Banner */}
+      <div className="bg-gradient-to-r from-[#3B0764] via-[#5B21B6] to-[#7C3AED] text-white p-6 sm:p-8 rounded-[2.5rem] shadow-purple-glow flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <span className="text-[10px] uppercase font-extrabold tracking-widest px-3 py-1 bg-white/15 backdrop-blur-md rounded-full text-amber-300 border border-white/20">
+            ⚙️ System & GPS Configuration
+          </span>
+          <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight mt-2">Pengaturan Sistem & Lokasi</h1>
+          <p className="text-purple-200/90 text-xs sm:text-sm font-medium mt-1">
+            Kelola sinkronisasi cloud, lokasi GPS sekolah, dan cetak massal poster QR Code kelas.
+          </p>
+        </div>
       </div>
 
-      <div className="max-w-5xl mx-auto space-y-6">
-        {/* Cloud Sync Card */}
-        <Card className="p-6 bg-white/70 backdrop-blur-xl border border-white/40 shadow-sm">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="bg-gradient-to-br from-[#3B66F5] to-[#1D4ED8] p-2.5 rounded-xl text-white">
-              <Cloud className="w-6 h-6" />
-            </div>
-            <div>
-              <h3 className="font-bold text-indigo-950 text-lg">Sinkronisasi Cloud</h3>
-              <p className="text-slate-400 text-xs mt-0.5 font-medium">Kirim atau tarik data dari Supabase secara manual.</p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <Button 
-              onClick={handleSyncToCloud}
-              disabled={isSyncing || !user}
-              className="w-full !py-3 font-semibold text-sm flex items-center justify-center gap-2 bg-gradient-to-r from-[#3B66F5] to-[#1D4ED8] text-white rounded-xl"
-            >
-              {isSyncing ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Upload className="w-4 h-4" />
-              )}
-              {isSyncing ? 'Mengirim...' : 'Upload ke Cloud'}
-            </Button>
-
-            <Button 
-              onClick={handlePullFromCloud}
-              disabled={isSyncing || !user}
-              variant="secondary"
-              className="w-full !py-3 font-semibold text-sm border border-slate-200 flex items-center justify-center gap-2"
-            >
-              {isSyncing ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Download className="w-4 h-4 text-indigo-950" />
-              )}
-              {isSyncing ? 'Memuat...' : 'Tarik dari Cloud'}
-            </Button>
-
-            <Button 
-              onClick={handleImportExcelData}
-              disabled={isSyncing}
-              variant="secondary"
-              className="w-full !py-3 font-semibold text-sm bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 flex items-center justify-center gap-2 rounded-xl"
-            >
-              {isSyncing ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Database className="w-4 h-4 text-emerald-600" />
-              )}
-              Impor Excel (15 Kelas & 669 Murid)
-            </Button>
-          </div>
-
-          {!user && (
-            <p className="text-amber-600 text-xs mt-3 font-medium text-center">Login terlebih dahulu untuk sinkronisasi.</p>
-          )}
-        </Card>
-
-        {/* Local Backup Card */}
-        <Card className="p-6 bg-white/70 backdrop-blur-xl border border-white/40 shadow-sm">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="bg-indigo-50 p-2.5 rounded-xl text-indigo-600">
-              <Database className="w-6 h-6" />
-            </div>
-            <div>
-              <h3 className="font-bold text-indigo-950 text-lg">Pencadangan File Lokal</h3>
-              <p className="text-slate-400 text-xs mt-0.5 font-medium">Ekspor dan impor database secara manual melalui file JSON.</p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <Button 
-              onClick={handleBackupToFile}
-              variant="secondary"
-              className="w-full !py-3 font-semibold text-sm border border-slate-200 flex items-center justify-center gap-2"
-            >
-              <Save className="w-4 h-4 text-indigo-950" />
-              Unduh Backup (.json)
-            </Button>
-
-            <div>
-              <input 
-                type="file" 
-                accept=".json" 
-                ref={fileInputRef} 
-                onChange={handleRestoreFromFile} 
-                className="hidden" 
-              />
-              <Button 
-                onClick={() => fileInputRef.current?.click()}
-                variant="secondary"
-                className="w-full !py-3 font-semibold text-sm border border-slate-200 flex items-center justify-center gap-2"
-              >
-                <Upload className="w-4 h-4 text-indigo-950" />
-                Pulihkan dari File (.json)
-              </Button>
-            </div>
-          </div>
-        </Card>
-
-        {/* PWA Installer */}
-        {canInstall && (
-          <Card className="p-6 bg-indigo-50/50 border border-indigo-100 shadow-none">
-            <div className="flex items-center justify-between">
-              <div>
-                <h4 className="font-bold text-indigo-950">Instal Aplikasi EduVerse</h4>
-                <p className="text-slate-500 text-sm mt-0.5">Jalankan EduVerse sebagai aplikasi desktop/mobile mandiri.</p>
-              </div>
-              <Button onClick={handleInstallApp} className="shadow-none text-xs font-semibold px-4 py-2">
-                Instal Sekarang
-              </Button>
-            </div>
-          </Card>
-        )}
-
-        {/* Reset System Card */}
-        <Card className="p-6 bg-rose-50 border border-rose-100 shadow-none">
-          <div className="flex items-center justify-between">
-            <div className="flex gap-3">
-              <div className="text-rose-600 bg-rose-100 p-2 rounded-xl h-fit">
-                <ShieldAlert className="w-5 h-5" />
+      {/* Super Admin Section - Location & Bulk Print */}
+      {userRole === 'guru' && (
+        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+          <div className="bg-white rounded-[2.5rem] p-6 sm:p-8 border border-purple-100/80 shadow-tactile space-y-6">
+            <div className="flex items-center gap-3.5 pb-4 border-b border-purple-100/80">
+              <div className="w-12 h-12 rounded-2xl bg-purple-100 text-[#6D28D9] flex items-center justify-center font-bold shadow-sm">
+                <MapPin className="w-6 h-6" />
               </div>
               <div>
-                <h4 className="font-bold text-rose-950">Zona Bahaya</h4>
-                <p className="text-rose-800/80 text-sm mt-0.5">Reset aplikasi akan menghapus seluruh data absensi, nilai, kelas, dan profil guru secara permanen.</p>
+                <h3 className="text-lg font-black text-slate-900 tracking-tight">Koordinat & Radius GPS Sekolah (Khusus Super Admin)</h3>
+                <p className="text-xs text-slate-500 font-medium">Batas lokasi radius murid diperbolehkan menscan QR kelas saat presensi mandiri.</p>
               </div>
             </div>
-            <Button 
-              variant="danger" 
-              onClick={() => setIsResetModalOpen(true)} 
-              className="text-xs font-semibold px-4 py-2"
-            >
-              Reset Semua Data
-            </Button>
+
+            <form onSubmit={handleSaveGpsSettings} className="space-y-5">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-extrabold text-slate-700 ml-0.5">Latitude (Lintang)</label>
+                  <input
+                    type="text"
+                    required
+                    value={lat}
+                    onChange={(e) => setLat(e.target.value)}
+                    className="w-full px-4 py-3 rounded-2xl border border-purple-100 bg-purple-50/40 outline-none focus:bg-white focus:border-[#6D28D9] focus:ring-2 focus:ring-[#6D28D9]/20 transition-all font-semibold text-xs sm:text-sm"
+                    placeholder="-6.914744"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-extrabold text-slate-700 ml-0.5">Longitude (Bujur)</label>
+                  <input
+                    type="text"
+                    required
+                    value={lng}
+                    onChange={(e) => setLng(e.target.value)}
+                    className="w-full px-4 py-3 rounded-2xl border border-purple-100 bg-purple-50/40 outline-none focus:bg-white focus:border-[#6D28D9] focus:ring-2 focus:ring-[#6D28D9]/20 transition-all font-semibold text-xs sm:text-sm"
+                    placeholder="107.609810"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-extrabold text-slate-700 ml-0.5">Radius Maksimal (Meter)</label>
+                  <input
+                    type="number"
+                    required
+                    min={10}
+                    max={2000}
+                    value={radius}
+                    onChange={(e) => setRadius(parseInt(e.target.value) || 150)}
+                    className="w-full px-4 py-3 rounded-2xl border border-purple-100 bg-purple-50/40 outline-none focus:bg-white focus:border-[#6D28D9] focus:ring-2 focus:ring-[#6D28D9]/20 transition-all font-semibold text-xs sm:text-sm"
+                    placeholder="150"
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={handleGetCurrentLocation}
+                  className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs rounded-full transition-all flex items-center gap-2 cursor-pointer"
+                >
+                  <MapPin className="w-4 h-4 text-purple-600" />
+                  <span>Deteksi Lokasi Saya Sekarang</span>
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={isSavingGps}
+                  className="px-6 py-3 bg-gradient-to-r from-[#5B21B6] via-[#6D28D9] to-[#7C3AED] text-white font-extrabold text-xs rounded-full hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-purple-600/30 flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                >
+                  {isSavingGps ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                  <span>Simpan Lokasi GPS Sekolah</span>
+                </button>
+              </div>
+            </form>
           </div>
-        </Card>
+
+          {/* Bulk Class QR Print Card */}
+          <div className="bg-white rounded-[2.5rem] p-6 sm:p-8 border border-purple-100/80 shadow-tactile flex flex-col md:flex-row md:items-center justify-between gap-5">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold shrink-0 shadow-sm">
+                <QrCode className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-lg font-black text-slate-900 tracking-tight">Cetak Massal QR Code Poster Kelas</h3>
+                <p className="text-xs text-slate-500 font-medium mt-0.5">Unduh sekaligus seluruh poster A4 QR Code Kelas sekolah dalam file ZIP.</p>
+              </div>
+            </div>
+
+            <button
+              onClick={handleBulkPrintClassQr}
+              disabled={isGeneratingBulkQr}
+              className="px-6 py-3.5 bg-gradient-to-r from-amber-500 to-orange-600 text-white font-extrabold text-xs sm:text-sm rounded-full hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-amber-500/25 flex items-center justify-center gap-2.5 shrink-0 cursor-pointer disabled:opacity-50 border border-white/20"
+            >
+              {isGeneratingBulkQr ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+              <span>Cetak Semua QR Kelas (ZIP)</span>
+            </button>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Backup & Cloud Sync Actions */}
+      <div className="bg-white rounded-[2.5rem] p-6 sm:p-8 border border-purple-100/80 shadow-tactile space-y-6">
+        <div className="flex items-center gap-3.5 pb-4 border-b border-purple-100/80">
+          <div className="w-12 h-12 rounded-2xl bg-blue-100 text-blue-700 flex items-center justify-center font-bold shadow-sm">
+            <Cloud className="w-6 h-6" />
+          </div>
+          <div>
+            <h3 className="text-lg font-black text-slate-900 tracking-tight">Sinkronisasi Cloud & Cadangan Data</h3>
+            <p className="text-xs text-slate-500 font-medium">Cadangkan database atau lakukan sinkronisasi real-time ke cloud Supabase.</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <button
+            onClick={handleSyncToCloud}
+            disabled={isSyncing || !user}
+            className="p-5 rounded-3xl bg-purple-50/50 border border-purple-100 hover:border-[#6D28D9] text-left transition-all group flex flex-col justify-between cursor-pointer disabled:opacity-50"
+          >
+            <div className="w-10 h-10 rounded-2xl bg-[#6D28D9]/10 text-[#6D28D9] flex items-center justify-center mb-3 group-hover:bg-[#6D28D9] group-hover:text-white transition-colors">
+              <RefreshCw className={cn("w-5 h-5", isSyncing && "animate-spin")} />
+            </div>
+            <div>
+              <h4 className="font-extrabold text-sm text-slate-900">Upload ke Cloud</h4>
+              <p className="text-xs text-slate-500 mt-1">Kirim seluruh data lokal ke database Supabase</p>
+            </div>
+          </button>
+
+          <button
+            onClick={handlePullFromCloud}
+            disabled={isSyncing || !user}
+            className="p-5 rounded-3xl bg-blue-50/50 border border-blue-100 hover:border-blue-600 text-left transition-all group flex flex-col justify-between cursor-pointer disabled:opacity-50"
+          >
+            <div className="w-10 h-10 rounded-2xl bg-blue-600/10 text-blue-600 flex items-center justify-center mb-3 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+              <Download className="w-5 h-5" />
+            </div>
+            <div>
+              <h4 className="font-extrabold text-sm text-slate-900">Tarik dari Cloud</h4>
+              <p className="text-xs text-slate-500 mt-1">Perbarui database lokal dengan data cloud terbaru</p>
+            </div>
+          </button>
+
+          <button
+            onClick={handleBackupToFile}
+            className="p-5 rounded-3xl bg-emerald-50/50 border border-emerald-100 hover:border-emerald-600 text-left transition-all group flex flex-col justify-between cursor-pointer"
+          >
+            <div className="w-10 h-10 rounded-2xl bg-emerald-600/10 text-emerald-600 flex items-center justify-center mb-3 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+              <Database className="w-5 h-5" />
+            </div>
+            <div>
+              <h4 className="font-extrabold text-sm text-slate-900">Unduh Backup JSON</h4>
+              <p className="text-xs text-slate-500 mt-1">Simpan cadangan lokal ke file berkas terenkripsi</p>
+            </div>
+          </button>
+        </div>
       </div>
-
-      {/* Reset Confirmation Modal */}
-      <ConfirmModal 
-        isOpen={isResetModalOpen}
-        onClose={() => setIsResetModalOpen(false)}
-        onConfirm={handleConfirmReset}
-        title="Konfirmasi Reset Total"
-        description="Apakah Anda yakin ingin menghapus seluruh data di aplikasi ini secara permanen? Semua data kelas, siswa, absensi, dan nilai akan hilang."
-        confirmText="Ya, Hapus Semua"
-        cancelText="Batal"
-        variant="danger"
-      />
     </div>
   );
 }

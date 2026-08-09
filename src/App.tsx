@@ -39,6 +39,7 @@ const ScanUjian = lazy(() => import('./pages/ScanUjian'));
 const KelolaSiswa = lazy(() => import('./pages/KelolaSiswa'));
 const KelolaMateriTugas = lazy(() => import('./pages/KelolaMateriTugas'));
 const MateriTugasSiswa = lazy(() => import('./pages/student/MateriTugasSiswa'));
+const StudentScanPresensi = lazy(() => import('./pages/student/StudentScanPresensi'));
 
 // EduCheck (Attendance) Pages
 const AttendanceScan = lazy(() => import('./pages/attendance/Attendance').then(m => ({ default: m.Attendance })));
@@ -253,6 +254,7 @@ function AnimatedRoutes({ session, studentSession, profileCompleted, userRole }:
         <Route path="/profil" element={session || studentSession ? <Profil /> : <Navigate to="/login" />} />
         <Route path="/daftar-ujian-siswa" element={studentSession ? <StudentJoin isDashboardView={true} /> : <Navigate to="/login" />} />
         <Route path="/materi-tugas-siswa" element={studentSession ? <MateriTugasSiswa /> : <Navigate to="/login" />} />
+        <Route path="/scan-presensi-siswa" element={studentSession ? <StudentScanPresensi /> : <Navigate to="/login" />} />
         <Route path="/settings/sync" element={session && userRole === 'guru' ? <SystemSettings /> : <Navigate to="/dashboard" />} />
 
         {/* EduCheck (Attendance) Routes */}
