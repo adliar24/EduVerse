@@ -39,6 +39,32 @@ const handleChunkError = (err: any) => {
 window.addEventListener('error', handleChunkError, true);
 window.addEventListener('unhandledrejection', handleChunkError);
 
+// Auto-update Service Worker logic across devices (ultra lightweight byte-check)
+if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.ready.then((registration) => {
+      // Check for update on initial load
+      registration.update();
+
+      // Check every 15 minutes, but ONLY if tab is active and user is online
+      setInterval(() => {
+        if (document.visibilityState === 'visible' && navigator.onLine) {
+          registration.update();
+        }
+      }, 15 * 60 * 1000);
+    });
+  });
+
+  // Reload page smoothly when a new Service Worker takes control
+  let refreshing = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!refreshing) {
+      refreshing = true;
+      window.location.reload();
+    }
+  });
+}
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <App />

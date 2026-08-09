@@ -16,6 +16,9 @@ export default defineConfig(({mode}) => {
           enabled: true
         },
         workbox: {
+          skipWaiting: true,
+          clientsClaim: true,
+          cleanupOutdatedCaches: true,
           globPatterns: [
             'index.html',
             'manifest.webmanifest',
@@ -43,15 +46,14 @@ export default defineConfig(({mode}) => {
               }
             },
             {
-              // Lazy chunks (route pages + deferred heavy libs like xlsx/html2pdf)
-              // are NOT precached, so they download on first use instead of at install.
+              // Use NetworkFirst for app assets/chunks to automatically pull latest version without stale cache issues
               urlPattern: /\/assets\/.*\.(js|css)$/,
-              handler: 'CacheFirst',
+              handler: 'NetworkFirst',
               options: {
                 cacheName: 'app-chunks',
                 expiration: {
                   maxEntries: 80,
-                  maxAgeSeconds: 60 * 60 * 24 * 30,
+                  maxAgeSeconds: 60 * 60 * 24 * 7,
                 },
                 cacheableResponse: {
                   statuses: [0, 200]

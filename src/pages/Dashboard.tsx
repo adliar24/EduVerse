@@ -173,10 +173,10 @@ export default function Dashboard() {
       let calculatedGrade = 0;
 
       try {
-        let examQuery = validUid ? supabase.from('exams').select('id', { count: 'exact' }).or(`teacher_id.eq.${validUid},school_id.eq.${targetSchoolId}`) : supabase.from('exams').select('id', { count: 'exact' }).eq('school_id', targetSchoolId);
+        let examQuery = validUid ? supabase.from('exams').select('id', { count: 'exact' }).or(`teacher_id.eq.${validUid},school_id.eq.${targetSchoolId}`) : supabase.from('exams').select('id', { count: 'exact' });
         let questionQuery = validUid ? supabase.from('questions').select('id', { count: 'exact' }).eq('teacher_id', validUid) : supabase.from('questions').select('id', { count: 'exact' });
-        let classQuery = validUid ? supabase.from('classes').select('id', { count: 'exact' }).or(`teacher_id.eq.${validUid},school_id.eq.${targetSchoolId}`) : supabase.from('classes').select('id', { count: 'exact' }).eq('school_id', targetSchoolId);
-        let studentQuery = validUid ? supabase.from('students').select('id', { count: 'exact' }).or(`teacher_id.eq.${validUid},school_id.eq.${targetSchoolId}`) : supabase.from('students').select('id', { count: 'exact' }).eq('school_id', targetSchoolId);
+        let classQuery = validUid ? supabase.from('classes').select('id', { count: 'exact' }).or(`teacher_id.eq.${validUid},school_id.eq.${targetSchoolId}`) : supabase.from('classes').select('id', { count: 'exact' });
+        let studentQuery = validUid ? supabase.from('students').select('id', { count: 'exact' }).or(`teacher_id.eq.${validUid},school_id.eq.${targetSchoolId}`) : supabase.from('students').select('id', { count: 'exact' });
         let attendanceQuery = validUid
           ? supabase.from('attendance_records').select('status,count(*)').or(`teacher_id.eq.${validUid},school_id.eq.${targetSchoolId}`)
           : supabase.from('attendance_records').select('status,count(*)').eq('school_id', targetSchoolId);
@@ -200,19 +200,19 @@ export default function Dashboard() {
           scoreQuery
         ]);
 
-        examCount = examRes.count || 0;
-        questionCount = questionRes.count || 0;
-        classCount = classRes.count || 0;
-        studentCount = studentRes.count || 0;
+        examCount = examRes.count ?? (examRes.data?.length || 0);
+        questionCount = questionRes.count ?? (questionRes.data?.length || 0);
+        classCount = classRes.count ?? (classRes.data?.length || 0);
+        studentCount = studentRes.count ?? (studentRes.data?.length || 0);
 
-        const attendanceByStatus = (attAgg.data || []) as { status: string | null; count: number }[];
+        const attendanceByStatus = (attAgg.data as unknown as { status: string | null; count: number }[]) || [];
         attendanceTotal = attendanceByStatus.reduce((acc, r) => acc + (Number(r.count) || 0), 0);
         const attendancePresent = attendanceByStatus
           .filter(r => r.status === 'Hadir' || r.status === 'Terlambat')
           .reduce((acc, r) => acc + (Number(r.count) || 0), 0);
         calculatedAttendance = attendanceTotal > 0 ? Math.round((attendancePresent / attendanceTotal) * 100) : 0;
 
-        const scoreRow = (scoreAgg.data || [])[0] as { avg: number | null; count: number } | undefined;
+        const scoreRow = (scoreAgg.data as unknown as { avg: number | null; count: number }[])?.[0];
         scoreTotal = Number(scoreRow?.count) || 0;
         const scoreAvg = Number(scoreRow?.avg);
         calculatedGrade = !isNaN(scoreAvg) ? Math.round(scoreAvg * 10) / 10 : 0;
