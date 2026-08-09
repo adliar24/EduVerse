@@ -42,12 +42,32 @@ export const SEED_CLASSES: SeedClass[] = [
     "mapel": "Seni Rupa"
   },
   {
+    "id": "00000000-0000-4000-8000-00002da5570b",
+    "name": "X-B",
+    "subject": "Informatika",
+    "schoolId": "fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7",
+    "school_id": "fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7",
+    "idKelas": "00000000-0000-4000-8000-00002da5570b",
+    "namaKelas": "X-B",
+    "mapel": "Informatika"
+  },
+  {
     "id": "00000000-0000-4000-8000-00002da5570c",
+    "name": "X-C",
+    "subject": "Informatika",
+    "schoolId": "fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7",
+    "school_id": "fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7",
+    "idKelas": "00000000-0000-4000-8000-00002da5570c",
+    "namaKelas": "X-C",
+    "mapel": "Informatika"
+  },
+  {
+    "id": "00000000-0000-4000-8000-00002da5570d",
     "name": "X-D",
     "subject": "Seni Rupa",
     "schoolId": "fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7",
     "school_id": "fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7",
-    "idKelas": "00000000-0000-4000-8000-00002da5570c",
+    "idKelas": "00000000-0000-4000-8000-00002da5570d",
     "namaKelas": "X-D",
     "mapel": "Seni Rupa"
   },
@@ -12907,13 +12927,46 @@ export const SEED_STUDENTS: SeedStudent[] = [
   }
 ];
 
+export const SEED_SCHEDULES = [
+  // SENIN
+  { id: "sch-mon-1", dayName: "Senin", classId: "00000000-0000-4000-8000-0000563d469b", startTime: "07:45", endTime: "09:15", schoolId: "fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7" }, // XI-D
+  { id: "sch-mon-2", dayName: "Senin", classId: "00000000-0000-4000-8000-00002da5570b", startTime: "09:45", endTime: "11:15", schoolId: "fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7" }, // X-B
+  { id: "sch-mon-3", dayName: "Senin", classId: "00000000-0000-4000-8000-0000519d2ce9", startTime: "11:15", endTime: "13:10", schoolId: "fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7" }, // X-G
+  { id: "sch-mon-4", dayName: "Senin", classId: "00000000-0000-4000-8000-0000759502c6", startTime: "13:10", endTime: "14:20", schoolId: "fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7" }, // X-J
+
+  // SELASA
+  { id: "sch-tue-1", dayName: "Selasa", classId: "00000000-0000-4000-8000-000048701cc6", startTime: "07:30", endTime: "09:00", schoolId: "fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7" }, // XI-C
+  { id: "sch-tue-2", dayName: "Selasa", classId: "00000000-0000-4000-8000-00000fb56fb6", startTime: "10:15", endTime: "11:45", schoolId: "fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7" }, // X-F
+  { id: "sch-tue-3", dayName: "Selasa", classId: "00000000-0000-4000-8000-00002da5570c", startTime: "12:15", endTime: "13:35", schoolId: "fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7" }, // X-C
+  { id: "sch-tue-4", dayName: "Selasa", classId: "00000000-0000-4000-8000-00000b155604", startTime: "13:35", endTime: "14:55", schoolId: "fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7" }, // XI-E
+
+  // RABU
+  { id: "sch-wed-1", dayName: "Rabu", classId: "00000000-0000-4000-8000-00002da5570d", startTime: "06:45", endTime: "08:15", schoolId: "fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7" }, // X-D
+  { id: "sch-wed-2", dayName: "Rabu", classId: "00000000-0000-4000-8000-00004d103678", startTime: "08:15", endTime: "10:15", schoolId: "fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7" }, // X-H
+  { id: "sch-wed-3", dayName: "Rabu", classId: "00000000-0000-4000-8000-00002918609b", startTime: "10:15", endTime: "11:45", schoolId: "fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7" }, // X-K
+  { id: "sch-wed-4", dayName: "Rabu", classId: "00000000-0000-4000-8000-000014426627", startTime: "12:15", endTime: "13:35", schoolId: "fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7" }, // X-I
+  { id: "sch-wed-5", dayName: "Rabu", classId: "00000000-0000-4000-8000-000099887766", startTime: "13:35", endTime: "14:55", schoolId: "fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7" }, // XI-H
+
+  // KAMIS
+  { id: "sch-thu-1", dayName: "Kamis", classId: "00000000-0000-4000-8000-000009ad812f", startTime: "07:00", endTime: "08:30", schoolId: "fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7" }, // X-A
+  { id: "sch-thu-2", dayName: "Kamis", classId: "00000000-0000-4000-8000-000018e27fd9", startTime: "09:45", endTime: "11:15", schoolId: "fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7" }, // XI-B
+  { id: "sch-thu-3", dayName: "Kamis", classId: "00000000-0000-4000-8000-000071080c55", startTime: "11:15", endTime: "12:00", schoolId: "fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7" }, // X-E
+
+  // JUMAT
+  { id: "sch-fri-1", dayName: "Jumat", classId: "00000000-0000-4000-8000-0000324570be", startTime: "07:00", endTime: "08:30", schoolId: "fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7" }, // XI-G
+  { id: "sch-fri-2", dayName: "Jumat", classId: "00000000-0000-4000-8000-000071080c55", startTime: "08:30", endTime: "09:15", schoolId: "fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7" }, // X-E
+  { id: "sch-fri-3", dayName: "Jumat", classId: "00000000-0000-4000-8000-00006c67f2a3", startTime: "09:45", endTime: "11:15", schoolId: "fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7" }, // XI-F
+];
+
 export async function seedExcelDataToLocalAndCloud(): Promise<{ success: boolean; message: string }> {
   try {
-    const { addClassesBulk, addStudentsBulk } = await import('./dbAttendance');
-    const { putMany } = await import('./dbGrading');
+    const { addClassesBulk, addStudentsBulk, addSchedule } = await import('./dbAttendance');
     
     await addClassesBulk(SEED_CLASSES as any);
     await addStudentsBulk(SEED_STUDENTS as any);
+    for (const sch of SEED_SCHEDULES) {
+      await addSchedule(sch as any);
+    }
     
     return { success: true, message: 'Data seed berhasil diisi ke sistem lokal.' };
   } catch (err: any) {

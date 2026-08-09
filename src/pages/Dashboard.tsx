@@ -301,7 +301,10 @@ export default function Dashboard() {
 
       // 10. Teaching schedules
       try {
-        const allSchedules = localState.schedules || [];
+        const { SEED_SCHEDULES } = await import('../services/excelDataSeed');
+        const allSchedules = (localState.schedules && localState.schedules.length > 0)
+          ? localState.schedules
+          : SEED_SCHEDULES;
         const allClasses = Array.from(classMap.values());
         
         const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
