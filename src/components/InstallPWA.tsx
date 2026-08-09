@@ -10,9 +10,17 @@ export const InstallPWA: React.FC = () => {
   const [showIOSModal, setShowIOSModal] = useState(false);
 
   useEffect(() => {
-    // Check if app is already running in standalone mode (installed PWA)
-    if (window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone === true) {
+    // 1. Check persistent localStorage flag if user already installed PWA on this device/browser
+    const alreadyInstalledInStorage = localStorage.getItem('pwa_is_installed') === 'true';
+
+    // 2. Check if app is currently running in standalone mode (installed PWA)
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches 
+      || window.matchMedia('(display-mode: fullscreen)').matches 
+      || (window.navigator as any).standalone === true;
+
+    if (alreadyInstalledInStorage || isStandalone) {
       setIsInstalled(true);
+      setShowBanner(false);
       return;
     }
 
@@ -37,15 +45,24 @@ export const InstallPWA: React.FC = () => {
       setShowBanner(true);
     };
 
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    // Listen for browser native 'appinstalled' event (fires when installation completes)
+    const handleAppInstalled = () => {
+      setIsInstalled(true);
+      setShowBanner(false);
+      localStorage.setItem('pwa_is_installed', 'true');
+    };
 
-    // For iOS, show installation guide banner if not standalone
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('appinstalled', handleAppInstalled);
+
+    // For iOS, show installation guide banner if not standalone and not installed
     if (iosDevice) {
       setShowBanner(true);
     }
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
     };
   }, []);
 
@@ -63,6 +80,7 @@ export const InstallPWA: React.FC = () => {
     if (outcome === 'accepted') {
       setShowBanner(false);
       setIsInstalled(true);
+      localStorage.setItem('pwa_is_installed', 'true');
     }
     setDeferredPrompt(null);
   };
@@ -186,10 +204,15 @@ export const InstallPWA: React.FC = () => {
               </div>
 
               <button
-                onClick={() => setShowIOSModal(false)}
-                className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded-2xl transition-all shadow-lg shadow-blue-600/25"
+                onClick={() => {
+                  setShowIOSModal(false);
+                  setShowBanner(false);
+                  setIsInstalled(true);
+                  localStorage.setItem('pwa_is_installed', 'true');
+                }}
+                className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded-2xl transition-all shadow-lg shadow-blue-600/25 cursor-pointer"
               >
-                Saya Mengerti
+                Saya Mengerti (Sudah Ditambahkan)
               </button>
             </motion.div>
           </div>
