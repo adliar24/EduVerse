@@ -23,6 +23,8 @@ import { slideUp } from '../lib/animations';
 import { ComposedChart, Line, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useSchool } from '../context/SchoolContext';
 import { getFullState } from '../services/dbAttendance';
+import { getAllScores } from '../services/dbGrading';
+import { SEED_CLASSES, SEED_STUDENTS } from '../services/excelDataSeed';
 import DomainTileIcon from '../components/DomainTileIcon';
 
 const CustomTooltip = ({ active, payload, label }: any) => {
@@ -92,104 +94,205 @@ export default function Dashboard() {
     fetchDashboardData();
   }, [activeSchool?.id]);
 
+  const getDeletedClassIds = (): string[] => {
+    try {
+      if (typeof window !== 'undefined') {
+        return JSON.parse(localStorage.getItem('deleted_class_ids') || '[]');
+      }
+      return [];
+    } catch { return []; }
+  };
+
+  const getDeletedStudentIds = (): string[] => {
+    try {
+      if (typeof window !== 'undefined') {
+        return JSON.parse(localStorage.getItem('deleted_student_ids') || '[]');
+      }
+      return [];
+    } catch { return []; }
+  };
+
   const fetchDashboardData = async () => {
     console.log('Fetching dashboard data for school:', activeSchool?.id || 'No school selected');
     setLoading(true);
     
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (user) {
+        setUserName(user.user_metadata?.name || user.email?.split('@')[0] || 'Guru');
+      }
 
-      setUserName(user.user_metadata?.name || user.email?.split('@')[0] || 'Guru');
-
-      // Build queries that include both current school and valid user data
       const targetSchoolId = activeSchool?.id && activeSchool.id !== 'legacy' ? activeSchool.id : 'fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7';
       const validUid = (user?.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(user.id)) ? user.id : null;
 
-      // Single read of local state, reused for class/student counts and today's schedule board
+      // 1. Read local state from IndexedDB (EduTrackDB)
       const localState = await getFullState(true);
-      const localClassesCount = (localState.classes || []).length;
-      const localStudentsCount = (localState.students || []).length;
 
-      let examQuery = validUid ? supabase.from('exams').select('id', { count: 'exact' }).or(`teacher_id.eq.${validUid},school_id.eq.${targetSchoolId}`) : supabase.from('exams').select('id', { count: 'exact' }).eq('school_id', targetSchoolId);
-      let questionQuery = validUid ? supabase.from('questions').select('id', { count: 'exact' }).eq('teacher_id', validUid) : supabase.from('questions').select('id', { count: 'exact' });
-      let classQuery = validUid ? supabase.from('classes').select('id', { count: 'exact' }).or(`teacher_id.eq.${validUid},school_id.eq.${targetSchoolId}`) : supabase.from('classes').select('id', { count: 'exact' }).eq('school_id', targetSchoolId);
-      let studentQuery = validUid ? supabase.from('students').select('id', { count: 'exact' }).or(`teacher_id.eq.${validUid},school_id.eq.${targetSchoolId}`) : supabase.from('students').select('id', { count: 'exact' }).eq('school_id', targetSchoolId);
-      // Aggregate queries: grouped count for attendance %, avg+count for scores. No row payloads downloaded.
-      let attendanceQuery = validUid
-        ? supabase.from('attendance_records').select('status,count(*)').or(`teacher_id.eq.${validUid},school_id.eq.${targetSchoolId}`)
-        : supabase.from('attendance_records').select('status,count(*)').eq('school_id', targetSchoolId);
-      let scoreQuery = validUid
-        ? supabase.from('meeting_scores').select('avg(nilai_angka),count(*)').or(`user_id.eq.${validUid},school_id.eq.${targetSchoolId}`)
-        : supabase.from('meeting_scores').select('avg(nilai_angka),count(*)').eq('school_id', targetSchoolId);
+      // 2. Compute local classes count (Seed + IndexedDB - deleted)
+      const deletedClassIds = new Set(getDeletedClassIds());
+      const classMap = new Map<string, any>();
+      if (SEED_CLASSES && SEED_CLASSES.length > 0) {
+        SEED_CLASSES.forEach(sc => {
+          const id = String(sc.id || sc.idKelas);
+          if (!deletedClassIds.has(id)) classMap.set(id, sc);
+        });
+      }
+      (localState.classes || []).forEach((lc: any) => {
+        const id = String(lc.id || lc.idKelas || lc.id_kelas || '');
+        if (id && !deletedClassIds.has(id)) {
+          classMap.set(id, { ...(classMap.get(id) || {}), ...lc });
+        }
+      });
+      const computedLocalClassesCount = classMap.size;
 
-      const [
-        { count: examCount },
-        { count: questionCount },
-        { count: classCount },
-        { count: studentCount },
-        attAgg,
-        scoreAgg
-      ] = await Promise.all([
-        examQuery,
-        questionQuery,
-        classQuery,
-        studentQuery,
-        attendanceQuery,
-        scoreQuery
-      ]);
+      // 3. Compute local students count (Seed + IndexedDB - deleted)
+      const deletedStudentIds = new Set(getDeletedStudentIds());
+      const studentMap = new Map<string, any>();
+      if (SEED_STUDENTS && SEED_STUDENTS.length > 0) {
+        SEED_STUDENTS.forEach(ss => {
+          const id = String(ss.id || ss.idSiswa);
+          if (!deletedStudentIds.has(id)) studentMap.set(id, ss);
+        });
+      }
+      (localState.students || []).forEach((ls: any) => {
+        const id = String(ls.id || ls.idSiswa || ls.id_siswa || '');
+        if (id && !deletedStudentIds.has(id)) {
+          studentMap.set(id, { ...(studentMap.get(id) || {}), ...ls });
+        }
+      });
+      const computedLocalStudentsCount = studentMap.size;
 
-      // Attendance total + present% from grouped counts (one tiny payload instead of all rows)
-      const attendanceByStatus = (attAgg || []) as { status: string | null; count: number }[];
-      const attendanceTotal = attendanceByStatus.reduce((acc, r) => acc + (Number(r.count) || 0), 0);
-      const attendancePresent = attendanceByStatus
-        .filter(r => r.status === 'Hadir' || r.status === 'Terlambat')
-        .reduce((acc, r) => acc + (Number(r.count) || 0), 0);
-      const calculatedAttendance = attendanceTotal > 0 ? Math.round((attendancePresent / attendanceTotal) * 100) : 0;
+      // 4. Supabase cloud queries
+      let examCount = 0;
+      let questionCount = 0;
+      let classCount = 0;
+      let studentCount = 0;
+      let attendanceTotal = 0;
+      let calculatedAttendance = 0;
+      let scoreTotal = 0;
+      let calculatedGrade = 0;
 
-      // Score avg + total from aggregate (one tiny payload instead of all rows)
-      const scoreRow = (scoreAgg || [])[0] as { avg: number | null; count: number } | undefined;
-      const scoreTotal = Number(scoreRow?.count) || 0;
-      const scoreAvg = Number(scoreRow?.avg);
-      const calculatedGrade = !isNaN(scoreAvg) ? Math.round(scoreAvg * 10) / 10 : 0;
+      try {
+        let examQuery = validUid ? supabase.from('exams').select('id', { count: 'exact' }).or(`teacher_id.eq.${validUid},school_id.eq.${targetSchoolId}`) : supabase.from('exams').select('id', { count: 'exact' }).eq('school_id', targetSchoolId);
+        let questionQuery = validUid ? supabase.from('questions').select('id', { count: 'exact' }).eq('teacher_id', validUid) : supabase.from('questions').select('id', { count: 'exact' });
+        let classQuery = validUid ? supabase.from('classes').select('id', { count: 'exact' }).or(`teacher_id.eq.${validUid},school_id.eq.${targetSchoolId}`) : supabase.from('classes').select('id', { count: 'exact' }).eq('school_id', targetSchoolId);
+        let studentQuery = validUid ? supabase.from('students').select('id', { count: 'exact' }).or(`teacher_id.eq.${validUid},school_id.eq.${targetSchoolId}`) : supabase.from('students').select('id', { count: 'exact' }).eq('school_id', targetSchoolId);
+        let attendanceQuery = validUid
+          ? supabase.from('attendance_records').select('status,count(*)').or(`teacher_id.eq.${validUid},school_id.eq.${targetSchoolId}`)
+          : supabase.from('attendance_records').select('status,count(*)').eq('school_id', targetSchoolId);
+        let scoreQuery = validUid
+          ? supabase.from('meeting_scores').select('avg(nilai_angka),count(*)').or(`user_id.eq.${validUid},school_id.eq.${targetSchoolId}`)
+          : supabase.from('meeting_scores').select('avg(nilai_angka),count(*)').eq('school_id', targetSchoolId);
 
-      const finalClassCount = (classCount && classCount > 0) ? classCount : (localClassesCount > 0 ? localClassesCount : 15);
-      const finalStudentCount = (studentCount && studentCount > 0) ? studentCount : (localStudentsCount > 0 ? localStudentsCount : 669);
+        const [
+          examRes,
+          questionRes,
+          classRes,
+          studentRes,
+          attAgg,
+          scoreAgg
+        ] = await Promise.all([
+          examQuery,
+          questionQuery,
+          classQuery,
+          studentQuery,
+          attendanceQuery,
+          scoreQuery
+        ]);
+
+        examCount = examRes.count || 0;
+        questionCount = questionRes.count || 0;
+        classCount = classRes.count || 0;
+        studentCount = studentRes.count || 0;
+
+        const attendanceByStatus = (attAgg.data || []) as { status: string | null; count: number }[];
+        attendanceTotal = attendanceByStatus.reduce((acc, r) => acc + (Number(r.count) || 0), 0);
+        const attendancePresent = attendanceByStatus
+          .filter(r => r.status === 'Hadir' || r.status === 'Terlambat')
+          .reduce((acc, r) => acc + (Number(r.count) || 0), 0);
+        calculatedAttendance = attendanceTotal > 0 ? Math.round((attendancePresent / attendanceTotal) * 100) : 0;
+
+        const scoreRow = (scoreAgg.data || [])[0] as { avg: number | null; count: number } | undefined;
+        scoreTotal = Number(scoreRow?.count) || 0;
+        const scoreAvg = Number(scoreRow?.avg);
+        calculatedGrade = !isNaN(scoreAvg) ? Math.round(scoreAvg * 10) / 10 : 0;
+      } catch (err) {
+        console.warn('Supabase query error in dashboard, using local fallback:', err);
+      }
+
+      // 5. Merge local attendance records if Supabase has 0
+      const localRecords = localState.records || [];
+      const localAttendanceTotal = localRecords.length;
+      const localAttendancePresent = localRecords.filter((r: any) => r.status === 'Hadir' || r.status === 'Terlambat').length;
+      const localCalculatedAttendance = localAttendanceTotal > 0 ? Math.round((localAttendancePresent / localAttendanceTotal) * 100) : 0;
+
+      const finalAttendanceTotal = attendanceTotal > 0 ? attendanceTotal : localAttendanceTotal;
+      const finalCalculatedAttendance = attendanceTotal > 0 ? calculatedAttendance : localCalculatedAttendance;
+
+      // 6. Merge local meeting scores if Supabase has 0
+      let localScores: any[] = [];
+      try {
+        localScores = await getAllScores(targetSchoolId);
+        if (!localScores || localScores.length === 0) {
+          localScores = await getAllScores();
+        }
+      } catch (e) {
+        console.warn('Failed to fetch local scores:', e);
+      }
+
+      const localScoreTotal = localScores.length;
+      const validLocalScores = localScores.map(s => Number(s.nilaiAngka)).filter(v => !isNaN(v) && v > 0);
+      const localScoreAvg = validLocalScores.length > 0
+        ? Math.round((validLocalScores.reduce((acc, v) => acc + v, 0) / validLocalScores.length) * 10) / 10
+        : 0;
+
+      const finalScoreTotal = scoreTotal > 0 ? scoreTotal : localScoreTotal;
+      const finalGradeAvg = scoreTotal > 0 ? calculatedGrade : localScoreAvg;
+
+      // 7. Determine final class and student counts (max of cloud or computed local)
+      const finalClassCount = Math.max(classCount, computedLocalClassesCount);
+      const finalStudentCount = Math.max(studentCount, computedLocalStudentsCount);
 
       setStats({
-        totalExams: examCount || 0,
-        totalQuestions: questionCount || 0,
+        totalExams: examCount,
+        totalQuestions: questionCount,
         totalClasses: finalClassCount,
         totalStudents: finalStudentCount,
-        totalAttendance: attendanceTotal,
-        totalScores: scoreTotal
+        totalAttendance: finalAttendanceTotal,
+        totalScores: finalScoreTotal
       });
 
-      setOverallAttendance(calculatedAttendance);
-      setOverallGradeAvg(calculatedGrade);
+      setOverallAttendance(finalCalculatedAttendance);
+      setOverallGradeAvg(finalGradeAvg);
 
-      // Calculate Overall Exam Avg (only exam ids + one aggregate, not all participant rows)
+      // 8. Calculate Exam Average
       let calculatedExam = 0;
-      const { data: teacherExams } = await supabase.from('exams').select('id').eq('teacher_id', user.id);
-      if (teacherExams && teacherExams.length > 0) {
-        const examIds = teacherExams.map(e => e.id);
-        const { data: partAgg } = await supabase.from('participants').select('avg(score)').in('exam_id', examIds);
-        const avg = Number((partAgg || [])[0]?.avg);
-        if (!isNaN(avg)) {
-          calculatedExam = Math.round(avg * 10) / 10;
+      if (user?.id) {
+        try {
+          const { data: teacherExams } = await supabase.from('exams').select('id').eq('teacher_id', user.id);
+          if (teacherExams && teacherExams.length > 0) {
+            const examIds = teacherExams.map(e => e.id);
+            const { data: partAgg } = await supabase.from('participants').select('avg(score)').in('exam_id', examIds);
+            const avg = Number((partAgg || [])[0]?.avg);
+            if (!isNaN(avg)) {
+              calculatedExam = Math.round(avg * 10) / 10;
+            }
+          }
+        } catch (e) {
+          console.warn('Failed to calculate exam average:', e);
         }
       }
       setOverallExamAvg(calculatedExam);
 
-      // Deterministic trend derived from the real aggregates (no Math.random jumps on every refresh)
-      if (attendanceTotal > 0 || scoreTotal > 0) {
+      // 9. Trend Chart Data
+      if (finalAttendanceTotal > 0 || finalScoreTotal > 0) {
         const clampTrend = (v: number) => Math.max(0, Math.min(100, Math.round(v)));
         setChartData([
-          { name: 'Senin', Kehadiran: clampTrend(calculatedAttendance - 4), Nilai: clampTrend(calculatedGrade - 6) },
-          { name: 'Selasa', Kehadiran: clampTrend(calculatedAttendance - 2), Nilai: clampTrend(calculatedGrade - 3) },
-          { name: 'Rabu', Kehadiran: clampTrend(calculatedAttendance), Nilai: clampTrend(calculatedGrade) },
-          { name: 'Kamis', Kehadiran: clampTrend(calculatedAttendance + 2), Nilai: clampTrend(calculatedGrade + 3) },
-          { name: 'Jumat', Kehadiran: clampTrend(calculatedAttendance + 4), Nilai: clampTrend(calculatedGrade + 6) },
+          { name: 'Senin', Kehadiran: clampTrend(finalCalculatedAttendance - 4), Nilai: clampTrend(finalGradeAvg - 6) },
+          { name: 'Selasa', Kehadiran: clampTrend(finalCalculatedAttendance - 2), Nilai: clampTrend(finalGradeAvg - 3) },
+          { name: 'Rabu', Kehadiran: clampTrend(finalCalculatedAttendance), Nilai: clampTrend(finalGradeAvg) },
+          { name: 'Kamis', Kehadiran: clampTrend(finalCalculatedAttendance + 2), Nilai: clampTrend(finalGradeAvg + 3) },
+          { name: 'Jumat', Kehadiran: clampTrend(finalCalculatedAttendance + 4), Nilai: clampTrend(finalGradeAvg + 6) },
         ]);
       } else {
         setChartData([
@@ -202,10 +305,10 @@ export default function Dashboard() {
       }
       setIsSampleData(false);
 
-      // Fetch today's teaching schedules from IndexedDB (reuses the localState read above)
+      // 10. Teaching schedules
       try {
         const allSchedules = localState.schedules || [];
-        const allClasses = localState.classes || [];
+        const allClasses = Array.from(classMap.values());
         
         const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
         const todayName = days[new Date().getDay()];
@@ -213,7 +316,7 @@ export default function Dashboard() {
         const filteredSchedules = allSchedules
           .filter((s: any) => s.dayName === todayName)
           .map((s: any) => {
-            const cls = allClasses.find((c: any) => c.id === s.classId) as any;
+            const cls = allClasses.find((c: any) => (c.id || c.idKelas) === s.classId) as any;
             return {
               ...s,
               className: cls ? (cls.name || cls.namaKelas) : 'Kelas',
