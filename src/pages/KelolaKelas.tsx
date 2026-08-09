@@ -260,19 +260,22 @@ export default function KelolaKelas() {
           const id = String(sc.id || sc.idKelas);
           if (!deletedIds.has(id)) {
             const className = sc.name || sc.namaKelas;
+            const key = className ? className.trim().toUpperCase() : id;
             const subj = resolveSubjectForClass(id, className, sc.subject, sc.mapel);
-            classMap.set(id, { ...sc, id, idKelas: id, subject: subj, mapel: subj });
+            classMap.set(key, { ...sc, id, idKelas: id, subject: subj, mapel: subj });
           }
         });
       }
 
       dbClasses.forEach(lc => {
         const id = String(lc.id || lc.idKelas || lc.id_kelas || '');
+        const className = lc.name || lc.namaKelas;
+        const key = className ? className.trim().toUpperCase() : id;
         if (id && !deletedIds.has(id)) {
-          const existing = classMap.get(id) || {};
-          const className = lc.name || lc.namaKelas || existing.name;
-          const subj = resolveSubjectForClass(id, className, lc.subject, lc.mapel);
-          classMap.set(id, { ...existing, ...lc, id, idKelas: id, name: className, namaKelas: className, subject: subj, mapel: subj });
+          const existing = classMap.get(key) || classMap.get(id) || {};
+          const finalName = className || existing.name;
+          const subj = resolveSubjectForClass(id, finalName, lc.subject, lc.mapel);
+          classMap.set(key, { ...existing, ...lc, id: existing.id || id, idKelas: existing.id || id, name: finalName, namaKelas: finalName, subject: subj, mapel: subj });
         }
       });
 
@@ -383,18 +386,21 @@ export default function KelolaKelas() {
             SEED_CLASSES.forEach(sc => {
               const id = String(sc.id || sc.idKelas);
               const className = sc.name || sc.namaKelas;
+              const key = className ? className.trim().toUpperCase() : id;
               const subj = resolveSubjectForClass(id, className, sc.subject, sc.mapel);
-              syncClassMap.set(id, { ...sc, id, idKelas: id, subject: subj, mapel: subj });
+              syncClassMap.set(key, { ...sc, id, idKelas: id, subject: subj, mapel: subj });
             });
           }
 
           syncDbClasses.forEach(lc => {
             const id = String(lc.id || lc.idKelas || lc.id_kelas || '');
+            const className = lc.name || lc.namaKelas;
+            const key = className ? className.trim().toUpperCase() : id;
             if (id) {
-              const existing = syncClassMap.get(id) || {};
-              const className = lc.name || lc.namaKelas || existing.name;
-              const subj = resolveSubjectForClass(id, className, lc.subject, lc.mapel);
-              syncClassMap.set(id, { ...existing, ...lc, id, idKelas: id, name: className, namaKelas: className, subject: subj, mapel: subj });
+              const existing = syncClassMap.get(key) || syncClassMap.get(id) || {};
+              const finalName = className || existing.name;
+              const subj = resolveSubjectForClass(id, finalName, lc.subject, lc.mapel);
+              syncClassMap.set(key, { ...existing, ...lc, id: existing.id || id, idKelas: existing.id || id, name: finalName, namaKelas: finalName, subject: subj, mapel: subj });
             }
           });
 

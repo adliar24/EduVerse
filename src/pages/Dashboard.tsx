@@ -134,13 +134,18 @@ export default function Dashboard() {
       if (SEED_CLASSES && SEED_CLASSES.length > 0) {
         SEED_CLASSES.forEach(sc => {
           const id = String(sc.id || sc.idKelas);
-          if (!deletedClassIds.has(id)) classMap.set(id, sc);
+          const className = sc.name || sc.namaKelas;
+          const key = className ? className.trim().toUpperCase() : id;
+          if (!deletedClassIds.has(id)) classMap.set(key, sc);
         });
       }
       (localState.classes || []).forEach((lc: any) => {
         const id = String(lc.id || lc.idKelas || lc.id_kelas || '');
+        const className = lc.name || lc.namaKelas;
+        const key = className ? className.trim().toUpperCase() : id;
         if (id && !deletedClassIds.has(id)) {
-          classMap.set(id, { ...(classMap.get(id) || {}), ...lc });
+          const existing = classMap.get(key) || classMap.get(id) || {};
+          classMap.set(key, { ...existing, ...lc });
         }
       });
       const computedLocalClassesCount = classMap.size;
