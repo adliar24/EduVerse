@@ -160,75 +160,75 @@ export default function StudentDashboard() {
 
   return (
     <div className="space-y-6 pb-10">
-      {/* Compact Header Card */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
-        <div className="flex items-center gap-3.5">
-          <div className="w-11 h-11 rounded-xl bg-gradient-to-tr from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white flex items-center justify-center font-bold text-lg shadow-md shadow-blue-500/20 shrink-0">
-            <GraduationCap className="w-6 h-6 text-white" />
+      {/* Quizzo-Style Header Card */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5 bg-gradient-to-r from-[#4C1D95] via-[#6D28D9] to-[#7C3AED] p-6 sm:p-8 rounded-[2.5rem] text-white shadow-purple-glow relative overflow-hidden">
+        <div className="flex items-center gap-4 relative z-10">
+          <div className="w-14 h-14 rounded-3xl bg-white/15 backdrop-blur-md text-white flex items-center justify-center font-bold text-xl shadow-lg border border-white/20 shrink-0">
+            <GraduationCap className="w-7 h-7 text-white" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-slate-900 tracking-tight leading-snug">Halo, Selamat Belajar!</h2>
-            <p className="text-slate-500 text-xs font-medium">Pantau progres ujian dan hasil belajar Anda di sini.</p>
+            <h2 className="text-2xl font-black text-white tracking-tight leading-snug">Halo, Selamat Belajar!</h2>
+            <p className="text-purple-200/90 text-xs sm:text-sm font-medium">Pantau progres ujian dan hasil belajar Anda secara real-time.</p>
           </div>
         </div>
         <Link 
           to="/daftar-ujian-siswa"
-          className="bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white px-5 py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-2 hover:brightness-110 active:scale-[0.98] transition-all shadow-md shadow-blue-600/20 border border-white/10 shrink-0 cursor-pointer"
+          className="bg-white text-[#6D28D9] hover:bg-purple-50 px-6 py-3.5 rounded-full font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-black/10 shrink-0 cursor-pointer relative z-10"
         >
-          <Zap className="w-4 h-4 text-amber-300 animate-pulse" />
-          Ikuti Ujian Baru
+          <Zap className="w-4 h-4 text-amber-500 fill-amber-500 animate-bounce" />
+          <span>Ikuti Ujian Baru</span>
         </Link>
       </div>
 
       {/* Ongoing Exams Banner (Compact Alert Strip) */}
       {recentResults.filter(r => r.status === 'ongoing').length > 0 && (
-        <div className="bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 rounded-2xl p-3.5 px-5 text-white shadow-md flex flex-wrap items-center justify-between gap-3 border border-white/20">
-          <div className="flex items-center gap-3">
-            <div className="bg-white/20 p-2 rounded-xl backdrop-blur-md shrink-0">
-              <Clock className="w-4 h-4 text-white" />
+        <div className="bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 rounded-3xl p-4 px-6 text-white shadow-lg flex flex-wrap items-center justify-between gap-3 border border-white/20">
+          <div className="flex items-center gap-3.5">
+            <div className="bg-white/20 p-2.5 rounded-2xl backdrop-blur-md shrink-0">
+              <Clock className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h4 className="font-bold text-xs sm:text-sm leading-tight">Ujian Sedang Berlangsung</h4>
-              <p className="text-white/85 text-[11px] font-medium">Selesaikan ujian Anda sebelum tenggat waktu berakhir</p>
+              <h4 className="font-extrabold text-xs sm:text-sm leading-tight">Ujian Sedang Berlangsung</h4>
+              <p className="text-white/90 text-[11px] font-medium">Selesaikan ujian Anda sebelum tenggat waktu berakhir</p>
             </div>
           </div>
           <Link 
             to="/daftar-ujian-siswa"
-            className="bg-white text-amber-700 px-4 py-1.5 rounded-xl text-xs font-bold hover:bg-amber-50 active:scale-95 transition-all flex items-center gap-1 shadow-sm shrink-0"
+            className="bg-white text-amber-700 px-5 py-2 rounded-full text-xs font-extrabold hover:bg-amber-50 active:scale-95 transition-all flex items-center gap-1.5 shadow-md shrink-0"
           >
-            Lanjutkan
-            <ArrowUpRight className="w-3.5 h-3.5" />
+            <span>Lanjutkan</span>
+            <ArrowUpRight className="w-4 h-4" />
           </Link>
         </div>
       )}
 
-      {/* Sleek Ringkas Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      {/* Quizzo Rounded Stat Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
         {statCards.map((stat, index) => (
           <motion.div
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.08 }}
             key={stat.label}
-            className={`p-4 rounded-2xl border flex items-center gap-4 transition-all duration-300 group hover:scale-[1.01] ${stat.cardClass}`}
+            className="p-5 rounded-[2rem] bg-white border border-purple-100/80 shadow-tactile flex items-center gap-4.5 transition-all duration-300 group hover:scale-[1.02] hover:shadow-purple-sm"
           >
-            <div className={`${stat.iconBg} p-3 rounded-xl shrink-0 transition-transform group-hover:scale-105`}>
-              <stat.icon className="w-5 h-5" />
+            <div className="bg-purple-100/80 text-[#6D28D9] p-3.5 rounded-2xl shrink-0 transition-transform group-hover:scale-105">
+              <stat.icon className="w-6 h-6" />
             </div>
             <div>
-              <p className={`${stat.mutedColor} text-[10px] font-bold uppercase tracking-wider`}>{stat.label}</p>
-              <h3 className={`text-2xl font-black tracking-tight ${stat.textColor}`}>{stat.value}</h3>
+              <p className="text-slate-400 text-[11px] font-extrabold uppercase tracking-wider">{stat.label}</p>
+              <h3 className="text-3xl font-black tracking-tight text-slate-900 mt-0.5">{stat.value}</h3>
             </div>
           </motion.div>
         ))}
       </div>
 
       {/* Recent Results (Riwayat Ujian) */}
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
-        <div className="flex items-center justify-between mb-5">
+      <div className="bg-white rounded-[2.5rem] border border-purple-100/80 shadow-tactile p-6 sm:p-8">
+        <div className="flex items-center justify-between mb-6">
           <div>
-            <h3 className="text-lg font-bold text-slate-900">Riwayat Ujian</h3>
-            <p className="text-xs text-slate-400 font-medium">Daftar ujian yang telah Anda kerjakan</p>
+            <h3 className="text-xl font-black text-slate-900 tracking-tight">Riwayat Ujian</h3>
+            <p className="text-xs text-slate-400 font-semibold mt-0.5">Daftar ujian yang telah Anda kerjakan</p>
           </div>
         </div>
         

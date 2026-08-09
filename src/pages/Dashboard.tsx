@@ -423,18 +423,21 @@ export default function Dashboard() {
       exit="exit"
       className="space-y-4 pb-2"
     >
-      {/* Banner Sambutan Guru */}
-      <div className="bg-gradient-to-r from-[#0F172A] via-[#1E1B4B] to-[#172554] text-white rounded-3xl p-5 relative overflow-hidden shadow-xl border border-white/20">
-        <div className="absolute right-0 top-0 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
-        <div className="absolute left-1/3 bottom-0 w-48 h-48 bg-cyan-400/10 rounded-full blur-2xl"></div>
+      {/* Quizzo-Style Banner Sambutan Guru */}
+      <div className="bg-gradient-to-r from-[#3B0764] via-[#5B21B6] to-[#7C3AED] text-white rounded-[2.5rem] p-6 sm:p-8 relative overflow-hidden shadow-purple-glow border border-white/20">
+        <div className="absolute right-0 top-0 w-80 h-80 bg-white/10 rounded-full blur-3xl"></div>
+        <div className="absolute left-1/3 bottom-0 w-60 h-60 bg-purple-400/20 rounded-full blur-2xl"></div>
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/15 rounded-full text-xs font-semibold tracking-wide text-white mb-2 backdrop-blur-md border border-white/20">
-              Tahun Ajaran {activeSchool?.academic_year || '2026/2027'} • Semester {activeSchool?.semester || 'Ganjil'}
+            <div className="inline-flex items-center gap-1.5 px-3.5 py-1 bg-white/15 rounded-full text-xs font-extrabold tracking-wide text-amber-300 mb-2.5 backdrop-blur-md border border-white/20">
+              🎓 Tahun Ajaran {activeSchool?.academic_year || '2026/2027'} • Semester {activeSchool?.semester || 'Ganjil'}
             </div>
-            <h2 className="text-xl md:text-2xl font-bold tracking-tight text-white">
+            <h2 className="text-2xl md:text-3xl font-black tracking-tight text-white">
               Selamat Datang, {userName}!
             </h2>
+            <p className="text-purple-200/90 text-xs sm:text-sm font-medium mt-1">
+              Kelola ujian, presensi, dan rekap nilai murid dalam satu platform terpadu.
+            </p>
           </div>
         </div>
       </div>

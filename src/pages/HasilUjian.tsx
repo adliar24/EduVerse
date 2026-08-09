@@ -574,7 +574,69 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
         </div>
       </div>
 
-      <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
+      {/* Quizzo 3D Leaderboard Podium */}
+      {!loading && filteredResults.length >= 3 && (
+        <div className="bg-gradient-to-br from-[#3B0764] via-[#5B21B6] to-[#7C3AED] p-8 rounded-[2.5rem] text-white shadow-purple-glow mb-6 relative overflow-hidden">
+          <div className="flex items-center justify-between mb-8 relative z-10">
+            <div>
+              <span className="text-[10px] uppercase font-extrabold tracking-widest px-3 py-1 bg-white/15 backdrop-blur-md rounded-full text-amber-300 border border-white/20">
+                ⭐ Final Scoreboard
+              </span>
+              <h3 className="text-2xl font-black text-white tracking-tight mt-2">Papan Peringkat Tertinggi</h3>
+            </div>
+            <Trophy className="w-8 h-8 text-amber-300 animate-bounce" />
+          </div>
+
+          <div className="grid grid-cols-3 gap-3 sm:gap-6 items-end max-w-xl mx-auto pt-4 pb-2 relative z-10">
+            {/* Rank 2 - Silver */}
+            {filteredResults[1] && (
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="flex flex-col items-center text-center">
+                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-slate-200 text-slate-800 font-black text-xl flex items-center justify-center border-4 border-slate-300 shadow-xl mb-2 relative">
+                  {filteredResults[1].name.charAt(0)}
+                  <span className="absolute -bottom-2 bg-slate-400 text-white text-[10px] font-black px-2 py-0.5 rounded-full border border-white">2</span>
+                </div>
+                <p className="font-extrabold text-xs sm:text-sm text-white truncate max-w-[90px] sm:max-w-[120px]">{filteredResults[1].name}</p>
+                <span className="text-[11px] font-bold text-slate-200 bg-white/20 px-3 py-1 rounded-full mt-1">{Math.round(filteredResults[1].score)} Poin</span>
+                <div className="w-full h-24 sm:h-28 bg-gradient-to-t from-slate-400/40 to-slate-300/20 rounded-t-2xl mt-3 flex items-center justify-center border-t border-white/30">
+                  <span className="text-2xl font-black text-white/50">🥈 2</span>
+                </div>
+              </motion.div>
+            )}
+
+            {/* Rank 1 - Gold */}
+            {filteredResults[0] && (
+              <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center text-center -mt-6">
+                <div className="w-18 h-18 sm:w-20 sm:h-20 rounded-full bg-gradient-to-tr from-amber-300 to-amber-500 text-amber-950 font-black text-2xl flex items-center justify-center border-4 border-amber-300 shadow-2xl shadow-amber-500/50 mb-2 relative">
+                  {filteredResults[0].name.charAt(0)}
+                  <span className="absolute -bottom-2 bg-amber-500 text-amber-950 text-xs font-black px-2.5 py-0.5 rounded-full border border-white">1</span>
+                </div>
+                <p className="font-extrabold text-sm sm:text-base text-amber-200 truncate max-w-[100px] sm:max-w-[140px]">{filteredResults[0].name}</p>
+                <span className="text-xs font-black text-amber-950 bg-amber-400 px-3.5 py-1 rounded-full mt-1 shadow-md">{Math.round(filteredResults[0].score)} Poin</span>
+                <div className="w-full h-32 sm:h-36 bg-gradient-to-t from-amber-500/50 to-amber-400/25 rounded-t-3xl mt-3 flex items-center justify-center border-t border-amber-300/50">
+                  <span className="text-3xl font-black text-amber-300">🥇 1</span>
+                </div>
+              </motion.div>
+            )}
+
+            {/* Rank 3 - Bronze */}
+            {filteredResults[2] && (
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="flex flex-col items-center text-center">
+                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-amber-700/80 text-amber-100 font-black text-xl flex items-center justify-center border-4 border-amber-600 shadow-xl mb-2 relative">
+                  {filteredResults[2].name.charAt(0)}
+                  <span className="absolute -bottom-2 bg-amber-700 text-white text-[10px] font-black px-2 py-0.5 rounded-full border border-white">3</span>
+                </div>
+                <p className="font-extrabold text-xs sm:text-sm text-white truncate max-w-[90px] sm:max-w-[120px]">{filteredResults[2].name}</p>
+                <span className="text-[11px] font-bold text-amber-100 bg-white/20 px-3 py-1 rounded-full mt-1">{Math.round(filteredResults[2].score)} Poin</span>
+                <div className="w-full h-20 sm:h-24 bg-gradient-to-t from-amber-700/40 to-amber-600/20 rounded-t-2xl mt-3 flex items-center justify-center border-t border-white/30">
+                  <span className="text-2xl font-black text-white/50">🥉 3</span>
+                </div>
+              </motion.div>
+            )}
+          </div>
+        </div>
+      )}
+
+      <div className="bg-white rounded-[2.5rem] border border-purple-100/80 shadow-tactile overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
