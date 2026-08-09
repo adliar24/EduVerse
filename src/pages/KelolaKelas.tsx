@@ -27,6 +27,7 @@ import { staggerContainer, staggerItem } from '../lib/animations';
 import { useSchool } from '../context/SchoolContext';
 import { getScopedState, addClass, deleteClassCascade, addStudent, deleteStudent, addClassesBulk, addStudentsBulk } from '../services/dbAttendance';
 import { saveClass, deleteClass, saveStudent, deleteStudent as deleteStudentGrading } from '../services/dbGrading';
+import { compareClassName } from '../constants';
 
 const ELECTRIC_BLUE_GRADIENT = {
   bg: 'bg-gradient-to-br from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white border border-white/20 hover:scale-[1.01] transition-all shadow-xl shadow-[#3B66F5]/20',
@@ -1038,7 +1039,9 @@ export default function KelolaKelas() {
 
   const viewClass = (cls: any) => { setSelectedClass(cls); fetchClassStudents(cls.id); setShowStudents(true); };
 
-  const filteredClasses = classes.filter(c => c.name.toLowerCase().includes(searchTerm.toLowerCase()));
+  const filteredClasses = classes
+    .filter(c => (c.name || '').toLowerCase().includes(searchTerm.toLowerCase()))
+    .sort((a, b) => compareClassName(a.name || '', b.name || ''));
 
   return (
     <div className="space-y-6 pb-10">

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { AppState, ScheduleItem, CalendarEvent, EventType } from '../types';
+import { AppState, ScheduleItem, CalendarEvent, EventType } from '../../types';
 import { compareClassName } from '../../constants';
+import { SEED_SCHEDULES } from '../../services/excelDataSeed';
 import { Button, Card, Input, Modal, ConfirmModal } from '../../components/UI';
 import { addSchedule, deleteSchedule, addEvent, deleteEvent } from '../../services/dbAttendance';
 import { Plus, Trash2, Calendar, Clock, BookOpen, CalendarOff, Briefcase, Thermometer, AlertCircle, ChevronDown, CheckCircle2, Pencil } from 'lucide-react';
@@ -90,10 +91,12 @@ export const Schedule: React.FC<Props> = ({ state, refresh, notify }) => {
   const [eventStart, setEventStart] = useState('07:00');
   const [eventEnd, setEventEnd] = useState('14:00');
 
-  const currentSchedules = state.schedules
-    .filter(s => schoolClassIds.has(s.classId))
-    .filter(s => s.dayName === activeDay)
-    .sort((a, b) => a.startTime.localeCompare(b.startTime));
+  const allSchedulesList = (state.schedules && state.schedules.length > 0) ? state.schedules : SEED_SCHEDULES;
+
+  const currentSchedules = allSchedulesList
+    .filter((s: any) => schoolClassIds.has(s.classId))
+    .filter((s: any) => s.dayName === activeDay)
+    .sort((a: any, b: any) => a.startTime.localeCompare(b.startTime));
 
   const upcomingEvents = state.events
     .sort((a, b) => a.dateISO.localeCompare(b.dateISO));
