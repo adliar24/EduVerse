@@ -589,19 +589,28 @@ export default function Profil() {
       ctx.shadowBlur = 0;
       ctx.shadowOffsetY = 0;
 
-      // Load and Draw QR code
-      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=ABSEN:${profile.id}`;
-      const qrImg = new Image();
-      qrImg.crossOrigin = "anonymous";
-      qrImg.src = qrUrl;
-      await new Promise((resolve, reject) => {
-        qrImg.onload = resolve;
-        qrImg.onerror = reject;
-      });
-
-      const qrSize = 280;
-      const qrPadding = (qrBoxSize - qrSize) / 2;
-      ctx.drawImage(qrImg, qrBoxX + qrPadding, qrBoxY + qrPadding, qrSize, qrSize);
+      // Load and Draw QR code locally using qrcode package
+      try {
+        const QRCode = (await import('qrcode')).default;
+        const qrSize = 280;
+        const qrPadding = (qrBoxSize - qrSize) / 2;
+        
+        const qrDataUrl = await QRCode.toDataURL(`ABSEN:${profile.id}`, { 
+          width: qrSize, 
+          margin: 0,
+          color: {
+            dark: '#111827', 
+            light: '#ffffff'
+          }
+        });
+        const qrImg = new Image();
+        qrImg.src = qrDataUrl;
+        await new Promise(r => qrImg.onload = r);
+        
+        ctx.drawImage(qrImg, qrBoxX + qrPadding, qrBoxY + qrPadding, qrSize, qrSize);
+      } catch (qrErr) {
+        console.error("Local QR Code Generation Error:", qrErr);
+      }
 
       // Student Name
       const textStartY = qrBoxY + qrBoxSize + 80;
