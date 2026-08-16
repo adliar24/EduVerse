@@ -162,14 +162,14 @@ export default function StudentDashboard() {
   return (
     <div className="space-y-6 pb-10">
       {/* Quizzo-Style Header Card */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5 bg-gradient-to-r from-[#4C1D95] via-[#6D28D9] to-[#7C3AED] p-6 sm:p-8 rounded-[2.5rem] text-white shadow-purple-glow relative overflow-hidden">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-6 sm:p-8 rounded-[2.5rem] text-white shadow-xl relative overflow-hidden border border-white/10">
         <div className="flex items-center gap-4 relative z-10">
           <div className="w-14 h-14 rounded-3xl bg-white/15 backdrop-blur-md text-white flex items-center justify-center font-bold text-xl shadow-lg border border-white/20 shrink-0">
             <GraduationCap className="w-7 h-7 text-white" />
           </div>
           <div>
             <h2 className="text-2xl font-black text-white tracking-tight leading-snug">Halo, Selamat Belajar!</h2>
-            <p className="text-purple-200/90 text-xs sm:text-sm font-medium">Pantau progres ujian dan hasil belajar Anda secara real-time.</p>
+            <p className="text-slate-200 text-xs sm:text-sm font-medium">Pantau progres ujian dan hasil belajar Anda secara real-time.</p>
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-3 relative z-10">
@@ -183,7 +183,7 @@ export default function StudentDashboard() {
 
           <Link 
             to="/daftar-ujian-siswa"
-            className="bg-white text-[#6D28D9] hover:bg-purple-50 px-5 py-3.5 rounded-full font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-black/10 shrink-0 cursor-pointer"
+            className="bg-white text-indigo-700 hover:bg-indigo-50 px-5 py-3.5 rounded-full font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-black/10 shrink-0 cursor-pointer"
           >
             <Zap className="w-4 h-4 text-amber-500 fill-amber-500 animate-bounce" />
             <span>Ikuti Ujian Baru</span>
@@ -221,9 +221,9 @@ export default function StudentDashboard() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.08 }}
             key={stat.label}
-            className="p-5 rounded-[2rem] bg-white border border-purple-100/80 shadow-tactile flex items-center gap-4.5 transition-all duration-300 group hover:scale-[1.02] hover:shadow-purple-sm"
+            className="p-5 rounded-[2rem] bg-white border border-slate-200/80 shadow-sm flex items-center gap-4.5 transition-all duration-300 group hover:scale-[1.02] hover:shadow-md"
           >
-            <div className="bg-purple-100/80 text-[#6D28D9] p-3.5 rounded-2xl shrink-0 transition-transform group-hover:scale-105">
+            <div className="bg-indigo-50 text-indigo-600 p-3.5 rounded-2xl shrink-0 transition-transform group-hover:scale-105">
               <stat.icon className="w-6 h-6" />
             </div>
             <div>
@@ -235,7 +235,7 @@ export default function StudentDashboard() {
       </div>
 
       {/* Recent Results (Riwayat Ujian) */}
-      <div className="bg-white rounded-[2.5rem] border border-purple-100/80 shadow-tactile p-6 sm:p-8">
+      <div className="bg-white rounded-[2.5rem] border border-slate-200/80 shadow-sm p-6 sm:p-8">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h3 className="text-xl font-black text-slate-900 tracking-tight">Riwayat Ujian</h3>
@@ -363,12 +363,12 @@ export default function StudentDashboard() {
             <div className="flex items-center justify-between mb-5">
               <div>
                 <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-purple-600" />
+                  <FileText className="w-5 h-5 text-indigo-600" />
                   Tugas Aktif
                 </h3>
                 <p className="text-xs text-slate-400 font-medium">Daftar lembar tugas sekolah Anda</p>
               </div>
-              <Link to="/materi-tugas-siswa" className="text-xs font-bold text-purple-600 hover:underline">Lihat Semua →</Link>
+              <Link to="/materi-tugas-siswa" className="text-xs font-bold text-indigo-600 hover:underline">Lihat Semua →</Link>
             </div>
 
             <div className="space-y-3">

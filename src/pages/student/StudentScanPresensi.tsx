@@ -247,7 +247,7 @@ export default function StudentScanPresensi() {
           <span>Kembali</span>
         </button>
 
-        <div className="flex items-center gap-2 px-3.5 py-1.5 bg-purple-500/20 border border-purple-500/30 rounded-full text-xs font-extrabold text-purple-300">
+        <div className="flex items-center gap-2 px-3.5 py-1.5 bg-indigo-500/20 border border-indigo-500/30 rounded-full text-xs font-extrabold text-sky-300">
           <Clock className="w-3.5 h-3.5 animate-pulse" />
           <span>{currentTimeStr || '06:30'} WIB</span>
         </div>
@@ -255,13 +255,13 @@ export default function StudentScanPresensi() {
 
       {/* Main Card */}
       <div className="flex-1 flex flex-col justify-center items-center text-center">
-        <div className="w-full bg-slate-900/90 backdrop-blur-2xl border border-white/15 rounded-[2.5rem] p-6 sm:p-8 shadow-2xl space-y-6 relative overflow-hidden">
+        <div className="w-full bg-slate-900/95 border border-white/15 rounded-[2.5rem] p-6 sm:p-8 shadow-2xl space-y-6 relative overflow-hidden">
           <div>
-            <div className="w-16 h-16 rounded-3xl bg-gradient-to-tr from-[#6D28D9] to-[#7C3AED] flex items-center justify-center text-white mx-auto mb-3 shadow-lg shadow-purple-600/40">
+            <div className="w-16 h-16 rounded-3xl bg-gradient-to-tr from-indigo-600 to-blue-500 flex items-center justify-center text-white mx-auto mb-3 shadow-lg shadow-indigo-600/40">
               <Camera className="w-8 h-8" />
             </div>
             <h2 className="text-2xl font-black tracking-tight text-white">Scan Presensi Kelas</h2>
-            <p className="text-purple-200/80 text-xs font-medium mt-1">
+            <p className="text-slate-200 text-xs font-medium mt-1">
               Arahkan kamera ke Poster QR Code Kelas di papan kelas Anda.
             </p>
           </div>
@@ -301,20 +301,20 @@ export default function StudentScanPresensi() {
           {/* Processing Loading */}
           {processing && (
             <div className="py-6 space-y-3">
-              <Loader2 className="w-10 h-10 text-purple-400 animate-spin mx-auto" />
-              <p className="text-xs font-bold text-purple-200 animate-pulse">{statusMsg}</p>
+              <Loader2 className="w-10 h-10 text-sky-400 animate-spin mx-auto" />
+              <p className="text-xs font-bold text-slate-200 animate-pulse">{statusMsg}</p>
             </div>
           )}
 
           {/* Camera Viewfinder */}
           {cameraActive && !processing && (
-            <div className="relative w-full aspect-square rounded-3xl overflow-hidden border-2 border-purple-500/50 shadow-inner bg-black">
+            <div className="relative w-full aspect-square rounded-3xl overflow-hidden border-2 border-indigo-500/50 shadow-inner bg-black">
               <video ref={videoRef} className="w-full h-full object-cover" />
               <canvas ref={canvasRef} className="hidden" />
 
               {/* Scanning Overlay Animation */}
-              <div className="absolute inset-0 border-4 border-purple-400/40 rounded-3xl pointer-events-none flex items-center justify-center">
-                <div className="w-48 h-48 border-2 border-purple-400 border-dashed rounded-2xl animate-pulse" />
+              <div className="absolute inset-0 border-4 border-indigo-400/40 rounded-3xl pointer-events-none flex items-center justify-center">
+                <div className="w-48 h-48 border-2 border-indigo-400 border-dashed rounded-2xl animate-pulse" />
               </div>
             </div>
           )}
@@ -323,7 +323,7 @@ export default function StudentScanPresensi() {
           {!cameraActive && !processing && !successMsg && (
             <button
               onClick={startCamera}
-              className="w-full py-4 bg-gradient-to-r from-[#5B21B6] via-[#6D28D9] to-[#7C3AED] text-white font-black text-sm rounded-full shadow-lg shadow-purple-600/40 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer border border-white/20"
+              className="w-full py-4 bg-gradient-to-r from-indigo-600 via-blue-600 to-indigo-700 text-white font-black text-sm rounded-full shadow-lg shadow-indigo-600/40 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer border border-white/20"
             >
               <Camera className="w-5 h-5" />
               <span>{errorMsg ? 'Buka Kamera & Coba Lagi' : 'Mulai Scan QR Kelas'}</span>

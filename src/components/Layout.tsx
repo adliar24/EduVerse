@@ -350,20 +350,20 @@ export default function Layout({ session }: LayoutProps) {
                       className={cn(
                         "flex items-center justify-between w-full px-3 py-2.5 rounded-2xl transition-all duration-150 group text-left cursor-pointer",
                         isActive
-                          ? "bg-white text-[#5B21B6] shadow-lg shadow-purple-900/20 font-extrabold"
-                          : "text-purple-100/80 hover:bg-white/10 hover:text-white"
+                          ? "bg-white text-indigo-900 shadow-lg shadow-indigo-950/20 font-extrabold"
+                          : "text-slate-200/90 hover:bg-white/10 hover:text-white"
                       )}
                     >
                       <div className="flex items-center gap-3">
                         <item.icon className={cn(
                           "w-[18px] h-[18px] transition-transform duration-200 group-hover:scale-105",
-                          isActive ? "text-[#6D28D9]" : "text-purple-200/70 group-hover:text-white"
+                          isActive ? "text-indigo-600" : "text-slate-400 group-hover:text-white"
                         )} />
                         <span className="font-semibold text-[13px]">{item.label}</span>
                       </div>
                       <ChevronDown className={cn(
                         "w-4 h-4 transition-transform duration-200",
-                        isActive ? "text-[#6D28D9]" : "text-purple-200/70 group-hover:text-white",
+                        isActive ? "text-indigo-600" : "text-slate-400 group-hover:text-white",
                         isSubOpen ? "transform rotate-180" : ""
                       )} />
                     </button>
@@ -389,12 +389,12 @@ export default function Layout({ session }: LayoutProps) {
                                 "flex items-center gap-2.5 px-3 py-2 rounded-xl text-[12px] font-medium transition-colors",
                                 location.pathname === sub.path
                                   ? "text-white bg-white/20 font-bold backdrop-blur-sm"
-                                  : "text-purple-100/70 hover:text-white hover:bg-white/10"
+                                  : "text-slate-300 hover:text-white hover:bg-white/10"
                               )}
                             >
                               <div className={cn(
                                 "w-1.5 h-1.5 rounded-full transition-colors",
-                                location.pathname === sub.path ? "bg-white" : "bg-purple-300/40 group-hover:bg-white"
+                                location.pathname === sub.path ? "bg-white" : "bg-slate-500 group-hover:bg-white"
                               )} />
                               {sub.label}
                             </Link>
@@ -417,11 +417,11 @@ export default function Layout({ session }: LayoutProps) {
                   className={cn(
                     "flex items-center gap-3 px-3 py-2.5 rounded-2xl transition-all duration-150 group text-left cursor-pointer",
                     location.pathname === item.path
-                      ? "bg-white text-[#5B21B6] shadow-lg shadow-purple-900/20 font-extrabold"
-                      : "text-purple-100/80 hover:bg-white/10 hover:text-white"
+                      ? "bg-white text-indigo-900 shadow-lg shadow-indigo-950/20 font-extrabold"
+                      : "text-slate-200/90 hover:bg-white/10 hover:text-white"
                   )}
                 >
-                  <item.icon className={cn("w-[18px] h-[18px]", location.pathname === item.path ? "text-[#6D28D9]" : "text-purple-200/70 group-hover:text-white")} />
+                  <item.icon className={cn("w-[18px] h-[18px]", location.pathname === item.path ? "text-indigo-600" : "text-slate-400 group-hover:text-white")} />
                   <span className="font-semibold text-[13px]">{item.label}</span>
                 </Link>
               );

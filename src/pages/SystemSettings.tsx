@@ -352,7 +352,7 @@ export default function SystemSettings() {
             ⚙️ System & GPS Configuration
           </span>
           <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight mt-2">Pengaturan Sistem & Lokasi</h1>
-          <p className="text-purple-200/90 text-xs sm:text-sm font-medium mt-1">
+          <p className="text-slate-100/90 text-xs sm:text-sm font-medium mt-1">
             Kelola sinkronisasi cloud, lokasi GPS sekolah, dan cetak massal poster QR Code kelas.
           </p>
         </div>

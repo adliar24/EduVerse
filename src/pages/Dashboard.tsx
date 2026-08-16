@@ -435,7 +435,7 @@ export default function Dashboard() {
             <h2 className="text-2xl md:text-3xl font-black tracking-tight text-white">
               Selamat Datang, {userName}!
             </h2>
-            <p className="text-purple-200/90 text-xs sm:text-sm font-medium mt-1">
+            <p className="text-slate-100/90 text-xs sm:text-sm font-medium mt-1">
               Kelola ujian, presensi, dan rekap nilai murid dalam satu platform terpadu.
             </p>
           </div>
