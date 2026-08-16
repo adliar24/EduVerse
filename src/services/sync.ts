@@ -49,6 +49,10 @@ const mapToCloud = (tableName: string, item: any, userId: string): any => {
     syncItem.school_id = schoolId || null;
     syncItem.class_id = item.class_id || item.classId || item.idKelas || null;
     syncItem.name = item.name || item.nama;
+    syncItem.gender = item.gender || null;
+    syncItem.nisn = item.nisn || null;
+    syncItem.student_code = item.student_code || item.studentCode || null;
+    syncItem.password = item.password || 'murid19';
     syncItem.created_at = item.created_at || item.createdAt;
 
     // Add dual-schema fields for EduScore / EduCheck compatibility
@@ -66,6 +70,7 @@ const mapToCloud = (tableName: string, item: any, userId: string): any => {
     delete syncItem.createdAt;
     delete syncItem.schoolId;
     delete syncItem.idSiswa;
+    delete syncItem.studentCode;
   }
   
   if (tableName === 'sessions') {

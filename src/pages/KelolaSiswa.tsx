@@ -762,32 +762,112 @@ export default function KelolaSiswa() {
         
         if (rawData.length < 2) throw new Error('File tidak memiliki data.');
         
-        const headers = rawData[0].map((h: any) => String(h || '').trim());
-        const nameIdx = headers.findIndex(h => h === 'Nama Lengkap');
-        const classIdx = headers.findIndex(h => h === 'Nama Kelas');
-        const genderIdx = headers.findIndex(h => ['Jenis Kelamin', 'Gender', 'L/P', 'Jenis_Kelamin'].includes(h));
+        // Find header row dynamically (within the first 12 rows)
+        let headerRowIdx = -1;
+        let nameIdx = -1;
+        let classIdx = -1;
+        let genderIdx = -1;
+        let nisnIdx = -1;
+
+        for (let r = 0; r < Math.min(rawData.length, 12); r++) {
+          const row = rawData[r];
+          if (!row || !Array.isArray(row)) continue;
+          
+          const rowHeaders = row.map((h: any) => String(h || '').trim().toLowerCase());
+          const nIdx = rowHeaders.findIndex(h => 
+            h === 'nama lengkap' || h === 'nama siswa' || h === 'nama murid' || 
+            h === 'nama' || h === 'name' || h === 'student name' || h === 'peserta didik'
+          );
+          
+          if (nIdx !== -1) {
+            headerRowIdx = r;
+            nameIdx = nIdx;
+            classIdx = rowHeaders.findIndex(h => 
+              h === 'nama kelas' || h === 'kelas' || h === 'class' || h === 'rombel'
+            );
+            genderIdx = rowHeaders.findIndex(h => 
+              h === 'jenis kelamin' || h === 'gender' || h === 'l/p' || 
+              h === 'jk' || h === 'jenis_kelamin' || h.includes('kelamin')
+            );
+            nisnIdx = rowHeaders.findIndex(h => 
+              h === 'nisn' || h === 'nis' || h === 'nis/nisn' || h === 'no induk' || h === 'nomor induk'
+            );
+            break;
+          }
+        }
         
-        if (nameIdx === -1) throw new Error('Kolom "Nama Lengkap" tidak ditemukan.');
+        if (nameIdx === -1) throw new Error('Kolom Nama ("Nama Lengkap" / "Nama Siswa" / "Nama") tidak ditemukan.');
+
+        // Pre-fetch all students and codes for this school/teacher to prevent 409 conflict
+        const targetSchoolId = activeSchool?.id === 'legacy' ? null : activeSchool?.id;
+        let studentQuery = supabase.from('students').select('id, name, student_code, class_id, school_id, gender, nisn');
+        if (targetSchoolId) {
+          studentQuery = studentQuery.eq('school_id', targetSchoolId);
+        } else {
+          studentQuery = studentQuery.eq('teacher_id', user.id);
+        }
+        const { data: dbStudents } = await studentQuery;
+
+        const { data: allCodeRows } = await supabase
+          .from('students')
+          .select('student_code')
+          .not('student_code', 'is', null);
+
+        const usedCodeSet = new Set<string>();
+        (allCodeRows || []).forEach(r => {
+          if (r.student_code) usedCodeSet.add(String(r.student_code).toUpperCase());
+        });
+
+        const generateUniqueStudentCode = () => {
+          const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+          for (let attempt = 0; attempt < 50; attempt++) {
+            let code = '';
+            for (let i = 0; i < 6; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
+            if (!usedCodeSet.has(code)) {
+              usedCodeSet.add(code);
+              return code;
+            }
+          }
+          const fallback = 'S' + Math.random().toString(36).substring(2, 7).toUpperCase();
+          usedCodeSet.add(fallback);
+          return fallback;
+        };
+
+        const existingMap = new Map<string, any>();
+        (dbStudents || []).forEach(s => {
+          if (s.name && s.class_id) {
+            existingMap.set(`${s.name.trim().toLowerCase()}::${s.class_id}`, s);
+          }
+        });
         
         let successCount = 0;
+        let updatedCount = 0;
+        let skippedCount = 0;
         let errorMessages: string[] = [];
         
-        for (let i = 1; i < rawData.length; i++) {
+        for (let i = headerRowIdx + 1; i < rawData.length; i++) {
           const row = rawData[i];
-          const name = String(row[nameIdx] || '').trim();
-          if (!name) continue;
+          if (!row || !Array.isArray(row)) continue;
+
+          const rawName = String(row[nameIdx] || '').trim();
+          if (!rawName || rawName.toLowerCase() === 'nama' || rawName.toLowerCase() === 'nama lengkap') {
+            const hasData = row.some(cell => cell !== null && cell !== undefined && String(cell).trim() !== '');
+            if (hasData) skippedCount++;
+            continue;
+          }
           
           try {
             const className = classIdx !== -1 ? String(row[classIdx] || '').trim() : '';
             let classId: string | null = null;
             if (className) {
               const cls = classes.find(c => c.name.toLowerCase() === className.toLowerCase());
-              if (cls) { classId = cls.id; }
-              else {
+              if (cls) { 
+                classId = cls.id; 
+              } else {
                 const { data: newCls } = await supabase.from('classes').insert([{ 
                   name: className, 
                   teacher_id: user.id,
-                  school_id: activeSchool?.id === 'legacy' ? null : activeSchool?.id
+                  school_id: targetSchoolId
                 }]).select().single();
                 
                 if (newCls) { 
@@ -821,29 +901,45 @@ export default function KelolaSiswa() {
             } else if (['P', 'F', 'PEREMPUAN', 'FEMALE', 'WOMAN', 'WANITA'].includes(rawGender)) {
               genderVal = 'F';
             }
-            if (!genderVal) genderVal = detectGenderFromName(name);
+            if (!genderVal) genderVal = detectGenderFromName(rawName);
 
-            const existingStudent = students.find(s => s.name.toLowerCase() === name.toLowerCase() && s.class_id === classId);
+            const nisnVal = nisnIdx !== -1 ? String(row[nisnIdx] || '').trim() : null;
+
+            const existingStudent = classId ? existingMap.get(`${rawName.toLowerCase()}::${classId}`) : null;
             let studentData = null;
             
             if (existingStudent) {
-              const { data, error } = await supabase.from('students').update({ 
-                gender: genderVal
-              }).eq('id', existingStudent.id).select().single();
-              if (error) throw error;
-              studentData = data;
+              const updatePayload: any = {};
+              if (genderVal && !existingStudent.gender) updatePayload.gender = genderVal;
+              if (nisnVal && !existingStudent.nisn) updatePayload.nisn = nisnVal;
+
+              if (Object.keys(updatePayload).length > 0) {
+                const { data } = await supabase.from('students').update(updatePayload).eq('id', existingStudent.id).select().single();
+                studentData = data || existingStudent;
+              } else {
+                studentData = existingStudent;
+              }
+              updatedCount++;
             } else {
+              const studentCode = generateUniqueStudentCode();
+              const newId = crypto.randomUUID();
+
               const { data, error } = await supabase.from('students').insert([{ 
+                id: newId,
                 teacher_id: user.id, 
-                school_id: activeSchool?.id === 'legacy' ? null : activeSchool?.id,
-                name, 
+                school_id: targetSchoolId,
+                name: rawName, 
                 class_id: classId,
-                student_code: generateStudentCode(),
+                student_code: studentCode,
                 password: 'murid19',
-                gender: genderVal
+                gender: genderVal,
+                nisn: nisnVal || null
               }]).select().single();
+
               if (error) throw error;
               studentData = data;
+              successCount++;
+              if (classId && data) existingMap.set(`${rawName.toLowerCase()}::${classId}`, data);
             }
 
             if (studentData) {
@@ -871,16 +967,30 @@ export default function KelolaSiswa() {
                 gender: studentData.gender
               } as any);
             }
-            successCount++;
           } catch (rowErr: any) {
-            errorMessages.push(`Baris ${i + 1}: ${rowErr.message}`);
+            console.error('Error importing student row:', rowErr);
+            errorMessages.push(`Baris ${i + 1} (${rawName}): ${rowErr.message}`);
           }
         }
         
+        let message = '';
+        if (successCount > 0 && updatedCount > 0) {
+          message = `${successCount} murid baru ditambahkan, ${updatedCount} murid yang sudah ada diselaraskan.`;
+        } else if (successCount > 0) {
+          message = `${successCount} murid baru berhasil diimpor.`;
+        } else if (updatedCount > 0) {
+          message = `${updatedCount} murid yang sudah ada telah diselaraskan.`;
+        } else {
+          message = `Tidak ada data murid yang berhasil diproses.`;
+        }
+
+        if (skippedCount > 0) message += ` (${skippedCount} baris kosong dilewati)`;
+        if (errorMessages.length > 0) message += ` [${errorMessages.length} gagal, cek console]`;
+
         showAlert({ 
-          title: 'Impor Selesai', 
-          message: `${successCount} murid berhasil diimpor.`, 
-          type: successCount > 0 ? 'success' : 'error' 
+          title: successCount > 0 || updatedCount > 0 ? 'Impor Selesai' : 'Gagal Impor', 
+          message, 
+          type: successCount > 0 || updatedCount > 0 ? 'success' : 'error' 
         });
         if (isMountedRef.current) fetchData();
       } catch (err: any) { 

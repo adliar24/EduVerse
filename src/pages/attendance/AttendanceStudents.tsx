@@ -35,19 +35,45 @@ const readXlsxToJson = async (file: File) => {
   const ws = wb.worksheets[0];
   if (!ws) return [];
 
-  const headerRow = ws.getRow(1);
-  const headers: string[] = [];
-  headerRow.eachCell((cell: any, colNumber: number) => {
-    const v = (cell.value ?? '').toString().trim();
-    headers[colNumber - 1] = v;
-  });
+  let headerRowIndex = 1;
+  let headers: string[] = [];
+
+  // Search up to row 12 for the header row containing a Name column
+  for (let r = 1; r <= Math.min(ws.rowCount, 12); r++) {
+    const row = ws.getRow(r);
+    const candidateHeaders: string[] = [];
+    let hasNameCol = false;
+
+    row.eachCell((cell: any, colNumber: number) => {
+      const v = (cell.value ?? '').toString().trim();
+      candidateHeaders[colNumber - 1] = v;
+      const lower = v.toLowerCase();
+      if (lower.includes('nama') || lower === 'name' || lower.includes('peserta')) {
+        hasNameCol = true;
+      }
+    });
+
+    if (hasNameCol) {
+      headerRowIndex = r;
+      headers = candidateHeaders;
+      break;
+    }
+  }
+
+  // Fallback if no specific name header detected
+  if (headers.length === 0) {
+    ws.getRow(1).eachCell((cell: any, colNumber: number) => {
+      headers[colNumber - 1] = (cell.value ?? '').toString().trim();
+    });
+  }
 
   const rows: any[] = [];
   ws.eachRow((row: any, rowNumber: number) => {
-    if (rowNumber === 1) return;
+    if (rowNumber <= headerRowIndex) return;
     const rowData: any = {};
     row.eachCell((cell: any, colNumber: number) => {
-      rowData[headers[colNumber - 1]] = cell.value;
+      const headerKey = headers[colNumber - 1] || `col_${colNumber}`;
+      rowData[headerKey] = cell.value;
     });
     rows.push(rowData);
   });
@@ -276,16 +302,27 @@ export const Students: React.FC<Props> = ({ state, refresh, notify }) => {
           const name = normalizedRow['nama'] || 
                        normalizedRow['nama siswa'] || 
                        normalizedRow['nama lengkap'] || 
+                       normalizedRow['nama murid'] || 
                        normalizedRow['name'] ||
-                       normalizedRow['student name'];
+                       normalizedRow['student name'] ||
+                       normalizedRow['peserta didik'];
 
-          if (name && typeof name === 'string' && name.trim().length > 0) {
+          if (name && typeof name === 'string' && name.trim().length > 0 && name.trim().toLowerCase() !== 'nama') {
               if (!newStudents.find(s => s.name.toLowerCase() === name.trim().toLowerCase())) {
+                  const rawGender = String(normalizedRow['l/p'] || normalizedRow['jk'] || normalizedRow['gender'] || normalizedRow['jenis kelamin'] || '').trim().toUpperCase();
+                  let genderVal: 'M' | 'F' | null = null;
+                  if (['L', 'M', 'LAKI', 'LAKI-LAKI', 'PRIA', 'MALE'].includes(rawGender)) genderVal = 'M';
+                  else if (['P', 'F', 'PEREMPUAN', 'WANITA', 'FEMALE'].includes(rawGender)) genderVal = 'F';
+
+                  const nisnVal = String(normalizedRow['nisn'] || normalizedRow['nis'] || normalizedRow['nis/nisn'] || '').trim() || null;
+
                   newStudents.push({
                       id: deterministicId(`${activeClass!.id}::${name.trim()}`),
                       classId: activeClass!.id,
                       class_id: activeClass!.id,
                       name: name.trim(),
+                      gender: genderVal,
+                      nisn: nisnVal,
                       school_id: finalSchoolId,
                       schoolId: finalSchoolId,
                       createdAt: new Date().toISOString()
@@ -300,7 +337,7 @@ export const Students: React.FC<Props> = ({ state, refresh, notify }) => {
       if (newStudents.length > 0) {
           await importStudents(newStudents);
           refresh();
-          notify(`Berhasil impor ${successCount} siswa.`);
+          notify(`Berhasil mengimpor ${successCount} siswa.`);
       } else {
           notify('Tidak ada data valid yang ditemukan.', 'error');
       }

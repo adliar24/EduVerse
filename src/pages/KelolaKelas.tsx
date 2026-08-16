@@ -760,24 +760,89 @@ export default function KelolaKelas() {
           throw new Error('File tidak memiliki data. Pastikan ada header dan minimal 1 baris data.');
         }
         
-        const headers = rawData[0].map((h: any) => String(h || '').trim());
-        const nameIdx = headers.findIndex(h => h === 'Nama Lengkap');
-        const genderIdx = headers.findIndex(h => ['Jenis Kelamin', 'Gender', 'L/P', 'Jenis_Kelamin'].includes(h));
-        
-        if (nameIdx === -1) {
-          throw new Error('Kolom "Nama Lengkap" tidak ditemukan. Pastikan file sesuai dengan template.');
+        // Find header row dynamically (within the first 12 rows)
+        let headerRowIdx = -1;
+        let nameIdx = -1;
+        let genderIdx = -1;
+        let nisnIdx = -1;
+
+        for (let r = 0; r < Math.min(rawData.length, 12); r++) {
+          const row = rawData[r];
+          if (!row || !Array.isArray(row)) continue;
+          
+          const rowHeaders = row.map((h: any) => String(h || '').trim().toLowerCase());
+          const nIdx = rowHeaders.findIndex(h => 
+            h === 'nama lengkap' || h === 'nama siswa' || h === 'nama murid' || 
+            h === 'nama' || h === 'name' || h === 'student name' || h === 'peserta didik'
+          );
+          
+          if (nIdx !== -1) {
+            headerRowIdx = r;
+            nameIdx = nIdx;
+            genderIdx = rowHeaders.findIndex(h => 
+              h === 'jenis kelamin' || h === 'gender' || h === 'l/p' || 
+              h === 'jk' || h === 'jenis_kelamin' || h.includes('kelamin')
+            );
+            nisnIdx = rowHeaders.findIndex(h => 
+              h === 'nisn' || h === 'nis' || h === 'nis/nisn' || h === 'no induk' || h === 'nomor induk'
+            );
+            break;
+          }
         }
         
+        if (nameIdx === -1) {
+          throw new Error('Kolom Nama ("Nama Lengkap" / "Nama Siswa" / "Nama") tidak ditemukan dalam 10 baris pertama file Excel.');
+        }
+        
+        // Pre-fetch all existing students in this class and all student codes to avoid 409 Conflict
+        const { data: existingClassStudents } = await supabase
+          .from('students')
+          .select('id, name, student_code, gender, nisn, class_id')
+          .eq('class_id', selectedClass.id);
+
+        const existingMap = new Map<string, any>();
+        (existingClassStudents || []).forEach(s => {
+          if (s.name) existingMap.set(s.name.trim().toLowerCase(), s);
+        });
+
+        const { data: codeRows } = await supabase
+          .from('students')
+          .select('student_code')
+          .not('student_code', 'is', null);
+
+        const usedCodes = new Set<string>();
+        (codeRows || []).forEach(r => {
+          if (r.student_code) usedCodes.add(String(r.student_code).toUpperCase());
+        });
+
+        const generateUniqueStudentCode = () => {
+          const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+          for (let attempt = 0; attempt < 50; attempt++) {
+            let code = '';
+            for (let i = 0; i < 6; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
+            if (!usedCodes.has(code)) {
+              usedCodes.add(code);
+              return code;
+            }
+          }
+          const fallback = 'S' + Math.random().toString(36).substring(2, 7).toUpperCase();
+          usedCodes.add(fallback);
+          return fallback;
+        };
+
         let successCount = 0;
+        let updatedCount = 0;
         let skippedCount = 0;
         let errorMessages: string[] = [];
         
-        for (let i = 1; i < rawData.length; i++) {
+        for (let i = headerRowIdx + 1; i < rawData.length; i++) {
           const row = rawData[i];
-          const name = String(row[nameIdx] || '').trim();
+          if (!row || !Array.isArray(row)) continue;
           
-          if (!name) {
-            const hasData = row.some(cell => cell !== null && cell !== undefined && cell !== '');
+          const rawName = String(row[nameIdx] || '').trim();
+          // Filter out header echoes, numbers-only or title rows
+          if (!rawName || rawName.toLowerCase() === 'nama' || rawName.toLowerCase() === 'nama lengkap') {
+            const hasData = row.some(cell => cell !== null && cell !== undefined && String(cell).trim() !== '');
             if (hasData) skippedCount++;
             continue;
           }
@@ -785,47 +850,97 @@ export default function KelolaKelas() {
           try {
             const rawGender = genderIdx !== -1 ? String(row[genderIdx] || '').trim().toUpperCase() : '';
             let genderVal: 'M' | 'F' | null = null;
-            if (rawGender === 'L' || rawGender === 'M' || rawGender === 'LAKI-LAKI') genderVal = 'M';
-            else if (rawGender === 'P' || rawGender === 'F' || rawGender === 'PEREMPUAN') genderVal = 'F';
-            if (!genderVal) genderVal = detectGenderFromName(name);
+            if (['L', 'M', 'LAKI', 'LAKI-LAKI', 'PRIA', 'MALE'].includes(rawGender)) genderVal = 'M';
+            else if (['P', 'F', 'PEREMPUAN', 'WANITA', 'FEMALE'].includes(rawGender)) genderVal = 'F';
+            if (!genderVal) genderVal = detectGenderFromName(rawName);
 
-            const { data: newStudent, error: insertError } = await supabase.from('students').insert([{ 
-              name, 
-              class_id: selectedClass.id, 
-              teacher_id: user?.id, 
-              school_id: activeSchool?.id === 'legacy' ? null : activeSchool?.id,
-              student_code: generateStudentCode(),
-              password: 'murid19',
-              gender: genderVal
-            }]).select().single();
-            
-            if (insertError) {
-              console.error('Error inserting student:', insertError);
-              errorMessages.push(`Baris ${i + 1}: ${insertError.message}`);
+            const nisnVal = nisnIdx !== -1 ? String(row[nisnIdx] || '').trim() : null;
+
+            const existingStudent = existingMap.get(rawName.toLowerCase());
+
+            if (existingStudent) {
+              // Update existing student instead of duplicate insert to avoid 409 Conflict
+              const updatePayload: any = {};
+              if (genderVal && !existingStudent.gender) updatePayload.gender = genderVal;
+              if (nisnVal && !existingStudent.nisn) updatePayload.nisn = nisnVal;
+
+              if (Object.keys(updatePayload).length > 0) {
+                await supabase.from('students').update(updatePayload).eq('id', existingStudent.id);
+              }
+
+              // Sync local state
+              await addStudent({
+                id: existingStudent.id,
+                teacher_id: user?.id,
+                school_id: activeSchool?.id === 'legacy' ? null : activeSchool?.id,
+                schoolId: activeSchool?.id === 'legacy' ? null : activeSchool?.id,
+                classId: selectedClass.id,
+                class_id: selectedClass.id,
+                name: existingStudent.name,
+                student_code: existingStudent.student_code,
+                password: 'murid19',
+                gender: genderVal || existingStudent.gender
+              } as any);
+
+              await saveStudent({
+                idSiswa: existingStudent.id,
+                teacherId: user?.id,
+                schoolId: activeSchool?.id === 'legacy' ? null : activeSchool?.id,
+                idKelas: selectedClass.id,
+                nama: existingStudent.name,
+                student_code: existingStudent.student_code,
+                password: 'murid19'
+              } as any);
+
+              updatedCount++;
             } else {
-              successCount++;
-              if (newStudent) {
-                await addStudent({
-                  id: newStudent.id,
-                  teacher_id: newStudent.teacher_id,
-                  school_id: newStudent.school_id,
-                  schoolId: newStudent.school_id,
-                  classId: newStudent.class_id,
-                  class_id: newStudent.class_id,
-                  name: newStudent.name,
-                  student_code: newStudent.student_code,
-                  password: newStudent.password || 'murid19',
-                  createdAt: newStudent.created_at
-                } as any);
-                await saveStudent({
-                  idSiswa: newStudent.id,
-                  teacherId: newStudent.teacher_id,
-                  schoolId: newStudent.school_id,
-                  idKelas: newStudent.class_id,
-                  nama: newStudent.name,
-                  student_code: newStudent.student_code,
-                  password: newStudent.password || 'murid19'
-                } as any);
+              // Insert brand new student with unique student_code
+              const studentCode = generateUniqueStudentCode();
+              const newId = crypto.randomUUID();
+              
+              const { data: newStudent, error: insertError } = await supabase.from('students').insert([{ 
+                id: newId,
+                name: rawName, 
+                class_id: selectedClass.id, 
+                teacher_id: user?.id, 
+                school_id: activeSchool?.id === 'legacy' ? null : activeSchool?.id,
+                student_code: studentCode,
+                password: 'murid19',
+                gender: genderVal,
+                nisn: nisnVal || null
+              }]).select().single();
+              
+              if (insertError) {
+                console.error('Error inserting student:', insertError);
+                errorMessages.push(`Baris ${i + 1} (${rawName}): ${insertError.message}`);
+              } else {
+                successCount++;
+                existingMap.set(rawName.toLowerCase(), newStudent);
+                
+                if (newStudent) {
+                  await addStudent({
+                    id: newStudent.id,
+                    teacher_id: newStudent.teacher_id,
+                    school_id: newStudent.school_id,
+                    schoolId: newStudent.school_id,
+                    classId: newStudent.class_id,
+                    class_id: newStudent.class_id,
+                    name: newStudent.name,
+                    student_code: newStudent.student_code,
+                    password: newStudent.password || 'murid19',
+                    gender: newStudent.gender,
+                    createdAt: newStudent.created_at
+                  } as any);
+                  await saveStudent({
+                    idSiswa: newStudent.id,
+                    teacherId: newStudent.teacher_id,
+                    schoolId: newStudent.school_id,
+                    idKelas: newStudent.class_id,
+                    nama: newStudent.name,
+                    student_code: newStudent.student_code,
+                    password: newStudent.password || 'murid19'
+                  } as any);
+                }
               }
             }
           } catch (rowErr: any) {
@@ -834,29 +949,40 @@ export default function KelolaKelas() {
           }
         }
         
-        let message = `${successCount} murid diimpor ke kelas ${selectedClass.name}.`;
-        if (skippedCount > 0) message += ` ${skippedCount} baris kosong dilewati.`;
-        if (errorMessages.length > 0) {
-          message += ` ${errorMessages.length} gagal. Cek console untuk detail.`;
-          console.error('Import errors:', errorMessages);
+        let message = '';
+        if (successCount > 0 && updatedCount > 0) {
+          message = `Berhasil menambahkan ${successCount} murid baru dan memperbarui ${updatedCount} murid yang sudah terdaftar di kelas ${selectedClass.name}.`;
+        } else if (successCount > 0) {
+          message = `Berhasil menambahkan ${successCount} murid baru ke kelas ${selectedClass.name}.`;
+        } else if (updatedCount > 0) {
+          message = `Semua ${updatedCount} murid sudah terdaftar di kelas ${selectedClass.name} dan data telah diselaraskan.`;
+        } else {
+          message = `Tidak ada data murid yang berhasil ditambahkan.`;
         }
-        showAlert({ title: 'Impor Selesai', message: message.slice(0, 500), type: successCount > 0 ? 'success' : 'error' });
+
+        if (skippedCount > 0) message += ` (${skippedCount} baris kosong dilewati)`;
+        if (errorMessages.length > 0) {
+          message += ` [${errorMessages.length} gagal diproses, cek log console]`;
+        }
+        
+        showAlert({ 
+          title: successCount > 0 || updatedCount > 0 ? 'Impor Selesai' : 'Gagal Impor', 
+          message: message.slice(0, 500), 
+          type: successCount > 0 || updatedCount > 0 ? 'success' : 'error' 
+        });
+        
         fetchClassStudents(selectedClass.id);
         fetchClasses();
       } catch (err: any) { 
         console.error('Import error:', err);
         showAlert({ title: 'Gagal Impor', message: err.message || 'Terjadi kesalahan saat mengimpor.', type: 'error' }); 
       }
-      finally { setImporting(false); if (fileInputRef.current) fileInputRef.current.value = ''; }
+      finally { 
+        setImporting(false); 
+        if (fileInputRef.current) fileInputRef.current.value = ''; 
+      }
     };
     reader.readAsArrayBuffer(file);
-  };
-
-  const generateStudentCode = () => {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    let code = '';
-    for (let i = 0; i < 6; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
-    return code;
   };
 
   const handleGenerateCodes = async () => {

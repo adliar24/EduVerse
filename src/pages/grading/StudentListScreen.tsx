@@ -103,40 +103,76 @@ export const StudentListScreen: React.FC = () => {
         const sheet = workbook.Sheets[sheetName];
         const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 }) as any[][];
 
-        const firstRow = jsonData[0] || [];
-        const firstCell = firstRow[0] ? String(firstRow[0]) : "";
-        const startIdx = firstCell.toLowerCase().includes("nama") ? 1 : 0;
+        // Find header row dynamically (within the first 12 rows)
+        let headerRowIdx = -1;
+        let nameIdx = -1;
+        let genderIdx = -1;
 
-        const headers = firstCell.toLowerCase().includes("nama") ? firstRow.map((h: any) => String(h || '').trim()) : [];
-        const genderIdx = headers.findIndex((h: string) => ['Jenis Kelamin (L/P)', 'Jenis Kelamin', 'Gender', 'L/P', 'Jenis_Kelamin'].includes(h));
+        for (let r = 0; r < Math.min(jsonData.length, 12); r++) {
+          const row = jsonData[r];
+          if (!row || !Array.isArray(row)) continue;
+          
+          const rowHeaders = row.map((h: any) => String(h || '').trim().toLowerCase());
+          const nIdx = rowHeaders.findIndex(h => 
+            h === 'nama lengkap' || h === 'nama siswa' || h === 'nama murid' || 
+            h === 'nama' || h === 'name' || h === 'student name' || h === 'peserta didik'
+          );
+          
+          if (nIdx !== -1) {
+            headerRowIdx = r;
+            nameIdx = nIdx;
+            genderIdx = rowHeaders.findIndex(h => 
+              h === 'jenis kelamin' || h === 'gender' || h === 'l/p' || 
+              h === 'jk' || h === 'jenis_kelamin' || h.includes('kelamin')
+            );
+            break;
+          }
+        }
 
         const prof = await db.getTeacherProfile();
         const schoolId = prof?.activeSchoolId || '';
+        const existingClassStudents = await db.getStudentsByClass(currentClassId);
+        const existingMap = new Map<string, any>();
+        (existingClassStudents || []).forEach(s => {
+          if (s.nama) existingMap.set(s.nama.trim().toLowerCase(), s);
+        });
+
+        const startIdx = headerRowIdx !== -1 ? headerRowIdx + 1 : 0;
+        const actualNameIdx = nameIdx !== -1 ? nameIdx : (jsonData[0] && String(jsonData[0][0]).match(/^\d+$/) ? 1 : 0);
+
+        let importedCount = 0;
         for (let i = startIdx; i < jsonData.length; i++) {
           const row = jsonData[i];
-          if (row && row[0]) {
-              const rawGender = genderIdx !== -1 ? String(row[genderIdx] || '').trim().toUpperCase() : '';
-              let genderVal: 'M' | 'F' | null = null;
-              if (rawGender === 'L' || rawGender === 'M' || rawGender === 'LAKI-LAKI') genderVal = 'M';
-              else if (rawGender === 'P' || rawGender === 'F' || rawGender === 'PEREMPUAN') genderVal = 'F';
-              const studentName = String(row[0] || "").trim();
-              if (!genderVal) genderVal = detectGenderFromName(studentName);
-
-              await db.saveStudent({ 
-                idSiswa: crypto.randomUUID(), 
-                schoolId,
-                idKelas: currentClassId, 
-                nama: studentName,
-                gender: genderVal
-              });
-            }
+          if (!row || !Array.isArray(row)) continue;
+          
+          const rawName = String(row[actualNameIdx] || "").trim();
+          if (!rawName || rawName.toLowerCase() === 'nama' || rawName.toLowerCase() === 'nama lengkap' || rawName.match(/^\d+$/)) {
+            continue;
           }
-          refreshStudents();
-          showToast("Murid berhasil diimpor!");
-        } catch (err) {
-          showToast("Gagal membaca file Excel.", "error");
-          console.error(err);
+
+          const rawGender = genderIdx !== -1 ? String(row[genderIdx] || '').trim().toUpperCase() : '';
+          let genderVal: 'M' | 'F' | null = null;
+          if (['L', 'M', 'LAKI', 'LAKI-LAKI', 'PRIA', 'MALE'].includes(rawGender)) genderVal = 'M';
+          else if (['P', 'F', 'PEREMPUAN', 'WANITA', 'FEMALE'].includes(rawGender)) genderVal = 'F';
+          if (!genderVal) genderVal = detectGenderFromName(rawName);
+
+          const existing = existingMap.get(rawName.toLowerCase());
+
+          await db.saveStudent({ 
+            idSiswa: existing ? existing.idSiswa : crypto.randomUUID(), 
+            schoolId,
+            idKelas: currentClassId, 
+            nama: rawName, 
+            gender: genderVal || (existing ? existing.gender : null)
+          });
+          importedCount++;
         }
+        refreshStudents();
+        showToast(`Berhasil memproses ${importedCount} murid!`);
+      } catch (err) {
+        showToast("Gagal membaca file Excel.", "error");
+        console.error(err);
+      }
       };
       reader.readAsArrayBuffer(file);
     };
