@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Button, Card, Modal, ConfirmModal } from '../components/UI';
+import { cn } from '../lib/utils';
 import { useAlert } from '../context/AlertContext';
 import { useSchool } from '../context/SchoolContext';
 import { getFullState, initDB, resetAllData } from '../services/dbAttendance';

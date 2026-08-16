@@ -985,6 +985,13 @@ export default function KelolaKelas() {
     reader.readAsArrayBuffer(file);
   };
 
+  const generateStudentCode = () => {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let code = '';
+    for (let i = 0; i < 6; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
+    return code;
+  };
+
   const handleGenerateCodes = async () => {
     if (!selectedClass) return;
     showAlert({

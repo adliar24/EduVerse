@@ -12,7 +12,8 @@ import {
   RefreshCw, 
   Smartphone,
   ShieldAlert,
-  GraduationCap
+  GraduationCap,
+  Loader2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import jsQR from 'jsqr';

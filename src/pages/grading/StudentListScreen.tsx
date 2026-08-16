@@ -131,7 +131,7 @@ export const StudentListScreen: React.FC = () => {
 
         const prof = await db.getTeacherProfile();
         const schoolId = prof?.activeSchoolId || '';
-        const existingClassStudents = await db.getStudentsByClass(currentClassId);
+        const existingClassStudents = await db.getStudents(currentClassId);
         const existingMap = new Map<string, any>();
         (existingClassStudents || []).forEach(s => {
           if (s.nama) existingMap.set(s.nama.trim().toLowerCase(), s);
