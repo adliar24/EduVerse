@@ -2,13 +2,11 @@ import { getSupabaseClient, supabase } from './supabase';
 import { getFullState, initDB, saveTeacherProfile, setSkipSync } from './dbAttendance';
 import { TeacherProfile } from '../types';
 
-// Tables to sync
-const TABLES = ['classes', 'students', 'sessions', 'records', 'schedules', 'events', 'cancellations', 'materials', 'assignments'];
+// Tables that exist in Supabase cloud database
+const TABLES = ['classes', 'students', 'schedules', 'materials', 'assignments'];
 
 // Helper to map local table names to cloud table names
 const getCloudTableName = (tableName: string): string => {
-  if (tableName === 'sessions') return 'attendance_sessions';
-  if (tableName === 'records') return 'attendance_records';
   return tableName;
 };
 
@@ -31,14 +29,14 @@ const mapToCloud = (tableName: string, item: any, userId: string): any => {
   if (tableName === 'classes') {
     syncItem.school_id = schoolId || null;
     syncItem.name = item.name || item.namaKelas;
-    syncItem.subject = item.subject || item.mapel;
+    syncItem.subject = item.subject || item.mapel || 'Umum';
     syncItem.created_at = item.created_at || item.createdAt;
     
     // Add dual-schema fields for EduScore / EduCheck compatibility
     syncItem.id_kelas = item.id || item.idKelas;
     syncItem.nama_kelas = item.name || item.namaKelas;
-    syncItem.mapel = item.subject || item.mapel;
     
+    delete syncItem.mapel;
     delete syncItem.namaKelas;
     delete syncItem.createdAt;
     delete syncItem.schoolId;
