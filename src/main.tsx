@@ -20,12 +20,86 @@ if (typeof window !== 'undefined') {
 import App from './App.tsx';
 import './index.css';
 
+declare const __APP_BUILD_ID__: string;
+
+// Smart version check & automatic browser cache invalidation
+const initSmartCacheManager = async () => {
+  if (typeof window === 'undefined') return;
+
+  try {
+    const currentBuild = typeof __APP_BUILD_ID__ !== 'undefined' ? __APP_BUILD_ID__ : String(Date.now());
+    const savedBuild = localStorage.getItem('eduverse_build_id');
+
+    if (savedBuild && savedBuild !== currentBuild) {
+      console.log('[EduVerse] New app update detected! Clearing stale browser caches...');
+
+      // 1. Clear CacheStorage (keep face-api-models to avoid re-downloading heavy AI weights)
+      if ('caches' in window) {
+        const cacheKeys = await caches.keys();
+        await Promise.all(
+          cacheKeys.map(key => {
+            if (!key.includes('face-api-models')) {
+              return caches.delete(key);
+            }
+            return Promise.resolve(true);
+          })
+        );
+      }
+
+      // 2. Silently refresh student session from Supabase if student is currently logged in
+      const studentSessionStr = localStorage.getItem('student_session');
+      if (studentSessionStr) {
+        try {
+          const session = JSON.parse(studentSessionStr);
+          if (session?.id) {
+            const { supabase } = await import('./lib/supabase');
+            const { data: latestStudent } = await supabase
+              .from('students')
+              .select('*')
+              .eq('id', session.id)
+              .maybeSingle();
+
+            if (latestStudent) {
+              localStorage.setItem('student_session', JSON.stringify({
+                id: latestStudent.id,
+                student_code: latestStudent.student_code,
+                name: latestStudent.name,
+                class_id: latestStudent.class_id,
+                school_id: latestStudent.school_id,
+                gender: latestStudent.gender
+              }));
+              window.dispatchEvent(new Event('student_session_change'));
+            }
+          }
+        } catch (err) {
+          console.warn('[EduVerse] Student session refresh warning:', err);
+        }
+      }
+    }
+
+    localStorage.setItem('eduverse_build_id', currentBuild);
+  } catch (e) {
+    console.warn('[EduVerse] Cache manager init error:', e);
+  }
+};
+
+initSmartCacheManager();
+
 // Handle Vite dynamic import chunk loading errors (e.g., when a new deployment deletes old chunks)
 const handleChunkError = (err: any) => {
   const errorMessage = err?.message || err?.reason?.message || '';
-  if (errorMessage.includes('Failed to fetch dynamically imported module') || errorMessage.includes('Expected a JavaScript-or-Wasm module script')) {
-    console.warn('[EduTest] Dynamic chunk import failed, refreshing page for update...');
+  if (errorMessage.includes('Failed to fetch dynamically imported module') || errorMessage.includes('Expected a JavaScript-or-Wasm module script') || errorMessage.includes('Importing a module script failed')) {
+    console.warn('[EduVerse] Dynamic chunk import mismatch, auto-clearing cache and refreshing page for update...');
     
+    // Clear caches
+    if ('caches' in window) {
+      caches.keys().then(keys => {
+        keys.forEach(k => {
+          if (!k.includes('face-api-models')) caches.delete(k);
+        });
+      });
+    }
+
     // Prevent infinite reload loops
     const lastReload = localStorage.getItem('last_chunk_reload');
     const now = Date.now();
@@ -39,20 +113,36 @@ const handleChunkError = (err: any) => {
 window.addEventListener('error', handleChunkError, true);
 window.addEventListener('unhandledrejection', handleChunkError);
 
-// Auto-update Service Worker logic across devices (ultra lightweight byte-check)
+// Auto-update Service Worker logic across devices (instant update check)
 if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.ready.then((registration) => {
-      // Check for update on initial load
-      registration.update();
-
-      // Check every 15 minutes, but ONLY if tab is active and user is online
-      setInterval(() => {
-        if (document.visibilityState === 'visible' && navigator.onLine) {
-          registration.update();
-        }
-      }, 15 * 60 * 1000);
+  const triggerSwUpdate = () => {
+    navigator.serviceWorker.getRegistrations().then(registrations => {
+      for (const reg of registrations) {
+        reg.update();
+      }
     });
+  };
+
+  window.addEventListener('load', () => {
+    triggerSwUpdate();
+
+    // Check periodically when tab is active and user is online
+    setInterval(() => {
+      if (document.visibilityState === 'visible' && navigator.onLine) {
+        triggerSwUpdate();
+      }
+    }, 5 * 60 * 1000); // Check every 5 minutes
+  });
+
+  // Check immediately when user reopens tab or returns from background
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && navigator.onLine) {
+      triggerSwUpdate();
+    }
+  });
+
+  window.addEventListener('online', () => {
+    triggerSwUpdate();
   });
 
   // Reload page smoothly when a new Service Worker takes control

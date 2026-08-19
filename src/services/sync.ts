@@ -209,6 +209,28 @@ const mapToLocal = (tableName: string, cloudItem: any): any => {
     const className = cloudItem.name || cloudItem.nama_kelas || 'Kelas';
     let classSubject = cloudItem.subject || cloudItem.mapel || '';
 
+    const DEFAULT_CLASS_SUBJECTS: Record<string, string> = {
+      "X-A": "Seni Rupa",
+      "X-B": "Seni Rupa",
+      "X-C": "Seni Rupa",
+      "X-D": "Seni Rupa",
+      "X-E": "Seni Rupa",
+      "X-F": "Informatika",
+      "X-G": "Informatika",
+      "X-H": "Informatika",
+      "X-I": "Informatika",
+      "X-J": "Informatika",
+      "X-K": "Informatika",
+      "XI-A": "PKWU",
+      "XI-B": "PKWU",
+      "XI-C": "PKWU",
+      "XI-D": "PKWU",
+      "XI-E": "PKWU",
+      "XI-F": "PKWU",
+      "XI-G": "PKWU",
+      "XI-H": "Seni Rupa"
+    };
+
     try {
       if (typeof window !== 'undefined') {
         const overrides = JSON.parse(localStorage.getItem('class_subject_overrides') || '{}');
@@ -217,13 +239,18 @@ const mapToLocal = (tableName: string, cloudItem: any): any => {
         }
       }
     } catch (e) {}
+
+    const normClassName = (className || '').trim().toUpperCase();
+    if (!classSubject || classSubject === 'Umum') {
+      classSubject = DEFAULT_CLASS_SUBJECTS[normClassName] || classSubject || 'Umum';
+    }
     
     item.id = classId;
     item.idKelas = classId;
     item.name = className;
     item.namaKelas = className;
-    item.subject = classSubject || 'Umum';
-    item.mapel = classSubject || 'Umum';
+    item.subject = classSubject;
+    item.mapel = classSubject;
     item.schoolId = cloudItem.school_id;
     item.school_id = cloudItem.school_id;
     item.createdAt = cloudItem.created_at || new Date().toISOString();

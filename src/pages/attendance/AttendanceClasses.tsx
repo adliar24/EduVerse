@@ -6,6 +6,7 @@ import { addCancellation, deleteCancellation, setActiveClassId } from '../../ser
 import { Calendar, ArrowRight, Ban, RefreshCcw, LayoutGrid, Filter, BarChart3, AlertCircle, CalendarOff, Thermometer, Briefcase, Clock } from 'lucide-react';
 import { deterministicId } from '../../lib/utils';
 import { compareClassName } from '../../constants';
+import { SEED_SCHEDULES, SEED_CLASSES } from '../../services/excelDataSeed';
 
 interface Props {
   state: AppState;
@@ -82,8 +83,26 @@ export const Classes: React.FC<Props> = ({ state, refresh, onNavigate, notify })
   
   const todayEvent = state.events.find(e => e.dateISO === todayISO);
   
+  const schedulesList = useMemo(() => {
+    if (state.schedules && state.schedules.length > 0) {
+      return state.schedules;
+    }
+    return SEED_SCHEDULES.map(sch => {
+      const cls = schoolClasses.find(c => c.id === sch.classId);
+      if (cls) return sch;
+      const seedClass = SEED_CLASSES.find(sc => sc.id === sch.classId);
+      if (seedClass) {
+        const actualClass = schoolClasses.find(c => c.name.toUpperCase() === seedClass.name.toUpperCase());
+        if (actualClass) {
+          return { ...sch, classId: actualClass.id };
+        }
+      }
+      return sch;
+    });
+  }, [state.schedules, schoolClasses]);
+
   // Filter schedules based on Events/Notes
-  const todaySchedules = state.schedules
+  const todaySchedules = schedulesList
     .filter(s => schoolClassIds.has(s.classId))
     .filter(s => s.dayName === todayName)
     .filter(s => {

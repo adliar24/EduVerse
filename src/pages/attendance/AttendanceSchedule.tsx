@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { AppState, ScheduleItem, CalendarEvent, EventType } from '../../types';
 import { compareClassName } from '../../constants';
-import { SEED_SCHEDULES } from '../../services/excelDataSeed';
+import { SEED_SCHEDULES, SEED_CLASSES } from '../../services/excelDataSeed';
 import { Button, Card, Input, Modal, ConfirmModal } from '../../components/UI';
 import { addSchedule, deleteSchedule, addEvent, deleteEvent } from '../../services/dbAttendance';
 import { Plus, Trash2, Calendar, Clock, BookOpen, CalendarOff, Briefcase, Thermometer, AlertCircle, ChevronDown, CheckCircle2, Pencil } from 'lucide-react';
@@ -91,7 +91,24 @@ export const Schedule: React.FC<Props> = ({ state, refresh, notify }) => {
   const [eventStart, setEventStart] = useState('07:00');
   const [eventEnd, setEventEnd] = useState('14:00');
 
-  const allSchedulesList = (state.schedules && state.schedules.length > 0) ? state.schedules : SEED_SCHEDULES;
+  const allSchedulesList = useMemo(() => {
+    if (state.schedules && state.schedules.length > 0) {
+      return state.schedules;
+    }
+    // Map seed schedules to match current school class IDs by name or id
+    return SEED_SCHEDULES.map(sch => {
+      const cls = schoolClasses.find(c => c.id === sch.classId);
+      if (cls) return sch;
+      const seedClass = SEED_CLASSES.find(sc => sc.id === sch.classId);
+      if (seedClass) {
+        const actualClass = schoolClasses.find(c => c.name.toUpperCase() === seedClass.name.toUpperCase());
+        if (actualClass) {
+          return { ...sch, classId: actualClass.id };
+        }
+      }
+      return sch;
+    });
+  }, [state.schedules, schoolClasses]);
 
   const currentSchedules = allSchedulesList
     .filter((s: any) => schoolClassIds.has(s.classId))
@@ -122,6 +139,19 @@ export const Schedule: React.FC<Props> = ({ state, refresh, notify }) => {
   const handleSaveSchedule = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!newClassId || !startTime || !endTime) return;
+
+    // If local database had 0 schedules (was relying on seed), persist all current seed schedules first so they are not lost!
+    if (!state.schedules || state.schedules.length === 0) {
+      for (const baseSch of allSchedulesList) {
+        if (baseSch.id !== editingScheduleId) {
+          await addSchedule({
+            ...baseSch,
+            schoolId: activeSchool?.id
+          });
+        }
+      }
+    }
+
     const schedule: ScheduleItem = {
       id: editingScheduleId || deterministicId(`${newClassId}::${activeDay}::${startTime}::${endTime}`),
       dayName: activeDay,
@@ -140,7 +170,18 @@ export const Schedule: React.FC<Props> = ({ state, refresh, notify }) => {
       if (!deleteTarget) return;
 
       if (deleteTarget.type === 'schedule') {
-          await deleteSchedule(deleteTarget.id);
+          if (!state.schedules || state.schedules.length === 0) {
+            for (const baseSch of allSchedulesList) {
+              if (baseSch.id !== deleteTarget.id) {
+                await addSchedule({
+                  ...baseSch,
+                  schoolId: activeSchool?.id
+                });
+              }
+            }
+          } else {
+            await deleteSchedule(deleteTarget.id);
+          }
           notify("Jadwal dihapus");
       } else {
           await deleteEvent(deleteTarget.id);

@@ -1025,17 +1025,44 @@ const _syncCloudToLocalImpl = async (existingProfile?: TeacherProfile | null): P
           }
         } catch (e) {}
 
+        const DEFAULT_CLASS_SUBJECTS: Record<string, string> = {
+          "X-A": "Seni Rupa",
+          "X-B": "Seni Rupa",
+          "X-C": "Seni Rupa",
+          "X-D": "Seni Rupa",
+          "X-E": "Seni Rupa",
+          "X-F": "Informatika",
+          "X-G": "Informatika",
+          "X-H": "Informatika",
+          "X-I": "Informatika",
+          "X-J": "Informatika",
+          "X-K": "Informatika",
+          "XI-A": "PKWU",
+          "XI-B": "PKWU",
+          "XI-C": "PKWU",
+          "XI-D": "PKWU",
+          "XI-E": "PKWU",
+          "XI-F": "PKWU",
+          "XI-G": "PKWU",
+          "XI-H": "Seni Rupa"
+        };
+
         const classes = (cRes.data || []).map((row: any) => {
           const cId = row.id || row.id_kelas;
+          const className = row.name || row.nama_kelas || 'Kelas';
+          const normClassName = (className || '').trim().toUpperCase();
           const overrideSubj = subjectOverrides[cId];
-          const finalSubj = overrideSubj || row.subject || row.mapel || 'Umum';
+          let finalSubj = overrideSubj || row.subject || row.mapel || '';
+          if (!finalSubj || finalSubj === 'Umum') {
+            finalSubj = DEFAULT_CLASS_SUBJECTS[normClassName] || finalSubj || 'Umum';
+          }
           return {
             id: cId,
             idKelas: row.id_kelas || row.id,
             schoolId: row.school_id || targetSchoolId,
             school_id: row.school_id || targetSchoolId,
-            name: row.name || row.nama_kelas || 'Kelas',
-            namaKelas: row.nama_kelas || row.name || 'Kelas',
+            name: className,
+            namaKelas: className,
             subject: finalSubj,
             mapel: finalSubj
           };

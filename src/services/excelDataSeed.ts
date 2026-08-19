@@ -44,22 +44,22 @@ export const SEED_CLASSES: SeedClass[] = [
   {
     "id": "00000000-0000-4000-8000-00002da5570b",
     "name": "X-B",
-    "subject": "Informatika",
+    "subject": "Seni Rupa",
     "schoolId": "fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7",
     "school_id": "fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7",
     "idKelas": "00000000-0000-4000-8000-00002da5570b",
     "namaKelas": "X-B",
-    "mapel": "Informatika"
+    "mapel": "Seni Rupa"
   },
   {
     "id": "00000000-0000-4000-8000-00002da5570c",
     "name": "X-C",
-    "subject": "Informatika",
+    "subject": "Seni Rupa",
     "schoolId": "fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7",
     "school_id": "fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7",
     "idKelas": "00000000-0000-4000-8000-00002da5570c",
     "namaKelas": "X-C",
-    "mapel": "Informatika"
+    "mapel": "Seni Rupa"
   },
   {
     "id": "00000000-0000-4000-8000-00002da5570d",
