@@ -113,45 +113,14 @@ const handleChunkError = (err: any) => {
 window.addEventListener('error', handleChunkError, true);
 window.addEventListener('unhandledrejection', handleChunkError);
 
-// Auto-update Service Worker logic across devices (instant update check)
+// Safe Service Worker registration without infinite reload loop
 if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
-  const triggerSwUpdate = () => {
+  window.addEventListener('load', () => {
     navigator.serviceWorker.getRegistrations().then(registrations => {
       for (const reg of registrations) {
-        reg.update();
+        reg.update().catch(() => {});
       }
-    });
-  };
-
-  window.addEventListener('load', () => {
-    triggerSwUpdate();
-
-    // Check periodically when tab is active and user is online
-    setInterval(() => {
-      if (document.visibilityState === 'visible' && navigator.onLine) {
-        triggerSwUpdate();
-      }
-    }, 5 * 60 * 1000); // Check every 5 minutes
-  });
-
-  // Check immediately when user reopens tab or returns from background
-  document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible' && navigator.onLine) {
-      triggerSwUpdate();
-    }
-  });
-
-  window.addEventListener('online', () => {
-    triggerSwUpdate();
-  });
-
-  // Reload page smoothly when a new Service Worker takes control
-  let refreshing = false;
-  navigator.serviceWorker.addEventListener('controllerchange', () => {
-    if (!refreshing) {
-      refreshing = true;
-      window.location.reload();
-    }
+    }).catch(() => {});
   });
 }
 
