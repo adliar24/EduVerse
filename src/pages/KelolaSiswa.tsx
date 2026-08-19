@@ -924,25 +924,49 @@ export default function KelolaSiswa() {
               const studentCode = generateUniqueStudentCode();
               const newId = crypto.randomUUID();
 
-              const { data, error } = await supabase.from('students').insert([{ 
+              let studentData: any = null;
+              if (user?.id) {
+                try {
+                  const { data, error } = await supabase.from('students').insert([{ 
+                    id: newId,
+                    teacher_id: user.id, 
+                    school_id: targetSchoolId,
+                    name: rawName, 
+                    class_id: classId,
+                    student_code: studentCode,
+                    password: 'murid19',
+                    gender: genderVal,
+                    nisn: nisnVal || null
+                  }]).select().single();
+
+                  if (!error && data) {
+                    studentData = data;
+                  } else if (error) {
+                    console.warn('Cloud student insert warning:', error);
+                  }
+                } catch (cloudErr) {
+                  console.warn('Cloud student insert error:', cloudErr);
+                }
+              }
+
+              studentData = studentData || {
                 id: newId,
-                teacher_id: user.id, 
+                teacher_id: user?.id || 'teacher_local',
                 school_id: targetSchoolId,
-                name: rawName, 
+                schoolId: targetSchoolId,
+                name: rawName,
+                classId: classId,
                 class_id: classId,
                 student_code: studentCode,
                 password: 'murid19',
                 gender: genderVal,
-                nisn: nisnVal || null
-              }]).select().single();
+                nisn: nisnVal || null,
+                createdAt: new Date().toISOString()
+              };
 
-              if (error) throw error;
-              studentData = data;
               successCount++;
-              if (classId && data) existingMap.set(`${rawName.toLowerCase()}::${classId}`, data);
-            }
+              if (classId) existingMap.set(`${rawName.toLowerCase()}::${classId}`, studentData);
 
-            if (studentData) {
               await addStudent({
                 id: studentData.id,
                 teacher_id: studentData.teacher_id,
@@ -954,7 +978,7 @@ export default function KelolaSiswa() {
                 student_code: studentData.student_code,
                 password: studentData.password || 'murid19',
                 gender: studentData.gender,
-                createdAt: studentData.created_at
+                createdAt: studentData.created_at || studentData.createdAt
               } as any);
               await saveStudent({
                 idSiswa: studentData.id,

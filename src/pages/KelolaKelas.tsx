@@ -895,53 +895,74 @@ export default function KelolaKelas() {
               updatedCount++;
             } else {
               // Insert brand new student with unique student_code
-              const studentCode = generateUniqueStudentCode();
-              const newId = crypto.randomUUID();
-              
-              const { data: newStudent, error: insertError } = await supabase.from('students').insert([{ 
+              let studentRecord: any = null;
+
+              if (user?.id) {
+                try {
+                  const { data: newStudent, error: insertError } = await supabase.from('students').insert([{ 
+                    id: newId,
+                    name: rawName, 
+                    class_id: selectedClass.id, 
+                    teacher_id: user.id, 
+                    school_id: activeSchool?.id === 'legacy' ? null : (activeSchool?.id || null),
+                    student_code: studentCode,
+                    password: 'murid19',
+                    gender: genderVal,
+                    nisn: nisnVal || null
+                  }]).select().single();
+
+                  if (!insertError && newStudent) {
+                    studentRecord = newStudent;
+                  } else if (insertError) {
+                    console.warn('Cloud student insert warning:', insertError);
+                  }
+                } catch (cloudErr) {
+                  console.warn('Cloud insert error:', cloudErr);
+                }
+              }
+
+              studentRecord = studentRecord || {
                 id: newId,
-                name: rawName, 
-                class_id: selectedClass.id, 
-                teacher_id: user?.id, 
-                school_id: activeSchool?.id === 'legacy' ? null : activeSchool?.id,
+                teacher_id: user?.id || 'teacher_local',
+                school_id: activeSchool?.id === 'legacy' ? null : (activeSchool?.id || null),
+                schoolId: activeSchool?.id === 'legacy' ? null : (activeSchool?.id || null),
+                classId: selectedClass.id,
+                class_id: selectedClass.id,
+                name: rawName,
                 student_code: studentCode,
                 password: 'murid19',
                 gender: genderVal,
-                nisn: nisnVal || null
-              }]).select().single();
-              
-              if (insertError) {
-                console.error('Error inserting student:', insertError);
-                errorMessages.push(`Baris ${i + 1} (${rawName}): ${insertError.message}`);
-              } else {
-                successCount++;
-                existingMap.set(rawName.toLowerCase(), newStudent);
-                
-                if (newStudent) {
-                  await addStudent({
-                    id: newStudent.id,
-                    teacher_id: newStudent.teacher_id,
-                    school_id: newStudent.school_id,
-                    schoolId: newStudent.school_id,
-                    classId: newStudent.class_id,
-                    class_id: newStudent.class_id,
-                    name: newStudent.name,
-                    student_code: newStudent.student_code,
-                    password: newStudent.password || 'murid19',
-                    gender: newStudent.gender,
-                    createdAt: newStudent.created_at
-                  } as any);
-                  await saveStudent({
-                    idSiswa: newStudent.id,
-                    teacherId: newStudent.teacher_id,
-                    schoolId: newStudent.school_id,
-                    idKelas: newStudent.class_id,
-                    nama: newStudent.name,
-                    student_code: newStudent.student_code,
-                    password: newStudent.password || 'murid19'
-                  } as any);
-                }
-              }
+                nisn: nisnVal || null,
+                createdAt: new Date().toISOString()
+              };
+
+              await addStudent({
+                id: studentRecord.id,
+                teacher_id: studentRecord.teacher_id,
+                school_id: studentRecord.school_id,
+                schoolId: studentRecord.school_id,
+                classId: studentRecord.class_id,
+                class_id: studentRecord.class_id,
+                name: studentRecord.name,
+                student_code: studentRecord.student_code,
+                password: studentRecord.password || 'murid19',
+                gender: studentRecord.gender,
+                createdAt: studentRecord.created_at || studentRecord.createdAt
+              } as any);
+
+              await saveStudent({
+                idSiswa: studentRecord.id,
+                teacherId: studentRecord.teacher_id,
+                schoolId: studentRecord.school_id,
+                idKelas: studentRecord.class_id,
+                nama: studentRecord.name,
+                student_code: studentRecord.student_code,
+                password: studentRecord.password || 'murid19',
+                gender: studentRecord.gender
+              } as any);
+
+              successCount++;
+              existingMap.set(rawName.toLowerCase(), studentRecord);
             }
           } catch (rowErr: any) {
             console.error('Error on row', i + 1, rowErr);
