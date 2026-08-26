@@ -1074,6 +1074,7 @@ const _syncCloudToLocalImpl = async (existingProfile?: TeacherProfile | null): P
 
         const CLASS_ID_MAP: Record<string, string> = {
           "00000000-0000-4000-8000-000009ad812f": "X-A",
+        "9ca94f0c-8786-4139-8ffb-f8cacc25bda5": "X-B",
           "00000000-0000-4000-8000-00002da5570c": "X-D",
           "00000000-0000-4000-8000-000071080c55": "X-E",
           "00000000-0000-4000-8000-00000fb56fb6": "X-F",
@@ -1087,7 +1088,8 @@ const _syncCloudToLocalImpl = async (existingProfile?: TeacherProfile | null): P
           "00000000-0000-4000-8000-0000563d469b": "XI-D",
           "00000000-0000-4000-8000-00000b155604": "XI-E",
           "00000000-0000-4000-8000-00006c67f2a3": "XI-F",
-          "00000000-0000-4000-8000-0000324570be": "XI-G"
+          "00000000-0000-4000-8000-0000324570be": "XI-G",
+          "00000000-0000-4000-8000-000099887766": "XI-H"
         };
 
         const students = (sRes.data || []).map((row: any) => {

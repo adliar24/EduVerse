@@ -457,33 +457,56 @@ export default function KelolaKelas() {
     }
   };
 
-  const fetchClassStudents = async (classId: string) => {
+  const fetchClassStudents = async (classId: string, targetCls?: any) => {
     setLoadingStudents(true);
     try {
-      // 1. Load students locally first
+      const clsObj = targetCls || selectedClass;
+      const targetClassName = (clsObj?.name || clsObj?.namaKelas || '').trim().toUpperCase();
+
+      // 1. Load students locally first with SEED_STUDENTS fallback
       const localState = await getScopedState(['students']);
-      const localStudents = localState.students || [];
-      const classStudentsLocal = localStudents.filter(s => s.classId === classId || (s as any).class_id === classId || (s as any).idKelas === classId);
-      const sortedLocal = [...classStudentsLocal].sort((a, b) => a.name.localeCompare(b.name, 'id', { sensitivity: 'base' }));
+      const { SEED_STUDENTS } = await import('../services/excelDataSeed');
+      const studentMap = new Map<string, any>();
+      if (SEED_STUDENTS && SEED_STUDENTS.length > 0) {
+        SEED_STUDENTS.forEach(ss => {
+          const id = String(ss.id || ss.idSiswa);
+          studentMap.set(id, ss);
+        });
+      }
+      (localState.students || []).forEach(ls => {
+        const id = String(ls.id || ls.idSiswa || ls.id_siswa || '');
+        if (id) studentMap.set(id, { ...(studentMap.get(id) || {}), ...ls });
+      });
+      const allLocalStudents = Array.from(studentMap.values());
+
+      const classStudentsLocal = allLocalStudents.filter(s => {
+        const sClassId = String(s.classId || (s as any).class_id || (s as any).idKelas || '');
+        if (classId && sClassId && classId === sClassId) return true;
+        if (targetClassName) {
+          const sClassName = String(s.className || s.namaKelas || s.class_name || (s.classes ? (s.classes.name || s.classes.nama_kelas) : '')).trim().toUpperCase();
+          if (sClassName && sClassName === targetClassName) return true;
+        }
+        return false;
+      });
+      const sortedLocal = [...classStudentsLocal].sort((a, b) => (a.name || '').localeCompare(b.name || '', 'id', { sensitivity: 'base' }));
       
       if (isMountedRef.current) {
         setClassStudents(sortedLocal.map(s => ({
           ...s,
-          class_id: s.classId || (s as any).class_id || (s as any).idKelas
+          class_id: s.classId || (s as any).class_id || (s as any).idKelas || classId
         })));
       }
 
-      // 2. Only fetch from Supabase if not legacy, and update local database
+      // 2. Fetch from Supabase and update local database
       if (activeSchool?.id && activeSchool.id !== 'legacy') {
         const { data, error } = await supabase
           .from('students')
           .select('id, name, nisn, student_code, class_id, teacher_id, created_at, school_id, password, gender')
-          .eq('class_id', classId)
+          .or(`class_id.eq.${classId},id_kelas.eq.${classId}`)
           .order('name', { ascending: true });
           
         if (error) throw error;
-        if (isMountedRef.current && data) {
-          // Sync online fetched students into IndexedDB so they are kept locally too
+        if (isMountedRef.current && data && data.length > 0) {
           for (const s of data) {
             await addStudent({
               id: s.id,
@@ -510,16 +533,23 @@ export default function KelolaKelas() {
             } as any);
           }
           
-          // Re-load from local to ensure correct state representation
           const updatedState = await getScopedState(['students']);
           const updatedStudents = updatedState.students || [];
-          const classStudentsUpdated = updatedStudents.filter(s => s.classId === classId || (s as any).class_id === classId || (s as any).idKelas === classId);
-          const sortedUpdated = [...classStudentsUpdated].sort((a, b) => a.name.localeCompare(b.name, 'id', { sensitivity: 'base' }));
+          const classStudentsUpdated = updatedStudents.filter(s => {
+            const sClassId = String(s.classId || (s as any).class_id || (s as any).idKelas || '');
+            if (classId && sClassId && classId === sClassId) return true;
+            if (targetClassName) {
+              const sClassName = String(s.className || s.namaKelas || s.class_name || (s.classes ? (s.classes.name || s.classes.nama_kelas) : '')).trim().toUpperCase();
+              if (sClassName && sClassName === targetClassName) return true;
+            }
+            return false;
+          });
+          const sortedUpdated = [...classStudentsUpdated].sort((a, b) => (a.name || '').localeCompare(b.name || '', 'id', { sensitivity: 'base' }));
           
-          if (isMountedRef.current) {
+          if (isMountedRef.current && sortedUpdated.length > 0) {
             setClassStudents(sortedUpdated.map(s => ({
               ...s,
-              class_id: s.classId || (s as any).class_id || (s as any).idKelas
+              class_id: s.classId || (s as any).class_id || (s as any).idKelas || classId
             })));
           }
         }
@@ -1198,7 +1228,7 @@ export default function KelolaKelas() {
     });
   };
 
-  const viewClass = (cls: any) => { setSelectedClass(cls); fetchClassStudents(cls.id); setShowStudents(true); };
+  const viewClass = (cls: any) => { setSelectedClass(cls); fetchClassStudents(cls.id, cls); setShowStudents(true); };
 
   const filteredClasses = classes
     .filter(c => (c.name || '').toLowerCase().includes(searchTerm.toLowerCase()))
