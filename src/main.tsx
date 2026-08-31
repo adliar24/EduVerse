@@ -113,8 +113,17 @@ const handleChunkError = (err: any) => {
 window.addEventListener('error', handleChunkError, true);
 window.addEventListener('unhandledrejection', handleChunkError);
 
-// Safe Service Worker registration without infinite reload loop
+// Safe Service Worker registration and auto-refresh on new version activation
 if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+  let refreshing = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!refreshing) {
+      refreshing = true;
+      console.log('[EduVerse] New version activated, refreshing application...');
+      window.location.reload();
+    }
+  });
+
   window.addEventListener('load', () => {
     navigator.serviceWorker.getRegistrations().then(registrations => {
       for (const reg of registrations) {

@@ -10,7 +10,8 @@ import {
   Calendar,
   Link2,
   GraduationCap,
-  Camera
+  Camera,
+  RotateCw
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -28,6 +29,7 @@ export default function StudentDashboard() {
   const [latestMaterials, setLatestMaterials] = useState<any[]>([]);
   const [latestAssignments, setLatestAssignments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     const studentSessionStr = localStorage.getItem('student_session');
@@ -38,11 +40,15 @@ export default function StudentDashboard() {
     fetchStudentData();
   }, []);
 
-  const fetchStudentData = async () => {
+  const fetchStudentData = async (isManual = false) => {
     try {
+      if (isManual) setRefreshing(true);
+      else setLoading(true);
+
       const studentSessionStr = localStorage.getItem('student_session');
       if (!studentSessionStr) {
         setLoading(false);
+        setRefreshing(false);
         return;
       }
       const studentObj = JSON.parse(studentSessionStr);
@@ -55,8 +61,16 @@ export default function StudentDashboard() {
 
       if (studentDbErr || !studentDb) {
         setLoading(false);
+        setRefreshing(false);
         return;
       }
+
+      // Synchronize latest student profile back to local session
+      localStorage.setItem('student_session', JSON.stringify({
+        ...studentObj,
+        name: studentDb.name,
+        class_id: studentDb.class_id
+      }));
 
       const className = studentDb.classes 
         ? (Array.isArray(studentDb.classes) ? studentDb.classes[0]?.name : (studentDb.classes as any).name)
@@ -116,6 +130,7 @@ export default function StudentDashboard() {
       console.error('Error fetching student dashboard data:', error);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
@@ -173,6 +188,16 @@ export default function StudentDashboard() {
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-3 relative z-10">
+          <button
+            onClick={() => fetchStudentData(true)}
+            disabled={loading || refreshing}
+            className="bg-white/10 hover:bg-white/20 text-white px-4 py-3.5 rounded-full font-bold text-xs sm:text-sm flex items-center justify-center gap-2 border border-white/20 backdrop-blur-md hover:scale-[1.02] active:scale-[0.98] transition-all shrink-0 cursor-pointer disabled:opacity-50"
+            title="Tarik data materi, tugas, dan ujian terbaru"
+          >
+            <RotateCw className={`w-4 h-4 ${refreshing ? 'animate-spin text-amber-300' : 'text-white'}`} />
+            <span>{refreshing ? 'Menyinkronkan...' : 'Segarkan'}</span>
+          </button>
+
           <Link 
             to="/scan-presensi-siswa"
             className="bg-amber-400 hover:bg-amber-300 text-amber-950 px-5 py-3.5 rounded-full font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shrink-0 cursor-pointer border border-amber-300"

@@ -9,7 +9,9 @@ import {
   ExternalLink,
   Loader2,
   Users,
-  Search
+  Search,
+  RotateCw,
+  AlertCircle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Material, Assignment } from '../../types';
@@ -17,6 +19,8 @@ import LinkPreviewCard from '../../components/LinkPreviewCard';
 
 export default function MateriTugasSiswa() {
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'materials' | 'assignments'>('materials');
   const [studentInfo, setStudentInfo] = useState<any>(null);
   
@@ -29,25 +33,51 @@ export default function MateriTugasSiswa() {
     fetchStudentData();
   }, []);
 
-  const fetchStudentData = async () => {
+  const fetchStudentData = async (isManual = false) => {
     try {
-      setLoading(true);
+      if (isManual) setRefreshing(true);
+      else setLoading(true);
+      setErrorMsg(null);
+
       const studentSessionStr = localStorage.getItem('student_session');
-      if (!studentSessionStr) return;
+      if (!studentSessionStr) {
+        setLoading(false);
+        setRefreshing(false);
+        return;
+      }
       
       const studentObj = JSON.parse(studentSessionStr);
 
-      // Fetch student data securely from Supabase using ID
+      // Fetch student data securely from Supabase using ID to ensure fresh class and profile
       const { data: studentDb, error: studentDbErr } = await supabase
         .from('students')
         .select('*, classes!students_class_id_fkey(name)')
         .eq('id', studentObj.id)
         .maybeSingle();
 
-      if (studentDbErr || !studentDb) return;
+      if (studentDbErr) {
+        throw studentDbErr;
+      }
+
+      if (!studentDb) {
+        setErrorMsg('Data profil siswa tidak ditemukan di server.');
+        return;
+      }
+
+      // Keep student_session updated with latest DB state
+      localStorage.setItem('student_session', JSON.stringify({
+        ...studentObj,
+        id: studentDb.id,
+        student_code: studentDb.student_code,
+        name: studentDb.name,
+        class_id: studentDb.class_id,
+        school_id: studentDb.school_id,
+        gender: studentDb.gender
+      }));
+
       setStudentInfo(studentDb);
 
-      const classId = studentDb.class_id || studentDb.classId || studentDb.idKelas;
+      const classId = studentDb.class_id || studentDb.classId || studentDb.idKelas || studentObj.class_id;
 
       if (classId) {
         // Fetch materials and assignments for this class
@@ -73,10 +103,12 @@ export default function MateriTugasSiswa() {
           setAssignments(filteredA);
         }
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error fetching student materials & assignments:', err);
+      setErrorMsg(err.message || 'Gagal memuat materi & tugas terbaru.');
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
@@ -101,7 +133,32 @@ export default function MateriTugasSiswa() {
           <h2 className="text-3xl font-bold text-indigo-950 tracking-tight">Materi & Tugas Saya</h2>
           <p className="text-slate-500 mt-1 font-medium">Akses materi belajar dan periksa daftar tugas Anda.</p>
         </div>
+        <button
+          onClick={() => fetchStudentData(true)}
+          disabled={loading || refreshing}
+          className="inline-flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-slate-50 text-indigo-950 rounded-xl font-bold text-xs border border-slate-200 shadow-sm transition-all active:scale-95 disabled:opacity-50 self-start sm:self-auto cursor-pointer"
+          title="Tarik data terbaru dari guru"
+        >
+          <RotateCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin text-indigo-600' : 'text-slate-500'}`} />
+          <span>{refreshing ? 'Menyinkronkan...' : 'Segarkan Data'}</span>
+        </button>
       </div>
+
+      {/* Error Alert */}
+      {errorMsg && (
+        <div className="p-4 bg-red-50 border border-red-200 rounded-2xl flex items-center justify-between gap-3 text-red-700 text-xs font-semibold">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 shrink-0 text-red-500" />
+            <span>{errorMsg}</span>
+          </div>
+          <button 
+            onClick={() => fetchStudentData(true)}
+            className="px-3 py-1 bg-red-100 hover:bg-red-200 text-red-800 rounded-lg text-xs font-bold transition-colors cursor-pointer"
+          >
+            Coba Lagi
+          </button>
+        </div>
+      )}
 
       {/* Info Banner */}
       {studentInfo && (

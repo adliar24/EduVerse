@@ -20,15 +20,7 @@ export default defineConfig(({mode}) => {
           clientsClaim: true,
           cleanupOutdatedCaches: true,
           globPatterns: [
-            'index.html',
-            'manifest.webmanifest',
-            'logo.svg',
-            'assets/*.css',
-            'assets/index-*.js',
-            'assets/react-*.js',
-            'assets/supabase-*.js',
-            'assets/icons-*.js',
-            'assets/motion-*.js'
+            '**/*.{js,css,html,ico,png,svg,webmanifest}'
           ],
           runtimeCaching: [
             {
