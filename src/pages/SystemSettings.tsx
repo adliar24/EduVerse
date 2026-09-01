@@ -43,7 +43,6 @@ export default function SystemSettings() {
   const [lng, setLng] = useState<string>('107.609810');
   const [radius, setRadius] = useState<number>(150);
   const [isSavingGps, setIsSavingGps] = useState(false);
-  const [isGeneratingBulkQr, setIsGeneratingBulkQr] = useState(false);
 
   useEffect(() => {
     // Check current auth user & role
@@ -161,97 +160,6 @@ export default function SystemSettings() {
       },
       { enableHighAccuracy: true }
     );
-  };
-
-  const handleBulkPrintClassQr = async () => {
-    setIsGeneratingBulkQr(true);
-    try {
-      const localState = await getFullState();
-      const classesList = localState.classes || [];
-      if (classesList.length === 0) {
-        showAlert({ title: 'Peringatan', message: 'Belum ada kelas terdaftar untuk dicetak QR.', type: 'error' });
-        return;
-      }
-
-      const QRCode = (await import('qrcode')).default;
-      const JSZip = (await import('jszip')).default;
-      const zip = new JSZip();
-      const folder = zip.folder("QR_CODE_POSTER_KELAS");
-
-      for (const cls of classesList) {
-        const cId = String(cls.id || cls.idKelas);
-        const cName = cls.name || cls.namaKelas || 'Kelas';
-
-        // Draw Poster Canvas 600x800
-        const canvas = document.createElement('canvas');
-        canvas.width = 600;
-        canvas.height = 800;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) continue;
-
-        // Background
-        ctx.fillStyle = "#ffffff";
-        ctx.fillRect(0, 0, 600, 800);
-
-        // Header Gradient
-        const grd = ctx.createLinearGradient(0, 0, 600, 0);
-        grd.addColorStop(0, "#4C1D95");
-        grd.addColorStop(1, "#7C3AED");
-        ctx.fillStyle = grd;
-        ctx.fillRect(0, 0, 600, 160);
-
-        ctx.fillStyle = "#ffffff";
-        ctx.font = "bold 34px 'Inter', sans-serif";
-        ctx.textAlign = "center";
-        ctx.fillText("QR CODE ABSENSI KELAS", 300, 75);
-
-        ctx.font = "500 18px 'Inter', sans-serif";
-        ctx.fillStyle = "#E9D5FF";
-        ctx.fillText(activeSchool?.name || "SMAN 19 BANDUNG", 300, 115);
-
-        // Draw QR
-        const qrDataUrl = await QRCode.toDataURL(`CLASS_QR:${cId}`, { width: 380, margin: 1 });
-        const qrImg = new Image();
-        qrImg.src = qrDataUrl;
-        await new Promise(r => qrImg.onload = r);
-        ctx.drawImage(qrImg, 110, 220, 380, 380);
-
-        // Footer Box
-        ctx.fillStyle = "#F5F3FF";
-        ctx.fillRect(50, 640, 500, 100);
-        ctx.strokeStyle = "#DDD6FE";
-        ctx.lineWidth = 2;
-        ctx.strokeRect(50, 640, 500, 100);
-
-        ctx.fillStyle = "#4C1D95";
-        ctx.font = "bold 36px 'Inter', sans-serif";
-        ctx.fillText(`KELAS ${cName.toUpperCase()}`, 300, 690);
-
-        ctx.fillStyle = "#6B7280";
-        ctx.font = "bold 14px 'Inter', sans-serif";
-        ctx.fillText("Scan via Aplikasi EduVerse • Jam 06.30 - 06.45 WIB", 300, 722);
-
-        const blob = await new Promise<Blob | null>(res => canvas.toBlob(res, 'image/png'));
-        if (blob && folder) {
-          folder.file(`POSTER_QR_KELAS_${cName.replace(/\s+/g, '_')}.png`, blob);
-        }
-      }
-
-      const zipContent = await zip.generateAsync({ type: "blob" });
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(zipContent);
-      link.download = `SEMAU_POSTER_QR_KELAS_${new Date().toISOString().slice(0, 10)}.zip`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
-      showAlert({ title: 'Berhasil', message: `Berhasil mengunduh ${classesList.length} poster QR Code kelas dalam file ZIP.`, type: 'success' });
-    } catch (err: any) {
-      console.error(err);
-      showAlert({ title: 'Gagal', message: 'Terjadi kesalahan saat generate massal QR kelas.', type: 'error' });
-    } finally {
-      setIsGeneratingBulkQr(false);
-    }
   };
 
   const handleSyncToCloud = async () => {
@@ -434,28 +342,6 @@ export default function SystemSettings() {
                 </button>
               </div>
             </form>
-          </div>
-
-          {/* Bulk Class QR Print Card */}
-          <div className="bg-white rounded-[2.5rem] p-6 sm:p-8 border border-purple-100/80 shadow-tactile flex flex-col md:flex-row md:items-center justify-between gap-5">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold shrink-0 shadow-sm">
-                <QrCode className="w-6 h-6" />
-              </div>
-              <div>
-                <h3 className="text-lg font-black text-slate-900 tracking-tight">Cetak Massal QR Code Poster Kelas</h3>
-                <p className="text-xs text-slate-500 font-medium mt-0.5">Unduh sekaligus seluruh poster A4 QR Code Kelas sekolah dalam file ZIP.</p>
-              </div>
-            </div>
-
-            <button
-              onClick={handleBulkPrintClassQr}
-              disabled={isGeneratingBulkQr}
-              className="px-6 py-3.5 bg-gradient-to-r from-amber-500 to-orange-600 text-white font-extrabold text-xs sm:text-sm rounded-full hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-amber-500/25 flex items-center justify-center gap-2.5 shrink-0 cursor-pointer disabled:opacity-50 border border-white/20"
-            >
-              {isGeneratingBulkQr ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-              <span>Cetak Semua QR Kelas (ZIP)</span>
-            </button>
           </div>
         </motion.div>
       )}

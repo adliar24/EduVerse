@@ -210,16 +210,8 @@ export default function StudentDashboard() {
           </button>
 
           <Link 
-            to="/scan-presensi-siswa"
-            className="bg-amber-400 hover:bg-amber-300 text-amber-950 px-4.5 py-3 rounded-full font-black text-xs sm:text-sm flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-md shrink-0 cursor-pointer border border-amber-300"
-          >
-            <Camera className="w-4 h-4 text-amber-950" />
-            <span>Scan Presensi</span>
-          </Link>
-
-          <Link 
             to="/daftar-ujian-siswa"
-            className="bg-blue-600 hover:bg-blue-500 text-white px-4.5 py-3 rounded-full font-black text-xs sm:text-sm flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-blue-600/30 shrink-0 cursor-pointer border border-blue-400/40"
+            className="bg-blue-600 hover:bg-blue-500 text-white px-5 py-3 rounded-full font-black text-xs sm:text-sm flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-blue-600/30 shrink-0 cursor-pointer border border-blue-400/40"
           >
             <Zap className="w-4 h-4 text-amber-300 fill-amber-300" />
             <span>Ikuti Ujian</span>
