@@ -75,21 +75,21 @@ button, input[type="button"], input[type="submit"], input[type="reset"], a.butto
   }
 }
 
-/* Quizzo Modern Tactile & Glow Utilities */
-.shadow-purple-glow {
-  box-shadow: 0 20px 40px -10px rgba(109, 40, 217, 0.35);
+/* Tactile & Blue Glow Utilities */
+.shadow-purple-glow, .shadow-blue-glow {
+  box-shadow: 0 20px 40px -10px rgba(37, 99, 235, 0.35);
 }
 
-.shadow-purple-sm {
-  box-shadow: 0 10px 25px -5px rgba(124, 58, 237, 0.2);
+.shadow-purple-sm, .shadow-blue-sm {
+  box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.2);
 }
 
 .shadow-tactile {
-  box-shadow: 0 10px 30px 0 rgba(109, 40, 217, 0.08), 0 2px 6px 0 rgba(15, 23, 42, 0.03);
+  box-shadow: 0 10px 30px 0 rgba(37, 99, 235, 0.08), 0 2px 6px 0 rgba(15, 23, 42, 0.03);
 }
 
 .shadow-tactile-lg {
-  box-shadow: 0 20px 45px -15px rgba(109, 40, 217, 0.18), 0 4px 12px 0 rgba(15, 23, 42, 0.04);
+  box-shadow: 0 20px 45px -15px rgba(37, 99, 235, 0.18), 0 4px 12px 0 rgba(15, 23, 42, 0.04);
 }
 
 .shadow-tactile-inset {
@@ -98,16 +98,16 @@ button, input[type="button"], input[type="submit"], input[type="reset"], a.butto
 
 /* Quizzo Abstract Motifs */
 .abstract-arc-bg {
-  background-image: radial-gradient(circle at 10% 20%, rgba(124, 58, 237, 0.2) 0%, transparent 45%),
-                    radial-gradient(circle at 90% 80%, rgba(217, 70, 239, 0.2) 0%, transparent 45%);
+  background-image: radial-gradient(circle at 10% 20%, rgba(37, 99, 235, 0.2) 0%, transparent 45%),
+                    radial-gradient(circle at 90% 80%, rgba(59, 130, 246, 0.2) 0%, transparent 45%);
 }
 
 @utility bg-gradient-primary {
-  background-image: linear-gradient(135deg, #3B0764 0%, #5B21B6 50%, #7C3AED 100%);
+  background-image: linear-gradient(135deg, #1E3A8A 0%, #2563EB 50%, #3B82F6 100%);
 }
 
 @utility bg-gradient-quizzo {
-  background-image: linear-gradient(135deg, #4C1D95 0%, #6D28D9 50%, #8B5CF6 100%);
+  background-image: linear-gradient(135deg, #1E3A8A 0%, #2563EB 50%, #38BDF8 100%);
 }
 
 /* Glassmorphism Classes */
@@ -120,7 +120,7 @@ button, input[type="button"], input[type="submit"], input[type="reset"], a.butto
 }
 
 .glass-dark {
-  background: rgba(27, 20, 100, 0.65);
+  background: rgba(30, 58, 138, 0.65);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -132,7 +132,7 @@ button, input[type="button"], input[type="submit"], input[type="reset"], a.butto
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.45);
-  box-shadow: 0 4px 20px 0 rgba(27, 20, 100, 0.02);
+  box-shadow: 0 4px 20px 0 rgba(30, 58, 138, 0.02);
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -150,7 +150,7 @@ button, input[type="button"], input[type="submit"], input[type="reset"], a.butto
 }
 
 .sidebar-gradient {
-  background: linear-gradient(180deg, #0F172A 0%, #1E1B4B 50%, #0F172A 100%) !important;
+  background: linear-gradient(180deg, #0B132B 0%, #1E3A8A 50%, #0F172A 100%) !important;
   border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
 }
 

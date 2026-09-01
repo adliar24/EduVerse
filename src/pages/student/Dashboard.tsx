@@ -183,10 +183,10 @@ export default function StudentDashboard() {
   return (
     <div className="space-y-5 pb-10">
       {/* Colorful Header Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5 bg-gradient-to-r from-slate-900 via-indigo-950 to-blue-950 p-6 sm:p-8 rounded-[2.25rem] text-white shadow-xl relative overflow-hidden border border-white/10">
-        <div className="absolute -right-10 -top-10 w-72 h-72 bg-blue-500/20 rounded-full blur-3xl pointer-events-none"></div>
-        <div className="absolute left-1/3 -bottom-10 w-64 h-64 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
-        <div className="absolute right-1/3 top-0 w-48 h-48 bg-purple-500/15 rounded-full blur-2xl pointer-events-none"></div>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5 bg-gradient-to-r from-[#0F172A] via-[#1E3A8A] to-[#1E40AF] p-6 sm:p-8 rounded-[2.25rem] text-white shadow-xl relative overflow-hidden border border-white/10">
+        <div className="absolute -right-10 -top-10 w-72 h-72 bg-blue-400/25 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="absolute left-1/3 -bottom-10 w-64 h-64 bg-sky-400/20 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="absolute right-1/3 top-0 w-48 h-48 bg-blue-500/20 rounded-full blur-2xl pointer-events-none"></div>
 
         <div className="flex items-center gap-4 relative z-10">
           <div className="w-14 h-14 rounded-2xl bg-white/15 backdrop-blur-md text-white flex items-center justify-center font-bold text-xl shadow-lg border border-white/20 shrink-0">

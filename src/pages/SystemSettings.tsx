@@ -255,29 +255,29 @@ export default function SystemSettings() {
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-12">
       {/* Header Banner */}
-      <div className="bg-gradient-to-r from-[#3B0764] via-[#5B21B6] to-[#7C3AED] text-white p-6 sm:p-8 rounded-[2.5rem] shadow-purple-glow flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-gradient-to-r from-[#0F172A] via-[#1E3A8A] to-[#1E40AF] text-white p-6 sm:p-8 rounded-[2.5rem] shadow-xl border border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <span className="text-[10px] uppercase font-extrabold tracking-widest px-3 py-1 bg-white/15 backdrop-blur-md rounded-full text-amber-300 border border-white/20">
-            ⚙️ System & GPS Configuration
+          <span className="text-[10px] uppercase font-extrabold tracking-widest px-3 py-1 bg-white/15 backdrop-blur-md rounded-full text-blue-200 border border-white/20">
+            ⚙️ Konfigurasi Sistem & GPS
           </span>
           <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight mt-2">Pengaturan Sistem & Lokasi</h1>
           <p className="text-slate-100/90 text-xs sm:text-sm font-medium mt-1">
-            Kelola sinkronisasi cloud, lokasi GPS sekolah, dan cetak massal poster QR Code kelas.
+            Kelola sinkronisasi cloud, lokasi GPS sekolah, dan cadangan database.
           </p>
         </div>
       </div>
 
-      {/* Super Admin Section - Location & Bulk Print */}
+      {/* Super Admin Section - Location */}
       {userRole === 'guru' && (
         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-          <div className="bg-white rounded-[2.5rem] p-6 sm:p-8 border border-purple-100/80 shadow-tactile space-y-6">
-            <div className="flex items-center gap-3.5 pb-4 border-b border-purple-100/80">
-              <div className="w-12 h-12 rounded-2xl bg-purple-100 text-[#6D28D9] flex items-center justify-center font-bold shadow-sm">
+          <div className="bg-white rounded-[2.5rem] p-6 sm:p-8 border border-blue-100/80 shadow-tactile space-y-6">
+            <div className="flex items-center gap-3.5 pb-4 border-b border-blue-100/80">
+              <div className="w-12 h-12 rounded-2xl bg-blue-100 text-[#1D4ED8] flex items-center justify-center font-bold shadow-sm">
                 <MapPin className="w-6 h-6" />
               </div>
               <div>
                 <h3 className="text-lg font-black text-slate-900 tracking-tight">Koordinat & Radius GPS Sekolah (Khusus Super Admin)</h3>
-                <p className="text-xs text-slate-500 font-medium">Batas lokasi radius murid diperbolehkan menscan QR kelas saat presensi mandiri.</p>
+                <p className="text-xs text-slate-500 font-medium">Batas lokasi radius murid diperbolehkan presensi mandiri.</p>
               </div>
             </div>
 
@@ -290,7 +290,7 @@ export default function SystemSettings() {
                     required
                     value={lat}
                     onChange={(e) => setLat(e.target.value)}
-                    className="w-full px-4 py-3 rounded-2xl border border-purple-100 bg-purple-50/40 outline-none focus:bg-white focus:border-[#6D28D9] focus:ring-2 focus:ring-[#6D28D9]/20 transition-all font-semibold text-xs sm:text-sm"
+                    className="w-full px-4 py-3 rounded-2xl border border-blue-100 bg-blue-50/40 outline-none focus:bg-white focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20 transition-all font-semibold text-xs sm:text-sm"
                     placeholder="-6.914744"
                   />
                 </div>
@@ -302,7 +302,7 @@ export default function SystemSettings() {
                     required
                     value={lng}
                     onChange={(e) => setLng(e.target.value)}
-                    className="w-full px-4 py-3 rounded-2xl border border-purple-100 bg-purple-50/40 outline-none focus:bg-white focus:border-[#6D28D9] focus:ring-2 focus:ring-[#6D28D9]/20 transition-all font-semibold text-xs sm:text-sm"
+                    className="w-full px-4 py-3 rounded-2xl border border-blue-100 bg-blue-50/40 outline-none focus:bg-white focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20 transition-all font-semibold text-xs sm:text-sm"
                     placeholder="107.609810"
                   />
                 </div>
@@ -316,7 +316,7 @@ export default function SystemSettings() {
                     max={2000}
                     value={radius}
                     onChange={(e) => setRadius(parseInt(e.target.value) || 150)}
-                    className="w-full px-4 py-3 rounded-2xl border border-purple-100 bg-purple-50/40 outline-none focus:bg-white focus:border-[#6D28D9] focus:ring-2 focus:ring-[#6D28D9]/20 transition-all font-semibold text-xs sm:text-sm"
+                    className="w-full px-4 py-3 rounded-2xl border border-blue-100 bg-blue-50/40 outline-none focus:bg-white focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20 transition-all font-semibold text-xs sm:text-sm"
                     placeholder="150"
                   />
                 </div>
@@ -328,14 +328,14 @@ export default function SystemSettings() {
                   onClick={handleGetCurrentLocation}
                   className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs rounded-full transition-all flex items-center gap-2 cursor-pointer"
                 >
-                  <MapPin className="w-4 h-4 text-purple-600" />
+                  <MapPin className="w-4 h-4 text-blue-600" />
                   <span>Deteksi Lokasi Saya Sekarang</span>
                 </button>
 
                 <button
                   type="submit"
                   disabled={isSavingGps}
-                  className="px-6 py-3 bg-gradient-to-r from-[#5B21B6] via-[#6D28D9] to-[#7C3AED] text-white font-extrabold text-xs rounded-full hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-purple-600/30 flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                  className="px-6 py-3 bg-gradient-to-r from-[#1E3A8A] via-[#2563EB] to-[#3B82F6] text-white font-extrabold text-xs rounded-full hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-blue-600/30 flex items-center gap-2 cursor-pointer disabled:opacity-50"
                 >
                   {isSavingGps ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                   <span>Simpan Lokasi GPS Sekolah</span>
@@ -347,8 +347,8 @@ export default function SystemSettings() {
       )}
 
       {/* Backup & Cloud Sync Actions */}
-      <div className="bg-white rounded-[2.5rem] p-6 sm:p-8 border border-purple-100/80 shadow-tactile space-y-6">
-        <div className="flex items-center gap-3.5 pb-4 border-b border-purple-100/80">
+      <div className="bg-white rounded-[2.5rem] p-6 sm:p-8 border border-blue-100/80 shadow-tactile space-y-6">
+        <div className="flex items-center gap-3.5 pb-4 border-b border-blue-100/80">
           <div className="w-12 h-12 rounded-2xl bg-blue-100 text-blue-700 flex items-center justify-center font-bold shadow-sm">
             <Cloud className="w-6 h-6" />
           </div>
@@ -362,9 +362,9 @@ export default function SystemSettings() {
           <button
             onClick={handleSyncToCloud}
             disabled={isSyncing || !user}
-            className="p-5 rounded-3xl bg-purple-50/50 border border-purple-100 hover:border-[#6D28D9] text-left transition-all group flex flex-col justify-between cursor-pointer disabled:opacity-50"
+            className="p-5 rounded-3xl bg-blue-50/50 border border-blue-100 hover:border-[#2563EB] text-left transition-all group flex flex-col justify-between cursor-pointer disabled:opacity-50"
           >
-            <div className="w-10 h-10 rounded-2xl bg-[#6D28D9]/10 text-[#6D28D9] flex items-center justify-center mb-3 group-hover:bg-[#6D28D9] group-hover:text-white transition-colors">
+            <div className="w-10 h-10 rounded-2xl bg-[#2563EB]/10 text-[#2563EB] flex items-center justify-center mb-3 group-hover:bg-[#2563EB] group-hover:text-white transition-colors">
               <RefreshCw className={cn("w-5 h-5", isSyncing && "animate-spin")} />
             </div>
             <div>

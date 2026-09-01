@@ -728,7 +728,7 @@ export default function KelolaKelas() {
           // Header Row Style
           worksheet[cellRef].s = {
             fill: {
-              fgColor: { rgb: "1E1B4B" } // Premium Indigo bg
+              fgColor: { rgb: "1E3A8A" } // Royal Navy Blue bg
             },
             font: {
               name: "Segoe UI",

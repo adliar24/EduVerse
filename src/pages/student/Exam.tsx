@@ -934,7 +934,7 @@ export default function StudentExam() {
         const qrPayload = `EDUTEST#${participantId}#${finalScore}#${answersString}`;
         const qrDataUrl = await QRCode.toDataURL(qrPayload, {
           width: 350, margin: 2,
-          color: { dark: '#1e1b4b', light: '#ffffff' }
+          color: { dark: '#1e3a8a', light: '#ffffff' }
         });
 
         const offlineResult = {

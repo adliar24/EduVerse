@@ -80,7 +80,7 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen w-full flex flex-col lg:flex-row relative bg-gradient-to-br from-[#0F172A] via-[#1E1B4B] to-[#0F172A] font-sans overflow-hidden">
+    <div className="min-h-screen w-full flex flex-col lg:flex-row relative bg-gradient-to-br from-[#0F172A] via-[#1E3A8A] to-[#0F172A] font-sans overflow-hidden">
       {/* 60fps Fluid Loop Canvas Animation */}
       <FluidCanvas />
 

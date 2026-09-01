@@ -81,7 +81,7 @@ export const FluidCanvas: React.FC<{ className?: string }> = ({ className = "" }
       // Dark background fill
       const bgGradient = ctx.createLinearGradient(0, 0, width, height);
       bgGradient.addColorStop(0, '#0F172A');
-      bgGradient.addColorStop(0.4, '#1E1B4B');
+      bgGradient.addColorStop(0.4, '#1E3A8A');
       bgGradient.addColorStop(0.8, '#172554');
       bgGradient.addColorStop(1, '#0F172A');
       ctx.fillStyle = bgGradient;

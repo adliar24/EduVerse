@@ -277,7 +277,7 @@ export default function Analisis() {
                           boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)',
                           padding: '16px 24px'
                         }}
-                        itemStyle={{ fontWeight: 700, color: '#1e1b4b' }}
+                        itemStyle={{ fontWeight: 700, color: '#1e3a8a' }}
                         labelStyle={{ fontWeight: 600, color: '#64748B', marginBottom: '4px' }}
                       />
                       <Area 

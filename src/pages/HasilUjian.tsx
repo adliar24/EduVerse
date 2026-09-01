@@ -349,7 +349,7 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
           // Header Row Style
           worksheet[cellRef].s = {
             fill: {
-              fgColor: { rgb: "1E1B4B" } // Premium Indigo bg
+              fgColor: { rgb: "1E3A8A" } // Royal Navy Blue bg
             },
             font: {
               name: "Segoe UI",
@@ -576,7 +576,7 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
 
       {/* Quizzo 3D Leaderboard Podium */}
       {!loading && filteredResults.length >= 3 && (
-        <div className="bg-gradient-to-br from-[#3B0764] via-[#5B21B6] to-[#7C3AED] p-8 rounded-[2.5rem] text-white shadow-purple-glow mb-6 relative overflow-hidden">
+        <div className="bg-gradient-to-br from-[#0F172A] via-[#1E3A8A] to-[#1E40AF] p-8 rounded-[2.5rem] text-white shadow-xl border border-white/10 mb-6 relative overflow-hidden">
           <div className="flex items-center justify-between mb-8 relative z-10">
             <div>
               <span className="text-[10px] uppercase font-extrabold tracking-widest px-3 py-1 bg-white/15 backdrop-blur-md rounded-full text-amber-300 border border-white/20">
@@ -636,7 +636,7 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
         </div>
       )}
 
-      <div className="bg-white rounded-[2.5rem] border border-purple-100/80 shadow-tactile overflow-hidden">
+      <div className="bg-white rounded-[2.5rem] border border-slate-200/80 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
