@@ -343,49 +343,67 @@ export default function Dashboard() {
       label: 'Ujian Digital', 
       value: stats.totalExams, 
       icon: FileText, 
-      iconBg: 'bg-indigo-50 text-indigo-600 border border-indigo-100',
-      badgeClass: 'bg-indigo-50 text-indigo-700 border-indigo-200',
-      desc: `${stats.totalQuestions} Soal di Bank Soal`
+      color: 'indigo',
+      iconBg: 'bg-indigo-50 text-indigo-600 border border-indigo-100/80',
+      badgeClass: 'bg-indigo-50 text-indigo-700 border-indigo-200/80',
+      borderHover: 'hover:border-indigo-400 hover:shadow-indigo-500/10',
+      accentBg: 'from-indigo-500/5 to-transparent',
+      desc: `${stats.totalQuestions} Soal aktif`
     },
     { 
       label: 'Jumlah Kelas', 
       value: stats.totalClasses, 
       icon: BookOpen, 
-      iconBg: 'bg-blue-50 text-blue-600 border border-blue-100',
-      badgeClass: 'bg-blue-50 text-blue-700 border-blue-200',
-      desc: 'Kelas Aktif Terdaftar'
+      color: 'blue',
+      iconBg: 'bg-blue-50 text-blue-600 border border-blue-100/80',
+      badgeClass: 'bg-blue-50 text-blue-700 border-blue-200/80',
+      borderHover: 'hover:border-blue-400 hover:shadow-blue-500/10',
+      accentBg: 'from-blue-500/5 to-transparent',
+      desc: 'Kelas terdaftar'
     },
     { 
-      label: 'Manajemen Murid', 
+      label: 'Total Murid', 
       value: stats.totalStudents, 
       icon: Users, 
-      iconBg: 'bg-sky-50 text-sky-600 border border-sky-100',
-      badgeClass: 'bg-sky-50 text-sky-700 border-sky-200',
-      desc: 'Murid Aktif Terdaftar'
+      color: 'sky',
+      iconBg: 'bg-sky-50 text-sky-600 border border-sky-100/80',
+      badgeClass: 'bg-sky-50 text-sky-700 border-sky-200/80',
+      borderHover: 'hover:border-sky-400 hover:shadow-sky-500/10',
+      accentBg: 'from-sky-500/5 to-transparent',
+      desc: 'Siswa aktif'
     },
     { 
-      label: 'Kehadiran Total', 
+      label: 'Presensi', 
       value: `${overallAttendance}%`, 
       icon: CheckCircle, 
-      iconBg: 'bg-emerald-50 text-emerald-600 border border-emerald-100',
-      badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-      desc: 'Rata-rata absensi kelas'
+      color: 'emerald',
+      iconBg: 'bg-emerald-50 text-emerald-600 border border-emerald-100/80',
+      badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200/80',
+      borderHover: 'hover:border-emerald-400 hover:shadow-emerald-500/10',
+      accentBg: 'from-emerald-500/5 to-transparent',
+      desc: 'Rata-rata hadir'
     },
     { 
       label: 'Rerata Nilai', 
       value: overallGradeAvg, 
       icon: TrendingUp, 
-      iconBg: 'bg-violet-50 text-violet-600 border border-violet-100',
-      badgeClass: 'bg-violet-50 text-violet-700 border-violet-200',
-      desc: 'Rerata formatif/sumatif'
+      color: 'violet',
+      iconBg: 'bg-violet-50 text-violet-600 border border-violet-100/80',
+      badgeClass: 'bg-violet-50 text-violet-700 border-violet-200/80',
+      borderHover: 'hover:border-violet-400 hover:shadow-violet-500/10',
+      accentBg: 'from-violet-500/5 to-transparent',
+      desc: 'Formatif & sumatif'
     },
     { 
       label: 'Rerata Ujian', 
       value: overallExamAvg, 
-      icon: GraduationCap, 
-      iconBg: 'bg-amber-50 text-amber-600 border border-amber-100',
-      badgeClass: 'bg-amber-50 text-amber-700 border-amber-200',
-      desc: 'Rerata nilai ujian digital'
+      icon: Activity, 
+      color: 'amber',
+      iconBg: 'bg-amber-50 text-amber-600 border border-amber-100/80',
+      badgeClass: 'bg-amber-50 text-amber-700 border-amber-200/80',
+      borderHover: 'hover:border-amber-400 hover:shadow-amber-500/10',
+      accentBg: 'from-amber-500/5 to-transparent',
+      desc: 'Evaluasi digital'
     }
   ];
 
@@ -417,71 +435,73 @@ export default function Dashboard() {
       exit="exit"
       className="space-y-4 pb-2"
     >
-      {/* Modern Banner Sambutan Guru */}
-      <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white rounded-[2.25rem] p-6 sm:p-8 relative overflow-hidden shadow-xl border border-white/10">
-        <div className="absolute right-0 top-0 w-80 h-80 bg-white/5 rounded-full blur-3xl pointer-events-none"></div>
-        <div className="absolute left-1/3 bottom-0 w-60 h-60 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none"></div>
+      {/* Modern Colorful Banner Sambutan Guru */}
+      <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-blue-950 text-white rounded-[2.25rem] p-6 sm:p-8 relative overflow-hidden shadow-xl border border-white/10">
+        <div className="absolute -right-10 -top-10 w-72 h-72 bg-blue-500/20 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="absolute left-1/3 -bottom-10 w-64 h-64 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="absolute right-1/3 top-0 w-48 h-48 bg-purple-500/15 rounded-full blur-2xl pointer-events-none"></div>
+        
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <div className="inline-flex items-center gap-1.5 px-3.5 py-1 bg-white/10 rounded-full text-xs font-bold tracking-wide text-indigo-200 mb-2.5 backdrop-blur-md border border-white/15">
-              🎓 Tahun Ajaran {activeSchool?.academic_year || '2026/2027'} • Semester {activeSchool?.semester || 'Ganjil'}
+              Tahun Ajaran {activeSchool?.academic_year || '2026/2027'} • Semester {activeSchool?.semester || 'Ganjil'}
             </div>
             <h2 className="text-2xl md:text-3xl font-black tracking-tight text-white">
               Selamat Datang, {userName}!
             </h2>
-            <p className="text-slate-300 text-xs sm:text-sm font-medium mt-1">
-              Kelola pembelajaran, ujian, presensi, dan rekapitulasi nilai murid secara praktis dan terpadu.
+            <p className="text-slate-200 text-xs sm:text-sm font-medium mt-1">
+              Portal terpadu pembelajaran, presensi & evaluasi murid.
             </p>
           </div>
         </div>
       </div>
 
-      {/* Quick Action Launcher */}
+      {/* Quick Action Launcher - Vibrant & Clean */}
       <div className="space-y-1.5">
         <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Aksi Cepat</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <Link
             to="/attendance/scan"
-            className="flex items-center gap-3.5 p-4 bg-white border border-slate-200/90 text-slate-800 rounded-2xl shadow-sm hover:shadow-md hover:border-emerald-300 hover:bg-emerald-50/20 transition-all group cursor-pointer"
+            className="flex items-center gap-3.5 p-4 bg-white border border-slate-200/90 text-slate-800 rounded-2xl shadow-sm hover:shadow-md hover:border-emerald-400 hover:bg-emerald-50/30 transition-all group cursor-pointer"
           >
-            <div className="bg-emerald-50 text-emerald-600 p-2.5 rounded-xl group-hover:scale-105 transition-transform border border-emerald-100">
+            <div className="bg-emerald-500 text-white p-2.5 rounded-xl group-hover:scale-105 transition-transform shadow-md shadow-emerald-500/20">
               <ClipboardCheck className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="font-bold text-slate-900 text-xs uppercase tracking-tight group-hover:text-emerald-700 transition-colors">Scan Kehadiran</h4>
-              <p className="text-[11px] text-slate-500 font-medium">Buka kamera presensi kelas</p>
+              <h4 className="font-bold text-slate-900 text-xs uppercase tracking-tight group-hover:text-emerald-700 transition-colors">Presensi Kelas</h4>
+              <p className="text-[11px] text-slate-500 font-medium">Buka kamera scan kehadiran</p>
             </div>
           </Link>
 
           <Link
             to="/grading"
-            className="flex items-center gap-3.5 p-4 bg-white border border-slate-200/90 text-slate-800 rounded-2xl shadow-sm hover:shadow-md hover:border-blue-300 hover:bg-blue-50/20 transition-all group cursor-pointer"
+            className="flex items-center gap-3.5 p-4 bg-white border border-slate-200/90 text-slate-800 rounded-2xl shadow-sm hover:shadow-md hover:border-blue-400 hover:bg-blue-50/30 transition-all group cursor-pointer"
           >
-            <div className="bg-blue-50 text-blue-600 p-2.5 rounded-xl group-hover:scale-105 transition-transform border border-blue-100">
+            <div className="bg-blue-600 text-white p-2.5 rounded-xl group-hover:scale-105 transition-transform shadow-md shadow-blue-600/20">
               <Activity className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="font-bold text-slate-900 text-xs uppercase tracking-tight group-hover:text-blue-700 transition-colors">Input Nilai Baru</h4>
-              <p className="text-[11px] text-slate-500 font-medium">Rekap nilai formatif & sumatif</p>
+              <h4 className="font-bold text-slate-900 text-xs uppercase tracking-tight group-hover:text-blue-700 transition-colors">Input Nilai</h4>
+              <p className="text-[11px] text-slate-500 font-medium">Rekap formatif & sumatif</p>
             </div>
           </Link>
 
           <Link
             to="/buat-ujian"
-            className="flex items-center gap-3.5 p-4 bg-white border border-slate-200/90 text-slate-800 rounded-2xl shadow-sm hover:shadow-md hover:border-indigo-300 hover:bg-indigo-50/20 transition-all group cursor-pointer"
+            className="flex items-center gap-3.5 p-4 bg-white border border-slate-200/90 text-slate-800 rounded-2xl shadow-sm hover:shadow-md hover:border-indigo-400 hover:bg-indigo-50/30 transition-all group cursor-pointer"
           >
-            <div className="bg-indigo-50 text-indigo-600 p-2.5 rounded-xl group-hover:scale-105 transition-transform border border-indigo-100">
+            <div className="bg-indigo-600 text-white p-2.5 rounded-xl group-hover:scale-105 transition-transform shadow-md shadow-indigo-600/20">
               <FileText className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="font-bold text-slate-900 text-xs uppercase tracking-tight group-hover:text-indigo-700 transition-colors">Buat Ujian Baru</h4>
-              <p className="text-[11px] text-slate-500 font-medium">Susun lembar ujian digital</p>
+              <h4 className="font-bold text-slate-900 text-xs uppercase tracking-tight group-hover:text-indigo-700 transition-colors">Ujian Baru</h4>
+              <p className="text-[11px] text-slate-500 font-medium">Susun naskah ujian online</p>
             </div>
           </Link>
         </div>
       </div>
 
-      {/* Stats Grid - Clean Card Style */}
+      {/* Stats Grid - Vibrant Thematic Cards */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
         {statCards.map((stat, index) => (
           <motion.div
@@ -489,9 +509,10 @@ export default function Dashboard() {
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.04, duration: 0.25 }}
-            className="rounded-2xl p-4 bg-white border border-slate-200/90 shadow-sm hover:shadow-md hover:border-indigo-300 transition-all flex flex-col justify-between group"
+            className={`rounded-2xl p-4 bg-white border border-slate-200/90 shadow-sm hover:shadow-md ${stat.borderHover} transition-all flex flex-col justify-between group relative overflow-hidden`}
           >
-            <div className="flex items-center justify-between mb-3">
+            <div className={`absolute top-0 right-0 w-24 h-24 bg-gradient-to-br ${stat.accentBg} rounded-bl-full pointer-events-none`}></div>
+            <div className="flex items-center justify-between mb-3 relative z-10">
               <div className={`p-2 rounded-xl transition-transform group-hover:scale-105 ${stat.iconBg}`}>
                 <stat.icon className="w-4 h-4" />
               </div>
@@ -499,10 +520,10 @@ export default function Dashboard() {
                 Aktif
               </div>
             </div>
-            <div>
+            <div className="relative z-10">
               <p className="text-slate-400 text-[10px] font-bold uppercase tracking-wider leading-none">{stat.label}</p>
               <h3 className="text-2xl font-black mt-1 tracking-tight leading-none text-slate-900">{stat.value}</h3>
-              <p className="text-slate-400 text-[10px] font-medium mt-1 truncate">{stat.desc}</p>
+              <p className="text-slate-500 text-[10px] font-medium mt-1 truncate">{stat.desc}</p>
             </div>
           </motion.div>
         ))}
@@ -511,31 +532,31 @@ export default function Dashboard() {
       {/* Main Bento Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Chart Card */}
-        <div className="lg:col-span-2 bg-white border border-slate-100 shadow-sm rounded-2xl p-4.5 hover:shadow-md transition-all duration-300">
+        <div className="lg:col-span-2 bg-white border border-slate-200/90 shadow-sm rounded-2xl p-4.5 hover:shadow-md transition-all duration-300">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 gap-4">
             <div className="flex items-center gap-3">
-              <div className="bg-indigo-50 text-indigo-950 p-2 rounded-xl">
+              <div className="bg-indigo-600 text-white p-2 rounded-xl shadow-sm shadow-indigo-600/20">
                 <TrendingUp className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-indigo-950">Tren Aktivitas Kelas</h3>
+                <h3 className="text-base font-bold text-slate-900">Tren Aktivitas Kelas</h3>
                 <p className="text-slate-400 text-[10px] font-semibold">Kehadiran & Rerata Nilai</p>
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-4">
               <div className="flex items-center gap-4 text-[10px] font-bold">
                 <div className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-indigo-950/85" />
-                  <span className="text-slate-400">Kehadiran (%)</span>
+                  <span className="w-2.5 h-2.5 rounded-full bg-blue-600" />
+                  <span className="text-slate-600 font-semibold">Kehadiran (%)</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-indigo-500/85" />
-                  <span className="text-slate-400">Rerata Nilai</span>
+                  <span className="w-2.5 h-2.5 rounded-full bg-indigo-500" />
+                  <span className="text-slate-600 font-semibold">Rerata Nilai</span>
                 </div>
               </div>
               {isSampleData && (
-                <span className="text-[10px] font-bold text-amber-600 bg-amber-50 border border-amber-100 px-2 py-0.5 rounded-full uppercase tracking-wider">
-                  Data Ilustrasi
+                <span className="text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                  Ilustrasi
                 </span>
               )}
             </div>
@@ -546,12 +567,12 @@ export default function Dashboard() {
               <ComposedChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="gradientKehadiran" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#1B1464" stopOpacity={0.85}/>
-                    <stop offset="95%" stopColor="#1B1464" stopOpacity={0.15}/>
+                    <stop offset="5%" stopColor="#2563eb" stopOpacity={0.85}/>
+                    <stop offset="95%" stopColor="#2563eb" stopOpacity={0.15}/>
                   </linearGradient>
                   <linearGradient id="gradientNilai" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.85}/>
-                    <stop offset="95%" stopColor="#4f46e5" stopOpacity={0.15}/>
+                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.85}/>
+                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0.15}/>
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="#e2e8f0" />
@@ -570,28 +591,28 @@ export default function Dashboard() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.25 }}
-          className="bg-white border border-slate-100 shadow-sm rounded-2xl p-4.5 hover:shadow-md transition-all duration-300 flex flex-col h-full min-h-[300px]"
+          className="bg-white border border-slate-200/90 shadow-sm rounded-2xl p-4.5 hover:shadow-md transition-all duration-300 flex flex-col h-full min-h-[300px]"
         >
           <div className="flex items-center gap-3 mb-4">
-            <div className="bg-indigo-50 text-indigo-950 p-2 rounded-xl">
+            <div className="bg-blue-600 text-white p-2 rounded-xl shadow-sm shadow-blue-600/20">
               <Calendar className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-indigo-950">Jadwal Mengajar</h3>
+              <h3 className="text-base font-bold text-slate-900">Jadwal Hari Ini</h3>
               <p className="text-slate-400 text-[10px] font-semibold">
                 {new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
               </p>
             </div>
           </div>
           
-          <div className="flex-1 overflow-y-auto space-y-3 pr-1 max-h-[220px] scrollbar-thin">
+          <div className="flex-1 overflow-y-auto space-y-2.5 pr-1 max-h-[220px] scrollbar-thin">
             {todaySchedules.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center text-center py-10">
                 <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mb-3">
                   <Calendar className="w-6 h-6 text-slate-300" />
                 </div>
-                <p className="text-slate-400 text-xs font-semibold">Tidak ada jadwal mengajar hari ini.</p>
-                <p className="text-[10px] text-slate-300 mt-0.5">Selamat beristirahat!</p>
+                <p className="text-slate-500 text-xs font-bold">Tidak ada jadwal hari ini</p>
+                <p className="text-[10px] text-slate-400 mt-0.5">Waktu istirahat Anda</p>
               </div>
             ) : (
               todaySchedules.map((sch) => {
@@ -601,32 +622,32 @@ export default function Dashboard() {
                     key={sch.id} 
                     className={`p-3 rounded-xl border transition-all duration-300 flex items-center justify-between gap-3 ${
                       status === 'ongoing' 
-                        ? 'bg-emerald-50/40 border-emerald-100/50 shadow-sm shadow-emerald-50' 
+                        ? 'bg-emerald-50 border-emerald-200 shadow-sm' 
                         : status === 'completed'
-                          ? 'bg-slate-50/50 border-slate-100 opacity-60'
-                          : 'bg-white border-slate-100 hover:border-slate-200'
+                          ? 'bg-slate-50/70 border-slate-200 opacity-60'
+                          : 'bg-white border-slate-200 hover:border-slate-300'
                     }`}
                   >
-                    <div className="space-y-1">
+                    <div className="space-y-0.5">
                       <div className="flex items-center gap-2">
-                        <span className="font-extrabold text-xs text-indigo-950">{sch.className}</span>
-                        <span className="text-[9px] text-slate-400 font-semibold">• {sch.startTime} - {sch.endTime}</span>
+                        <span className="font-extrabold text-xs text-slate-900">{sch.className}</span>
+                        <span className="text-[9px] text-slate-500 font-semibold">• {sch.startTime} - {sch.endTime}</span>
                       </div>
-                      <p className="text-[10px] text-slate-500 font-medium leading-tight">{sch.subject}</p>
+                      <p className="text-[10px] text-slate-600 font-medium leading-tight">{sch.subject}</p>
                     </div>
                     
                     <div>
                       {status === 'ongoing' ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold text-emerald-600 bg-emerald-100/70 border border-emerald-200/50 animate-pulse">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold text-emerald-700 bg-emerald-100 border border-emerald-200 animate-pulse">
                           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                           Aktif
                         </span>
                       ) : status === 'completed' ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold text-slate-400 bg-slate-100 border border-slate-200/50">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold text-slate-500 bg-slate-100 border border-slate-200">
                           Selesai
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold text-indigo-600 bg-indigo-50 border border-indigo-100/50">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold text-blue-700 bg-blue-50 border border-blue-200">
                           Mendatang
                         </span>
                       )}

@@ -1237,19 +1237,19 @@ export default function KelolaKelas() {
     .sort((a, b) => compareClassName(a.name || '', b.name || ''));
 
   return (
-    <div className="space-y-6 pb-10">
+    <div className="space-y-5 pb-10">
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-bold text-[#1D4ED8] tracking-tight">Kelola Kelas</h2>
-          <p className="text-slate-500 mt-1 font-medium">Manajemen daftar kelas dan mata pelajaran.</p>
+          <h2 className="text-2xl lg:text-3xl font-black text-slate-900 tracking-tight">Kelola Kelas</h2>
+          <p className="text-slate-500 text-xs sm:text-sm font-medium mt-0.5">Daftar kelas dan mata pelajaran aktif.</p>
         </div>
         <button 
           onClick={() => { setEditingId(null); setFormData({ name: '', subject: '' }); setShowForm(true); }}
-          className="bg-gradient-to-r from-blue-600 via-indigo-600 to-indigo-700 text-white px-6 py-3 rounded-full font-bold text-sm flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-blue-600/25 cursor-pointer border border-white/10"
+          className="bg-blue-600 hover:bg-blue-500 text-white px-5 py-3 rounded-full font-bold text-xs sm:text-sm flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-md shadow-blue-600/25 cursor-pointer border border-blue-400/30 self-start lg:self-auto"
         >
           <Plus className="w-4 h-4" />
-          Tambah Kelas Baru
+          Tambah Kelas
         </button>
       </div>
 
@@ -1259,18 +1259,70 @@ export default function KelolaKelas() {
         <input 
           type="text" 
           placeholder="Cari nama kelas..."
-          className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 bg-white outline-none focus:ring-2 focus:ring-[#3B66F5]/15 focus:border-[#3B66F5] transition-all text-sm font-medium text-slate-700"
+          className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 bg-white outline-none focus:ring-2 focus:ring-blue-500/15 focus:border-blue-500 transition-all text-sm font-medium text-slate-800 shadow-sm"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
       </div>
 
-      {/* Class Grid */}
+      {/* Class Grid - Clean, Colorful & Balanced */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         {loading ? (
-          [1,2,3].map(i => <div key={i} className="h-40 bg-slate-100 animate-pulse rounded-2xl"></div>)
+          [1,2,3].map(i => <div key={i} className="h-44 bg-slate-100 animate-pulse rounded-2xl"></div>)
         ) : filteredClasses.length > 0 ? (
           filteredClasses.map((cls, index) => {
+            const colors = [
+              {
+                border: 'hover:border-blue-400 hover:shadow-blue-500/10',
+                iconBg: 'bg-blue-600 text-white shadow-md shadow-blue-600/20',
+                badge: 'bg-blue-50 text-blue-700 border-blue-200',
+                accentBg: 'from-blue-500/10 to-transparent',
+                accentText: 'text-blue-600 group-hover:text-blue-700',
+                actionBtn: 'hover:bg-blue-50 text-slate-400 hover:text-blue-600'
+              },
+              {
+                border: 'hover:border-indigo-400 hover:shadow-indigo-500/10',
+                iconBg: 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20',
+                badge: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+                accentBg: 'from-indigo-500/10 to-transparent',
+                accentText: 'text-indigo-600 group-hover:text-indigo-700',
+                actionBtn: 'hover:bg-indigo-50 text-slate-400 hover:text-indigo-600'
+              },
+              {
+                border: 'hover:border-emerald-400 hover:shadow-emerald-500/10',
+                iconBg: 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20',
+                badge: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                accentBg: 'from-emerald-500/10 to-transparent',
+                accentText: 'text-emerald-600 group-hover:text-emerald-700',
+                actionBtn: 'hover:bg-emerald-50 text-slate-400 hover:text-emerald-600'
+              },
+              {
+                border: 'hover:border-violet-400 hover:shadow-violet-500/10',
+                iconBg: 'bg-violet-600 text-white shadow-md shadow-violet-600/20',
+                badge: 'bg-violet-50 text-violet-700 border-violet-200',
+                accentBg: 'from-violet-500/10 to-transparent',
+                accentText: 'text-violet-600 group-hover:text-violet-700',
+                actionBtn: 'hover:bg-violet-50 text-slate-400 hover:text-violet-600'
+              },
+              {
+                border: 'hover:border-sky-400 hover:shadow-sky-500/10',
+                iconBg: 'bg-sky-600 text-white shadow-md shadow-sky-600/20',
+                badge: 'bg-sky-50 text-sky-700 border-sky-200',
+                accentBg: 'from-sky-500/10 to-transparent',
+                accentText: 'text-sky-600 group-hover:text-sky-700',
+                actionBtn: 'hover:bg-sky-50 text-slate-400 hover:text-sky-600'
+              },
+              {
+                border: 'hover:border-amber-400 hover:shadow-amber-500/10',
+                iconBg: 'bg-amber-600 text-white shadow-md shadow-amber-600/20',
+                badge: 'bg-amber-50 text-amber-700 border-amber-200',
+                accentBg: 'from-amber-500/10 to-transparent',
+                accentText: 'text-amber-600 group-hover:text-amber-700',
+                actionBtn: 'hover:bg-amber-50 text-slate-400 hover:text-amber-600'
+              }
+            ];
+            const palette = colors[index % colors.length];
+
             return (
               <motion.div 
                 initial={{ opacity: 0, y: 10 }}
@@ -1278,25 +1330,25 @@ export default function KelolaKelas() {
                 transition={{ delay: index * 0.03 }}
                 key={cls.id}
                 onClick={() => viewClass(cls)}
-                className="p-5 rounded-2xl bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 text-white shadow-lg shadow-blue-600/25 border border-white/20 hover:shadow-2xl transition-all duration-300 group flex flex-col justify-between cursor-pointer relative overflow-hidden"
+                className={`p-5 rounded-2xl bg-white border border-slate-200/90 shadow-sm hover:shadow-md ${palette.border} transition-all duration-300 group flex flex-col justify-between cursor-pointer relative overflow-hidden`}
               >
-                <div className="absolute top-0 right-10 p-4 opacity-10 group-hover:scale-110 transition-transform">
-                  <School className="w-24 h-24 text-white" />
-                </div>
+                <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${palette.accentBg} rounded-bl-full pointer-events-none`}></div>
 
                 <div className="flex justify-between items-start gap-3 relative z-10">
-                  <div className="bg-white/20 p-3 rounded-2xl text-white backdrop-blur-md border border-white/20 shrink-0">
-                    <School className="w-6 h-6" />
+                  <div className={`p-3 rounded-2xl shrink-0 transition-transform group-hover:scale-105 ${palette.iconBg}`}>
+                    <School className="w-5 h-5" />
                   </div>
+                  
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-lg font-extrabold uppercase tracking-tight text-white truncate">{cls.name}</h3>
-                    <p className="font-bold text-[11px] uppercase tracking-wider text-sky-200 mb-2">{cls.subject || 'Belum Ada Mapel'}</p>
-                    <div className="flex items-center gap-1.5 px-2.5 py-1 bg-white/20 border border-white/20 text-white rounded-full inline-flex backdrop-blur-md">
-                      <Users className="w-3.5 h-3.5 text-white" />
-                      <span className="text-[10px] font-extrabold uppercase tracking-wider">{cls.students?.[0]?.count || 0} Murid</span>
+                    <h3 className="text-lg font-black uppercase tracking-tight text-slate-900 truncate">{cls.name}</h3>
+                    <p className="font-bold text-[11px] uppercase tracking-wider text-slate-500 mb-2 truncate">{cls.subject || 'Umum'}</p>
+                    <div className={`flex items-center gap-1.5 px-2.5 py-0.5 rounded-full inline-flex border ${palette.badge}`}>
+                      <Users className="w-3 h-3" />
+                      <span className="text-[10px] font-black uppercase tracking-wider">{cls.students?.[0]?.count || 0} Murid</span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-1">
+
+                  <div className="flex items-center gap-0.5 shrink-0">
                     <button 
                       onClick={async (e) => { 
                         e.stopPropagation(); 
@@ -1314,8 +1366,8 @@ export default function KelolaKelas() {
                           ctx.fillRect(0, 0, 600, 800);
 
                           const grd = ctx.createLinearGradient(0, 0, 600, 0);
-                          grd.addColorStop(0, "#4C1D95");
-                          grd.addColorStop(1, "#7C3AED");
+                          grd.addColorStop(0, "#1E3A8A");
+                          grd.addColorStop(1, "#2563EB");
                           ctx.fillStyle = grd;
                           ctx.fillRect(0, 0, 600, 160);
 
@@ -1325,7 +1377,7 @@ export default function KelolaKelas() {
                           ctx.fillText("QR CODE ABSENSI KELAS", 300, 75);
 
                           ctx.font = "500 18px 'Inter', sans-serif";
-                          ctx.fillStyle = "#E9D5FF";
+                          ctx.fillStyle = "#DBEAFE";
                           ctx.fillText(activeSchool?.name || "SMAN 19 BANDUNG", 300, 115);
 
                           const qrDataUrl = await QRCode.toDataURL(`CLASS_QR:${cId}`, { width: 380, margin: 1 });
@@ -1334,17 +1386,17 @@ export default function KelolaKelas() {
                           await new Promise(r => qrImg.onload = r);
                           ctx.drawImage(qrImg, 110, 220, 380, 380);
 
-                          ctx.fillStyle = "#F5F3FF";
+                          ctx.fillStyle = "#F8FAFC";
                           ctx.fillRect(50, 640, 500, 100);
-                          ctx.strokeStyle = "#DDD6FE";
+                          ctx.strokeStyle = "#E2E8F0";
                           ctx.lineWidth = 2;
                           ctx.strokeRect(50, 640, 500, 100);
 
-                          ctx.fillStyle = "#4C1D95";
+                          ctx.fillStyle = "#1E293B";
                           ctx.font = "bold 36px 'Inter', sans-serif";
                           ctx.fillText(`KELAS ${cName.toUpperCase()}`, 300, 690);
 
-                          ctx.fillStyle = "#6B7280";
+                          ctx.fillStyle = "#64748B";
                           ctx.font = "bold 14px 'Inter', sans-serif";
                           ctx.fillText("Scan via Aplikasi EduVerse • Jam 06.30 - 06.45 WIB", 300, 722);
 
@@ -1360,21 +1412,21 @@ export default function KelolaKelas() {
                           showAlert({ title: 'Gagal', message: 'Gagal membuat QR Code Kelas.', type: 'error' });
                         }
                       }} 
-                      className="p-2 rounded-full text-white/80 hover:text-amber-200 hover:bg-white/20 transition-colors"
+                      className={`p-2 rounded-full transition-colors ${palette.actionBtn}`}
                       title="Cetak Poster QR Kelas"
                     >
                       <QrCode className="w-4 h-4" />
                     </button>
                     <button 
                       onClick={(e) => { e.stopPropagation(); handleEdit(cls); }} 
-                      className="p-2 rounded-full text-white/80 hover:text-white hover:bg-white/20 transition-colors"
+                      className={`p-2 rounded-full transition-colors ${palette.actionBtn}`}
                       title="Edit Kelas"
                     >
                       <Edit3 className="w-4 h-4" />
                     </button>
                     <button 
                       onClick={(e) => handleDelete(cls, e)} 
-                      className="p-2 rounded-full text-white/80 hover:text-rose-200 hover:bg-rose-500/30 transition-colors"
+                      className="p-2 rounded-full text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
                       title="Hapus Kelas"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -1382,9 +1434,9 @@ export default function KelolaKelas() {
                   </div>
                 </div>
 
-                <div className="mt-5 pt-3.5 border-t border-white/15 flex items-center justify-between relative z-10">
-                  <span className="text-xs font-bold text-sky-100 group-hover:text-white transition-colors">Kelola Murid & Absensi</span>
-                  <div className="bg-white/20 text-white p-1.5 rounded-full group-hover:translate-x-1 transition-all border border-white/20 backdrop-blur-md">
+                <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between relative z-10">
+                  <span className={`text-xs font-bold transition-colors ${palette.accentText}`}>Kelola Siswa & Presensi</span>
+                  <div className="p-1 rounded-full text-slate-400 group-hover:translate-x-1 group-hover:text-slate-700 transition-all">
                     <ChevronRight className="w-4 h-4" />
                   </div>
                 </div>
@@ -1392,15 +1444,15 @@ export default function KelolaKelas() {
             );
           })
         ) : (
-          <div className="col-span-full py-20 bg-white rounded-2xl border border-dashed border-slate-200 flex flex-col items-center">
-            <div className="bg-slate-50 w-16 h-16 rounded-2xl flex items-center justify-center mb-5">
-              <School className="w-8 h-8 text-slate-200" />
+          <div className="col-span-full py-16 bg-white rounded-2xl border border-dashed border-slate-200 flex flex-col items-center">
+            <div className="bg-slate-50 w-14 h-14 rounded-2xl flex items-center justify-center mb-4">
+              <School className="w-7 h-7 text-slate-300" />
             </div>
-            <h3 className="text-lg font-bold text-[#1D4ED8] mb-2">Belum Ada Kelas</h3>
-            <p className="text-slate-400 text-sm font-medium max-w-sm text-center">Mulai kelola kelas Anda dengan menambahkan kelas pertama.</p>
-            <button onClick={() => setShowForm(true)} className="mt-6 px-6 py-3 bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white rounded-full font-semibold text-sm flex items-center gap-2 hover:brightness-110 border border-white/10 transition-all">
+            <h3 className="text-base font-bold text-slate-800 mb-1">Belum Ada Kelas</h3>
+            <p className="text-slate-400 text-xs font-medium max-w-sm text-center">Tambah kelas untuk mulai mengelola siswa dan jadwal.</p>
+            <button onClick={() => setShowForm(true)} className="mt-4 px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-full font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all">
               <Plus className="w-4 h-4" />
-              Tambah Sekarang
+              Tambah Kelas
             </button>
           </div>
         )}
