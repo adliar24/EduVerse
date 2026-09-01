@@ -246,11 +246,11 @@ export const LinkPreviewCard: React.FC<LinkPreviewCardProps> = ({ url, className
       {/* Card Info Footer */}
       <div className="p-4 flex items-center justify-between gap-3 bg-white">
         <div className="flex items-center gap-3 min-w-0">
-          <div className="w-9 h-9 rounded-xl bg-[#3B66F5]/10 text-[#3B66F5] flex items-center justify-center shrink-0 border border-[#3B66F5]/20 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+          <div className="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 border border-indigo-100 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
             <Link2 className="w-4.5 h-4.5" />
           </div>
           <div className="min-w-0">
-            <p className="text-xs font-bold text-slate-800 truncate group-hover:text-[#1D4ED8] transition-colors">
+            <p className="text-xs font-bold text-slate-800 truncate group-hover:text-indigo-600 transition-colors">
               {ogData?.title || domain}
             </p>
             <p className="text-[10px] font-medium text-slate-400 truncate mt-0.5">
@@ -258,7 +258,7 @@ export const LinkPreviewCard: React.FC<LinkPreviewCardProps> = ({ url, className
             </p>
           </div>
         </div>
-        <div className="flex items-center text-xs font-bold text-[#3B66F5] shrink-0 group-hover:translate-x-0.5 transition-transform">
+        <div className="flex items-center text-xs font-bold text-indigo-600 shrink-0 group-hover:translate-x-0.5 transition-transform">
           Buka Tautan <ExternalLink className="w-3.5 h-3.5 ml-1" />
         </div>
       </div>

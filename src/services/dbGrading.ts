@@ -1263,69 +1263,6 @@ const migrateLegacyData = async (schoolId: string): Promise<void> => {
    }
 };
 
-export const performAutoSync = async (): Promise<void> => {
-    if (!supabase || !navigator.onLine) return;
-    try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) return;
-        
-        const profile = await getTeacherProfile();
-        if (!profile) return;
-
-        if (profile.schools && profile.schools.length > 0 && profile.schools[0]?.id) {
-            await migrateLegacyData(profile.schools[0].id);
-        }
-        await ensureUUIDCompliance();
-
-        // --- SMART SYNC LOGIC ---
-        // SMART PROTECTION FOR EDU-SCORE: If local DB has 0 classes, check if Cloud has data and pull first!
-        const localClasses = await getClasses();
-        if (!localClasses || localClasses.length === 0) {
-            const { count: cloudClassCount } = await supabase
-                .from('classes')
-                .or(`teacher_id.eq.${session.user.id},school_id.eq.fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7,teacher_id.is.null,school_id.is.null`);
-
-            if (cloudClassCount && cloudClassCount > 0) {
-                console.log(`[dbGrading] Local DB is empty, but Cloud has ${cloudClassCount} classes. Auto-restoring from Cloud...`);
-                await syncCloudToLocal(profile);
-                return;
-            }
-        }
-
-        const { data: cloudProfile, error: cloudError } = await supabase
-            .from('teacher_profiles')
-            .select('updated_at')
-            .eq('user_id', session.user.id)
-            .single();
-
-        if (cloudError || !cloudProfile) {
-            // First time or error, push local to be safe ONLY if local is not empty
-            if (localClasses && localClasses.length > 0) {
-                await syncLocalToCloud();
-            }
-            return;
-        }
-
-        const cloudTime = new Date(cloudProfile.updated_at).getTime();
-        const localTime = profile.lastUpdatedAt ? new Date(profile.lastUpdatedAt).getTime() : 0;
-
-        console.log(`Smart Sync Check: Cloud(${cloudTime}) vs Local(${localTime})`);
-
-        // If local is missing timestamp or cloud is newer, pull!
-        if (!profile.lastUpdatedAt || cloudTime > localTime) {
-            console.log("Cloud is newer (or local empty), pulling data...");
-            await syncCloudToLocal(profile);
-        } else if (localTime > cloudTime && localClasses && localClasses.length > 0) {
-            console.log("Local is newer and non-empty, pushing data...");
-            await syncLocalToCloud();
-        } else {
-            console.log("Everything is in sync, skipping.");
-        }
-    } catch (e) {
-       console.warn("Auto background DB sync paused:", e);
-    }
-};
-
 export const transferDataBetweenSchools = async (fromId: string, toId: string): Promise<void> => {
     const db = await getDB();
     const stores = ['classes', 'students', 'meetings', 'meetingScores', 'studentPoints', 'finalGrades', 'learningObjectives'];
@@ -1349,6 +1286,67 @@ export const transferDataBetweenSchools = async (fromId: string, toId: string): 
     return new Promise((resolve) => {
         tx.oncomplete = () => resolve();
     });
+};
+
+export const performAutoSync = async (): Promise<void> => {
+    if (!supabase || !navigator.onLine) return;
+    try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) return;
+        
+        const profile = await getTeacherProfile();
+        if (!profile) return;
+
+        if (profile.schools && profile.schools.length > 0 && profile.schools[0]?.id) {
+            await migrateLegacyData(profile.schools[0].id);
+        }
+        await ensureUUIDCompliance();
+
+        // --- SMART SYNC LOGIC ---
+        const localClasses = await getClasses();
+        if (!localClasses || localClasses.length === 0) {
+            const { count: cloudClassCount } = await supabase
+                .from('classes')
+                .select('*', { count: 'exact', head: true })
+                .or(`teacher_id.eq.${session.user.id},school_id.eq.fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7,teacher_id.is.null,school_id.is.null`);
+
+            if (cloudClassCount && cloudClassCount > 0) {
+                console.log(`[dbGrading] Local DB is empty, but Cloud has ${cloudClassCount} classes. Auto-restoring from Cloud...`);
+                await syncCloudToLocal(profile);
+                return;
+            }
+        }
+
+        const { data: cloudProfile, error: cloudError } = await supabase
+            .from('teacher_profiles')
+            .select('updated_at')
+            .eq('user_id', session.user.id)
+            .single();
+
+        if (cloudError || !cloudProfile) {
+            if (localClasses && localClasses.length > 0) {
+                await syncLocalToCloud();
+            }
+            return;
+        }
+
+        const cloudTime = new Date(cloudProfile.updated_at).getTime();
+        const localTime = profile.lastUpdatedAt ? new Date(profile.lastUpdatedAt).getTime() : 0;
+
+        console.log(`Smart Sync Check: Cloud(${cloudTime}) vs Local(${localTime})`);
+
+        if (!profile.lastUpdatedAt || cloudTime > localTime) {
+            console.log("Cloud is newer (or local empty), pulling data...");
+            await syncCloudToLocal(profile);
+        } else if (localTime > cloudTime && localClasses && localClasses.length > 0) {
+            console.log("Local is newer and non-empty, pushing data...");
+            await syncLocalToCloud();
+        } else {
+            console.log("Everything is in sync, skipping.");
+        }
+    } catch (e) {
+       console.warn("Auto background DB sync paused:", e);
+    }
 };
 
 export const resetGradingDB = async (): Promise<void> => {

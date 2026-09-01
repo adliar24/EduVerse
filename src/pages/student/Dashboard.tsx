@@ -348,28 +348,28 @@ export default function StudentDashboard() {
       {/* Materials and Assignments Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Latest Materials */}
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 flex flex-col justify-between">
+        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-6 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-5">
               <div>
                 <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                  <BookOpen className="w-5 h-5 text-[#3B66F5]" />
+                  <BookOpen className="w-5 h-5 text-blue-600" />
                   Materi Terbaru
                 </h3>
-                <p className="text-xs text-slate-400 font-medium">Bahan ajar pelajaran yang dibagikan guru</p>
+                <p className="text-xs text-slate-500 font-medium">Bahan ajar pelajaran yang dibagikan guru</p>
               </div>
-              <Link to="/materi-tugas-siswa" className="text-xs font-bold text-[#3B66F5] hover:underline">Lihat Semua →</Link>
+              <Link to="/materi-tugas-siswa" className="text-xs font-bold text-indigo-600 hover:underline">Lihat Semua →</Link>
             </div>
 
             <div className="space-y-3">
               {latestMaterials.length > 0 ? latestMaterials.map((m) => {
                 return (
-                  <div key={m.id} className="p-4 rounded-xl bg-gradient-to-br from-rose-500 via-rose-600 to-pink-600 text-white border border-white/20 shadow-md hover:scale-[1.01] transition-all space-y-1">
+                  <div key={m.id} className="p-4 rounded-xl bg-slate-50 border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/20 transition-all space-y-1.5 group">
                     <div className="flex items-center justify-between gap-2">
-                      <h4 className="font-bold text-xs truncate text-white">{m.title}</h4>
-                      {m.link && <Link2 className="w-3.5 h-3.5 text-white shrink-0" />}
+                      <h4 className="font-bold text-xs truncate text-slate-900 group-hover:text-indigo-600 transition-colors">{m.title}</h4>
+                      {m.link && <Link2 className="w-3.5 h-3.5 text-indigo-500 shrink-0" />}
                     </div>
-                    <p className="text-[11px] text-white/90 line-clamp-2 leading-relaxed">{m.description}</p>
+                    <p className="text-[11px] text-slate-600 line-clamp-2 leading-relaxed">{m.description}</p>
                   </div>
                 );
               }) : (
@@ -383,7 +383,7 @@ export default function StudentDashboard() {
         </div>
 
         {/* Upcoming Assignments */}
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 flex flex-col justify-between">
+        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-6 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-5">
               <div>
@@ -391,7 +391,7 @@ export default function StudentDashboard() {
                   <FileText className="w-5 h-5 text-indigo-600" />
                   Tugas Aktif
                 </h3>
-                <p className="text-xs text-slate-400 font-medium">Daftar lembar tugas sekolah Anda</p>
+                <p className="text-xs text-slate-500 font-medium">Daftar lembar tugas sekolah Anda</p>
               </div>
               <Link to="/materi-tugas-siswa" className="text-xs font-bold text-indigo-600 hover:underline">Lihat Semua →</Link>
             </div>
@@ -401,32 +401,32 @@ export default function StudentDashboard() {
                 const deadlineDate = a.deadline ? new Date(a.deadline) : null;
                 const isOverdue = deadlineDate ? deadlineDate.getTime() < Date.now() : false;
                 return (
-                  <div key={a.id} className="p-4 rounded-xl bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-700 text-white border border-white/20 shadow-md hover:scale-[1.01] transition-all space-y-1.5">
+                  <div key={a.id} className="p-4 rounded-xl bg-slate-50 border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/20 transition-all space-y-2 group">
                     <div className="flex items-center justify-between gap-2">
-                      <h4 className="font-bold text-xs truncate text-white">{a.title}</h4>
+                      <h4 className="font-bold text-xs truncate text-slate-900 group-hover:text-indigo-600 transition-colors">{a.title}</h4>
                       {a.deadline ? (
-                        <span className={`text-[9px] font-black px-2 py-0.5 rounded-full border backdrop-blur-md ${
-                          isOverdue ? 'bg-rose-500/30 text-rose-100 border-rose-400/30' : 'bg-white/20 text-white border-white/20'
+                        <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full border ${
+                          isOverdue ? 'bg-rose-50 text-rose-700 border-rose-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'
                         }`}>
                           {isOverdue ? 'Selesai' : 'Aktif'}
                         </span>
                       ) : (
-                        <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-white/20 text-white border border-white/20 backdrop-blur-md">
+                        <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
                           Tanpa Tenggat
                         </span>
                       )}
                     </div>
                     {a.deadline ? (
-                      <p className="text-[10px] flex items-center gap-1 font-bold text-white/90">
-                        <Calendar className="w-3.5 h-3.5 text-white" />
-                        Tenggat: {new Date(a.deadline).toLocaleDateString('id-ID', {
+                      <p className="text-[10px] flex items-center gap-1 font-semibold text-slate-600">
+                        <Calendar className="w-3.5 h-3.5 text-indigo-600" />
+                        Tenggat: <span className={isOverdue ? 'text-rose-600 font-bold' : 'text-slate-800 font-bold'}>{new Date(a.deadline).toLocaleDateString('id-ID', {
                           month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
-                        })}
+                        })}</span>
                       </p>
                     ) : (
-                      <p className="text-[10px] flex items-center gap-1 font-bold text-white/80">
-                        <Calendar className="w-3.5 h-3.5 text-white/70" />
-                        Tenggat: <span>Tanpa Tenggat</span>
+                      <p className="text-[10px] flex items-center gap-1 font-semibold text-slate-500">
+                        <Calendar className="w-3.5 h-3.5 text-emerald-600" />
+                        Tenggat: <span className="font-bold text-emerald-700">Tanpa Tenggat</span>
                       </p>
                     )}
                   </div>

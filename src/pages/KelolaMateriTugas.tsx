@@ -737,11 +737,11 @@ export default function KelolaMateriTugas() {
       ) : activeTab === 'materials' ? (
         // MATERIALS LIST
         filteredMaterialsList.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredMaterialsList.map((m) => {
               return (
-                 <div key={m.id} className={`p-5 rounded-2xl flex flex-col justify-between gap-3 relative transition-all duration-300 bg-gradient-to-br from-rose-500 via-rose-600 to-pink-600 text-white shadow-lg shadow-rose-500/20 border border-white/20 hover:scale-[1.01] ${
-                  selectedIds.includes(m.id) ? 'ring-2 ring-white scale-[1.02]' : ''
+                 <div key={m.id} className={`p-5 rounded-2xl flex flex-col justify-between gap-3 relative transition-all duration-300 bg-white text-slate-800 shadow-sm border hover:shadow-md hover:border-indigo-300 ${
+                  selectedIds.includes(m.id) ? 'border-indigo-500 ring-2 ring-indigo-500/20 bg-indigo-50/20' : 'border-slate-200/90'
                 }`}>
                   <div className="space-y-2.5">
                     <div className="flex items-center justify-between gap-2 flex-wrap">
@@ -750,49 +750,49 @@ export default function KelolaMateriTugas() {
                           type="checkbox"
                           checked={selectedIds.includes(m.id)}
                           onChange={() => handleToggleSelect(m.id)}
-                          className="w-4 h-4 rounded text-rose-600 border-white/30 focus:ring-rose-500 cursor-pointer bg-white/20"
+                          className="w-4 h-4 rounded text-indigo-600 border-slate-300 focus:ring-indigo-500 cursor-pointer"
                         />
-                        <div className="bg-white/20 p-1.5 rounded-xl text-white backdrop-blur-md border border-white/20">
+                        <div className="bg-blue-50 p-1.5 rounded-xl text-blue-600 border border-blue-100">
                           <BookOpen className="w-4 h-4" />
                         </div>
                         {(m.classIds || []).map((cid: string) => {
                           const cls = classes.find(c => c.id === cid);
                           return (
-                            <span key={cid} className="text-[11px] font-bold px-2.5 py-1 rounded-full border bg-white/20 text-white border-white/20 backdrop-blur-md">
+                            <span key={cid} className="text-[11px] font-bold px-2.5 py-1 rounded-full border bg-slate-100 text-slate-700 border-slate-200">
                               {cls?.name || 'Semua Kelas'}
                             </span>
                           );
                         })}
                       </div>
                       {m.target_type === 'students' && (
-                        <span className="bg-white/20 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1 border border-white/20 backdrop-blur-md">
+                        <span className="bg-indigo-50 text-indigo-700 text-[10px] font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1 border border-indigo-200">
                           <Users className="w-3.5 h-3.5" />
                           {m.student_ids?.length || 0} Murid
                         </span>
                       )}
                     </div>
-                    <h3 className="text-base font-extrabold text-white leading-snug">{m.title}</h3>
-                    <p className="text-xs sm:text-sm text-white/90 leading-relaxed line-clamp-3 whitespace-pre-line">{m.description}</p>
+                    <h3 className="text-base font-bold text-slate-900 leading-snug">{m.title}</h3>
+                    <p className="text-xs sm:text-sm text-slate-600 leading-relaxed line-clamp-3 whitespace-pre-line">{m.description}</p>
                   </div>
 
                   {m.link && (
-                    <div className="border-t border-white/15 pt-3 mt-2">
+                    <div className="border-t border-slate-100 pt-3 mt-1">
                       <LinkPreviewCard url={m.link} />
                     </div>
                   )}
 
-                  <div className="border-t border-white/15 pt-3 flex items-center justify-end mt-1">
+                  <div className="border-t border-slate-100 pt-3 flex items-center justify-end mt-1">
                     <div className="flex gap-1.5">
                       <button 
                         onClick={() => handleOpenEditModal(m, 'material')}
-                        className="p-2 rounded-full text-white/80 hover:text-white hover:bg-white/20 transition-colors"
+                        className="p-2 rounded-xl text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 transition-colors cursor-pointer"
                         title="Edit Materi"
                       >
                         <Edit3 className="w-4 h-4" />
                       </button>
                       <button 
                         onClick={() => handleDelete(m.ids || [m.id], m.title, 'material')}
-                        className="p-2 rounded-full text-white/80 hover:text-rose-200 hover:bg-rose-500/30 transition-colors"
+                        className="p-2 rounded-xl text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
                         title="Hapus Materi"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -804,16 +804,18 @@ export default function KelolaMateriTugas() {
             })}
           </div>
         ) : (
-          <div className="text-center py-20 bg-white rounded-2xl border border-slate-100">
-            <BookOpen className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-            <p className="text-slate-500 font-bold">Belum ada materi pelajaran.</p>
-            <p className="text-xs text-slate-400 mt-1">Gunakan tombol di atas untuk membagikan materi pertama Anda.</p>
+          <div className="text-center py-20 bg-white rounded-2xl border border-slate-200/80 shadow-sm">
+            <div className="w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-500 mx-auto mb-3 border border-indigo-100">
+              <BookOpen className="w-7 h-7" />
+            </div>
+            <p className="text-slate-700 font-bold text-base">Belum ada materi pelajaran.</p>
+            <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">Gunakan tombol di atas untuk membagikan materi pertama Anda.</p>
           </div>
         )
       ) : (
         // ASSIGNMENTS LIST
         filteredAssignmentsList.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredAssignmentsList.map((a) => {
               // Deadline check
               const hasDeadline = !!a.deadline;
@@ -821,8 +823,8 @@ export default function KelolaMateriTugas() {
               const isOverdue = deadlineDate ? deadlineDate.getTime() < Date.now() : false;
               
               return (
-                 <div key={a.id} className={`p-4 sm:p-5 rounded-2xl flex flex-col justify-between gap-3 relative transition-all duration-300 bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-700 text-white shadow-lg shadow-purple-500/20 border border-white/20 hover:scale-[1.01] ${
-                  selectedIds.includes(a.id) ? 'ring-2 ring-white scale-[1.02]' : ''
+                 <div key={a.id} className={`p-5 rounded-2xl flex flex-col justify-between gap-3 relative transition-all duration-300 bg-white text-slate-800 shadow-sm border hover:shadow-md hover:border-indigo-300 ${
+                  selectedIds.includes(a.id) ? 'border-indigo-500 ring-2 ring-indigo-500/20 bg-indigo-50/20' : 'border-slate-200/90'
                 }`}>
                   <div className="space-y-2.5">
                     <div className="flex items-center justify-between gap-2 flex-wrap">
@@ -831,15 +833,15 @@ export default function KelolaMateriTugas() {
                           type="checkbox"
                           checked={selectedIds.includes(a.id)}
                           onChange={() => handleToggleSelect(a.id)}
-                          className="w-4 h-4 rounded text-purple-600 border-white/30 focus:ring-purple-500 cursor-pointer bg-white/20"
+                          className="w-4 h-4 rounded text-indigo-600 border-slate-300 focus:ring-indigo-500 cursor-pointer"
                         />
-                        <div className="bg-white/20 p-1.5 rounded-xl text-white backdrop-blur-md border border-white/20">
+                        <div className="bg-indigo-50 p-1.5 rounded-xl text-indigo-600 border border-indigo-100">
                           <FileText className="w-4 h-4" />
                         </div>
                         {(a.classIds || []).map((cid: string) => {
                           const cls = classes.find(c => c.id === cid);
                           return (
-                            <span key={cid} className="text-[11px] font-bold px-2.5 py-1 rounded-full border bg-white/20 text-white border-white/20 backdrop-blur-md">
+                            <span key={cid} className="text-[11px] font-bold px-2.5 py-1 rounded-full border bg-slate-100 text-slate-700 border-slate-200">
                               {cls?.name || 'Semua Kelas'}
                             </span>
                           );
@@ -847,75 +849,74 @@ export default function KelolaMateriTugas() {
                       </div>
                       <div className="flex gap-1 flex-wrap">
                         {a.isGraded !== false && a.is_graded !== false ? (
-                          <span className="bg-white/20 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-white/20 backdrop-blur-md">
+                          <span className="bg-blue-50 text-blue-700 text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-blue-200">
                             Diberi Nilai
                           </span>
                         ) : (
-                          <span className="bg-white/10 text-white/70 text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-white/10">
+                          <span className="bg-slate-100 text-slate-600 text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-slate-200">
                             Tanpa Nilai
                           </span>
                         )}
                         {a.target_type === 'students' && (
-                          <span className="bg-white/20 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1 border border-white/20 backdrop-blur-md">
+                          <span className="bg-indigo-50 text-indigo-700 text-[10px] font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1 border border-indigo-200">
                             <Users className="w-3.5 h-3.5" />
                             {a.student_ids?.length || 0} Murid
                           </span>
                         )}
                         {hasDeadline ? (
-                          <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1 border backdrop-blur-md ${
+                          <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1 border ${
                             isOverdue 
-                              ? 'bg-rose-500/30 text-rose-100 border-rose-400/30' 
-                              : 'bg-white/20 text-white border-white/20'
+                              ? 'bg-rose-50 text-rose-700 border-rose-200' 
+                              : 'bg-emerald-50 text-emerald-700 border-emerald-200'
                           }`}>
                             <Clock className="w-3.5 h-3.5" />
                             {isOverdue ? 'Selesai' : 'Aktif'}
                           </span>
                         ) : (
-                          <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1 border bg-white/20 text-white border-white/20 backdrop-blur-md">
-                            <Clock className="w-3.5 h-3.5 text-white" />
+                          <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1 border bg-slate-100 text-slate-600 border-slate-200">
+                            <Clock className="w-3.5 h-3.5" />
                             Tanpa Tenggat
                           </span>
                         )}
                       </div>
                     </div>
                     
-                    <h3 className="text-base font-extrabold text-white leading-snug">{a.title}</h3>
-                    <p className="text-xs sm:text-sm text-white/90 leading-relaxed line-clamp-3 whitespace-pre-line">{a.description}</p>
+                    <h3 className="text-base font-bold text-slate-900 leading-snug">{a.title}</h3>
+                    <p className="text-xs sm:text-sm text-slate-600 leading-relaxed line-clamp-3 whitespace-pre-line">{a.description}</p>
                   </div>
 
-                  <div className="space-y-3 mt-2">
+                  <div className="space-y-3 mt-1">
                     {hasDeadline ? (
-                      <div className="flex items-center gap-1.5 text-xs font-semibold bg-white/15 p-2.5 rounded-xl border border-white/20 text-white backdrop-blur-md">
-                        <Calendar className="w-4 h-4 text-white" />
-                        Tenggat: <span className={isOverdue ? 'text-rose-200 font-bold' : 'text-white font-bold'}>
+                      <div className="flex items-center gap-2 text-xs font-semibold bg-slate-50 p-2.5 rounded-xl border border-slate-200 text-slate-700">
+                        <Calendar className="w-4 h-4 text-indigo-600" />
+                        <span>Tenggat: <b className={isOverdue ? 'text-rose-600' : 'text-slate-800'}>
                           {new Date(a.deadline!).toLocaleDateString('id-ID', {
-                            weekday: 'long',
-                            year: 'numeric',
-                            month: 'long',
+                            weekday: 'short',
+                            month: 'short',
                             day: 'numeric',
                             hour: '2-digit',
                             minute: '2-digit'
                           })}
-                        </span>
+                        </b></span>
                       </div>
                     ) : (
-                      <div className="flex items-center gap-1.5 text-xs font-semibold bg-white/15 p-2.5 rounded-xl border border-white/20 text-white/80 backdrop-blur-md">
-                        <Calendar className="w-4 h-4 text-white/70" />
-                        Tenggat: <span className="font-bold">Tanpa Tenggat</span>
+                      <div className="flex items-center gap-2 text-xs font-semibold bg-emerald-50/50 p-2.5 rounded-xl border border-emerald-100 text-emerald-700">
+                        <Calendar className="w-4 h-4 text-emerald-600" />
+                        <span>Tenggat: <b>Tanpa Tenggat</b></span>
                       </div>
                     )}
 
                     {a.link && (
-                      <div className="pt-2">
+                      <div className="pt-2 border-t border-slate-100">
                         <LinkPreviewCard url={a.link} />
                       </div>
                     )}
 
-                    <div className="border-t border-white/15 pt-3 flex items-center justify-end">
+                    <div className="border-t border-slate-100 pt-3 flex items-center justify-end">
                       <div className="flex gap-1.5">
                         <button 
                           onClick={() => handleOpenEditModal(a, 'assignment')}
-                          className="p-2 rounded-full text-white/80 hover:text-white hover:bg-white/20 transition-colors"
+                          className="p-2 rounded-xl text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 transition-colors cursor-pointer"
                           title="Edit Tugas"
                         >
                           <Edit3 className="w-4 h-4" />

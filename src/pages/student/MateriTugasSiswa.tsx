@@ -222,133 +222,199 @@ export default function MateriTugasSiswa() {
 
       {/* Main List Area */}
       {loading ? (
-        <div className="flex flex-col items-center justify-center py-20">
-          <Loader2 className="w-8 h-8 text-indigo-950 animate-spin" />
-          <p className="text-slate-500 mt-2 font-medium">Memuat data...</p>
+        <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-slate-100 shadow-sm">
+          <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
+          <p className="text-slate-500 mt-3 font-semibold text-sm">Memuat materi & tugas terbaru...</p>
         </div>
       ) : activeTab === 'materials' ? (
         // MATERIALS VIEW
         filteredMaterials.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
-            {filteredMaterials.map((m) => (
-              <div key={m.id} className="bg-gradient-to-br from-rose-500 via-rose-600 to-pink-600 text-white p-5 rounded-2xl border border-white/20 shadow-lg shadow-rose-500/20 hover:scale-[1.01] transition-all flex flex-col justify-between gap-3">
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="bg-white/20 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider border border-white/20 backdrop-blur-md">
-                      Materi Belajar
-                    </span>
-                    {m.target_type === 'students' && (
-                      <span className="bg-white/20 text-white text-[9px] font-bold px-2 py-0.5 rounded-full border border-white/20 backdrop-blur-md">
-                        Khusus Anda
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {filteredMaterials.map((m) => {
+              const isYoutube = m.link && (m.link.includes('youtu.be') || m.link.includes('youtube.com'));
+              const isDrive = m.link && (m.link.includes('drive.google.com') || m.link.includes('docs.google.com'));
+
+              return (
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  key={m.id} 
+                  className="bg-white p-6 rounded-2xl border border-slate-200/90 shadow-sm hover:shadow-md hover:border-indigo-300 transition-all flex flex-col justify-between gap-4 group"
+                >
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      <span className="bg-blue-50 text-blue-700 border border-blue-200/70 text-[11px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider flex items-center gap-1.5">
+                        <BookOpen className="w-3.5 h-3.5 text-blue-600" />
+                        Materi Belajar
                       </span>
+                      {m.target_type === 'students' && (
+                        <span className="bg-indigo-50 text-indigo-700 border border-indigo-200/70 text-[10px] font-bold px-2.5 py-0.5 rounded-full">
+                          Khusus Anda
+                        </span>
+                      )}
+                    </div>
+                    
+                    <h3 className="text-lg font-bold text-slate-900 leading-snug group-hover:text-indigo-600 transition-colors">
+                      {m.title}
+                    </h3>
+                    
+                    {m.description && (
+                      <p className="text-slate-600 text-xs sm:text-sm leading-relaxed whitespace-pre-line line-clamp-3">
+                        {m.description}
+                      </p>
                     )}
                   </div>
-                  <h3 className="text-base font-extrabold text-white leading-snug">{m.title}</h3>
-                  <p className="text-white/90 text-xs sm:text-sm leading-relaxed whitespace-pre-line">{m.description}</p>
-                </div>
 
-                {m.link && (
-                  <div className="border-t border-white/15 pt-3 mt-2">
-                    <LinkPreviewCard url={m.link} />
+                  <div className="space-y-3 pt-2 border-t border-slate-100">
+                    {m.link ? (
+                      <div className="space-y-2">
+                        {/* High-visibility Action Button (CTA) */}
+                        <a
+                          href={m.link.startsWith('http') ? m.link : `https://${m.link}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:scale-[0.98] text-white font-bold text-xs sm:text-sm shadow-sm hover:shadow transition-all cursor-pointer"
+                        >
+                          {isYoutube ? '🎥 Tonton Video Materi' : isDrive ? '📂 Buka Dokumen / Drive' : '🚀 Buka Materi Belajar'}
+                          <ExternalLink className="w-4 h-4 ml-0.5" />
+                        </a>
+
+                        {/* Embedded Link Preview */}
+                        <div className="pt-1">
+                          <LinkPreviewCard url={m.link} />
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 text-center text-xs font-semibold text-slate-400">
+                        Materi Berupa Teks / Instruksi Guru
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-            ))}
+                </motion.div>
+              );
+            })}
           </div>
         ) : (
-          <div className="text-center py-20 bg-white rounded-2xl border border-slate-100 max-w-4xl">
-            <BookOpen className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-            <p className="text-slate-500 font-bold">Tidak ada materi belajar.</p>
-            <p className="text-xs text-slate-400 mt-1">Materi pelajaran yang dibagikan guru akan muncul di sini.</p>
+          <div className="text-center py-20 bg-white rounded-2xl border border-slate-200/80 shadow-sm max-w-4xl">
+            <div className="w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-500 mx-auto mb-3 border border-indigo-100">
+              <BookOpen className="w-7 h-7" />
+            </div>
+            <p className="text-slate-700 font-bold text-base">Tidak ada materi belajar.</p>
+            <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
+              Materi pelajaran yang dibagikan oleh guru untuk kelas Anda akan muncul di sini secara otomatis.
+            </p>
           </div>
         )
       ) : (
         // ASSIGNMENTS VIEW
         filteredAssignments.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {filteredAssignments.map((a) => {
               const hasDeadline = !!a.deadline;
               const deadlineDate = hasDeadline ? new Date(a.deadline!) : null;
               const isOverdue = deadlineDate ? deadlineDate.getTime() < Date.now() : false;
               
               return (
-                <div key={a.id} className="bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-700 text-white p-5 rounded-2xl border border-white/20 shadow-lg shadow-purple-500/20 hover:scale-[1.01] transition-all flex flex-col justify-between gap-3">
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="bg-white/20 text-white text-[10px] font-black px-2.5 py-0.5 rounded-md uppercase tracking-wider border border-white/10">
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  key={a.id} 
+                  className="bg-white p-6 rounded-2xl border border-slate-200/90 shadow-sm hover:shadow-md hover:border-indigo-300 transition-all flex flex-col justify-between gap-4 group"
+                >
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      <span className="bg-indigo-50 text-indigo-700 border border-indigo-200/70 text-[11px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider flex items-center gap-1.5">
+                        <FileText className="w-3.5 h-3.5 text-indigo-600" />
                         Tugas Sekolah
                       </span>
+                      
                       <div className="flex gap-1.5 flex-wrap">
-                        {a.isGraded !== false && a.is_graded !== false ? (
-                          <span className="bg-white/25 text-white text-[9px] font-bold px-2 py-0.5 rounded-md border border-white/10">
-                            Diberi Nilai
-                          </span>
-                        ) : (
-                          <span className="bg-white/10 text-white/70 text-[9px] font-bold px-2 py-0.5 rounded-md border border-white/5">
-                            Tanpa Nilai
+                        {hasDeadline && (
+                          <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${
+                            isOverdue 
+                              ? 'bg-rose-50 text-rose-700 border-rose-200' 
+                              : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                          }`}>
+                            {isOverdue ? 'Lewat Tenggat' : 'Tersedia'}
                           </span>
                         )}
                         {a.target_type === 'students' && (
-                          <span className="bg-white/20 text-white text-[9px] font-bold px-2 py-0.5 rounded-md border border-white/10">
+                          <span className="bg-indigo-50 text-indigo-700 border border-indigo-200/70 text-[10px] font-bold px-2.5 py-0.5 rounded-full">
                             Khusus Anda
-                          </span>
-                        )}
-                        {hasDeadline ? (
-                          <span className={`text-[9px] font-bold px-2 py-0.5 rounded-md border ${
-                            isOverdue 
-                              ? 'bg-rose-500/30 text-rose-100 border-rose-300/30' 
-                              : 'bg-white/20 text-white border-white/10'
-                          }`}>
-                            {isOverdue ? 'Selesai' : 'Tersedia'}
-                          </span>
-                        ) : (
-                          <span className="text-[9px] font-bold px-2 py-0.5 rounded-md border bg-white/20 text-white border-white/10">
-                            Tanpa Tenggat
                           </span>
                         )}
                       </div>
                     </div>
-                    <h3 className="text-base font-extrabold text-white leading-snug">{a.title}</h3>
-                    <p className="text-white/85 text-xs sm:text-sm leading-relaxed whitespace-pre-line">{a.description}</p>
+                    
+                    <h3 className="text-lg font-bold text-slate-900 leading-snug group-hover:text-indigo-600 transition-colors">
+                      {a.title}
+                    </h3>
+                    
+                    {a.description && (
+                      <p className="text-slate-600 text-xs sm:text-sm leading-relaxed whitespace-pre-line line-clamp-3">
+                        {a.description}
+                      </p>
+                    )}
                   </div>
  
-                  <div className="space-y-3 mt-2">
+                  <div className="space-y-3 pt-2 border-t border-slate-100">
+                    {/* Deadline info strip */}
                     {hasDeadline ? (
-                      <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                        <Calendar className="w-4 h-4 text-indigo-900" />
-                        Tenggat: <span className={isOverdue ? 'text-rose-600 font-bold' : 'text-slate-700 font-bold'}>
+                      <div className="flex items-center gap-2 text-xs font-semibold text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-200/80">
+                        <Clock className={`w-4 h-4 ${isOverdue ? 'text-rose-500' : 'text-indigo-600'}`} />
+                        <span>Tenggat: <b className={isOverdue ? 'text-rose-600' : 'text-slate-800'}>
                           {new Date(a.deadline!).toLocaleDateString('id-ID', {
-                            weekday: 'long',
-                            year: 'numeric',
-                            month: 'long',
+                            weekday: 'short',
                             day: 'numeric',
+                            month: 'short',
                             hour: '2-digit',
                             minute: '2-digit'
                           })}
-                        </span>
+                        </b></span>
                       </div>
                     ) : (
-                      <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50/50 p-2.5 rounded-xl border border-emerald-100/50">
+                      <div className="flex items-center gap-2 text-xs font-semibold text-emerald-700 bg-emerald-50/60 p-3 rounded-xl border border-emerald-100">
                         <Calendar className="w-4 h-4 text-emerald-600" />
-                        Tenggat: <span className="font-bold">Tanpa Tenggat</span>
+                        <span>Tenggat: <b>Tanpa Batas Waktu</b></span>
                       </div>
                     )}
 
-                    {a.link && (
-                      <div className="border-t border-slate-50 pt-2">
-                        <LinkPreviewCard url={a.link} />
+                    {/* High-visibility Action Button (CTA) */}
+                    {a.link ? (
+                      <div className="space-y-2">
+                        <a
+                          href={a.link.startsWith('http') ? a.link : `https://${a.link}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:scale-[0.98] text-white font-bold text-xs sm:text-sm shadow-sm hover:shadow transition-all cursor-pointer"
+                        >
+                          <span>📝 Buka & Kerjakan Lembar Tugas</span>
+                          <ExternalLink className="w-4 h-4 ml-0.5" />
+                        </a>
+
+                        <div className="pt-1">
+                          <LinkPreviewCard url={a.link} />
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 text-center text-xs font-semibold text-slate-400">
+                        Instruksi Pengumpulan Diberitahukan di Kelas
                       </div>
                     )}
                   </div>
-                </div>
+                </motion.div>
               );
             })}
           </div>
         ) : (
-          <div className="text-center py-20 bg-white rounded-2xl border border-slate-100 max-w-4xl">
-            <FileText className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-            <p className="text-slate-500 font-bold">Tidak ada tugas sekolah.</p>
-            <p className="text-xs text-slate-400 mt-1">Tugas yang dibagikan guru akan muncul di sini.</p>
+          <div className="text-center py-20 bg-white rounded-2xl border border-slate-200/80 shadow-sm max-w-4xl">
+            <div className="w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-500 mx-auto mb-3 border border-indigo-100">
+              <FileText className="w-7 h-7" />
+            </div>
+            <p className="text-slate-700 font-bold text-base">Tidak ada tugas sekolah.</p>
+            <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
+              Tugas yang dibagikan oleh guru untuk kelas Anda akan muncul di sini.
+            </p>
           </div>
         )
       )}

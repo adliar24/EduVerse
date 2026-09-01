@@ -85,8 +85,16 @@ export interface ClassEntity {
   id: string;
   name: string;
   subject: string;
-  schoolIndex: number;
-  createdAt: string;
+  schoolIndex?: number;
+  createdAt?: string;
+
+  // Dual-schema compatibility
+  idKelas?: string;
+  id_kelas?: string;
+  namaKelas?: string;
+  mapel?: string;
+  school_id?: string | null;
+  schoolId?: string | null;
 }
 
 // Unified Student supporting both EduCheck, EduScore, and EduTest schemas
@@ -107,9 +115,17 @@ export interface Student {
 
   // EduScore
   idSiswa?: string;
+  id_siswa?: string;
   schoolId?: string | null;
   idKelas?: string;
   nama?: string;
+  namaKelas?: string;
+  className?: string;
+  class_name?: string;
+  classes?: any;
+  teacher_id?: string | null;
+  teacherId?: string | null;
+  user_id?: string | null;
   nisn?: string;
   bintang?: number;
   student_code?: string;

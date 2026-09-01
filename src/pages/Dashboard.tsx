@@ -343,54 +343,48 @@ export default function Dashboard() {
       label: 'Ujian Digital', 
       value: stats.totalExams, 
       icon: FileText, 
-      domainType: 'ujian' as const,
-      solidBg: 'bg-gradient-to-br from-amber-500 via-amber-600 to-orange-600 text-white shadow-lg shadow-amber-500/25 border border-white/20',
-      badgeClass: 'bg-white/20 text-white border-white/20 backdrop-blur-md',
+      iconBg: 'bg-indigo-50 text-indigo-600 border border-indigo-100',
+      badgeClass: 'bg-indigo-50 text-indigo-700 border-indigo-200',
       desc: `${stats.totalQuestions} Soal di Bank Soal`
     },
     { 
       label: 'Jumlah Kelas', 
       value: stats.totalClasses, 
       icon: BookOpen, 
-      domainType: 'kelas' as const,
-      solidBg: 'bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 text-white shadow-lg shadow-blue-600/25 border border-white/20',
-      badgeClass: 'bg-white/20 text-white border-white/20 backdrop-blur-md',
+      iconBg: 'bg-blue-50 text-blue-600 border border-blue-100',
+      badgeClass: 'bg-blue-50 text-blue-700 border-blue-200',
       desc: 'Kelas Aktif Terdaftar'
     },
     { 
       label: 'Manajemen Murid', 
       value: stats.totalStudents, 
       icon: Users, 
-      domainType: 'kelas' as const,
-      solidBg: 'bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 text-white shadow-lg shadow-blue-600/25 border border-white/20',
-      badgeClass: 'bg-white/20 text-white border-white/20 backdrop-blur-md',
+      iconBg: 'bg-sky-50 text-sky-600 border border-sky-100',
+      badgeClass: 'bg-sky-50 text-sky-700 border-sky-200',
       desc: 'Murid Aktif Terdaftar'
     },
     { 
       label: 'Kehadiran Total', 
       value: `${overallAttendance}%`, 
       icon: CheckCircle, 
-      domainType: 'materi' as const,
-      solidBg: 'bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-700 text-white shadow-lg shadow-emerald-500/25 border border-white/20',
-      badgeClass: 'bg-white/20 text-white border-white/20 backdrop-blur-md',
+      iconBg: 'bg-emerald-50 text-emerald-600 border border-emerald-100',
+      badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
       desc: 'Rata-rata absensi kelas'
     },
     { 
       label: 'Rerata Nilai', 
       value: overallGradeAvg, 
       icon: TrendingUp, 
-      domainType: 'tugas' as const,
-      solidBg: 'bg-gradient-to-br from-rose-500 via-rose-600 to-red-600 text-white shadow-lg shadow-rose-500/25 border border-white/20',
-      badgeClass: 'bg-white/20 text-white border-white/20 backdrop-blur-md',
-      desc: 'Rerata nilai formatif/sumatif'
+      iconBg: 'bg-violet-50 text-violet-600 border border-violet-100',
+      badgeClass: 'bg-violet-50 text-violet-700 border-violet-200',
+      desc: 'Rerata formatif/sumatif'
     },
     { 
       label: 'Rerata Ujian', 
       value: overallExamAvg, 
       icon: GraduationCap, 
-      domainType: 'ujian' as const,
-      solidBg: 'bg-gradient-to-br from-amber-500 via-amber-600 to-orange-600 text-white shadow-lg shadow-amber-500/25 border border-white/20',
-      badgeClass: 'bg-white/20 text-white border-white/20 backdrop-blur-md',
+      iconBg: 'bg-amber-50 text-amber-600 border border-amber-100',
+      badgeClass: 'bg-amber-50 text-amber-700 border-amber-200',
       desc: 'Rerata nilai ujian digital'
     }
   ];
@@ -423,89 +417,92 @@ export default function Dashboard() {
       exit="exit"
       className="space-y-4 pb-2"
     >
-      {/* Quizzo-Style Banner Sambutan Guru */}
-      <div className="bg-gradient-to-r from-[#3B0764] via-[#5B21B6] to-[#7C3AED] text-white rounded-[2.5rem] p-6 sm:p-8 relative overflow-hidden shadow-purple-glow border border-white/20">
-        <div className="absolute right-0 top-0 w-80 h-80 bg-white/10 rounded-full blur-3xl"></div>
-        <div className="absolute left-1/3 bottom-0 w-60 h-60 bg-purple-400/20 rounded-full blur-2xl"></div>
+      {/* Modern Banner Sambutan Guru */}
+      <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white rounded-[2.25rem] p-6 sm:p-8 relative overflow-hidden shadow-xl border border-white/10">
+        <div className="absolute right-0 top-0 w-80 h-80 bg-white/5 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="absolute left-1/3 bottom-0 w-60 h-60 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none"></div>
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <div className="inline-flex items-center gap-1.5 px-3.5 py-1 bg-white/15 rounded-full text-xs font-extrabold tracking-wide text-amber-300 mb-2.5 backdrop-blur-md border border-white/20">
+            <div className="inline-flex items-center gap-1.5 px-3.5 py-1 bg-white/10 rounded-full text-xs font-bold tracking-wide text-indigo-200 mb-2.5 backdrop-blur-md border border-white/15">
               🎓 Tahun Ajaran {activeSchool?.academic_year || '2026/2027'} • Semester {activeSchool?.semester || 'Ganjil'}
             </div>
             <h2 className="text-2xl md:text-3xl font-black tracking-tight text-white">
               Selamat Datang, {userName}!
             </h2>
-            <p className="text-slate-100/90 text-xs sm:text-sm font-medium mt-1">
-              Kelola ujian, presensi, dan rekap nilai murid dalam satu platform terpadu.
+            <p className="text-slate-300 text-xs sm:text-sm font-medium mt-1">
+              Kelola pembelajaran, ujian, presensi, dan rekapitulasi nilai murid secara praktis dan terpadu.
             </p>
           </div>
         </div>
       </div>
 
-      {/* Quick Action Launcher - 3 Distinct Colors */}
+      {/* Quick Action Launcher */}
       <div className="space-y-1.5">
         <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Aksi Cepat</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <Link
             to="/attendance/scan"
-            className="flex items-center gap-3 p-3.5 bg-gradient-to-r from-emerald-500 via-teal-600 to-emerald-700 text-white rounded-full shadow-lg shadow-emerald-600/30 hover:scale-[1.02] border border-white/20 transition-all group cursor-pointer"
+            className="flex items-center gap-3.5 p-4 bg-white border border-slate-200/90 text-slate-800 rounded-2xl shadow-sm hover:shadow-md hover:border-emerald-300 hover:bg-emerald-50/20 transition-all group cursor-pointer"
           >
-            <div className="bg-white/20 text-white p-2.5 rounded-full group-hover:scale-105 transition-transform backdrop-blur-md border border-white/20">
+            <div className="bg-emerald-50 text-emerald-600 p-2.5 rounded-xl group-hover:scale-105 transition-transform border border-emerald-100">
               <ClipboardCheck className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="font-extrabold text-white text-xs uppercase tracking-tight">Scan Kehadiran</h4>
+              <h4 className="font-bold text-slate-900 text-xs uppercase tracking-tight group-hover:text-emerald-700 transition-colors">Scan Kehadiran</h4>
+              <p className="text-[11px] text-slate-500 font-medium">Buka kamera presensi kelas</p>
             </div>
           </Link>
 
           <Link
             to="/grading"
-            className="flex items-center gap-3 p-3.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 text-white rounded-full shadow-lg shadow-blue-600/30 hover:scale-[1.02] border border-white/20 transition-all group cursor-pointer"
+            className="flex items-center gap-3.5 p-4 bg-white border border-slate-200/90 text-slate-800 rounded-2xl shadow-sm hover:shadow-md hover:border-blue-300 hover:bg-blue-50/20 transition-all group cursor-pointer"
           >
-            <div className="bg-white/20 text-white p-2.5 rounded-full group-hover:scale-105 transition-transform backdrop-blur-md border border-white/20">
+            <div className="bg-blue-50 text-blue-600 p-2.5 rounded-xl group-hover:scale-105 transition-transform border border-blue-100">
               <Activity className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="font-extrabold text-white text-xs uppercase tracking-tight">Input Nilai Baru</h4>
+              <h4 className="font-bold text-slate-900 text-xs uppercase tracking-tight group-hover:text-blue-700 transition-colors">Input Nilai Baru</h4>
+              <p className="text-[11px] text-slate-500 font-medium">Rekap nilai formatif & sumatif</p>
             </div>
           </Link>
 
           <Link
             to="/buat-ujian"
-            className="flex items-center gap-3 p-3.5 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-white rounded-full shadow-lg shadow-amber-500/30 hover:scale-[1.02] border border-white/20 transition-all group cursor-pointer"
+            className="flex items-center gap-3.5 p-4 bg-white border border-slate-200/90 text-slate-800 rounded-2xl shadow-sm hover:shadow-md hover:border-indigo-300 hover:bg-indigo-50/20 transition-all group cursor-pointer"
           >
-            <div className="bg-white/20 text-white p-2.5 rounded-full group-hover:scale-105 transition-transform backdrop-blur-md border border-white/20">
+            <div className="bg-indigo-50 text-indigo-600 p-2.5 rounded-xl group-hover:scale-105 transition-transform border border-indigo-100">
               <FileText className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="font-extrabold text-white text-xs uppercase tracking-tight">Buat Ujian Baru</h4>
+              <h4 className="font-bold text-slate-900 text-xs uppercase tracking-tight group-hover:text-indigo-700 transition-colors">Buat Ujian Baru</h4>
+              <p className="text-[11px] text-slate-500 font-medium">Susun lembar ujian digital</p>
             </div>
           </Link>
         </div>
       </div>
 
-      {/* Stats Grid - Full Solid Gradient Cards */}
+      {/* Stats Grid - Clean Card Style */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
         {statCards.map((stat, index) => (
           <motion.div
             key={index}
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.05, duration: 0.3 }}
-            className={`rounded-2xl p-3.5 shadow-md hover:shadow-xl transition-all duration-300 hover:scale-[1.02] flex flex-col justify-between ${stat.solidBg}`}
+            transition={{ delay: index * 0.04, duration: 0.25 }}
+            className="rounded-2xl p-4 bg-white border border-slate-200/90 shadow-sm hover:shadow-md hover:border-indigo-300 transition-all flex flex-col justify-between group"
           >
-            <div className="flex items-center justify-between mb-2">
-              <div className="bg-white/20 p-2 rounded-xl text-white backdrop-blur-md border border-white/20">
+            <div className="flex items-center justify-between mb-3">
+              <div className={`p-2 rounded-xl transition-transform group-hover:scale-105 ${stat.iconBg}`}>
                 <stat.icon className="w-4 h-4" />
               </div>
-              <div className={`${stat.badgeClass} px-2 py-0.5 rounded text-[8px] font-extrabold flex items-center gap-0.5 border uppercase tracking-wider`}>
-                <ArrowUpRight className="w-2 h-2" />
-                Info
+              <div className={`px-2 py-0.5 rounded text-[9px] font-bold border uppercase tracking-wider ${stat.badgeClass}`}>
+                Aktif
               </div>
             </div>
             <div>
-              <p className="text-white/80 text-[9px] font-black uppercase tracking-widest leading-none">{stat.label}</p>
-              <h3 className="text-2xl font-black mt-1 tracking-tight leading-none text-white">{stat.value}</h3>
+              <p className="text-slate-400 text-[10px] font-bold uppercase tracking-wider leading-none">{stat.label}</p>
+              <h3 className="text-2xl font-black mt-1 tracking-tight leading-none text-slate-900">{stat.value}</h3>
+              <p className="text-slate-400 text-[10px] font-medium mt-1 truncate">{stat.desc}</p>
             </div>
           </motion.div>
         ))}

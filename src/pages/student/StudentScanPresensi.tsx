@@ -203,6 +203,10 @@ export default function StudentScanPresensi() {
       setStatusMsg('Menyimpan data presensi Hadir...');
       localStorage.setItem(deviceBindingKey, studentSession.id);
 
+      const now = new Date();
+      const nowIso = now.toISOString();
+      const timeHhmmss = now.toTimeString().split(' ')[0]; // e.g. "06:35:12"
+
       const recordObj = {
         id: `rec_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
         studentId: studentSession.id,
@@ -210,23 +214,59 @@ export default function StudentScanPresensi() {
         dateISO: todayStr,
         status: 'Hadir',
         method: 'Self-QR',
-        recordedAt: new Date().toISOString()
+        timeISO: nowIso,
+        timeHHMMSS: timeHhmmss,
+        recordedAt: nowIso
       };
 
-      // Save to Supabase attendance_records if table exists
+      // Save to Supabase attendance_records
+      let cloudSaved = false;
       try {
-        await supabase.from('attendance_records').insert([{
+        // Try finding today's session if any
+        let targetSessionId = null;
+        try {
+          const { data: activeSession } = await supabase
+            .from('attendance_sessions')
+            .select('id')
+            .eq('class_id', scannedClassId)
+            .eq('date_iso', todayStr)
+            .maybeSingle();
+          if (activeSession?.id) {
+            targetSessionId = activeSession.id;
+          }
+        } catch (sessErr) {
+          console.warn("Session check notice:", sessErr);
+        }
+
+        const insertPayload: any = {
           student_id: studentSession.id,
           class_id: scannedClassId,
           status: 'Hadir',
-          created_at: new Date().toISOString(),
+          time_iso: nowIso,
+          time_hhmmss: timeHhmmss,
+          note: 'Presensi Mandiri QR Kelas',
+          created_at: nowIso,
           school_id: studentSession.school_id
-        }]);
+        };
+
+        if (targetSessionId) {
+          insertPayload.session_id = targetSessionId;
+        }
+
+        const { error: insertErr } = await supabase
+          .from('attendance_records')
+          .insert([insertPayload]);
+
+        if (insertErr) {
+          console.warn("Supabase record insert notice:", insertErr.message);
+        } else {
+          cloudSaved = true;
+        }
       } catch (dbErr) {
-        console.warn("Supabase record insert notice:", dbErr);
+        console.warn("Supabase record insert catch:", dbErr);
       }
 
-      setSuccessMsg(`🎉 Presensi Berhasil! Anda tercatat HADIR pada pukul ${new Date().toLocaleTimeString('id-ID')}.`);
+      setSuccessMsg(`🎉 Presensi Berhasil! Anda tercatat HADIR pada pukul ${timeHhmmss} WIB.${cloudSaved ? ' (Tersinkron ke Server Cloud)' : ''}`);
     } catch (err: any) {
       console.error(err);
       setErrorMsg(err.message || 'Gagal memproses presensi.');

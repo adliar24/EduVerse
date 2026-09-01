@@ -76,6 +76,13 @@ export default function KelolaKelas() {
   const [subjectDropdownOpen, setSubjectDropdownOpen] = useState(false);
   const subjectRef = useRef<HTMLDivElement>(null);
 
+  const generateStudentCode = () => {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let code = '';
+    for (let i = 0; i < 6; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
+    return code;
+  };
+
   useEffect(() => {
     isMountedRef.current = true;
     fetchClasses();
@@ -925,6 +932,8 @@ export default function KelolaKelas() {
               updatedCount++;
             } else {
               // Insert brand new student with unique student_code
+              const newId = crypto.randomUUID();
+              const studentCode = generateStudentCode();
               let studentRecord: any = null;
 
               if (user?.id) {
@@ -1034,13 +1043,6 @@ export default function KelolaKelas() {
       }
     };
     reader.readAsArrayBuffer(file);
-  };
-
-  const generateStudentCode = () => {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    let code = '';
-    for (let i = 0; i < 6; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
-    return code;
   };
 
   const handleGenerateCodes = async () => {

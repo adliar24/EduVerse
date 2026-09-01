@@ -3,10 +3,12 @@ import { getFullState, initDB, saveTeacherProfile, setSkipSync } from './dbAtten
 import { TeacherProfile } from '../types';
 
 // Tables that exist in Supabase cloud database
-const TABLES = ['classes', 'students', 'schedules', 'materials', 'assignments'];
+const TABLES = ['classes', 'students', 'sessions', 'records', 'schedules', 'materials', 'assignments'];
 
 // Helper to map local table names to cloud table names
 const getCloudTableName = (tableName: string): string => {
+  if (tableName === 'sessions') return 'attendance_sessions';
+  if (tableName === 'records') return 'attendance_records';
   return tableName;
 };
 

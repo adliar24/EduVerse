@@ -237,11 +237,11 @@ export default function StudentJoin({ isDashboardView = false }: { isDashboardVi
       return (
         <div className="space-y-8 pb-10 font-sans">
           <div>
-            <h2 className="text-3xl font-bold text-[#1D4ED8] tracking-tight">Ujian Aktif Saya</h2>
+            <h2 className="text-3xl font-bold text-slate-900 tracking-tight">Ujian Aktif Saya</h2>
             <p className="text-slate-500 mt-1 font-medium">Lihat dan kerjakan ujian yang sedang aktif untuk kelas Anda.</p>
           </div>
-          <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-12 text-center max-w-4xl">
-            <Loader2 className="w-8 h-8 text-[#1D4ED8] animate-spin mx-auto" />
+          <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-12 text-center max-w-4xl">
+            <Loader2 className="w-8 h-8 text-indigo-600 animate-spin mx-auto" />
             <p className="text-slate-500 mt-2 font-medium">Memuat data sesi ujian Anda...</p>
           </div>
         </div>
@@ -252,10 +252,10 @@ export default function StudentJoin({ isDashboardView = false }: { isDashboardVi
       return (
         <div className="space-y-8 pb-10 font-sans">
           <div>
-            <h2 className="text-3xl font-bold text-[#1D4ED8] tracking-tight">Ujian Aktif Saya</h2>
+            <h2 className="text-3xl font-bold text-slate-900 tracking-tight">Ujian Aktif Saya</h2>
             <p className="text-slate-500 mt-1 font-medium">Lihat dan kerjakan ujian yang sedang aktif untuk kelas Anda.</p>
           </div>
-          <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-12 text-center max-w-4xl">
+          <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-12 text-center max-w-4xl">
             <p className="text-rose-600 font-bold text-sm">Identitas siswa tidak ditemukan atau sesi telah berakhir.</p>
             <p className="text-xs text-slate-400 mt-1">Silakan lakukan login ulang untuk menyegarkan sesi Anda.</p>
           </div>
@@ -267,28 +267,28 @@ export default function StudentJoin({ isDashboardView = false }: { isDashboardVi
       <div className="space-y-8 pb-10 font-sans">
         {/* Header */}
         <div>
-          <h2 className="text-3xl font-bold text-[#1D4ED8] tracking-tight">Ujian Aktif Saya</h2>
+          <h2 className="text-3xl font-bold text-slate-900 tracking-tight">Ujian Aktif Saya</h2>
           <p className="text-slate-500 mt-1 font-medium">Lihat dan kerjakan ujian yang sedang aktif untuk kelas Anda.</p>
         </div>
 
         {/* Student Info Card */}
-        <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-6 sm:p-8 max-w-4xl">
-          <div className="p-6 bg-[#3B66F5]/5 rounded-2xl border border-[#3B66F5]/20/80 mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-6 sm:p-8 max-w-4xl">
+          <div className="p-5 bg-indigo-50/50 rounded-2xl border border-indigo-100 mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <p className="text-xs font-bold text-[#3B66F5] uppercase tracking-widest mb-1">Identitas Siswa</p>
-              <h3 className="text-2xl font-black text-[#1D4ED8] leading-tight">{studentInfo.name}</h3>
+              <p className="text-xs font-bold text-indigo-600 uppercase tracking-widest mb-1">Identitas Siswa</p>
+              <h3 className="text-2xl font-black text-slate-900 leading-tight">{studentInfo.name}</h3>
               <div className="flex items-center gap-2 mt-2 text-sm font-bold text-slate-600">
-                <ShieldCheck className="w-4 h-4 text-[#3B66F5]" />
+                <ShieldCheck className="w-4 h-4 text-indigo-600" />
                 Kelas: {studentInfo.classes?.name || 'Tidak diketahui'}
               </div>
             </div>
-            <div className="bg-[#1D4ED8] text-white px-4 py-2.5 rounded-xl font-bold text-sm">
+            <div className="bg-indigo-600 text-white px-4 py-2.5 rounded-xl font-bold text-sm">
               Kode: {studentInfo.student_code}
             </div>
           </div>
 
-          <h4 className="text-base font-bold text-[#1D4ED8] mb-4 ml-1 flex items-center gap-2">
-            <span className="w-2.5 h-2.5 bg-blue-600 rounded-full animate-pulse" />
+          <h4 className="text-base font-bold text-slate-900 mb-4 ml-1 flex items-center gap-2">
+            <span className="w-2.5 h-2.5 bg-indigo-600 rounded-full animate-pulse" />
             Sesi Ujian Tersedia ({activeSessions.length})
           </h4>
 
@@ -297,20 +297,20 @@ export default function StudentJoin({ isDashboardView = false }: { isDashboardVi
               {activeSessions.map((session) => (
                 <div
                   key={session.id}
-                  className="p-6 rounded-2xl border border-slate-100 hover:border-[#3B66F5] hover:bg-slate-50/50 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4 group"
+                  className="p-6 rounded-2xl border border-slate-200/90 hover:border-indigo-400 hover:shadow-md transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4 group"
                 >
                   <div className="space-y-1">
-                    <h4 className="font-bold text-lg text-[#1D4ED8] group-hover:text-[#3B66F5] transition-colors">{session.exams?.title}</h4>
+                    <h4 className="font-bold text-lg text-slate-900 group-hover:text-indigo-600 transition-colors">{session.exams?.title}</h4>
                     <div className="flex items-center gap-4 mt-2 text-xs font-bold text-slate-500">
-                      <span className="flex items-center gap-1.5"><Clock className="w-4 h-4 text-[#3B66F5]" /> {session.exams?.duration} Menit</span>
-                      <span className="flex items-center gap-1.5"><BookOpen className="w-4 h-4 text-emerald-500" /> {session.exams?.total_questions} Soal</span>
-                      <span className="flex items-center gap-1.5"><Users className="w-4 h-4 text-purple-500" /> {session.class_name}</span>
+                      <span className="flex items-center gap-1.5"><Clock className="w-4 h-4 text-indigo-600" /> {session.exams?.duration} Menit</span>
+                      <span className="flex items-center gap-1.5"><BookOpen className="w-4 h-4 text-emerald-600" /> {session.exams?.total_questions} Soal</span>
+                      <span className="flex items-center gap-1.5"><Users className="w-4 h-4 text-violet-600" /> {session.class_name}</span>
                     </div>
                   </div>
                   <button
                     onClick={() => setSelectedSession(session)}
                     disabled={loading}
-                    className="bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white px-6 py-3 rounded-full font-bold hover:brightness-110 active:scale-[0.98] transition-all border border-white/10 flex items-center justify-center gap-2 shrink-0 self-start sm:self-center"
+                    className="bg-indigo-600 hover:bg-indigo-700 active:scale-[0.98] text-white px-6 py-3 rounded-xl font-bold transition-all shadow-sm flex items-center justify-center gap-2 shrink-0 self-start sm:self-center cursor-pointer"
                   >
                     Kerjakan Ujian
                     <ArrowRight className="w-4 h-4" />
@@ -319,11 +319,11 @@ export default function StudentJoin({ isDashboardView = false }: { isDashboardVi
               ))}
             </div>
           ) : (
-            <div className="text-center py-20 bg-slate-50 rounded-[2rem] border border-dashed border-slate-200">
-              <div className="bg-white w-16 h-16 rounded-2xl shadow-sm flex items-center justify-center mx-auto mb-4 border border-slate-100">
-                <BookOpen className="w-8 h-8 text-slate-300" />
+            <div className="text-center py-20 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
+              <div className="bg-white w-14 h-14 rounded-2xl shadow-sm flex items-center justify-center mx-auto mb-3 border border-slate-100">
+                <BookOpen className="w-7 h-7 text-slate-300" />
               </div>
-              <p className="text-slate-400 font-bold text-sm">Tidak ada sesi ujian aktif saat ini.</p>
+              <p className="text-slate-600 font-bold text-sm">Tidak ada sesi ujian aktif saat ini.</p>
               <p className="text-xs text-slate-400 mt-1 max-w-xs mx-auto">Ujian akan muncul di sini secara otomatis ketika guru mengaktifkan sesi ujian untuk kelas Anda.</p>
             </div>
           )}
