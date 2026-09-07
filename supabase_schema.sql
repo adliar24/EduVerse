@@ -154,17 +154,20 @@ CREATE TABLE IF NOT EXISTS public.exams (
   is_active BOOLEAN DEFAULT false,
   show_score BOOLEAN DEFAULT true,
   strict_mode BOOLEAN DEFAULT true,
+  offline_mode BOOLEAN DEFAULT false,
+  qr_submission BOOLEAN DEFAULT false,
+  strict_limit INT DEFAULT 3,
+  bypass_code VARCHAR(10),
   is_archived BOOLEAN DEFAULT false,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
 
--- Add school_id to exams if not exists (migration)
-DO $$ 
-BEGIN
-  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'exams' AND column_name = 'school_id') THEN
-    ALTER TABLE public.exams ADD COLUMN school_id UUID REFERENCES public.schools(id) ON DELETE SET NULL;
-  END IF;
-END $$;
+-- Add columns to exams if not exists (migration)
+ALTER TABLE public.exams ADD COLUMN IF NOT EXISTS school_id UUID REFERENCES public.schools(id) ON DELETE SET NULL;
+ALTER TABLE public.exams ADD COLUMN IF NOT EXISTS offline_mode BOOLEAN DEFAULT false;
+ALTER TABLE public.exams ADD COLUMN IF NOT EXISTS qr_submission BOOLEAN DEFAULT false;
+ALTER TABLE public.exams ADD COLUMN IF NOT EXISTS strict_limit INT DEFAULT 3;
+ALTER TABLE public.exams ADD COLUMN IF NOT EXISTS bypass_code VARCHAR(10);
 
 -- 6. Tabel Relasi Ujian dan Soal
 CREATE TABLE IF NOT EXISTS public.exam_questions (
@@ -232,6 +235,12 @@ BEGIN
   END IF;
   IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'participants' AND column_name = 'last_position') THEN
     ALTER TABLE public.participants ADD COLUMN last_position INTEGER DEFAULT 0;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'participants' AND column_name = 'lock_reason') THEN
+    ALTER TABLE public.participants ADD COLUMN lock_reason TEXT DEFAULT NULL;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'participants' AND column_name = 'is_qr') THEN
+    ALTER TABLE public.participants ADD COLUMN is_qr BOOLEAN DEFAULT false;
   END IF;
 END $$;
 
@@ -998,3 +1007,18 @@ GRANT ALL ON public.events TO service_role;
 GRANT ALL ON public.cancellations TO authenticated;
 GRANT ALL ON public.cancellations TO anon;
 GRANT ALL ON public.cancellations TO service_role;
+
+-- ============================================
+-- REALTIME REPLICATION (Untuk Live Monitor Ujian)
+-- ============================================
+DO $$ 
+BEGIN
+  ALTER PUBLICATION supabase_realtime ADD TABLE public.participants;
+EXCEPTION WHEN OTHERS THEN NULL;
+END $$;
+
+DO $$ 
+BEGIN
+  ALTER PUBLICATION supabase_realtime ADD TABLE public.exam_sessions;
+EXCEPTION WHEN OTHERS THEN NULL;
+END $$;
