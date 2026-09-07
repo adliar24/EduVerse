@@ -1,6 +1,7 @@
 import { getSupabaseClient, supabase } from './supabase';
 import { getFullState, initDB, saveTeacherProfile, setSkipSync } from './dbAttendance';
 import { TeacherProfile } from '../types';
+import { deterministicId, isValidUUID } from '../lib/utils';
 
 // Tables that exist in Supabase cloud database
 const TABLES = ['classes', 'students', 'sessions', 'records', 'schedules', 'materials', 'assignments'];
@@ -12,9 +13,13 @@ const getCloudTableName = (tableName: string): string => {
   return tableName;
 };
 
-const isValidUUID = (str: any): boolean => {
-  if (typeof str !== 'string') return false;
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+// Ensure an ID is guaranteed to be a valid RFC 4122 UUID
+const ensureValidUUID = (id: any, seed = ''): string => {
+  if (isValidUUID(id)) return String(id);
+  if (typeof id === 'string' && id.trim().length > 0) {
+    return deterministicId(id.trim());
+  }
+  return deterministicId(seed || String(Math.random()));
 };
 
 // Helper to map local IndexedDB objects to Supabase snake_case schema format
@@ -25,18 +30,17 @@ const mapToCloud = (tableName: string, item: any, userId: string): any => {
   const schoolId = isValidUUID(rawSchoolId) ? rawSchoolId : 'fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7';
   
   let syncItem: any = { ...item, teacher_id: userId };
-  
-  syncItem.school_id = schoolId;
+  syncItem.id = ensureValidUUID(item.id, `${tableName}::${item.name || item.title || ''}::${Date.now()}`);
+  syncItem.school_id = isValidUUID(schoolId) ? schoolId : null;
 
   if (tableName === 'classes') {
-    syncItem.school_id = schoolId || null;
     syncItem.name = item.name || item.namaKelas;
     syncItem.subject = item.subject || item.mapel || 'Umum';
-    syncItem.created_at = item.created_at || item.createdAt;
+    syncItem.created_at = item.created_at || item.createdAt || new Date().toISOString();
     
     // Add dual-schema fields for EduScore / EduCheck compatibility
-    syncItem.id_kelas = item.id || item.idKelas;
-    syncItem.nama_kelas = item.name || item.namaKelas;
+    syncItem.id_kelas = syncItem.id;
+    syncItem.nama_kelas = syncItem.name;
     
     delete syncItem.mapel;
     delete syncItem.namaKelas;
@@ -46,17 +50,17 @@ const mapToCloud = (tableName: string, item: any, userId: string): any => {
   }
   
   if (tableName === 'students') {
-    syncItem.school_id = schoolId || null;
-    syncItem.class_id = item.class_id || item.classId || item.idKelas || null;
+    const rawClassId = item.class_id || item.classId || item.idKelas || null;
+    syncItem.class_id = rawClassId ? ensureValidUUID(rawClassId, 'class') : null;
     syncItem.name = item.name || item.nama;
     syncItem.gender = item.gender || null;
     syncItem.nisn = item.nisn || null;
     syncItem.student_code = item.student_code || item.studentCode || null;
     syncItem.password = item.password || 'murid19';
-    syncItem.created_at = item.created_at || item.createdAt;
+    syncItem.created_at = item.created_at || item.createdAt || new Date().toISOString();
 
     // Add dual-schema fields for EduScore / EduCheck compatibility
-    syncItem.id_siswa = item.id || item.idSiswa;
+    syncItem.id_siswa = syncItem.id;
     syncItem.id_kelas = syncItem.class_id;
     syncItem.nama = syncItem.name;
 
@@ -74,18 +78,19 @@ const mapToCloud = (tableName: string, item: any, userId: string): any => {
   }
   
   if (tableName === 'sessions') {
-    syncItem.school_id = schoolId || null;
-    syncItem.class_id = item.classId || item.class_id;
-    syncItem.school_year = item.schoolYear;
-    syncItem.date_iso = item.dateISO;
-    syncItem.day_name = item.dayName;
-    syncItem.date_label = item.dateLabel;
-    syncItem.meeting_number = item.meetingNumber;
-    syncItem.topic = item.topic;
-    syncItem.schedule_id = item.scheduleId || item.schedule_id || null;
-    syncItem.created_at = item.created_at || item.createdAt;
+    const rawClassId = item.classId || item.class_id;
+    syncItem.class_id = rawClassId ? ensureValidUUID(rawClassId, 'class') : null;
+    syncItem.school_year = item.schoolYear || item.school_year || '2026/2027';
+    syncItem.date_iso = item.dateISO || item.date_iso || new Date().toISOString().split('T')[0];
+    syncItem.day_name = item.dayName || item.day_name || 'Senin';
+    syncItem.date_label = item.dateLabel || item.date_label || '';
+    syncItem.meeting_number = Number(item.meetingNumber ?? item.meeting_number ?? 1);
+    syncItem.topic = item.topic || '';
+    const rawSchedId = item.scheduleId || item.schedule_id;
+    syncItem.schedule_id = (rawSchedId && isValidUUID(rawSchedId)) ? rawSchedId : null;
+    syncItem.created_at = item.created_at || item.createdAt || new Date().toISOString();
     
-    syncItem.is_closed = item.isClosed || false;
+    syncItem.is_closed = !!(item.isClosed ?? item.is_closed);
     
     delete syncItem.classId;
     delete syncItem.schoolYear;
@@ -100,12 +105,15 @@ const mapToCloud = (tableName: string, item: any, userId: string): any => {
   }
   
   if (tableName === 'records') {
-    syncItem.school_id = schoolId || null;
-    syncItem.session_id = item.sessionId || item.session_id;
-    syncItem.student_id = item.studentId || item.student_id;
-    syncItem.time_iso = item.timeISO;
-    syncItem.time_hhmmss = item.timeHHMMSS;
-    syncItem.created_at = item.created_at || item.createdAt;
+    const rawSessionId = item.sessionId || item.session_id;
+    syncItem.session_id = rawSessionId ? ensureValidUUID(rawSessionId, 'session') : null;
+    const rawStudentId = item.studentId || item.student_id;
+    syncItem.student_id = rawStudentId ? ensureValidUUID(rawStudentId, 'student') : null;
+    syncItem.status = item.status || 'Hadir';
+    syncItem.time_iso = item.timeISO || item.time_iso || new Date().toISOString();
+    syncItem.time_hhmmss = item.timeHHMMSS || item.time_hhmmss || '00:00:00';
+    syncItem.note = item.note || null;
+    syncItem.created_at = item.created_at || item.createdAt || new Date().toISOString();
     
     delete syncItem.sessionId;
     delete syncItem.studentId;
@@ -118,10 +126,11 @@ const mapToCloud = (tableName: string, item: any, userId: string): any => {
   if (tableName === 'schedules') {
     const rawSchedSchoolId = item.schoolId || item.school_id || schoolId || null;
     syncItem.school_id = isValidUUID(rawSchedSchoolId) ? rawSchedSchoolId : null;
-    syncItem.day_name = item.dayName;
-    syncItem.class_id = item.classId || item.class_id;
-    syncItem.start_time = item.startTime;
-    syncItem.end_time = item.endTime;
+    syncItem.day_name = item.dayName || item.day_name;
+    const rawClassId = item.classId || item.class_id;
+    syncItem.class_id = rawClassId ? ensureValidUUID(rawClassId, 'class') : null;
+    syncItem.start_time = item.startTime || item.start_time;
+    syncItem.end_time = item.endTime || item.end_time;
     
     delete syncItem.dayName;
     delete syncItem.classId;
@@ -131,12 +140,13 @@ const mapToCloud = (tableName: string, item: any, userId: string): any => {
   }
   
   if (tableName === 'events') {
-    syncItem.school_id = schoolId || null;
     syncItem.date_iso = item.dateISO;
     syncItem.is_full_day = item.isFullDay;
     syncItem.start_time = item.startTime;
     syncItem.end_time = item.endTime;
     syncItem.created_at = item.created_at || item.createdAt;
+    syncItem.description = item.description || null;
+    syncItem.type = item.type || 'Lainnya';
     
     delete syncItem.dateISO;
     delete syncItem.isFullDay;
@@ -147,10 +157,11 @@ const mapToCloud = (tableName: string, item: any, userId: string): any => {
   }
   
   if (tableName === 'cancellations') {
-    syncItem.school_id = schoolId || null;
     syncItem.date_iso = item.dateISO;
-    syncItem.class_id = item.classId || item.class_id;
-    syncItem.schedule_id = item.scheduleId || item.schedule_id || null;
+    const rawClassId = item.classId || item.class_id;
+    syncItem.class_id = rawClassId ? ensureValidUUID(rawClassId, 'class') : null;
+    const rawSchedId = item.scheduleId || item.schedule_id;
+    syncItem.schedule_id = (rawSchedId && isValidUUID(rawSchedId)) ? rawSchedId : null;
     
     delete syncItem.dateISO;
     delete syncItem.classId;

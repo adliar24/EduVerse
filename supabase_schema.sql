@@ -625,6 +625,7 @@ CREATE TABLE IF NOT EXISTS public.attendance_sessions (
   meeting_number INTEGER NOT NULL,
   topic TEXT DEFAULT '' NOT NULL,
   schedule_id UUID REFERENCES public.schedules(id) ON DELETE SET NULL,
+  is_closed BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
 
@@ -777,6 +778,25 @@ ALTER TABLE public.classes ADD COLUMN IF NOT EXISTS nama_kelas TEXT;
 ALTER TABLE public.students ADD COLUMN IF NOT EXISTS id_siswa UUID;
 ALTER TABLE public.students ADD COLUMN IF NOT EXISTS id_kelas UUID;
 ALTER TABLE public.students ADD COLUMN IF NOT EXISTS nama TEXT;
+
+-- Penyesuaian tabel attendance_sessions & attendance_records untuk ketahanan offline/multi-device sync
+ALTER TABLE public.attendance_sessions ADD COLUMN IF NOT EXISTS is_closed BOOLEAN DEFAULT FALSE;
+ALTER TABLE public.attendance_sessions 
+  DROP CONSTRAINT IF EXISTS attendance_sessions_class_id_fkey,
+  ALTER COLUMN class_id DROP NOT NULL;
+ALTER TABLE public.attendance_sessions 
+  DROP CONSTRAINT IF EXISTS attendance_sessions_school_id_fkey,
+  ALTER COLUMN school_id DROP NOT NULL;
+
+ALTER TABLE public.attendance_records 
+  DROP CONSTRAINT IF EXISTS attendance_records_session_id_fkey,
+  ALTER COLUMN session_id DROP NOT NULL;
+ALTER TABLE public.attendance_records 
+  DROP CONSTRAINT IF EXISTS attendance_records_student_id_fkey,
+  ALTER COLUMN student_id DROP NOT NULL;
+ALTER TABLE public.attendance_records 
+  DROP CONSTRAINT IF EXISTS attendance_records_school_id_fkey,
+  ALTER COLUMN school_id DROP NOT NULL;
 
 -- Fungsi sinkronisasi tabel classes
 CREATE OR REPLACE FUNCTION sync_classes_columns_fn()

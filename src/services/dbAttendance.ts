@@ -1,6 +1,7 @@
 import { openDB, DBSchema, IDBPDatabase, StoreNames } from 'idb';
 import { TeacherProfile, ClassEntity, Student, AttendanceSession, AttendanceRecord, AppState, ScheduleItem, CalendarEvent, ClassCancellation, Material, Assignment } from '../types';
 import { getSupabaseClientOrNull, supabase } from './supabase';
+import { deterministicId, isValidUUID } from '../lib/utils';
 
 interface EduTrackDB extends DBSchema {
   teacher: {
@@ -144,6 +145,130 @@ export const initDB = () => {
   return dbPromise;
 };
 
+// --- Legacy ID Migration / Repair ---
+let isRepaired = false;
+export const repairLegacyAttendanceData = async () => {
+  if (isRepaired || typeof window === 'undefined') return;
+  try {
+    const db = await initDB();
+    const tx = db.transaction(['sessions', 'records', 'classes', 'students'], 'readwrite');
+    const sessionStore = tx.objectStore('sessions');
+    const recordStore = tx.objectStore('records');
+    const classStore = tx.objectStore('classes');
+    const studentStore = tx.objectStore('students');
+
+    const sessions = await sessionStore.getAll();
+    const records = await recordStore.getAll();
+    const classes = await classStore.getAll();
+    const students = await studentStore.getAll();
+
+    let hasChanges = false;
+
+    const classIdMap: Record<string, string> = {};
+    for (const c of classes) {
+      if (!isValidUUID(c.id)) {
+        const newId = deterministicId(c.id);
+        classIdMap[c.id] = newId;
+        await classStore.delete(c.id);
+        await classStore.put({ ...c, id: newId, idKelas: newId });
+        hasChanges = true;
+      }
+    }
+
+    const studentIdMap: Record<string, string> = {};
+    for (const s of students) {
+      let changed = false;
+      let newId = s.id;
+      if (!isValidUUID(s.id)) {
+        newId = deterministicId(s.id);
+        studentIdMap[s.id] = newId;
+        await studentStore.delete(s.id);
+        changed = true;
+      }
+      let newClassId = s.classId;
+      if (s.classId && classIdMap[s.classId]) {
+        newClassId = classIdMap[s.classId];
+        changed = true;
+      }
+      if (changed) {
+        await studentStore.put({
+          ...s,
+          id: newId,
+          idSiswa: newId,
+          classId: newClassId,
+          class_id: newClassId,
+          idKelas: newClassId
+        });
+        hasChanges = true;
+      }
+    }
+
+    const sessionIdMap: Record<string, string> = {};
+    for (const sess of sessions) {
+      let changed = false;
+      let newId = sess.id;
+      if (!isValidUUID(sess.id)) {
+        newId = deterministicId(sess.id);
+        sessionIdMap[sess.id] = newId;
+        await sessionStore.delete(sess.id);
+        changed = true;
+      }
+      let newClassId = sess.classId;
+      if (sess.classId && classIdMap[sess.classId]) {
+        newClassId = classIdMap[sess.classId];
+        changed = true;
+      }
+      if (changed) {
+        await sessionStore.put({ ...sess, id: newId, classId: newClassId });
+        hasChanges = true;
+      }
+    }
+
+    for (const rec of records) {
+      let changed = false;
+      let newId = rec.id;
+      if (!isValidUUID(rec.id)) {
+        newId = deterministicId(rec.id);
+        await recordStore.delete(rec.id);
+        changed = true;
+      }
+      let newSessionId = rec.sessionId;
+      if (rec.sessionId && sessionIdMap[rec.sessionId]) {
+        newSessionId = sessionIdMap[rec.sessionId];
+        changed = true;
+      } else if (rec.sessionId && !isValidUUID(rec.sessionId)) {
+        newSessionId = deterministicId(rec.sessionId);
+        changed = true;
+      }
+      let newStudentId = rec.studentId;
+      if (rec.studentId && studentIdMap[rec.studentId]) {
+        newStudentId = studentIdMap[rec.studentId];
+        changed = true;
+      } else if (rec.studentId && !isValidUUID(rec.studentId)) {
+        newStudentId = deterministicId(rec.studentId);
+        changed = true;
+      }
+      if (changed) {
+        await recordStore.put({ ...rec, id: newId, sessionId: newSessionId, studentId: newStudentId });
+        hasChanges = true;
+      }
+    }
+
+    await tx.done;
+    isRepaired = true;
+
+    if (hasChanges) {
+      console.log('[repairLegacyAttendanceData] Successfully migrated legacy IDs to valid UUID format.');
+      const currentActive = localStorage.getItem(getScopedStorageKey(ACTIVE_CLASS_KEY));
+      if (currentActive && classIdMap[currentActive]) {
+        localStorage.setItem(getScopedStorageKey(ACTIVE_CLASS_KEY), classIdMap[currentActive]);
+      }
+    }
+  } catch (err) {
+    console.warn('[repairLegacyAttendanceData] Repair skipped or failed:', err);
+  }
+};
+
 // --- CRUD Operations ---
 
 export const getFullState = async (forceRefresh = false): Promise<AppState> => {
@@ -152,6 +277,7 @@ export const getFullState = async (forceRefresh = false): Promise<AppState> => {
   }
 
   try {
+    await repairLegacyAttendanceData();
     const db = await initDB();
     const tx = db.transaction(['teacher', 'classes', 'students', 'sessions', 'records', 'schedules', 'events', 'cancellations', 'materials', 'assignments'], 'readonly');
     

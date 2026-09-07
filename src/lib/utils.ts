@@ -38,23 +38,29 @@ export function formatDuration(minutes: number) {
   return `${m} menit`;
 }
 
-// Generate a deterministic UUID v5-like ID from a string input.
-// Same input always produces the same ID across all devices.
+// Generate a deterministic RFC 4122-compliant UUID (8-4-4-4-12) from a string input.
+// Same input always produces the exact same valid UUID across all devices.
 export function deterministicId(input: string): string {
-  // djb2 hash
   let h1 = 5381;
   let h2 = 0x12345678;
+  let h3 = 0x87654321;
   for (let i = 0; i < input.length; i++) {
     const c = input.charCodeAt(i);
     h1 = ((h1 << 5) + h1 + c) | 0;
     h2 = ((h2 << 7) ^ h2 + c) | 0;
+    h3 = ((h3 << 3) ^ (h3 >>> 2) + c) | 0;
   }
-  const hex = (n: number) => Math.abs(n).toString(16).padStart(8, '0');
-  return [
-    hex(h1),
-    hex(h2).substring(0, 4),
-    '4' + hex(h1 ^ h2).substring(1, 4),
-    hex((h1 >>> 16) ^ (h2 >>> 16)).substring(0, 4),
-    hex(h1 + h2)
-  ].join('-');
+  const hex = (n: number, len = 8) => Math.abs(n).toString(16).padStart(len, '0');
+  const part1 = hex(h1, 8);
+  const part2 = hex(h2, 8).substring(0, 4);
+  const part3 = '4' + hex(h1 ^ h2, 8).substring(1, 4);
+  const variant = (8 + (Math.abs(h3) % 4)).toString(16);
+  const part4 = variant + hex((h1 >>> 16) ^ (h2 >>> 16), 8).substring(1, 4);
+  const part5 = (hex(h1 + h2, 8) + hex(h3, 8)).substring(0, 12);
+  return [part1, part2, part3, part4, part5].join('-');
+}
+
+export function isValidUUID(str: any): boolean {
+  if (typeof str !== 'string') return false;
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
 }
