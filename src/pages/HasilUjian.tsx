@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import React from 'react';
-import { cn } from '../lib/utils';
+import { cn, capitalizeEachWord } from '../lib/utils';
 import { useSchool } from '../context/SchoolContext';
 import { createPortal } from 'react-dom';
 import { useLocation } from 'react-router-dom';
@@ -381,7 +381,7 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
     const { default: XLSXStyle } = await import('xlsx-js-style');
     const headers = ['NAMA SISWA', 'KELAS', 'UJIAN', 'NILAI', 'WAKTU SELESAI'];
     const rows = filteredResults.map(r => [
-      r.name,
+      capitalizeEachWord(r.name),
       r.class,
       r.exams?.title || '-',
       Math.round(r.score),
@@ -500,7 +500,7 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
 
     const tableData = filteredResults.map((res, index) => [
       index + 1,
-      res.name,
+      capitalizeEachWord(res.name),
       res.class || res.exam_sessions?.class_name || '-',
       res.exams?.title || '-',
       Math.round(res.score || 0),
@@ -668,7 +668,7 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
                   {filteredResults[1].name.charAt(0)}
                   <span className="absolute -bottom-2 bg-slate-400 text-white text-[10px] font-black px-2 py-0.5 rounded-full border border-white">2</span>
                 </div>
-                <p className="font-extrabold text-xs sm:text-sm text-white truncate max-w-[90px] sm:max-w-[120px]">{filteredResults[1].name}</p>
+                <p className="font-extrabold text-xs sm:text-sm text-white truncate max-w-[90px] sm:max-w-[120px]">{capitalizeEachWord(filteredResults[1].name)}</p>
                 <span className="text-[11px] font-bold text-slate-200 bg-white/20 px-3 py-1 rounded-full mt-1">{Math.round(filteredResults[1].score)} Poin</span>
                 <div className="w-full h-24 sm:h-28 bg-gradient-to-t from-slate-400/40 to-slate-300/20 rounded-t-2xl mt-3 flex items-center justify-center border-t border-white/30">
                   <span className="text-2xl font-black text-white/50">🥈 2</span>
@@ -683,7 +683,7 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
                   {filteredResults[0].name.charAt(0)}
                   <span className="absolute -bottom-2 bg-amber-500 text-amber-950 text-xs font-black px-2.5 py-0.5 rounded-full border border-white">1</span>
                 </div>
-                <p className="font-extrabold text-sm sm:text-base text-amber-200 truncate max-w-[100px] sm:max-w-[140px]">{filteredResults[0].name}</p>
+                <p className="font-extrabold text-sm sm:text-base text-amber-200 truncate max-w-[100px] sm:max-w-[140px]">{capitalizeEachWord(filteredResults[0].name)}</p>
                 <span className="text-xs font-black text-amber-950 bg-amber-400 px-3.5 py-1 rounded-full mt-1 shadow-md">{Math.round(filteredResults[0].score)} Poin</span>
                 <div className="w-full h-32 sm:h-36 bg-gradient-to-t from-amber-500/50 to-amber-400/25 rounded-t-3xl mt-3 flex items-center justify-center border-t border-amber-300/50">
                   <span className="text-3xl font-black text-amber-300">🥇 1</span>
@@ -698,7 +698,7 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
                   {filteredResults[2].name.charAt(0)}
                   <span className="absolute -bottom-2 bg-amber-700 text-white text-[10px] font-black px-2 py-0.5 rounded-full border border-white">3</span>
                 </div>
-                <p className="font-extrabold text-xs sm:text-sm text-white truncate max-w-[90px] sm:max-w-[120px]">{filteredResults[2].name}</p>
+                <p className="font-extrabold text-xs sm:text-sm text-white truncate max-w-[90px] sm:max-w-[120px]">{capitalizeEachWord(filteredResults[2].name)}</p>
                 <span className="text-[11px] font-bold text-amber-100 bg-white/20 px-3 py-1 rounded-full mt-1">{Math.round(filteredResults[2].score)} Poin</span>
                 <div className="w-full h-20 sm:h-24 bg-gradient-to-t from-amber-700/40 to-amber-600/20 rounded-t-2xl mt-3 flex items-center justify-center border-t border-white/30">
                   <span className="text-2xl font-black text-white/50">🥉 3</span>
@@ -745,7 +745,7 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
                           {result.name.charAt(0)}
                         </div>
                         <div>
-                          <p className="font-bold text-indigo-950 leading-none">{result.name}</p>
+                          <p className="font-bold text-indigo-950 leading-none">{capitalizeEachWord(result.name)}</p>
                           <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1.5">{result.class}</p>
                         </div>
                       </div>
@@ -838,7 +838,7 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
               >
                 <div className="p-6 sm:p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
                   <div>
-                    <h3 className="text-xl sm:text-2xl font-bold text-indigo-950">Detail Jawaban: {selectedResult.name}</h3>
+                    <h3 className="text-xl sm:text-2xl font-bold text-indigo-950">Detail Jawaban: {capitalizeEachWord(selectedResult.name)}</h3>
                     <p className="text-sm text-slate-500 font-medium mt-1">Kelas: {selectedResult.class} | Skor: {selectedResult.score}</p>
                   </div>
                   <button 

@@ -17,7 +17,7 @@ import {
   Key
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { cn } from '../lib/utils';
+import { cn, capitalizeEachWord } from '../lib/utils';
 import { useAlert } from '../context/AlertContext';
 import { useSchool } from '../context/SchoolContext';
 import { getScopedState, addClass, addStudent, deleteStudent } from '../services/dbAttendance';
@@ -378,9 +378,11 @@ export default function KelolaSiswa() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not found');
       
+      const formattedName = capitalizeEachWord(formData.name);
+
       if (editingId) {
         const { data: updatedStudent, error } = await supabase.from('students').update({ 
-          name: formData.name, 
+          name: formattedName, 
           class_id: formData.class_id || null,
           student_code: formData.student_code.trim() || null,
           password: formData.password.trim() || 'murid19',
@@ -423,7 +425,7 @@ export default function KelolaSiswa() {
         const { data: newStudent, error } = await supabase.from('students').insert([{ 
           teacher_id: user.id, 
           school_id: activeSchool.id,
-          name: formData.name, 
+          name: formattedName, 
           class_id: targetClassId,
           student_code: formData.student_code.trim() || generateStudentCode(),
           password: formData.password.trim() || 'murid19',
@@ -645,7 +647,7 @@ export default function KelolaSiswa() {
     const className = classes.find(c => c.id === selectedClass)?.name || 'Kelas';
     const header = ['NAMA LENGKAP', 'JENIS KELAMIN', 'KODE UNIK'];
     const rows = filteredStudents.map(s => [
-      s.name, 
+      capitalizeEachWord(s.name), 
       s.gender === 'M' || s.gender === 'L' ? 'L' : s.gender === 'F' || s.gender === 'P' ? 'P' : '-',
       s.student_code || '-'
     ]);
@@ -858,6 +860,8 @@ export default function KelolaSiswa() {
             continue;
           }
           
+          const formattedName = capitalizeEachWord(rawName);
+          
           try {
             const className = classIdx !== -1 ? String(row[classIdx] || '').trim() : '';
             let classId: string | null = null;
@@ -912,6 +916,7 @@ export default function KelolaSiswa() {
             
             if (existingStudent) {
               const updatePayload: any = {};
+              if (existingStudent.name !== formattedName) updatePayload.name = formattedName;
               if (genderVal && !existingStudent.gender) updatePayload.gender = genderVal;
               if (nisnVal && !existingStudent.nisn) updatePayload.nisn = nisnVal;
 
@@ -933,7 +938,7 @@ export default function KelolaSiswa() {
                     id: newId,
                     teacher_id: user.id, 
                     school_id: targetSchoolId,
-                    name: rawName, 
+                    name: formattedName, 
                     class_id: classId,
                     student_code: studentCode,
                     password: 'murid19',
@@ -956,7 +961,7 @@ export default function KelolaSiswa() {
                 teacher_id: user?.id || 'teacher_local',
                 school_id: targetSchoolId,
                 schoolId: targetSchoolId,
-                name: rawName,
+                name: formattedName, 
                 classId: classId,
                 class_id: classId,
                 student_code: studentCode,
@@ -1160,7 +1165,7 @@ export default function KelolaSiswa() {
                         <div className="w-9 h-9 rounded-xl bg-[#3B66F5]/10 text-[#3B66F5] flex items-center justify-center">
                           <User className="w-4 h-4" />
                         </div>
-                        <span className="font-semibold text-[#1D4ED8] text-sm">{s.name}</span>
+                        <span className="font-semibold text-[#1D4ED8] text-sm">{capitalizeEachWord(s.name)}</span>
                       </div>
                     </td>
                     <td className="px-6 py-4">

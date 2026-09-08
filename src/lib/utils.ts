@@ -64,3 +64,18 @@ export function isValidUUID(str: any): boolean {
   if (typeof str !== 'string') return false;
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
 }
+
+/**
+ * Capitalize the first letter of each word (Title Case)
+ * Handles ALL CAPS (e.g. "MUHAMMAD FAIZ" -> "Muhammad Faiz"),
+ * lowercase, extra spaces, and hyphenated names.
+ */
+export function capitalizeEachWord(str: string | null | undefined): string {
+  if (!str) return '';
+  return str
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/(?:^|\s|[-/'"(])\S/g, (char) => char.toUpperCase());
+}
+

@@ -18,7 +18,7 @@ import {
   UserPlus
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { cn } from '../lib/utils';
+import { cn, capitalizeEachWord } from '../lib/utils';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useSchool } from '../context/SchoolContext';
 
@@ -469,7 +469,7 @@ export default function MonitorUjian() {
               >
                 <div className="flex justify-between items-start mb-4">
                   <div>
-                    <h4 className="font-bold text-indigo-950 text-base mb-1 line-clamp-1" title={p.name}>{p.name}</h4>
+                    <h4 className="font-bold text-indigo-950 text-base mb-1 line-clamp-1" title={capitalizeEachWord(p.name)}>{capitalizeEachWord(p.name)}</h4>
                     <p className="text-xs font-semibold text-slate-400">{p.class}</p>
                   </div>
                   <div className={cn("p-2 rounded-lg shrink-0", status.color)}>

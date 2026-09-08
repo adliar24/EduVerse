@@ -16,7 +16,7 @@ import {
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import React from 'react';
-import { cn } from '../../lib/utils';
+import { cn, capitalizeEachWord } from '../../lib/utils';
 
 export default function StudentDashboard() {
   const navigate = useNavigate();
@@ -73,17 +73,18 @@ export default function StudentDashboard() {
         : '';
 
       const classId = studentDb.class_id;
+      const formattedName = capitalizeEachWord(studentDb.name);
 
       // Synchronize latest student profile back to local session
       localStorage.setItem('student_session', JSON.stringify({
         ...studentObj,
-        name: studentDb.name,
+        name: formattedName,
         class_id: studentDb.class_id
       }));
 
       setStudentProfile({
         id: studentDb.id,
-        name: studentDb.name,
+        name: formattedName,
         class_id: studentDb.class_id,
         className: className
       });

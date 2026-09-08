@@ -28,7 +28,7 @@ import {
 } from 'lucide-react';
 import { useState, useEffect, lazy, Suspense, useCallback, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
-import { cn } from '../lib/utils';
+import { cn, capitalizeEachWord } from '../lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAlert } from '../context/AlertContext';
 import { useSchool } from '../context/SchoolContext';
@@ -97,7 +97,7 @@ export default function Layout({ session }: LayoutProps) {
   const userName = useMemo(() => {
     return session
       ? (session.user?.user_metadata?.name || session.user?.email?.split('@')[0])
-      : (student ? student.name : '');
+      : (student ? capitalizeEachWord(student.name) : '');
   }, [session, student]);
 
   // Sync fullscreen scanning state based on URL path
