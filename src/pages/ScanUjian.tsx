@@ -229,6 +229,46 @@ export default function ScanUjian() {
           answer_text: null,
           is_correct: isCorrect
         });
+      } else if (q.question_type === 'menjodohkan') {
+        try {
+          const rawBase64 = token.replace(/%2C/g, ',').replace(/%23/g, '#');
+          const decodedText = decodeURIComponent(escape(atob(rawBase64)));
+          const expectedPairs: any[] = JSON.parse(q.correct_answer || '[]');
+          const userPairs = JSON.parse(decodedText || '{}');
+          let matched = 0;
+          if (expectedPairs.length > 0) {
+            expectedPairs.forEach((ep: any) => {
+              const uVal = userPairs[ep.id] || userPairs[ep.left];
+              if (uVal && uVal.trim().toLowerCase() === ep.right.trim().toLowerCase()) {
+                matched++;
+              }
+            });
+          }
+          const isCorrect = expectedPairs.length > 0 && matched === expectedPairs.length;
+          answersToInsert.push({
+            participant_id: pId,
+            question_id: q.id,
+            option_id: null,
+            answer_text: decodedText,
+            is_correct: isCorrect
+          });
+        } catch (e) {
+          console.warn('Failed to decode menjodohkan answer in scanner:', token, e);
+        }
+      } else if (q.question_type === 'essay') {
+        try {
+          const rawBase64 = token.replace(/%2C/g, ',').replace(/%23/g, '#');
+          const decodedText = decodeURIComponent(escape(atob(rawBase64)));
+          answersToInsert.push({
+            participant_id: pId,
+            question_id: q.id,
+            option_id: null,
+            answer_text: decodedText,
+            is_correct: !!(decodedText && decodedText.trim().length > 0)
+          });
+        } catch (e) {
+          console.warn('Failed to decode essay answer in scanner:', token, e);
+        }
       } else {
         try {
           const rawBase64 = token.replace(/%2C/g, ',').replace(/%23/g, '#');
@@ -244,7 +284,7 @@ export default function ScanUjian() {
             is_correct: isCorrect
           });
         } catch (e) {
-          console.warn('Failed to decode essay answer:', token, e);
+          console.warn('Failed to decode answer in scanner:', token, e);
         }
       }
     }

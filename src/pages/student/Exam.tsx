@@ -1051,7 +1051,7 @@ export default function StudentExam() {
             class: parsedStudentInfo.class || '',
             score: finalScore,
             end_time: new Date().toISOString(),
-            status: 'completed',
+            status: 'menunggu_scan',
             is_qr: true
           },
           exam: exam,
@@ -1060,24 +1060,19 @@ export default function StudentExam() {
         };
         localStorage.setItem(`offline_result_${participantId}`, JSON.stringify(offlineResult));
 
-        // 2. Dual-mode sync: ALSO save to DB online so admin sees results immediately!
+        // Mode QR: Hasil TIDAK dikirim ke Supabase oleh murid.
+        // Hanya tandai end_time & status menunggu_scan di DB agar murid tidak bisa masuk ulang ujian.
+        // Guru/pengawas yang akan memindai QR code murid untuk memvalidasi dan mengirim nilai ke Supabase.
         try {
           await supabase
             .from('participants')
             .update({ 
               end_time: new Date().toISOString(),
-              score: finalScore,
-              status: 'completed'
+              status: 'menunggu_scan'
             })
             .eq('id', participantId);
-
-          const validAnswers = answersToInsert.filter(ans => ans.option_id !== null || ans.answer_text !== null);
-          if (validAnswers.length > 0) {
-            await supabase.from('answers').delete().eq('participant_id', participantId);
-            await supabase.from('answers').insert(validAnswers);
-          }
         } catch (dbErr) {
-          console.warn('Online sync in QR mode encountered error (backup in QR active):', dbErr);
+          console.warn('Offline mode: unable to update end_time in DB:', dbErr);
         }
 
         localStorage.removeItem(`exam_info_${participantId}`);

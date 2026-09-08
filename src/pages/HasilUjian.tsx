@@ -719,22 +719,35 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
                     </td>
                     <td className="px-8 py-6">
                       <div className="flex items-center gap-2">
-                        <span className="text-2xl font-bold text-indigo-950">{Math.round(result.score)}</span>
-                        <span className="text-[10px] font-bold text-slate-400 uppercase">Poin</span>
+                        {result.status === 'menunggu_scan' ? (
+                          <span className="text-sm font-bold text-amber-600">Belum Discan</span>
+                        ) : (
+                          <>
+                            <span className="text-2xl font-bold text-indigo-950">{Math.round(result.score || 0)}</span>
+                            <span className="text-[10px] font-bold text-slate-400 uppercase">Poin</span>
+                          </>
+                        )}
                       </div>
                     </td>
                     <td className="px-8 py-6">
-                      <div className={cn(
-                        "inline-flex items-center gap-2 px-3 py-1.5 rounded-xl font-bold text-[10px] uppercase tracking-widest",
-                        result.score >= 75 ? "bg-emerald-50 text-emerald-600 border border-emerald-100" :
-                        result.score >= 50 ? "bg-amber-50 text-amber-600 border border-amber-100" :
-                        "bg-rose-50 text-rose-600 border border-rose-100"
-                      )}>
-                        {result.score >= 75 ? <CheckCircle2 className="w-3.5 h-3.5" /> : 
-                         result.score >= 50 ? <AlertCircle className="w-3.5 h-3.5" /> : 
-                         <XCircle className="w-3.5 h-3.5" />}
-                        {result.score >= 75 ? 'Lulus' : result.score >= 50 ? 'Remedial' : 'Gagal'}
-                      </div>
+                      {result.status === 'menunggu_scan' ? (
+                        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl font-bold text-[10px] uppercase tracking-widest bg-blue-50 text-blue-600 border border-blue-100">
+                          <Clock className="w-3.5 h-3.5" />
+                          Menunggu Pindai QR
+                        </div>
+                      ) : (
+                        <div className={cn(
+                          "inline-flex items-center gap-2 px-3 py-1.5 rounded-xl font-bold text-[10px] uppercase tracking-widest",
+                          (result.score ?? 0) >= 75 ? "bg-emerald-50 text-emerald-600 border border-emerald-100" :
+                          (result.score ?? 0) >= 50 ? "bg-amber-50 text-amber-600 border border-amber-100" :
+                          "bg-rose-50 text-rose-600 border border-rose-100"
+                        )}>
+                          {(result.score ?? 0) >= 75 ? <CheckCircle2 className="w-3.5 h-3.5" /> : 
+                           (result.score ?? 0) >= 50 ? <AlertCircle className="w-3.5 h-3.5" /> : 
+                           <XCircle className="w-3.5 h-3.5" />}
+                          {(result.score ?? 0) >= 75 ? 'Lulus' : (result.score ?? 0) >= 50 ? 'Remedial' : 'Gagal'}
+                        </div>
+                      )}
                     </td>
                     <td className="px-8 py-6">
                       <div className="flex flex-col">
