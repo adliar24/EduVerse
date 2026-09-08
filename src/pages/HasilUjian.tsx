@@ -247,6 +247,13 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
            } else {
              fullCorrectAnswerText = question.correct_answer || '-';
            }
+        } else if (question.question_type === 'menjodohkan') {
+           try {
+             const pairs = JSON.parse(question.correct_answer || '[]');
+             fullCorrectAnswerText = pairs.map((p: any) => `${p.left} ➔ ${p.right}`).join(', ');
+           } catch (e) {
+             fullCorrectAnswerText = question.correct_answer || '-';
+           }
         } else {
            fullCorrectAnswerText = question.correct_answer || '-';
         }
@@ -811,7 +818,18 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
                                   ? 'Tidak dijawab' 
                                   : (answer.questions?.question_type === 'pilihan_ganda' 
                                     ? (answer.selected_option ? `${answer.selected_option.option_text}` : (answer.option_id ? 'Opsi ID: ' + answer.option_id : '-')) 
-                                    : (answer.answer_text || '-'))}
+                                    : (answer.questions?.question_type === 'menjodohkan'
+                                      ? (() => {
+                                          try {
+                                            const matches = JSON.parse(answer.answer_text || '{}');
+                                            const entries = Object.entries(matches);
+                                            if (entries.length === 0) return 'Belum dipasangkan';
+                                            return entries.map(([k, v]) => `${k} ➔ ${v}`).join(', ');
+                                          } catch (e) {
+                                            return answer.answer_text || '-';
+                                          }
+                                        })()
+                                      : (answer.answer_text || '-')))}
                               </p>
                             </div>
                             <div className="p-4 rounded-2xl bg-indigo-50/30 border border-indigo-100">

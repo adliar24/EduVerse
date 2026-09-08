@@ -95,6 +95,12 @@ export default function BankSoal() {
     image_url: ''
   });
 
+  const [matchingPairs, setMatchingPairs] = useState<{ id: string; left: string; right: string }[]>([
+    { id: '1', left: '', right: '' },
+    { id: '2', left: '', right: '' },
+    { id: '3', left: '', right: '' },
+  ]);
+
   const [optionImageFiles, setOptionImageFiles] = useState<Record<string, File | null>>({
     A: null, B: null, C: null, D: null, E: null
   });
@@ -133,7 +139,7 @@ export default function BankSoal() {
       if (!user) return;
 
       let query = supabase.from('questions')
-        .select('id, question_text, question_type, correct_answer, category_id, image_url, created_at')
+        .select('id, question_text, question_type, correct_answer, category_id, image_url, created_at, question_options(id, option_label, option_text, image_url)')
         .eq('teacher_id', user.id);
       
       if (currentCategoryId) {
@@ -201,12 +207,21 @@ export default function BankSoal() {
         }
       }
 
+      let finalCorrectAnswer = formData.correct_answer;
+      if (formData.question_type === 'menjodohkan') {
+        const validPairs = matchingPairs.filter(p => p.left.trim() || p.right.trim());
+        if (validPairs.length === 0) {
+          throw new Error('Minimal harus ada 1 pasangan premis dan jawaban untuk soal Menjodohkan.');
+        }
+        finalCorrectAnswer = JSON.stringify(validPairs);
+      }
+
       const questionData = {
         teacher_id: user.id,
         school_id: null,
         question_text: formData.question_text,
         question_type: formData.question_type,
-        correct_answer: formData.correct_answer,
+        correct_answer: finalCorrectAnswer,
         category_id: formData.category_id || null,
         image_url: finalImageUrl
       };
@@ -227,8 +242,8 @@ export default function BankSoal() {
           const optionsToInsert = Object.entries(finalOptions).map(([label, opt]: [string, any]) => ({
             question_id: editingId,
             option_label: label,
-            option_text: opt.text,
-            image_url: opt.image_url
+            option_text: opt.text?.trim() || `Pilihan ${label}`,
+            image_url: opt.image_url || null
           }));
           await supabase.from('question_options').insert(optionsToInsert);
         }
@@ -251,8 +266,8 @@ export default function BankSoal() {
           const optionsToInsert = Object.entries(finalOptions).map(([label, opt]: [string, any]) => ({
             question_id: question.id,
             option_label: label,
-            option_text: opt.text,
-            image_url: opt.image_url
+            option_text: opt.text?.trim() || `Pilihan ${label}`,
+            image_url: opt.image_url || null
           }));
 
           await supabase.from('question_options').insert(optionsToInsert);
@@ -320,6 +335,25 @@ export default function BankSoal() {
               newOptionPreviews[opt.option_label] = opt.image_url || null;
             }
           });
+        }
+      } else if (question.question_type === 'menjodohkan') {
+        try {
+          const parsed = JSON.parse(question.correct_answer || '[]');
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setMatchingPairs(parsed);
+          } else {
+            setMatchingPairs([
+              { id: '1', left: '', right: '' },
+              { id: '2', left: '', right: '' },
+              { id: '3', left: '', right: '' },
+            ]);
+          }
+        } catch (e) {
+          setMatchingPairs([
+            { id: '1', left: '', right: '' },
+            { id: '2', left: '', right: '' },
+            { id: '3', left: '', right: '' },
+          ]);
         }
       }
       
@@ -538,6 +572,11 @@ export default function BankSoal() {
     });
     setOptionImageFiles({ A: null, B: null, C: null, D: null, E: null });
     setOptionImagePreviews({ A: null, B: null, C: null, D: null, E: null });
+    setMatchingPairs([
+      { id: '1', left: '', right: '' },
+      { id: '2', left: '', right: '' },
+      { id: '3', left: '', right: '' },
+    ]);
   };
 
   const compressImage = (file: File, maxWidth = 800, maxHeight = 800, quality = 0.6): Promise<File> => {
@@ -1194,6 +1233,9 @@ export default function BankSoal() {
             if (currentOptionLabel && it.images.length > 0 && currentQ.options[currentOptionLabel]) {
               if (!currentQ.options[currentOptionLabel].image_url) {
                 currentQ.options[currentOptionLabel].image_url = it.images[0];
+                if (it.text && currentQ.options[currentOptionLabel].text === `Pilihan ${currentOptionLabel}`) {
+                  currentQ.options[currentOptionLabel].text = it.text;
+                }
               }
             }
 
@@ -1367,12 +1409,15 @@ export default function BankSoal() {
           }
 
           if (q.question_type === 'pilihan_ganda' && question && q.options) {
-            const opts = Object.entries(q.options).map(([label, optVal]: [string, any]) => ({
-              question_id: question.id,
-              option_label: label,
-              option_text: typeof optVal === 'string' ? optVal : (optVal.text || ''),
-              image_url: typeof optVal === 'object' ? (optVal.image_url || null) : null
-            }));
+            const opts = Object.entries(q.options).map(([label, optVal]: [string, any]) => {
+              const textStr = typeof optVal === 'string' ? optVal : (optVal?.text || '');
+              return {
+                question_id: question.id,
+                option_label: label,
+                option_text: textStr.trim() || `Pilihan ${label}`,
+                image_url: typeof optVal === 'object' ? (optVal?.image_url || null) : null
+              };
+            });
             await supabase.from('question_options').insert(opts);
           }
           successCount++;
@@ -1665,10 +1710,14 @@ export default function BankSoal() {
                       </div>
                       <div className="flex-1">
                         <div className="flex flex-wrap items-center gap-2 mb-3">
-                          <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-lg bg-white border border-slate-100 text-slate-500">
-                            {q.question_type.replace('_', ' ')}
+                          <span className={cn(
+                            "text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-lg border",
+                            q.question_type === 'menjodohkan' ? "bg-indigo-50 border-indigo-200 text-indigo-700" :
+                            q.question_type === 'essay' ? "bg-amber-50 border-amber-200 text-amber-700" :
+                            "bg-white border-slate-100 text-slate-500"
+                          )}>
+                            {q.question_type === 'menjodohkan' ? 'Menjodohkan (TKA)' : q.question_type.replace('_', ' ')}
                           </span>
-
                         </div>
                         {q.image_url && (
                           <div className="mb-4 rounded-2xl overflow-hidden border border-slate-100 max-w-sm bg-slate-50 flex items-center justify-center">
@@ -1676,6 +1725,80 @@ export default function BankSoal() {
                           </div>
                         )}
                         <p className="text-[#1D4ED8] font-bold text-lg leading-snug group-hover:text-blue-900 transition-colors text-balance">{q.question_text}</p>
+
+                        {/* Options Display for Pilihan Ganda */}
+                        {q.question_type === 'pilihan_ganda' && q.question_options && q.question_options.length > 0 && (
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-4">
+                            {q.question_options
+                              .slice()
+                              .sort((a: any, b: any) => (a.option_label || '').localeCompare(b.option_label || ''))
+                              .map((opt: any) => {
+                                const isCorrect = q.correct_answer?.toUpperCase() === opt.option_label?.toUpperCase();
+                                return (
+                                  <div
+                                    key={opt.id || opt.option_label}
+                                    className={cn(
+                                      "p-2.5 rounded-xl border flex items-start gap-2.5 transition-all text-xs",
+                                      isCorrect 
+                                        ? "bg-emerald-50/80 border-emerald-200 text-emerald-950 font-medium" 
+                                        : "bg-slate-50/70 border-slate-200/70 text-slate-700"
+                                    )}
+                                  >
+                                    <span className={cn(
+                                      "w-5 h-5 rounded-md flex items-center justify-center font-bold text-[11px] shrink-0 mt-0.5",
+                                      isCorrect ? "bg-emerald-600 text-white" : "bg-slate-200 text-slate-600"
+                                    )}>
+                                      {opt.option_label}
+                                    </span>
+                                    <div className="flex-1 min-w-0">
+                                      <span className="break-words line-clamp-2">{opt.option_text}</span>
+                                      {opt.image_url && (
+                                        <div className="mt-1.5 rounded-lg overflow-hidden border border-slate-200 bg-white max-w-[140px]">
+                                          <img src={opt.image_url} alt={`Opsi ${opt.option_label}`} className="w-full h-auto max-h-24 object-contain p-1" loading="lazy" />
+                                        </div>
+                                      )}
+                                    </div>
+                                    {isCorrect && (
+                                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                                    )}
+                                  </div>
+                                );
+                              })}
+                          </div>
+                        )}
+
+                        {/* Display for Menjodohkan */}
+                        {q.question_type === 'menjodohkan' && (
+                          <div className="mt-4 p-3.5 rounded-2xl bg-indigo-50/40 border border-indigo-100 text-xs">
+                            <p className="font-bold text-indigo-950 mb-2">Pasangan Menjodohkan (TKA):</p>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                              {(() => {
+                                try {
+                                  const pairs = JSON.parse(q.correct_answer || '[]');
+                                  if (Array.isArray(pairs)) {
+                                    return pairs.map((p: any, pIdx: number) => (
+                                      <div key={p.id || pIdx} className="flex items-center gap-2 p-2 bg-white rounded-xl border border-indigo-100 shadow-2xs">
+                                        <span className="font-medium text-slate-800 flex-1 truncate">{p.left}</span>
+                                        <span className="text-indigo-400 font-bold">➔</span>
+                                        <span className="font-bold text-indigo-700 flex-1 truncate text-right">{p.right}</span>
+                                      </div>
+                                    ));
+                                  }
+                                } catch (e) {}
+                                return <span className="text-slate-500 italic">Format pasangan tersimpan</span>;
+                              })()}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Display for Essay */}
+                        {q.question_type === 'essay' && (
+                          <div className="mt-3 p-3 rounded-xl bg-amber-50/60 border border-amber-200/60 text-xs text-amber-950">
+                            <span className="font-bold">Pedoman / Kunci Jawaban: </span>
+                            <span className="text-slate-700">{q.correct_answer || 'Penilaian manual oleh guru.'}</span>
+                          </div>
+                        )}
+
                         <div className="flex items-center gap-4 mt-4">
                           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Dibuat {new Date(q.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
                         </div>
@@ -2020,8 +2143,9 @@ export default function BankSoal() {
                       onChange={(e) => setFormData({...formData, question_type: e.target.value})}
                     >
                       <option value="pilihan_ganda">Pilihan Ganda</option>
+                      <option value="menjodohkan">Menjodohkan / Sambung Kata (TKA Drag & Drop)</option>
+                      <option value="essay">Essay / Uraian</option>
                       <option value="isian_singkat">Isian Singkat</option>
-                      <option value="essay">Essay</option>
                     </select>
                   </div>
 
@@ -2189,6 +2313,87 @@ export default function BankSoal() {
                         </div>
                       ))}
                     </div>
+                  </div>
+                )}
+
+                {formData.question_type === 'menjodohkan' && (
+                  <div className="space-y-4 p-6 rounded-2xl border border-indigo-100 bg-indigo-50/40">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="text-sm font-bold text-indigo-950">Pasangan Menjodohkan (TKA)</h4>
+                        <p className="text-xs text-slate-500 font-medium">Tuliskan pasangan Kolom Kiri (Premis) dan Kolom Kanan (Jawaban Benar).</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setMatchingPairs(prev => [...prev, { id: Date.now().toString(), left: '', right: '' }])}
+                        className="px-3.5 py-1.5 rounded-xl bg-indigo-600 text-white font-bold text-xs hover:bg-indigo-700 transition-colors flex items-center gap-1.5 shadow-sm cursor-pointer"
+                      >
+                        <Plus className="w-3.5 h-3.5" /> Tambah Pasangan
+                      </button>
+                    </div>
+
+                    <div className="space-y-3">
+                      {matchingPairs.map((pair, idx) => (
+                        <div key={pair.id || idx} className="flex items-center gap-3 p-3 bg-white rounded-xl border border-slate-200 shadow-2xs">
+                          <span className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-700 font-bold text-xs flex items-center justify-center shrink-0">
+                            {idx + 1}
+                          </span>
+                          <div className="flex-1">
+                            <input
+                              type="text"
+                              required
+                              placeholder={`Pernyataan / Premis Kiri ${idx + 1}`}
+                              value={pair.left}
+                              onChange={(e) => {
+                                const newPairs = [...matchingPairs];
+                                newPairs[idx].left = e.target.value;
+                                setMatchingPairs(newPairs);
+                              }}
+                              className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm font-medium outline-none focus:border-indigo-500"
+                            />
+                          </div>
+                          <span className="text-indigo-400 font-bold text-sm">➔</span>
+                          <div className="flex-1">
+                            <input
+                              type="text"
+                              required
+                              placeholder={`Pasangan Benar Kanan ${idx + 1}`}
+                              value={pair.right}
+                              onChange={(e) => {
+                                const newPairs = [...matchingPairs];
+                                newPairs[idx].right = e.target.value;
+                                setMatchingPairs(newPairs);
+                              }}
+                              className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm font-medium outline-none focus:border-indigo-500"
+                            />
+                          </div>
+                          {matchingPairs.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => setMatchingPairs(prev => prev.filter((_, i) => i !== idx))}
+                              className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-colors shrink-0 cursor-pointer"
+                              title="Hapus Pasangan"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {formData.question_type === 'essay' && (
+                  <div className="space-y-2 p-5 rounded-2xl border border-amber-200/80 bg-amber-50/40">
+                    <label className="text-sm font-bold text-amber-950 ml-1">Pedoman / Kunci Jawaban Essay (Opsional)</label>
+                    <textarea 
+                      rows={3}
+                      className="w-full px-4 py-3 rounded-xl border border-amber-200 bg-white outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all text-sm font-medium text-slate-700"
+                      placeholder="Masukkan kata kunci atau penjelasan jawaban yang diharapkan sebagai acuan penilaian guru..."
+                      value={formData.correct_answer}
+                      onChange={(e) => setFormData({...formData, correct_answer: e.target.value})}
+                    />
+                    <p className="text-[11px] text-amber-800 font-medium">Soal essay akan dinilai oleh guru saat memeriksa hasil ujian siswa.</p>
                   </div>
                 )}
 
