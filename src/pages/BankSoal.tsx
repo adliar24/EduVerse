@@ -34,6 +34,7 @@ import { useAlert } from '../context/AlertContext';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { saveAs } from 'file-saver';
 import { useSchool } from '../context/SchoolContext';
+import QuestionModal from '../components/bank-soal/QuestionModal';
 
 export default function BankSoal() {
   useDocumentTitle('Bank Soal');
@@ -52,6 +53,7 @@ export default function BankSoal() {
   const [searchTerm, setSearchTerm] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingQuestionIds, setEditingQuestionIds] = useState<string[]>([]);
+  const [questionToEdit, setQuestionToEdit] = useState<any | null>(null);
   const [importing, setImporting] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 20;
@@ -79,39 +81,6 @@ export default function BankSoal() {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-
-  // Form State
-  const [formData, setFormData] = useState({
-    question_text: '',
-    question_type: 'pilihan_ganda',
-    category_id: '',
-    correct_answer: '',
-    options: {
-      A: { text: '', image_url: '' },
-      B: { text: '', image_url: '' },
-      C: { text: '', image_url: '' },
-      D: { text: '', image_url: '' },
-      E: { text: '', image_url: '' }
-    },
-    image_url: ''
-  });
-
-  const [matchingPairs, setMatchingPairs] = useState<{ id: string; left: string; right: string }[]>([
-    { id: '1', left: '', right: '' },
-    { id: '2', left: '', right: '' },
-    { id: '3', left: '', right: '' },
-  ]);
-
-  const [optionImageFiles, setOptionImageFiles] = useState<Record<string, File | null>>({
-    A: null, B: null, C: null, D: null, E: null
-  });
-  const [optionImagePreviews, setOptionImagePreviews] = useState<Record<string, string | null>>({
-    A: null, B: null, C: null, D: null, E: null
-  });
-
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [uploadingImage, setUploadingImage] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -156,230 +125,9 @@ export default function BankSoal() {
     }
   };
 
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      let finalImageUrl = formData.image_url;
-
-      // Handle Image Upload if there's a new file
-      if (imageFile) {
-        setUploadingImage(true);
-        const fileExt = imageFile.name.split('.').pop();
-        const fileName = `${user.id}/${Date.now()}.${fileExt}`;
-        
-        const { error: uploadError } = await supabase.storage
-          .from('question-images')
-          .upload(fileName, imageFile);
-
-        if (uploadError) throw uploadError;
-
-        const { data: { publicUrl } } = supabase.storage
-          .from('question-images')
-          .getPublicUrl(fileName);
-        
-        finalImageUrl = publicUrl;
-        setUploadingImage(false);
-      }
-
-      // Handle Option Image Uploads
-      const finalOptions = { ...formData.options };
-      for (const label of ['A', 'B', 'C', 'D', 'E']) {
-        const file = optionImageFiles[label];
-        if (file) {
-          const fileExt = file.name.split('.').pop();
-          const fileName = `${user.id}/options/${Date.now()}_${label}.${fileExt}`;
-          
-          const { error: uploadError } = await supabase.storage
-            .from('question-images')
-            .upload(fileName, file);
-
-          if (uploadError) throw uploadError;
-
-          const { data: { publicUrl } } = supabase.storage
-            .from('question-images')
-            .getPublicUrl(fileName);
-          
-          finalOptions[label as keyof typeof finalOptions].image_url = publicUrl;
-        }
-      }
-
-      let finalCorrectAnswer = formData.correct_answer;
-      if (formData.question_type === 'menjodohkan') {
-        const validPairs = matchingPairs.filter(p => p.left.trim() || p.right.trim());
-        if (validPairs.length === 0) {
-          throw new Error('Minimal harus ada 1 pasangan premis dan jawaban untuk soal Menjodohkan.');
-        }
-        finalCorrectAnswer = JSON.stringify(validPairs);
-      }
-
-      const questionData = {
-        teacher_id: user.id,
-        school_id: null,
-        question_text: formData.question_text,
-        question_type: formData.question_type,
-        correct_answer: finalCorrectAnswer,
-        category_id: formData.category_id || null,
-        image_url: finalImageUrl
-      };
-
-      if (editingId) {
-        // Update Soal
-        const { error: updateError } = await supabase
-          .from('questions')
-          .update(questionData)
-          .eq('id', editingId);
-
-        if (updateError) throw updateError;
-
-        if (formData.question_type === 'pilihan_ganda') {
-          // Hapus opsi lama, lalu insert baru (cara paling gampang)
-          await supabase.from('question_options').delete().eq('question_id', editingId);
-          
-          const optionsToInsert = Object.entries(finalOptions).map(([label, opt]: [string, any]) => ({
-            question_id: editingId,
-            option_label: label,
-            option_text: opt.text?.trim() || `Pilihan ${label}`,
-            image_url: opt.image_url || null
-          }));
-          await supabase.from('question_options').insert(optionsToInsert);
-        }
-        showAlert({
-          title: 'Berhasil',
-          message: 'Soal berhasil diperbarui.',
-          type: 'success'
-        });
-      } else {
-        // Tambah Soal Baru
-        const { data: question, error: qError } = await supabase
-          .from('questions')
-          .insert([questionData])
-          .select()
-          .single();
-
-        if (qError) throw qError;
-
-        if (formData.question_type === 'pilihan_ganda') {
-          const optionsToInsert = Object.entries(finalOptions).map(([label, opt]: [string, any]) => ({
-            question_id: question.id,
-            option_label: label,
-            option_text: opt.text?.trim() || `Pilihan ${label}`,
-            image_url: opt.image_url || null
-          }));
-
-          await supabase.from('question_options').insert(optionsToInsert);
-        }
-        showAlert({
-          title: 'Berhasil',
-          message: 'Soal baru berhasil ditambahkan.',
-          type: 'success'
-        });
-      }
-
-      closeModal();
-      fetchData();
-    } catch (error: any) {
-      console.error('Error saving question:', error);
-      showAlert({
-        title: 'Gagal Menyimpan',
-        message: error.message || 'Terjadi kesalahan saat menyimpan soal. Pastikan koneksi internet stabil dan semua field terisi.',
-        type: 'error'
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleEdit = async (question: any) => {
-    setEditingQuestionIds(prev => [...prev, question.id]);
-    
-    try {
-      setEditingId(question.id);
-      
-      let newFormData = {
-        question_text: question.question_text || '',
-        question_type: question.question_type || 'pilihan_ganda',
-        category_id: question.category_id || '',
-        correct_answer: question.correct_answer || '',
-        image_url: question.image_url || '',
-        options: { 
-          A: { text: '', image_url: '' }, 
-          B: { text: '', image_url: '' }, 
-          C: { text: '', image_url: '' }, 
-          D: { text: '', image_url: '' }, 
-          E: { text: '', image_url: '' } 
-        }
-      };
-      
-      setImagePreview(question.image_url || null);
-      setImageFile(null);
-      setOptionImageFiles({ A: null, B: null, C: null, D: null, E: null });
-      const newOptionPreviews: Record<string, string | null> = { A: null, B: null, C: null, D: null, E: null };
-
-      if (question.question_type === 'pilihan_ganda') {
-        let optionsData = Array.isArray(question.question_options) && question.question_options.length > 0
-          ? question.question_options
-          : null;
-
-        if (!optionsData) {
-          try {
-            const { data } = await supabase
-              .from('question_options')
-              .select('*')
-              .eq('question_id', question.id);
-            optionsData = data;
-          } catch (fetchErr) {
-            console.warn('Could not fetch options remotely:', fetchErr);
-          }
-        }
-
-        if (Array.isArray(optionsData)) {
-          optionsData.forEach((opt: any) => {
-            const label = String(opt?.option_label || '').trim().toUpperCase();
-            if (['A','B','C','D','E'].includes(label)) {
-              (newFormData.options as any)[label] = {
-                text: opt?.option_text || '',
-                image_url: opt?.image_url || ''
-              };
-              newOptionPreviews[label] = opt?.image_url || null;
-            }
-          });
-        }
-      } else if (question.question_type === 'menjodohkan') {
-        try {
-          const parsed = JSON.parse(question.correct_answer || '[]');
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            setMatchingPairs(parsed);
-          } else {
-            setMatchingPairs([
-              { id: '1', left: '', right: '' },
-              { id: '2', left: '', right: '' },
-              { id: '3', left: '', right: '' },
-            ]);
-          }
-        } catch (e) {
-          setMatchingPairs([
-            { id: '1', left: '', right: '' },
-            { id: '2', left: '', right: '' },
-            { id: '3', left: '', right: '' },
-          ]);
-        }
-      }
-      
-      setOptionImagePreviews(newOptionPreviews);
-      setFormData(newFormData as any);
-      setShowAddForm(true);
-    } catch (err) {
-      console.error('Error in handleEdit:', err);
-      // Ensure form opens even on error
-      setShowAddForm(true);
-    } finally {
-      setEditingQuestionIds(prev => prev.filter(id => id !== question.id));
-    }
+  const handleEdit = (question: any) => {
+    setQuestionToEdit(question);
+    setShowAddForm(true);
   };
 
   const handleDelete = async (id: string) => {
@@ -571,202 +319,7 @@ export default function BankSoal() {
     setShowAddForm(false);
     setShowFolderForm(false);
     setEditingId(null);
-    setImageFile(null);
-    setImagePreview(null);
-    setFormData({
-      question_text: '',
-      question_type: 'pilihan_ganda',
-      category_id: currentCategoryId || '',
-      correct_answer: '',
-      image_url: '',
-      options: { 
-        A: { text: '', image_url: '' }, 
-        B: { text: '', image_url: '' }, 
-        C: { text: '', image_url: '' }, 
-        D: { text: '', image_url: '' }, 
-        E: { text: '', image_url: '' } 
-      }
-    });
-    setOptionImageFiles({ A: null, B: null, C: null, D: null, E: null });
-    setOptionImagePreviews({ A: null, B: null, C: null, D: null, E: null });
-    setMatchingPairs([
-      { id: '1', left: '', right: '' },
-      { id: '2', left: '', right: '' },
-      { id: '3', left: '', right: '' },
-    ]);
-  };
-
-  const compressImage = (file: File, maxWidth = 800, maxHeight = 800, quality = 0.6): Promise<File> => {
-    return new Promise((resolve) => {
-      if (!file.type.startsWith('image/')) {
-        resolve(file);
-        return;
-      }
-
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = (event) => {
-        const img = new Image();
-        img.src = event.target?.result as string;
-        img.onload = () => {
-          let width = img.width;
-          let height = img.height;
-
-          if (width > height) {
-            if (width > maxWidth) {
-              height = Math.round((height * maxWidth) / width);
-              width = maxWidth;
-            }
-          } else {
-            if (height > maxHeight) {
-              width = Math.round((width * maxHeight) / height);
-              height = maxHeight;
-            }
-          }
-
-          const canvas = document.createElement('canvas');
-          canvas.width = width;
-          canvas.height = height;
-
-          const ctx = canvas.getContext('2d');
-          if (!ctx) {
-            resolve(file);
-            return;
-          }
-
-          ctx.drawImage(img, 0, 0, width, height);
-
-          canvas.toBlob(
-            (blob) => {
-              if (!blob) {
-                resolve(file);
-                return;
-              }
-              const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".jpg", {
-                type: 'image/jpeg',
-                lastModified: Date.now(),
-              });
-              resolve(compressedFile);
-            },
-            'image/jpeg',
-            quality
-          );
-        };
-        img.onerror = () => resolve(file);
-      };
-      reader.onerror = () => resolve(file);
-    });
-  };
-
-  const compressBase64Image = (dataUrl: string, maxWidth = 800, maxHeight = 800, quality = 0.7): Promise<string> => {
-    return new Promise((resolve) => {
-      if (!dataUrl || !dataUrl.startsWith('data:image/')) {
-        resolve(dataUrl);
-        return;
-      }
-      const img = new Image();
-      img.onload = () => {
-        let width = img.width;
-        let height = img.height;
-
-        if (width > height) {
-          if (width > maxWidth) {
-            height = Math.round((height * maxWidth) / width);
-            width = maxWidth;
-          }
-        } else {
-          if (height > maxHeight) {
-            width = Math.round((width * maxHeight) / height);
-            height = maxHeight;
-          }
-        }
-
-        const canvas = document.createElement('canvas');
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) {
-          resolve(dataUrl);
-          return;
-        }
-        ctx.drawImage(img, 0, 0, width, height);
-        const isPng = dataUrl.startsWith('data:image/png');
-        const compressed = canvas.toDataURL(isPng ? 'image/png' : 'image/jpeg', quality);
-        resolve(compressed);
-      };
-      img.onerror = () => resolve(dataUrl);
-      img.src = dataUrl;
-    });
-  };
-
-  const handleOptionImageChange = async (label: string, e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // Check file size (5MB = 5 * 1024 * 1024 bytes)
-    if (file.size > 5 * 1024 * 1024) {
-      showAlert({
-        title: 'File Terlalu Besar',
-        message: 'Ukuran gambar maksimal adalah 5MB.',
-        type: 'error'
-      });
-      return;
-    }
-
-    try {
-      const compressed = await compressImage(file);
-      setOptionImageFiles(prev => ({ ...prev, [label]: compressed }));
-      
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setOptionImagePreviews(prev => ({ ...prev, [label]: reader.result as string }));
-      };
-      reader.readAsDataURL(compressed);
-    } catch (err) {
-      console.error('Error compressing option image:', err);
-      // Fallback
-      setOptionImageFiles(prev => ({ ...prev, [label]: file }));
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setOptionImagePreviews(prev => ({ ...prev, [label]: reader.result as string }));
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // Check file size (5MB = 5 * 1024 * 1024 bytes)
-    if (file.size > 5 * 1024 * 1024) {
-      showAlert({
-        title: 'File Terlalu Besar',
-        message: 'Ukuran gambar maksimal adalah 5MB.',
-        type: 'error'
-      });
-      return;
-    }
-
-    try {
-      const compressed = await compressImage(file);
-      setImageFile(compressed);
-      
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(compressed);
-    } catch (err) {
-      console.error('Error compressing image:', err);
-      // Fallback
-      setImageFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
+    setQuestionToEdit(null);
   };
 
   const getBreadcrumbs = () => {
@@ -1565,7 +1118,7 @@ export default function BankSoal() {
           </div>
 
           <button 
-            onClick={() => setShowAddForm(true)}
+            onClick={() => { setQuestionToEdit(null); setShowAddForm(true); }}
             className="bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white px-5 py-2.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 shadow-lg shadow-slate-200/50 border border-white/10 transition-all hover:brightness-110 active:scale-[0.98]"
           >
             <Plus className="w-4 h-4" />
@@ -1827,18 +1380,15 @@ export default function BankSoal() {
                       <div className="flex gap-2">
                         <button 
                           onClick={() => handleEdit(q)}
-                          disabled={editingQuestionIds.includes(q.id)}
-                          className="p-3 text-slate-400 hover:text-[#3B66F5] hover:bg-[#3B66F5]/5 rounded-xl transition-all border border-transparent hover:border-[#3B66F5]/20 disabled:opacity-50 disabled:cursor-wait"
+                          className="p-3 text-slate-400 hover:text-[#3B66F5] hover:bg-[#3B66F5]/5 rounded-xl transition-all border border-transparent hover:border-[#3B66F5]/20 cursor-pointer"
+                          title="Edit Soal"
                         >
-                          {editingQuestionIds.includes(q.id) ? (
-                            <div className="w-5 h-5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
-                          ) : (
-                            <Edit3 className="w-5 h-5" />
-                          )}
+                          <Edit3 className="w-5 h-5" />
                         </button>
                         <button 
                           onClick={() => handleDelete(q.id)}
-                          className="p-3 text-slate-400 rounded-xl hover-red transition-all border border-transparent group/delete"
+                          className="p-3 text-slate-400 rounded-xl hover-red transition-all border border-transparent group/delete cursor-pointer"
+                          title="Hapus Soal"
                         >
                           <Trash2 className="w-5 h-5 transition-transform" />
                         </button>
@@ -1859,8 +1409,8 @@ export default function BankSoal() {
                 <h3 className="text-xl font-bold text-[#1D4ED8] mb-2">Belum ada soal</h3>
                 <p className="text-slate-400 font-medium max-w-xs mx-auto">Mulai bangun bank soal Anda dengan menambahkan pertanyaan pertama.</p>
                 <button 
-                  onClick={() => setShowAddForm(true)}
-                  className="mt-8 text-[#3B66F5] font-bold hover:underline flex items-center gap-2 mx-auto"
+                  onClick={() => { setQuestionToEdit(null); setShowAddForm(true); }}
+                  className="mt-8 text-[#3B66F5] font-bold hover:underline flex items-center gap-2 mx-auto cursor-pointer"
                 >
                   Tambah Soal Sekarang <ChevronRight className="w-4 h-4" />
                 </button>
@@ -2138,335 +1688,14 @@ export default function BankSoal() {
       )}
 
       {/* Modal Tambah / Edit Soal */}
-      {typeof document !== 'undefined' && createPortal(
-        <AnimatePresence>
-          {showAddForm && (
-            <div className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-4 md:p-6 overflow-hidden">
-              <motion.div 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.15 }}
-                onClick={closeModal}
-                className="fixed inset-0 bg-black/60 backdrop-blur-xs"
-              />
-              <motion.div 
-                initial={{ opacity: 0, scale: 0.96, y: 10 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.96, y: 10 }}
-                transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
-                className="relative w-full max-w-4xl bg-white rounded-[2rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh] border border-slate-100 z-10 will-change-transform transform-gpu"
-              >
-              <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-white">
-                <div>
-                  <h3 className="text-2xl font-bold text-[#1D4ED8]">{editingId ? 'Edit Soal' : 'Tambah Soal Baru'}</h3>
-                  <p className="text-sm text-slate-500 font-medium mt-1">Lengkapi detail pertanyaan di bawah ini secara lengkap.</p>
-                </div>
-                <button onClick={closeModal} className="p-2.5 hover:bg-slate-50 rounded-full transition-colors cursor-pointer border border-slate-200 bg-white shadow-sm">
-                  <X className="w-5 h-5 text-slate-400 hover:text-slate-600" />
-                </button>
-              </div>
-
-              <form onSubmit={handleSave} className="p-8 overflow-y-auto space-y-6 custom-scrollbar">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <label className="text-sm font-bold text-slate-700 ml-1">Tipe Pertanyaan</label>
-                    <select 
-                      className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium text-sm sm:text-base text-slate-700 cursor-pointer"
-                      value={formData.question_type}
-                      onChange={(e) => setFormData({...formData, question_type: e.target.value})}
-                    >
-                      <option value="pilihan_ganda">Pilihan Ganda</option>
-                      <option value="menjodohkan">Menjodohkan / Sambung Kata (TKA Drag & Drop)</option>
-                      <option value="essay">Essay / Uraian</option>
-                      <option value="isian_singkat">Isian Singkat</option>
-                    </select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-bold text-slate-700 ml-1">Pilih Folder</label>
-                    <select 
-                      className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium text-sm sm:text-base text-slate-700 cursor-pointer"
-                      value={formData.category_id}
-                      onChange={(e) => setFormData({...formData, category_id: e.target.value})}
-                    >
-                      <option value="">Tanpa Folder</option>
-                      {categories.map(cat => (
-                        <option key={cat.id} value={cat.id}>
-                          {cat.parent_id ? '　 ' : ''}📂 {cat.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between ml-1">
-                    <label className="text-sm font-bold text-slate-700">Lampiran Gambar (Opsional)</label>
-                    <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Max 5MB (Kompres Otomatis)</span>
-                  </div>
-                  
-                  <div className="flex items-start gap-4">
-                    <div className="relative group/img w-28 h-28 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200 flex items-center justify-center overflow-hidden transition-all hover:border-blue-400 shrink-0">
-                      {imagePreview ? (
-                        <>
-                          <img src={imagePreview} className="w-full h-full object-cover" alt="Preview" />
-                          <button 
-                            type="button"
-                            onClick={() => {
-                              setImageFile(null);
-                              setImagePreview(null);
-                              setFormData(prev => ({ ...prev, image_url: '' }));
-                            }}
-                            className="absolute top-1.5 right-1.5 bg-red-500 text-white p-1 rounded-lg opacity-0 group-hover/img:opacity-100 transition-opacity cursor-pointer"
-                          >
-                            <X className="w-4 h-4" />
-                          </button>
-                        </>
-                      ) : (
-                        <label className="cursor-pointer flex flex-col items-center gap-1.5 text-slate-400 hover:text-[#3B66F5] transition-colors w-full h-full justify-center">
-                          <ImageIcon className="w-8 h-8" />
-                          <span className="text-xs font-bold">Pilih Gambar</span>
-                          <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
-                        </label>
-                      )}
-                    </div>
-                    <div className="flex-1 space-y-2 pt-1">
-                      <p className="text-xs sm:text-sm text-slate-500 font-medium leading-relaxed">Gunakan gambar untuk visualisasi pertanyaan. Pastikan gambar jelas, beresolusi baik, dan proporsional.</p>
-                      <button 
-                        type="button" 
-                        onClick={() => document.getElementById('image-upload')?.click()}
-                        className="text-xs sm:text-sm font-bold text-[#3B66F5] hover:underline cursor-pointer"
-                      >
-                        Ganti Gambar
-                      </button>
-                      <input id="image-upload" type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-bold text-slate-700 ml-1">Isi Pertanyaan</label>
-                  <textarea 
-                    required
-                    rows={4}
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm sm:text-base font-medium text-slate-700"
-                    placeholder="Tuliskan pertanyaan Anda secara lengkap di sini..."
-                    value={formData.question_text}
-                    onChange={(e) => setFormData({...formData, question_text: e.target.value})}
-                  />
-                </div>
-
-                {formData.question_type === 'pilihan_ganda' && (
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between px-1">
-                      <label className="text-sm font-bold text-slate-700">Opsi Jawaban</label>
-                      <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Pilih Jawaban Benar</span>
-                    </div>
-                    <div className="space-y-3.5">
-                      {['A', 'B', 'C', 'D', 'E'].map((label) => (
-                        <div key={label} className="space-y-3.5 p-5 rounded-2xl border border-slate-100 bg-slate-50/50">
-                          <div className="flex items-center gap-4 group">
-                            <div className={cn(
-                              "w-10 h-10 flex items-center justify-center rounded-xl font-bold text-sm transition-all shrink-0",
-                              formData.correct_answer === label ? "bg-blue-600 text-white shadow-lg shadow-blue-200" : "bg-slate-200 text-slate-500"
-                            )}>
-                              {label}
-                            </div>
-                            <input 
-                              type="text" 
-                              required
-                              className="flex-1 px-4 py-3 rounded-xl border border-slate-200 bg-white outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm sm:text-base font-medium text-slate-700"
-                              placeholder={`Teks opsi ${label}`}
-                              value={(formData.options as any)?.[label]?.text || ''}
-                              onChange={(e) => setFormData({
-                                ...formData, 
-                                options: { 
-                                  ...formData.options, 
-                                  [label]: { ...((formData.options as any)?.[label] || {}), text: e.target.value }
-                                }
-                              })}
-                            />
-                            <button
-                              type="button"
-                              onClick={() => setFormData({...formData, correct_answer: label})}
-                              className={cn(
-                                "w-5 h-5 rounded-full border transition-all flex items-center justify-center shrink-0 cursor-pointer bg-white",
-                                formData.correct_answer === label ? "border-blue-600 bg-blue-600 text-white" : "border-slate-300 hover:border-blue-500"
-                              )}
-                            >
-                              {formData.correct_answer === label && <Check className="w-3 h-3 text-white stroke-[3]" />}
-                            </button>
-                          </div>
-                          
-                          {/* Option Image Upload */}
-                          <div className="flex items-center gap-4 ml-14">
-                            <div className="relative group/optimg w-14 h-14 bg-white rounded-lg border border-slate-200 flex items-center justify-center overflow-hidden transition-all hover:border-blue-300">
-                              {optionImagePreviews[label] ? (
-                                <>
-                                  <img src={optionImagePreviews[label]!} className="w-full h-full object-cover" alt="Preview" />
-                                  <button 
-                                    type="button"
-                                    onClick={() => {
-                                      setOptionImageFiles(prev => ({ ...prev, [label]: null }));
-                                      setOptionImagePreviews(prev => ({ ...prev, [label]: null }));
-                                      setFormData(prev => ({
-                                        ...prev,
-                                        options: {
-                                          ...prev.options,
-                                          [label]: { ...((prev.options as any)?.[label] || {}), image_url: '' }
-                                        }
-                                      }));
-                                    }}
-                                    className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover/optimg:opacity-100 transition-opacity cursor-pointer"
-                                  >
-                                    <X className="w-4 h-4 text-white" />
-                                  </button>
-                                </>
-                              ) : (
-                                <label className="cursor-pointer flex flex-col items-center justify-center w-full h-full text-slate-300 hover:text-[#3B66F5] transition-colors">
-                                  <ImageIcon className="w-5 h-5" />
-                                  <input type="file" accept="image/*" className="hidden" onChange={(e) => handleOptionImageChange(label, e)} />
-                                </label>
-                              )}
-                            </div>
-                            <div className="flex-1">
-                              <p className="text-xs text-slate-400 font-medium">Gambar opsional opsi {label}</p>
-                              {!optionImagePreviews[label] && (
-                                <button 
-                                  type="button"
-                                  onClick={() => (document.getElementById(`opt-img-${label}`) as HTMLInputElement)?.click()}
-                                  className="text-xs font-bold text-[#3B66F5] hover:underline cursor-pointer"
-                                >
-                                  Upload Gambar
-                                </button>
-                              )}
-                              <input id={`opt-img-${label}`} type="file" accept="image/*" className="hidden" onChange={(e) => handleOptionImageChange(label, e)} />
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {formData.question_type === 'menjodohkan' && (
-                  <div className="space-y-4 p-6 rounded-2xl border border-indigo-100 bg-indigo-50/40">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h4 className="text-sm font-bold text-indigo-950">Pasangan Menjodohkan (TKA)</h4>
-                        <p className="text-xs text-slate-500 font-medium">Tuliskan pasangan Kolom Kiri (Premis) dan Kolom Kanan (Jawaban Benar).</p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setMatchingPairs(prev => [...prev, { id: Date.now().toString(), left: '', right: '' }])}
-                        className="px-3.5 py-1.5 rounded-xl bg-indigo-600 text-white font-bold text-xs hover:bg-indigo-700 transition-colors flex items-center gap-1.5 shadow-sm cursor-pointer"
-                      >
-                        <Plus className="w-3.5 h-3.5" /> Tambah Pasangan
-                      </button>
-                    </div>
-
-                    <div className="space-y-3">
-                      {matchingPairs.map((pair, idx) => (
-                        <div key={pair.id || idx} className="flex items-center gap-3 p-3 bg-white rounded-xl border border-slate-200 shadow-2xs">
-                          <span className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-700 font-bold text-xs flex items-center justify-center shrink-0">
-                            {idx + 1}
-                          </span>
-                          <div className="flex-1">
-                            <input
-                              type="text"
-                              required
-                              placeholder={`Pernyataan / Premis Kiri ${idx + 1}`}
-                              value={pair.left}
-                              onChange={(e) => {
-                                const newPairs = [...matchingPairs];
-                                newPairs[idx].left = e.target.value;
-                                setMatchingPairs(newPairs);
-                              }}
-                              className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm font-medium outline-none focus:border-indigo-500"
-                            />
-                          </div>
-                          <span className="text-indigo-400 font-bold text-sm">➔</span>
-                          <div className="flex-1">
-                            <input
-                              type="text"
-                              required
-                              placeholder={`Pasangan Benar Kanan ${idx + 1}`}
-                              value={pair.right}
-                              onChange={(e) => {
-                                const newPairs = [...matchingPairs];
-                                newPairs[idx].right = e.target.value;
-                                setMatchingPairs(newPairs);
-                              }}
-                              className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm font-medium outline-none focus:border-indigo-500"
-                            />
-                          </div>
-                          {matchingPairs.length > 1 && (
-                            <button
-                              type="button"
-                              onClick={() => setMatchingPairs(prev => prev.filter((_, i) => i !== idx))}
-                              className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-colors shrink-0 cursor-pointer"
-                              title="Hapus Pasangan"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {formData.question_type === 'essay' && (
-                  <div className="space-y-2 p-5 rounded-2xl border border-amber-200/80 bg-amber-50/40">
-                    <label className="text-sm font-bold text-amber-950 ml-1">Pedoman / Kunci Jawaban Essay (Opsional)</label>
-                    <textarea 
-                      rows={3}
-                      className="w-full px-4 py-3 rounded-xl border border-amber-200 bg-white outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all text-sm font-medium text-slate-700"
-                      placeholder="Masukkan kata kunci atau penjelasan jawaban yang diharapkan sebagai acuan penilaian guru..."
-                      value={formData.correct_answer}
-                      onChange={(e) => setFormData({...formData, correct_answer: e.target.value})}
-                    />
-                    <p className="text-[11px] text-amber-800 font-medium">Soal essay akan dinilai oleh guru saat memeriksa hasil ujian siswa.</p>
-                  </div>
-                )}
-
-                {formData.question_type === 'isian_singkat' && (
-                  <div className="space-y-2">
-                    <label className="text-sm font-bold text-slate-700 ml-1">Jawaban Benar</label>
-                    <input 
-                      type="text" 
-                      required
-                      className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm sm:text-base font-medium text-slate-700"
-                      placeholder="Masukkan jawaban yang benar..."
-                      value={formData.correct_answer}
-                      onChange={(e) => setFormData({...formData, correct_answer: e.target.value})}
-                    />
-                  </div>
-                )}
-
-                <div className="flex flex-col sm:flex-row gap-4 pt-6">
-                  <button 
-                    type="button"
-                    onClick={closeModal}
-                    className="flex-1 py-3.5 rounded-full font-bold text-sm text-slate-500 bg-slate-100 hover:bg-slate-200 transition-all cursor-pointer button-hover"
-                  >
-                    Batalkan
-                  </button>
-                  <button 
-                    type="submit"
-                    className="flex-1 py-3.5 rounded-full font-bold text-sm text-white bg-[#3B66F5] hover:bg-[#2563EB] transition-all shadow-lg shadow-[#3B66F5]/25 cursor-pointer button-hover"
-                  >
-                    Simpan Pertanyaan
-                  </button>
-                </div>
-              </form>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>,
-      document.body
-    )}
+      <QuestionModal
+        isOpen={showAddForm}
+        onClose={closeModal}
+        onSuccess={fetchData}
+        questionToEdit={questionToEdit}
+        categories={categories}
+        currentCategoryId={currentCategoryId}
+      />
     </div>
   );
 }
