@@ -346,14 +346,6 @@ export default function StudentDashboard() {
             <RotateCw className={`w-4 h-4 ${refreshing ? 'animate-spin text-amber-300' : 'text-white'}`} />
             <span>{refreshing ? 'Sinkron...' : 'Segarkan'}</span>
           </button>
-
-          <Link 
-            to="/daftar-ujian-siswa"
-            className="bg-blue-600 hover:bg-blue-500 text-white px-5 py-3 rounded-full font-black text-xs sm:text-sm flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-blue-600/30 shrink-0 cursor-pointer border border-blue-400/40"
-          >
-            <Zap className="w-4 h-4 text-amber-300 fill-amber-300" />
-            <span>Ikuti Ujian</span>
-          </Link>
         </div>
       </div>
 

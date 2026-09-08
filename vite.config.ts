@@ -4,12 +4,32 @@ import path from 'path';
 import {defineConfig, loadEnv} from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
+function versionPlugin(buildId: string) {
+  return {
+    name: 'generate-version-json',
+    apply: 'build' as const,
+    generateBundle(this: any) {
+      this.emitFile({
+        type: 'asset',
+        fileName: 'version.json',
+        source: JSON.stringify({
+          version: buildId,
+          buildTime: new Date().toISOString()
+        }, null, 2)
+      });
+    }
+  };
+}
+
 export default defineConfig(({mode}) => {
   const env = loadEnv(mode, '.', '');
+  const buildId = Date.now().toString();
+
   return {
     plugins: [
       react(), 
       tailwindcss(),
+      versionPlugin(buildId),
       VitePWA({
         registerType: 'autoUpdate',
         devOptions: {
@@ -19,9 +39,12 @@ export default defineConfig(({mode}) => {
           skipWaiting: true,
           clientsClaim: true,
           cleanupOutdatedCaches: true,
+          // Exclude html from precache to ensure users always receive latest index.html
           globPatterns: [
-            '**/*.{js,css,html,ico,png,svg,webmanifest}'
+            '**/*.{js,css,ico,png,svg,webmanifest}'
           ],
+          navigateFallback: '/index.html',
+          navigateFallbackDenylist: [/^\/api/, /version\.json$/],
           runtimeCaching: [
             {
               urlPattern: /\/models\/.*\.(json|bin)$/,
@@ -38,19 +61,9 @@ export default defineConfig(({mode}) => {
               }
             },
             {
-              // Use NetworkFirst for app assets/chunks to automatically pull latest version without stale cache issues
-              urlPattern: /\/assets\/.*\.(js|css)$/,
-              handler: 'NetworkFirst',
-              options: {
-                cacheName: 'app-chunks',
-                expiration: {
-                  maxEntries: 80,
-                  maxAgeSeconds: 60 * 60 * 24 * 7,
-                },
-                cacheableResponse: {
-                  statuses: [0, 200]
-                }
-              }
+              // Never cache version.json in Service Worker
+              urlPattern: /version\.json$/,
+              handler: 'NetworkOnly'
             }
           ]
         },
@@ -74,7 +87,7 @@ export default defineConfig(({mode}) => {
     ],
     define: {
       'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
-      '__APP_BUILD_ID__': JSON.stringify(Date.now().toString()),
+      '__APP_BUILD_ID__': JSON.stringify(buildId),
     },
     resolve: {
       alias: {

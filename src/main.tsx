@@ -19,8 +19,12 @@ if (typeof window !== 'undefined') {
 
 import App from './App.tsx';
 import './index.css';
+import { initVersionManager, clearStaleCaches, isUserInExam } from './lib/versionManager';
 
 declare const __APP_BUILD_ID__: string;
+
+// Initialize remote version check and auto-cache invalidator
+initVersionManager();
 
 // Smart version check & automatic browser cache invalidation
 const initSmartCacheManager = async () => {
@@ -33,18 +37,8 @@ const initSmartCacheManager = async () => {
     if (savedBuild && savedBuild !== currentBuild) {
       console.log('[EduVerse] New app update detected! Clearing stale browser caches...');
 
-      // 1. Clear CacheStorage (keep face-api-models to avoid re-downloading heavy AI weights)
-      if ('caches' in window) {
-        const cacheKeys = await caches.keys();
-        await Promise.all(
-          cacheKeys.map(key => {
-            if (!key.includes('face-api-models')) {
-              return caches.delete(key);
-            }
-            return Promise.resolve(true);
-          })
-        );
-      }
+      // 1. Clear CacheStorage
+      await clearStaleCaches();
 
       // 2. Silently refresh student session from Supabase if student is currently logged in
       const studentSessionStr = localStorage.getItem('student_session');
@@ -92,12 +86,11 @@ const handleChunkError = (err: any) => {
     console.warn('[EduVerse] Dynamic chunk import mismatch, auto-clearing cache and refreshing page for update...');
     
     // Clear caches
-    if ('caches' in window) {
-      caches.keys().then(keys => {
-        keys.forEach(k => {
-          if (!k.includes('face-api-models')) caches.delete(k);
-        });
-      });
+    clearStaleCaches();
+
+    if (isUserInExam()) {
+      console.warn('[EduVerse] Chunk error occurred during exam, deferring hard reload');
+      return;
     }
 
     // Prevent infinite reload loops
@@ -118,6 +111,10 @@ if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
   let refreshing = false;
   navigator.serviceWorker.addEventListener('controllerchange', () => {
     if (!refreshing) {
+      if (isUserInExam()) {
+        console.warn('[EduVerse] New SW activated during exam, deferring reload');
+        return;
+      }
       refreshing = true;
       console.log('[EduVerse] New version activated, refreshing application...');
       window.location.reload();

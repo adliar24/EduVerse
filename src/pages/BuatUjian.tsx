@@ -106,11 +106,8 @@ export default function BuatUjian() {
       );
       
       setClasses(classesWithCount);
-      // Only default to all classes if user hasn't configured selectedClasses yet
+      // Default to empty selection: teacher chooses target classes manually or clicks "Pilih Semua Kelas"
       setSelectedClasses(prev => {
-        if (prev.length === 0) {
-          return classesWithCount.map(c => c.id);
-        }
         const validIds = classesWithCount.map(c => c.id);
         return prev.filter(id => validIds.includes(id));
       });
@@ -547,7 +544,21 @@ export default function BuatUjian() {
                     <Users className="text-white w-3 h-3" />
                   </div>
                   <div>
-                    <h4 className="font-bold text-[#1D4ED8] text-sm tracking-tight">Target Kelas Peserta Ujian</h4>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h4 className="font-bold text-[#1D4ED8] text-sm tracking-tight">Target Kelas Peserta Ujian</h4>
+                      {classes.length > 0 && (
+                        <span className={cn(
+                          "text-[10px] font-semibold px-2 py-0.5 rounded-full border transition-all",
+                          selectedClasses.length > 0
+                            ? "text-blue-700 bg-blue-50 border-blue-200"
+                            : "text-slate-500 bg-slate-100 border-slate-200"
+                        )}>
+                          {selectedClasses.length === 0 
+                            ? `Belum ada kelas dipilih (0/${classes.length})` 
+                            : `✓ ${selectedClasses.length} dari ${classes.length} kelas dipilih`}
+                        </span>
+                      )}
+                    </div>
                     <p className="text-xs text-slate-500 font-medium">Pilih kelas yang diizinkan untuk melihat & mengerjakan ujian ini.</p>
                   </div>
                 </div>
