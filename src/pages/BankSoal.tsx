@@ -602,6 +602,47 @@ export default function BankSoal() {
     });
   };
 
+  const compressBase64Image = (dataUrl: string, maxWidth = 800, maxHeight = 800, quality = 0.7): Promise<string> => {
+    return new Promise((resolve) => {
+      if (!dataUrl || !dataUrl.startsWith('data:image/')) {
+        resolve(dataUrl);
+        return;
+      }
+      const img = new Image();
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > maxWidth) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          }
+        } else {
+          if (height > maxHeight) {
+            width = Math.round((width * maxHeight) / height);
+            height = maxHeight;
+          }
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          resolve(dataUrl);
+          return;
+        }
+        ctx.drawImage(img, 0, 0, width, height);
+        const isPng = dataUrl.startsWith('data:image/png');
+        const compressed = canvas.toDataURL(isPng ? 'image/png' : 'image/jpeg', quality);
+        resolve(compressed);
+      };
+      img.onerror = () => resolve(dataUrl);
+      img.src = dataUrl;
+    });
+  };
+
   const handleOptionImageChange = async (label: string, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -997,62 +1038,84 @@ export default function BankSoal() {
         children: [
           new Paragraph({
             children: [
-              new TextRun({ text: "TEMPLATE IMPORT SOAL EDUTEST", bold: true, size: 40 }), // 20pt
+              new TextRun({ text: "TEMPLATE IMPORT SOAL EDUVERSE", bold: true, size: 36, color: "1D4ED8" }),
             ],
-            spacing: { after: 400 },
+            spacing: { after: 300 },
           }),
           new Paragraph({
-            children: [new TextRun({ text: "PANDUAN FORMAT SOAL", bold: true, size: 28, underline: {} })],
-            spacing: { after: 200 },
+            children: [new TextRun({ text: "PANDUAN FORMAT SOAL & GAMBAR", bold: true, size: 26, underline: {} })],
+            spacing: { after: 150 },
           }),
           new Paragraph({
             children: [
-              new TextRun({ text: "1. Gunakan penomoran (1. 2. 3.) untuk setiap pertanyaan.", size: 24 }),
+              new TextRun({ text: "1. Penomoran Soal: Gunakan format nomor (1. 2. 3.) di awal setiap soal.", size: 22 }),
             ],
-            spacing: { after: 100 },
+            spacing: { after: 80 },
           }),
           new Paragraph({
             children: [
-              new TextRun({ text: "2. Gunakan huruf (A. B. C. D. E.) untuk pilihan jawaban.", size: 24 }),
+              new TextRun({ text: "2. Pilihan Ganda: Gunakan huruf kapital (A. B. C. D. E.) untuk opsi jawaban.", size: 22 }),
             ],
-            spacing: { after: 100 },
+            spacing: { after: 80 },
           }),
           new Paragraph({
             children: [
-              new TextRun({ text: "3. Tuliskan kunci jawaban dengan format 'Jawaban: [Kunci]'.", size: 24 }),
+              new TextRun({ text: "3. Kunci Jawaban: Tuliskan 'Jawaban: [Huruf]' atau 'Kunci: [Huruf]'.", size: 22 }),
             ],
-            spacing: { after: 400 },
+            spacing: { after: 80 },
+          }),
+          new Paragraph({
+            children: [
+              new TextRun({ 
+                text: "4. DUKUNGAN GAMBAR (OTOMATIS): Anda dapat langsung Paste / Sisipkan gambar di bawah pertanyaan atau pada pilihan jawaban. Sistem akan otomatis mendeteksi dan mengompresnya agar ringan diakses siswa.", 
+                bold: true, 
+                size: 22, 
+                color: "0D9488" 
+              }),
+            ],
+            spacing: { after: 300 },
           }),
 
           new Paragraph({
-            children: [new TextRun({ text: "CONTOH SOAL PILIHAN GANDA:", bold: true, size: 28, color: "2B6CB0" })],
-            spacing: { after: 200 },
+            children: [new TextRun({ text: "CONTOH SOAL DENGAN GAMBAR PERTANYAAN:", bold: true, size: 24, color: "2B6CB0" })],
+            spacing: { after: 120 },
           }),
-          new Paragraph({ children: [new TextRun({ text: "1. Apa ibukota negara Indonesia saat ini?", size: 24 })], spacing: { after: 100 } }),
-          new Paragraph({ children: [new TextRun({ text: "A. Jakarta", size: 24 })], spacing: { after: 50 } }),
-          new Paragraph({ children: [new TextRun({ text: "B. Nusantara", size: 24 })], spacing: { after: 50 } }),
-          new Paragraph({ children: [new TextRun({ text: "C. Bandung", size: 24 })], spacing: { after: 50 } }),
-          new Paragraph({ children: [new TextRun({ text: "D. Surabaya", size: 24 })], spacing: { after: 50 } }),
-          new Paragraph({ children: [new TextRun({ text: "E. Medan", size: 24 })], spacing: { after: 100 } }),
-          new Paragraph({ children: [new TextRun({ text: "Jawaban: B", bold: true, size: 24, color: "38A169" })], spacing: { after: 400 } }),
+          new Paragraph({ children: [new TextRun({ text: "1. Perhatikan gambar berikut! Komponen perangkat keras ini berfungsi sebagai...", size: 22 })], spacing: { after: 60 } }),
+          new Paragraph({ children: [new TextRun({ text: "[ Sisipkan / Paste Gambar Pertanyaan Di Sini ]", italics: true, color: "64748B", size: 20 })], spacing: { after: 100 } }),
+          new Paragraph({ children: [new TextRun({ text: "A. Pemroses Utama (CPU)", size: 22 })], spacing: { after: 40 } }),
+          new Paragraph({ children: [new TextRun({ text: "B. Media Penyimpanan", size: 22 })], spacing: { after: 40 } }),
+          new Paragraph({ children: [new TextRun({ text: "C. Perangkat Keluaran", size: 22 })], spacing: { after: 40 } }),
+          new Paragraph({ children: [new TextRun({ text: "D. Perangkat Masukan", size: 22 })], spacing: { after: 80 } }),
+          new Paragraph({ children: [new TextRun({ text: "Jawaban: A", bold: true, size: 22, color: "16A34A" })], spacing: { after: 300 } }),
 
           new Paragraph({
-            children: [new TextRun({ text: "CONTOH SOAL ISIAN SINGKAT:", bold: true, size: 28, color: "2B6CB0" })],
-            spacing: { after: 200 },
+            children: [new TextRun({ text: "CONTOH SOAL DENGAN GAMBAR DI PILIHAN JAWABAN:", bold: true, size: 24, color: "2B6CB0" })],
+            spacing: { after: 120 },
           }),
-          new Paragraph({ children: [new TextRun({ text: "2. Siapa presiden pertama Republik Indonesia?", size: 24 })], spacing: { after: 100 } }),
-          new Paragraph({ children: [new TextRun({ text: "Jawaban: Soekarno", bold: true, size: 24, color: "38A169" })], spacing: { after: 400 } }),
+          new Paragraph({ children: [new TextRun({ text: "2. Manakah dari gambar di bawah ini yang merupakan modul RAM?", size: 22 })], spacing: { after: 80 } }),
+          new Paragraph({ children: [new TextRun({ text: "A. [ Paste Gambar Opsi A ]", size: 22 })], spacing: { after: 40 } }),
+          new Paragraph({ children: [new TextRun({ text: "B. [ Paste Gambar Opsi B ]", size: 22 })], spacing: { after: 40 } }),
+          new Paragraph({ children: [new TextRun({ text: "C. [ Paste Gambar Opsi C ]", size: 22 })], spacing: { after: 40 } }),
+          new Paragraph({ children: [new TextRun({ text: "D. [ Paste Gambar Opsi D ]", size: 22 })], spacing: { after: 80 } }),
+          new Paragraph({ children: [new TextRun({ text: "Jawaban: C", bold: true, size: 22, color: "16A34A" })], spacing: { after: 300 } }),
 
           new Paragraph({
-            children: [new TextRun({ text: "Catatan: Jangan mengubah format titik (.) setelah nomor atau huruf agar sistem dapat membaca soal dengan benar.", italics: true, color: "E53E3E", size: 20 })],
+            children: [new TextRun({ text: "CONTOH SOAL TANPA GAMBAR (STANDAR):", bold: true, size: 24, color: "2B6CB0" })],
+            spacing: { after: 120 },
           }),
+          new Paragraph({ children: [new TextRun({ text: "3. Struktur data yang menerapkan prinsip FIFO (First In, First Out) adalah...", size: 22 })], spacing: { after: 60 } }),
+          new Paragraph({ children: [new TextRun({ text: "A. Stack", size: 22 })], spacing: { after: 40 } }),
+          new Paragraph({ children: [new TextRun({ text: "B. Queue", size: 22 })], spacing: { after: 40 } }),
+          new Paragraph({ children: [new TextRun({ text: "C. Tree", size: 22 })], spacing: { after: 40 } }),
+          new Paragraph({ children: [new TextRun({ text: "D. Graph", size: 22 })], spacing: { after: 80 } }),
+          new Paragraph({ children: [new TextRun({ text: "Jawaban: B", bold: true, size: 22, color: "16A34A" })], spacing: { after: 200 } }),
         ],
       }],
     });
 
     const blob = await Packer.toBlob(doc);
-    saveAs(blob, "Template_Soal_EduTest.docx");
-    showAlert({ title: 'Berhasil', message: 'Template Word berhasil diunduh.', type: 'success' });
+    saveAs(blob, "Template_Soal_EduVerse.docx");
+    showAlert({ title: 'Berhasil', message: 'Template Word EduVerse berhasil diunduh.', type: 'success' });
   };
 
   const handleImportDocx = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1066,106 +1129,191 @@ export default function BankSoal() {
       try {
         const arrayBuffer = event.target?.result as ArrayBuffer;
         const { default: mammoth } = await import('mammoth');
-        const result = await mammoth.extractRawText({ arrayBuffer });
-        const text = result.value;
+        
+        // Extract HTML with embedded base64 images
+        const htmlResult = await mammoth.convertToHtml({ arrayBuffer });
+        const html = htmlResult.value || '';
+        const rawText = html.replace(/<[^>]*>/g, ' ');
 
-        // Intelligent Docx Parser Logic (Supports numbered and unnumbered question blocks)
-        const allLines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+        // Parse HTML into semantic item list with images
+        const tokenRegex = /<(p|li|td|th)(?:[^>]*)>([\s\S]*?)<\/\1>/gi;
+        let match;
+        const items: { text: string; images: string[] }[] = [];
+
+        while ((match = tokenRegex.exec(html)) !== null) {
+          const content = match[2];
+          const imgMatches = [...content.matchAll(/<img[^>]+src="([^">]+)"/gi)].map(m => m[1]);
+          const text = content.replace(/<img[^>]*>/gi, '').replace(/<.*?>/g, ' ').replace(/\s+/g, ' ').trim();
+          if (text || imgMatches.length > 0) {
+            items.push({ text, images: imgMatches });
+          }
+        }
+
+        const hasNumberedQuestions = items.some(it => /^\d+[\.\)]\s+/.test(it.text));
         let parsedQuestions: any[] = [];
 
-        // Check if file uses numbered format like "1.", "1)"
-        const hasNumberedQuestions = allLines.some(l => /^\d+[\.\)]\s+/.test(l));
-
         if (hasNumberedQuestions) {
-          let currentQuestion: any = null;
-          allLines.forEach(line => {
-            const qMatch = line.match(/^(\d+)[\.\)]\s*(.*)/);
+          let currentQ: any = null;
+          let currentOptionLabel: string | null = null;
+
+          items.forEach(it => {
+            const qMatch = it.text.match(/^(\d+)[\.\)]\s*(.*)/);
             if (qMatch) {
-              if (currentQuestion && currentQuestion.question_text) parsedQuestions.push(currentQuestion);
-              currentQuestion = {
+              if (currentQ && currentQ.question_text) parsedQuestions.push(currentQ);
+              currentQ = {
                 question_text: qMatch[2],
-                question_type: 'isian_singkat',
+                question_type: 'pilihan_ganda',
+                image_url: it.images[0] || null,
                 options: {},
                 correct_answer: ''
+              };
+              currentOptionLabel = null;
+              return;
+            }
+
+            if (!currentQ) return;
+
+            // Check if this item is an image belonging to current question before options
+            if (it.images.length > 0 && Object.keys(currentQ.options).length === 0 && !currentOptionLabel && !it.text.match(/^[A-E][\.\)]/i)) {
+              if (!currentQ.image_url) currentQ.image_url = it.images[0];
+            }
+
+            // Check for Option A-E
+            const optMatch = it.text.match(/^([A-E])[\.\)]\s*(.*)/i);
+            if (optMatch) {
+              const label = optMatch[1].toUpperCase();
+              currentOptionLabel = label;
+              currentQ.options[label] = {
+                text: optMatch[2] || `Pilihan ${label}`,
+                image_url: it.images[0] || null
               };
               return;
             }
 
-            if (!currentQuestion) return;
-
-            const optMatch = line.match(/^([A-E])[\.\)]\s*(.*)/i);
-            if (optMatch) {
-              currentQuestion.question_type = 'pilihan_ganda';
-              const label = optMatch[1].toUpperCase();
-              currentQuestion.options[label] = optMatch[2];
-              return;
+            // If previous item was an option and this item is an image
+            if (currentOptionLabel && it.images.length > 0 && currentQ.options[currentOptionLabel]) {
+              if (!currentQ.options[currentOptionLabel].image_url) {
+                currentQ.options[currentOptionLabel].image_url = it.images[0];
+              }
             }
 
-            const ansMatch = line.match(/^(?:Kunci\s+Jawaban|Kunci|Jawaban|Ans|Answer):\s*(.*)/i);
+            // Check Answer Key
+            const ansMatch = it.text.match(/^(?:Kunci\s+Jawaban|Kunci|Jawaban|Ans|Answer):\s*([A-E])/i);
             if (ansMatch) {
-              const letterMatch = ansMatch[1].match(/([A-E])/i);
-              currentQuestion.correct_answer = letterMatch ? letterMatch[1].toUpperCase() : ansMatch[1].trim();
+              currentQ.correct_answer = ansMatch[1].toUpperCase();
+              currentOptionLabel = null;
               return;
             }
 
-            if (line.startsWith('Pembahasan:')) return;
+            const simpleAns = it.text.match(/^(?:Kunci\s+Jawaban|Kunci|Jawaban|Ans|Answer):\s*(.*)/i);
+            if (simpleAns) {
+              const letter = simpleAns[1].match(/([A-E])/i);
+              currentQ.correct_answer = letter ? letter[1].toUpperCase() : simpleAns[1].trim();
+              currentOptionLabel = null;
+              return;
+            }
 
-            if (currentQuestion && !line.match(/^[A-E][\.\)]/i)) {
-              currentQuestion.question_text += ' ' + line;
+            if (it.text.startsWith('Pembahasan:')) {
+              currentOptionLabel = null;
+              return;
+            }
+
+            // Multiline question text
+            if (Object.keys(currentQ.options).length === 0 && !it.text.match(/^[A-E][\.\)]/i)) {
+              currentQ.question_text += ' ' + it.text;
+              if (it.images[0] && !currentQ.image_url) currentQ.image_url = it.images[0];
             }
           });
-          if (currentQuestion && currentQuestion.question_text) parsedQuestions.push(currentQuestion);
+
+          if (currentQ && currentQ.question_text) parsedQuestions.push(currentQ);
         } else {
           // Unnumbered format (e.g. raw ASAT exam document)
-          const headerEndIdx = allLines.findIndex(l => /DAFTAR SOAL|SOAL PILIHAN GANDA/i.test(l));
-          const lines = headerEndIdx !== -1 ? allLines.slice(headerEndIdx + 1) : allLines;
+          const headerIdx = items.findIndex(it => /DAFTAR SOAL|SOAL PILIHAN GANDA/i.test(it.text));
+          const contentItems = headerIdx !== -1 ? items.slice(headerIdx + 1) : items;
 
           let currentQText = '';
-          let currentOptions: string[] = [];
+          let currentQImg: string | null = null;
+          let currentOpts: any[] = [];
 
-          for (let i = 0; i < lines.length; i++) {
-            const line = lines[i];
+          for (let i = 0; i < contentItems.length; i++) {
+            const it = contentItems[i];
 
-            const keyMatch = line.match(/^(?:Kunci\s+Jawaban|Kunci|Jawaban|Ans|Answer):\s*(.*)/i);
+            const keyMatch = it.text.match(/^(?:Kunci\s+Jawaban|Kunci|Jawaban|Ans|Answer):\s*([A-E])/i);
             if (keyMatch) {
-              const letterMatch = keyMatch[1].match(/([A-E])/i);
-              const key = letterMatch ? letterMatch[1].toUpperCase() : keyMatch[1].trim();
+              const key = keyMatch[1].toUpperCase();
 
-              if (i + 1 < lines.length && lines[i + 1].startsWith('Pembahasan:')) {
-                i++;
-              }
-
-              if (currentQText && currentOptions.length >= 2) {
-                const optObj: Record<string, string> = {};
+              if (currentQText && currentOpts.length >= 2) {
+                const optMap: Record<string, { text: string; image_url: string | null }> = {};
                 const labels = ['A', 'B', 'C', 'D', 'E'];
-                currentOptions.slice(0, 5).forEach((opt, idx) => {
-                  optObj[labels[idx]] = opt.replace(/^[A-E][\.\)]\s*/i, '');
+                currentOpts.slice(0, 5).forEach((opt, idx) => {
+                  const label = opt.label || labels[idx];
+                  optMap[label] = {
+                    text: opt.text.replace(/^[A-E][\.\)]\s*/i, '') || `Pilihan ${label}`,
+                    image_url: opt.image_url || null
+                  };
                 });
 
                 parsedQuestions.push({
                   question_text: currentQText,
                   question_type: 'pilihan_ganda',
-                  options: optObj,
+                  image_url: currentQImg,
+                  options: optMap,
                   correct_answer: key
                 });
               }
 
               currentQText = '';
-              currentOptions = [];
+              currentQImg = null;
+              currentOpts = [];
               continue;
             }
 
-            if (line.startsWith('Pembahasan:')) continue;
+            if (it.text.startsWith('Pembahasan:')) continue;
 
             if (!currentQText) {
-              currentQText = line;
+              currentQText = it.text;
+              if (it.images.length > 0) currentQImg = it.images[0];
             } else {
-              currentOptions.push(line);
+              if (it.images.length > 0 && (!it.text || /^\d+$/.test(it.text)) && currentOpts.length === 0) {
+                currentQImg = it.images[0];
+              } else {
+                const optLabelMatch = it.text.match(/^([A-E])[\.\)]/i);
+                if (optLabelMatch) {
+                  currentOpts.push({
+                    label: optLabelMatch[1].toUpperCase(),
+                    text: it.text.replace(/^[A-E][\.\)]\s*/i, '') || `Pilihan ${optLabelMatch[1].toUpperCase()}`,
+                    image_url: it.images[0] || null
+                  });
+                } else {
+                  if (currentOpts.length > 0 && it.images.length > 0 && !currentOpts[currentOpts.length - 1].image_url && !it.text) {
+                    currentOpts[currentOpts.length - 1].image_url = it.images[0];
+                  } else {
+                    currentOpts.push({
+                      text: it.text,
+                      image_url: it.images[0] || null
+                    });
+                  }
+                }
+              }
             }
           }
         }
 
         if (parsedQuestions.length === 0) throw new Error("Format tidak dikenali. Pastikan soal memiliki nomor (1. ) atau kunci jawaban (Jawaban: A).");
+
+        // Automatically compress all extracted images to optimize database size and speed
+        for (const q of parsedQuestions) {
+          if (q.image_url) {
+            q.image_url = await compressBase64Image(q.image_url, 800, 800, 0.7);
+          }
+          if (q.options) {
+            for (const optKey of Object.keys(q.options)) {
+              if (q.options[optKey]?.image_url) {
+                q.options[optKey].image_url = await compressBase64Image(q.options[optKey].image_url, 800, 800, 0.7);
+              }
+            }
+          }
+        }
 
         // Upload to Database
         const { data: { user } } = await supabase.auth.getUser();
@@ -1174,7 +1322,7 @@ export default function BankSoal() {
         // Detect or fallback category
         let targetCategoryId = currentCategoryId;
         if (!targetCategoryId) {
-          const headerMatch = text.match(/Mata\s*Pelajaran[\s:\n]+([^\n\r]+)/i);
+          const headerMatch = rawText.match(/Mata\s*Pelajaran[\s:\n]+([^\n\r]+)/i);
           const detectedSubject = headerMatch ? headerMatch[1].trim() : null;
           if (detectedSubject) {
             const { data: subjectCat } = await supabase
@@ -1206,8 +1354,9 @@ export default function BankSoal() {
               teacher_id: user.id,
               school_id: null,
               question_text: q.question_text,
-              question_type: q.question_type,
+              question_type: q.question_type || 'pilihan_ganda',
               correct_answer: q.question_type === 'pilihan_ganda' ? cleanAns : (q.correct_answer || null),
+              image_url: q.image_url || null,
               category_id: targetCategoryId
             }])
             .select().single();
@@ -1217,18 +1366,23 @@ export default function BankSoal() {
             continue;
           }
 
-          if (q.question_type === 'pilihan_ganda' && question) {
-            const opts = Object.entries(q.options).map(([label, text]) => ({
+          if (q.question_type === 'pilihan_ganda' && question && q.options) {
+            const opts = Object.entries(q.options).map(([label, optVal]: [string, any]) => ({
               question_id: question.id,
               option_label: label,
-              option_text: text
+              option_text: typeof optVal === 'string' ? optVal : (optVal.text || ''),
+              image_url: typeof optVal === 'object' ? (optVal.image_url || null) : null
             }));
             await supabase.from('question_options').insert(opts);
           }
           successCount++;
         }
 
-        showAlert({ title: 'Impor Selesai', message: `${successCount} soal berhasil diimpor dari Word.`, type: 'success' });
+        showAlert({ 
+          title: 'Impor Selesai', 
+          message: `${successCount} soal berhasil diimpor dari Word (termasuk kompresi gambar otomatis).`, 
+          type: 'success' 
+        });
         fetchData();
         fetchCategories();
       } catch (err: any) {
