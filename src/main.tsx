@@ -106,21 +106,17 @@ const handleChunkError = (err: any) => {
 window.addEventListener('error', handleChunkError, true);
 window.addEventListener('unhandledrejection', handleChunkError);
 
-// Safe Service Worker registration and auto-refresh on new version activation
-if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
-  let refreshing = false;
-  navigator.serviceWorker.addEventListener('controllerchange', () => {
-    if (!refreshing) {
-      if (isUserInExam()) {
-        console.warn('[EduVerse] New SW activated during exam, deferring reload');
-        return;
-      }
-      refreshing = true;
-      console.log('[EduVerse] New version activated, refreshing application...');
-      window.location.reload();
+// Clean up service workers in dev mode to prevent hot reload loops
+if (typeof window !== 'undefined' && import.meta.env.DEV && 'serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then(registrations => {
+    for (const reg of registrations) {
+      reg.unregister().catch(() => {});
     }
-  });
+  }).catch(() => {});
+}
 
+// Background SW update check in production only (without disruptive auto-reloads)
+if (typeof window !== 'undefined' && !import.meta.env.DEV && 'serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.getRegistrations().then(registrations => {
       for (const reg of registrations) {

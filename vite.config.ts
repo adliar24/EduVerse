@@ -33,7 +33,7 @@ export default defineConfig(({mode}) => {
       VitePWA({
         registerType: 'autoUpdate',
         devOptions: {
-          enabled: true
+          enabled: false
         },
         workbox: {
           skipWaiting: true,

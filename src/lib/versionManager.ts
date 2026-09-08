@@ -1,16 +1,16 @@
 /**
  * EduVerse Version Manager & Smart Cache Invalidator
  * 
- * Automatically detects new deployments via /version.json,
+ * Automatically detects new deployments via /version.json in production,
  * clears stale browser caches without requiring manual user action,
  * and refreshes the application safely (protecting ongoing exams).
  */
 
 declare const __APP_BUILD_ID__: string;
 
-const RUNNING_BUILD_ID = typeof __APP_BUILD_ID__ !== 'undefined' ? __APP_BUILD_ID__ : String(Date.now());
-const CHECK_INTERVAL_MS = 2 * 60 * 1000; // Check every 2 minutes
-const RELOAD_THROTTLE_MS = 15 * 1000; // Throttle reloads to prevent loops
+const RUNNING_BUILD_ID = typeof __APP_BUILD_ID__ !== 'undefined' ? __APP_BUILD_ID__ : '';
+const CHECK_INTERVAL_MS = 5 * 60 * 1000; // Check every 5 minutes in background
+const MIN_RELOAD_INTERVAL_MS = 5 * 60 * 1000; // Minimum 5 minutes between reloads to prevent loops
 
 // Clean up browser CacheStorage while preserving heavy AI models
 export async function clearStaleCaches(): Promise<void> {
@@ -42,7 +42,15 @@ let isUpdating = false;
 
 // Query remote /version.json and trigger update if version mismatch
 export async function checkForAppUpdate(): Promise<boolean> {
-  if (typeof window === 'undefined' || isUpdating) return false;
+  // Absolutely do not run in local development or if already updating
+  if (typeof window === 'undefined' || import.meta.env.DEV || isUpdating) {
+    return false;
+  }
+
+  // If running build ID is not set, skip
+  if (!RUNNING_BUILD_ID || RUNNING_BUILD_ID === 'dev') {
+    return false;
+  }
 
   try {
     const response = await fetch(`/version.json?t=${Date.now()}`, {
@@ -58,11 +66,9 @@ export async function checkForAppUpdate(): Promise<boolean> {
     const data = await response.json();
     const remoteVersion = data?.version;
 
-    if (!remoteVersion || remoteVersion === RUNNING_BUILD_ID) {
+    if (!remoteVersion || remoteVersion === 'dev' || remoteVersion === RUNNING_BUILD_ID) {
       return false;
     }
-
-    console.log(`[EduVerse Version] New deployment detected: ${remoteVersion} (current: ${RUNNING_BUILD_ID})`);
 
     // Safety guard: do not disrupt active exams
     if (isUserInExam()) {
@@ -70,21 +76,30 @@ export async function checkForAppUpdate(): Promise<boolean> {
       return false;
     }
 
-    // Check reload throttle to prevent reload loops
+    // Check if this version was already applied to prevent any loop
+    const appliedVersion = localStorage.getItem('eduverse_applied_version');
+    if (appliedVersion === remoteVersion) {
+      return false;
+    }
+
+    // Throttle reloads to at most once every 5 minutes
     const lastReload = localStorage.getItem('eduverse_last_update_reload');
     const now = Date.now();
-    if (lastReload && now - parseInt(lastReload, 10) < RELOAD_THROTTLE_MS) {
+    if (lastReload && now - parseInt(lastReload, 10) < MIN_RELOAD_INTERVAL_MS) {
       return false;
     }
 
     isUpdating = true;
     localStorage.setItem('eduverse_last_update_reload', String(now));
+    localStorage.setItem('eduverse_applied_version', remoteVersion);
     localStorage.setItem('eduverse_build_id', remoteVersion);
+
+    console.log(`[EduVerse Version] New deployment detected: ${remoteVersion}. Refreshing...`);
 
     // 1. Clear stale caches
     await clearStaleCaches();
 
-    // 2. Trigger Service Worker update
+    // 2. Trigger Service Worker update in background
     if ('serviceWorker' in navigator) {
       try {
         const registrations = await navigator.serviceWorker.getRegistrations();
@@ -96,8 +111,7 @@ export async function checkForAppUpdate(): Promise<boolean> {
       }
     }
 
-    // 3. Smoothly reload application to load new bundle
-    console.log('[EduVerse Version] Reloading application to apply update...');
+    // 3. Reload application cleanly
     window.location.reload();
     return true;
   } catch (error) {
@@ -110,26 +124,21 @@ export async function checkForAppUpdate(): Promise<boolean> {
 
 // Start periodic checker & event listeners
 export function initVersionManager(): void {
-  if (typeof window === 'undefined') return;
+  // Never run in dev
+  if (typeof window === 'undefined' || import.meta.env.DEV) return;
 
-  // Run initial check after page has loaded
+  // Run initial check 10 seconds after page has loaded
   window.addEventListener('load', () => {
-    // Stagger check slightly after initial render to avoid competing with startup queries
     setTimeout(() => {
       checkForAppUpdate();
-    }, 4000);
+    }, 10000);
   });
 
-  // Check whenever user switches back to this tab
+  // Check when user switches back to this tab
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') {
       checkForAppUpdate();
     }
-  });
-
-  // Check whenever window gains focus
-  window.addEventListener('focus', () => {
-    checkForAppUpdate();
   });
 
   // Periodic interval check
