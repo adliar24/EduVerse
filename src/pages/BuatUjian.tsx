@@ -68,9 +68,12 @@ export default function BuatUjian() {
 
   useEffect(() => {
     fetchQuestions();
+  }, [selectedCategoryId, activeSchool]);
+
+  useEffect(() => {
     fetchCategories();
     fetchClasses();
-  }, [selectedCategoryId, activeSchool]);
+  }, [activeSchool]);
 
   const fetchClasses = async () => {
     try {
@@ -103,8 +106,14 @@ export default function BuatUjian() {
       );
       
       setClasses(classesWithCount);
-      // Default to selecting all classes so it is easy for teacher
-      setSelectedClasses(classesWithCount.map(c => c.id));
+      // Only default to all classes if user hasn't configured selectedClasses yet
+      setSelectedClasses(prev => {
+        if (prev.length === 0) {
+          return classesWithCount.map(c => c.id);
+        }
+        const validIds = classesWithCount.map(c => c.id);
+        return prev.filter(id => validIds.includes(id));
+      });
     } catch (error) {
       console.error('Error fetching classes:', error);
     }

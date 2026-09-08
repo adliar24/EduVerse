@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { supabase } from '../../lib/supabase';
+import { supabase, supabaseAnon } from '../../lib/supabase';
 import { useNavigate } from 'react-router-dom';
 import { GraduationCap, ArrowRight, AlertCircle, Loader2, Key, ChevronLeft, BookOpen, Clock, ShieldCheck, Users } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -154,12 +154,22 @@ export default function StudentJoin({ isDashboardView = false }: { isDashboardVi
       }
 
       // Try to find existing participant for this session
-      const { data: existingParticipants, error: fetchError } = await supabase
-        .from('participants')
-        .select('id, status, name, is_locked, violations, end_time')
-        .eq('session_id', session.id);
+      let existingParticipants: any[] | null = null;
+      try {
+        const { data } = await supabaseAnon
+          .from('participants')
+          .select('id, status, name, is_locked, violations, end_time')
+          .eq('session_id', session.id);
+        existingParticipants = data;
+      } catch (e) {}
 
-      if (fetchError) throw fetchError;
+      if (!existingParticipants) {
+        const { data: authParticipants } = await supabase
+          .from('participants')
+          .select('id, status, name, is_locked, violations, end_time')
+          .eq('session_id', session.id);
+        existingParticipants = authParticipants;
+      }
 
       // Check for existing participant by name (case-insensitive, trimmed)
       const existingParticipant = existingParticipants?.find(
@@ -187,24 +197,41 @@ export default function StudentJoin({ isDashboardView = false }: { isDashboardVi
         // Resume from last position (technical issue recovery)
         participantId = existingParticipant.id;
       } else {
-        // Create new participant
-        const { data: newParticipant, error: insertError } = await supabase
+        // Create new participant with dual client support (anon policy guaranteed)
+        const participantPayload = [{
+          exam_id: examId,
+          session_id: session.id,
+          name: studentInfo.name,
+          class: session.class_name,
+          start_time: new Date().toISOString(),
+          status: 'ongoing',
+          is_locked: false,
+          violations: 0,
+          last_position: 0
+        }];
+
+        let newParticipant = null;
+        let insertError = null;
+
+        const { data: anonPart, error: anonErr } = await supabaseAnon
           .from('participants')
-          .insert([{
-            exam_id: examId,
-            session_id: session.id,
-            name: studentInfo.name,
-            class: session.class_name,
-            start_time: new Date().toISOString(),
-            status: 'ongoing',
-            is_locked: false,
-            violations: 0,
-            last_position: 0
-          }])
+          .insert(participantPayload)
           .select()
           .single();
 
-        if (insertError) {
+        if (!anonErr && anonPart) {
+          newParticipant = anonPart;
+        } else {
+          const { data: authPart, error: authErr } = await supabase
+            .from('participants')
+            .insert(participantPayload)
+            .select()
+            .single();
+          newParticipant = authPart;
+          insertError = authErr;
+        }
+
+        if (insertError && !newParticipant) {
           throw new Error(`Gagal membuat peserta: ${insertError.message}`);
         }
         

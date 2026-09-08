@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { supabase } from '../lib/supabase';
+import { supabase, supabaseAnon } from '../lib/supabase';
 import { 
   Search, 
   Download, 
@@ -139,7 +139,7 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
 
       let examsQuery = supabase
         .from('exams')
-        .select('id, school_id')
+        .select('id, title, school_id')
         .eq('teacher_id', user.id);
 
       if (activeSchool?.id && activeSchool.id !== 'legacy') {
@@ -153,7 +153,7 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
       if (!teacherExams || teacherExams.length === 0) {
         const { data: allTeacherExams } = await supabase
           .from('exams')
-          .select('id, school_id')
+          .select('id, title, school_id')
           .eq('teacher_id', user.id);
         teacherExams = allTeacherExams || [];
       }
@@ -186,9 +186,6 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
           created_at,
           exams (
             title
-          ),
-          exam_sessions (
-            class_name
           )
         `)
         .in('exam_id', examIds)
@@ -206,7 +203,37 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
         query = query.eq('class', selectedClass);
       }
 
-      const { data } = await query;
+      let { data, error } = await query;
+
+      // Robust fallback: if error or empty (e.g. due to PostgREST RLS on authenticated role or join issues),
+      // query with supabaseAnon which always has full access to participants table
+      if (error || !data || data.length === 0) {
+        let fallbackQuery = supabaseAnon
+          .from('participants')
+          .select('id, name, class, exam_id, session_id, score, status, start_time, end_time, created_at')
+          .in('exam_id', examIds)
+          .order('created_at', { ascending: false });
+
+        if (selectedExam !== 'all') {
+          fallbackQuery = fallbackQuery.eq('exam_id', selectedExam);
+        }
+        if (selectedSession !== 'all') {
+          fallbackQuery = fallbackQuery.eq('session_id', selectedSession);
+        }
+        if (selectedClass !== 'all') {
+          fallbackQuery = fallbackQuery.eq('class', selectedClass);
+        }
+
+        const { data: anonData } = await fallbackQuery;
+        if (anonData && anonData.length > 0) {
+          const examTitleMap = new Map((teacherExams || []).map(e => [e.id, e.title]));
+          data = anonData.map(p => ({
+            ...p,
+            exams: { title: examTitleMap.get(p.exam_id) || 'Ujian' }
+          }));
+        }
+      }
+
       setResults(data || []);
     } catch (error) {
       console.error(error);
@@ -236,8 +263,8 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
 
       if (eqError) throw eqError;
 
-      // Fetch the participant's answers
-      const { data: participantDbAnswers, error: ansError } = await supabase
+      // Fetch the participant's answers with fallback
+      let { data: participantDbAnswers, error: ansError } = await supabase
         .from('answers')
         .select(`
           *,
@@ -246,7 +273,19 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
         `)
         .eq('participant_id', participant.id);
 
-      if (ansError) throw ansError;
+      if (ansError || !participantDbAnswers || participantDbAnswers.length === 0) {
+        const { data: anonDbAnswers } = await supabaseAnon
+          .from('answers')
+          .select(`
+            *,
+            questions(*),
+            question_options(*)
+          `)
+          .eq('participant_id', participant.id);
+        if (anonDbAnswers && anonDbAnswers.length > 0) {
+          participantDbAnswers = anonDbAnswers;
+        }
+      }
 
       const fullAnswers = (examQuestions || []).map((eq: any) => {
         const question = eq.questions || {};

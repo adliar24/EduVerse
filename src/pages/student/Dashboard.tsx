@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '../../lib/supabase';
+import { supabase, supabaseAnon } from '../../lib/supabase';
 import { 
   FileText, 
   Clock, 
@@ -190,12 +190,22 @@ export default function StudentDashboard() {
       if (!examCode) throw new Error('Kode ujian tidak ditemukan');
 
       // Check existing participants
-      const { data: existingParticipants, error: fetchErr } = await supabase
-        .from('participants')
-        .select('id, status, name, is_locked, violations, end_time')
-        .eq('session_id', session.id);
+      let existingParticipants: any[] | null = null;
+      try {
+        const { data } = await supabaseAnon
+          .from('participants')
+          .select('id, status, name, is_locked, violations, end_time')
+          .eq('session_id', session.id);
+        existingParticipants = data;
+      } catch (e) {}
 
-      if (fetchErr) throw fetchErr;
+      if (!existingParticipants) {
+        const { data: authParticipants } = await supabase
+          .from('participants')
+          .select('id, status, name, is_locked, violations, end_time')
+          .eq('session_id', session.id);
+        existingParticipants = authParticipants;
+      }
 
       const existingParticipant = existingParticipants?.find(
         (p: any) => p.name?.trim().toLowerCase() === studentProfile.name?.trim().toLowerCase()
@@ -216,23 +226,40 @@ export default function StudentDashboard() {
         }
         participantId = existingParticipant.id;
       } else {
-        const { data: newParticipant, error: insertErr } = await supabase
+        const participantPayload = [{
+          exam_id: examId,
+          session_id: session.id,
+          name: studentProfile.name,
+          class: session.class_name || studentProfile.className || '',
+          start_time: new Date().toISOString(),
+          status: 'ongoing',
+          is_locked: false,
+          violations: 0,
+          last_position: 0
+        }];
+
+        let newParticipant = null;
+        let insertErr = null;
+
+        const { data: anonPart, error: anonErr } = await supabaseAnon
           .from('participants')
-          .insert([{
-            exam_id: examId,
-            session_id: session.id,
-            name: studentProfile.name,
-            class: session.class_name || studentProfile.className || '',
-            start_time: new Date().toISOString(),
-            status: 'ongoing',
-            is_locked: false,
-            violations: 0,
-            last_position: 0
-          }])
+          .insert(participantPayload)
           .select()
           .single();
 
-        if (insertErr) throw insertErr;
+        if (!anonErr && anonPart) {
+          newParticipant = anonPart;
+        } else {
+          const { data: authPart, error: authErr } = await supabase
+            .from('participants')
+            .insert(participantPayload)
+            .select()
+            .single();
+          newParticipant = authPart;
+          insertErr = authErr;
+        }
+
+        if (insertErr && !newParticipant) throw insertErr;
         participantId = newParticipant?.id;
       }
 

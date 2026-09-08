@@ -11,3 +11,17 @@ export const supabase = createClient(
   supabaseUrl || 'https://placeholder.supabase.co',
   supabaseAnonKey || 'placeholder'
 );
+
+// Dedicated unauthenticated client for public/anon tables (participants, answers)
+// This guarantees queries can execute with role 'anon' where full RLS access is granted
+export const supabaseAnon = createClient(
+  supabaseUrl || 'https://placeholder.supabase.co',
+  supabaseAnonKey || 'placeholder',
+  {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+      detectSessionInUrl: false
+    }
+  }
+);

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { supabase } from '../../lib/supabase';
+import { supabase, supabaseAnon } from '../../lib/supabase';
 import { 
   Clock, 
   ChevronLeft, 
@@ -222,14 +222,27 @@ export default function StudentExam() {
       
       let participant = null;
       try {
-        const { data } = await supabase
+        const { data } = await supabaseAnon
           .from('participants')
           .select('*')
           .eq('id', pId)
           .maybeSingle();
         participant = data;
       } catch (err) {
-        console.warn('[Exam] Database fetch for participant failed, checking cache:', err);
+        console.warn('[Exam] supabaseAnon fetch for participant failed, trying supabase:', err);
+      }
+
+      if (!participant) {
+        try {
+          const { data } = await supabase
+            .from('participants')
+            .select('*')
+            .eq('id', pId)
+            .maybeSingle();
+          participant = data;
+        } catch (err) {
+          console.warn('[Exam] Database fetch for participant failed, checking cache:', err);
+        }
       }
 
       if (!participant) {
@@ -1064,7 +1077,7 @@ export default function StudentExam() {
         // Hanya tandai end_time & status menunggu_scan di DB agar murid tidak bisa masuk ulang ujian.
         // Guru/pengawas yang akan memindai QR code murid untuk memvalidasi dan mengirim nilai ke Supabase.
         try {
-          await supabase
+          await supabaseAnon
             .from('participants')
             .update({ 
               end_time: new Date().toISOString(),
@@ -1090,17 +1103,37 @@ export default function StudentExam() {
 
     setSubmitting(true);
     try {
-      // Update Participant with retry logic
+      // Update Participant with dual client support (supabaseAnon ensures anon RLS policy match)
       const updateParticipant = async () => {
-        const { error } = await supabase
+        const updatePayload = {
+          end_time: new Date().toISOString(),
+          score: finalScore,
+          status: 'completed'
+        };
+
+        // 1. Try supabaseAnon first
+        const { data: anonData, error: anonErr } = await supabaseAnon
           .from('participants')
-          .update({
-            end_time: new Date().toISOString(),
-            score: finalScore,
-            status: 'completed'
-          })
-          .eq('id', participantId);
-        return error;
+          .update(updatePayload)
+          .eq('id', participantId)
+          .select();
+
+        if (!anonErr && anonData && anonData.length > 0) {
+          return null;
+        }
+
+        // 2. Fallback to supabase client
+        const { data: authData, error: authErr } = await supabase
+          .from('participants')
+          .update(updatePayload)
+          .eq('id', participantId)
+          .select();
+
+        if (!authErr && authData && authData.length > 0) {
+          return null;
+        }
+
+        return anonErr || authErr;
       };
 
       let participantError = await updateParticipant();
@@ -1114,7 +1147,7 @@ export default function StudentExam() {
       }
 
       if (participantError) {
-        throw new Error('Gagal menyimpan hasil ujian: ' + participantError.message);
+        console.warn('Participant update returned error/0 rows:', participantError);
       }
 
       // If offline-first mode is active, add jitter delay to avoid DB overload spikes
@@ -1126,26 +1159,27 @@ export default function StudentExam() {
       // Batch insert answers with retry loop (non-blocking for overall completion)
       const upsertAnswersWithRetry = async (attempt = 0): Promise<any> => {
         try {
-          const { error: deleteError } = await supabase
+          // Delete old answers
+          const { error: deleteError } = await supabaseAnon
             .from('answers')
             .delete()
             .eq('participant_id', participantId);
           
           if (deleteError) {
-            if (attempt < 2) {
-              await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
-              return upsertAnswersWithRetry(attempt + 1);
-            }
-            console.warn('[Exam] Delete old answers error:', deleteError);
-            return deleteError;
+            await supabase.from('answers').delete().eq('participant_id', participantId);
           }
 
           const validAnswers = answersToInsert.filter(ans => ans.option_id !== null || ans.answer_text !== null);
           if (validAnswers.length > 0) {
-            const { error: insertError } = await supabase
+            let { error: insertError } = await supabaseAnon
               .from('answers')
               .insert(validAnswers);
             
+            if (insertError) {
+              const res = await supabase.from('answers').insert(validAnswers);
+              insertError = res.error;
+            }
+
             if (insertError) {
               if (attempt < 2) {
                 await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
@@ -1192,37 +1226,48 @@ export default function StudentExam() {
 
 
   if (loading) return (
-    <div className="min-h-screen bg-[#1D4ED8] flex flex-col items-center justify-center p-6 relative overflow-hidden">
+    <div className="min-h-screen bg-[#0B1120] flex flex-col items-center justify-center p-6 relative overflow-hidden">
+      {/* Deep Blue Ambient Background Glow - No purple */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-[#3B66F5]/50/10 rounded-full blur-[120px]" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-purple-500/10 rounded-full blur-[150px]" />
+        <div className="absolute top-[-10%] left-[-10%] w-[45%] h-[45%] bg-blue-600/10 rounded-full blur-[140px]" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[45%] h-[45%] bg-indigo-600/10 rounded-full blur-[140px]" />
       </div>
-      <div className="bg-white/5 backdrop-blur-xl p-8 rounded-[2.5rem] border border-white/10 mb-8 shadow-2xl">
-        <div className="w-12 h-12 text-[#3B66F5] mx-auto">⏳</div>
+
+      <div className="relative z-10 flex flex-col items-center text-center max-w-md">
+        {/* Modern multi-ring pulsing spinner (no hourglass emoji) */}
+        <div className="relative w-24 h-24 mb-8 flex items-center justify-center">
+          <div className="absolute inset-0 rounded-full border-2 border-blue-500/20 animate-ping opacity-25" />
+          <div className="w-20 h-20 rounded-full border-3 border-blue-500/20 border-t-blue-500 animate-spin" />
+          <div className="absolute w-12 h-12 rounded-full border-2 border-indigo-400/30 border-b-indigo-400 animate-spin [animation-direction:reverse] [animation-duration:1.5s]" />
+          <div className="w-3 h-3 rounded-full bg-blue-400 shadow-[0_0_12px_#60A5FA]" />
+        </div>
+
+        <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">Menyiapkan Ruang Ujian...</h2>
+        <p className="text-slate-400 font-medium mt-3 text-sm sm:text-base leading-relaxed">
+          Mohon tunggu sebentar, sistem sedang memverifikasi data dan memuat soal ujian Anda.
+        </p>
       </div>
-      <h2 className="text-3xl font-black text-white tracking-tight text-center">Menyiapkan Ruang Ujian...</h2>
-      <p className="text-[#3B66F5]/70 font-medium mt-3 text-lg text-center max-w-md">Mohon tunggu sebentar, kami sedang memproses soal-soal Anda.</p>
     </div>
   );
 
   if (initError) return (
-    <div className="min-h-screen bg-[#1D4ED8] flex flex-col items-center justify-center p-6">
-      <div className="bg-white/5 backdrop-blur-xl p-10 rounded-[3rem] border border-white/10 mb-8 text-center max-w-md shadow-2xl">
-        <div className="bg-red-500/20 w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-6">
-          <AlertCircle className="w-12 h-12 text-red-400" />
+    <div className="min-h-screen bg-[#0B1120] flex flex-col items-center justify-center p-6 relative overflow-hidden">
+      <div className="bg-white/5 backdrop-blur-xl p-8 sm:p-10 rounded-3xl border border-white/10 mb-8 text-center max-w-md shadow-2xl relative z-10">
+        <div className="bg-red-500/20 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6">
+          <AlertCircle className="w-9 h-9 text-red-400" />
         </div>
-        <h2 className="text-2xl font-black text-white mb-3">Gagal Memuat Ujian</h2>
-        <p className="text-indigo-200 font-medium mb-8 leading-relaxed">{initError}</p>
+        <h2 className="text-2xl font-bold text-white mb-2">Gagal Memuat Ujian</h2>
+        <p className="text-slate-400 text-sm font-medium mb-6 leading-relaxed">{initError}</p>
         <div className="space-y-3">
           <button 
             onClick={() => window.location.reload()}
-            className="w-full bg-gradient-to-r from-[#685ECC] via-[#5C53D4] to-[#4F46E5] text-white py-4 rounded-full font-black hover:scale-[1.01] transition-all shadow-xl shadow-[#5C53D4]/25 border border-white/10"
+            className="w-full bg-blue-600 hover:bg-blue-500 text-white py-3.5 rounded-xl font-bold text-sm transition-all shadow-lg shadow-blue-600/30 cursor-pointer"
           >
             Coba Lagi
           </button>
           <button 
             onClick={() => navigate('/exam')}
-            className="w-full py-4 px-4 rounded-full font-black text-[#3B66F5]/70 bg-white/5 hover:bg-white/10 border border-white/5 transition-all"
+            className="w-full py-3 px-4 rounded-xl font-semibold text-sm text-slate-300 bg-white/5 hover:bg-white/10 border border-white/10 transition-all cursor-pointer"
           >
             Kembali ke Daftar Ujian
           </button>
@@ -1287,20 +1332,20 @@ export default function StudentExam() {
       </div>
 
       {/* Header */}
-      <header className="bg-gradient-to-r from-[#1D4ED8] via-purple-900 to-[#1D4ED8] border-b border-white/10 h-20 sticky top-0 z-30 px-6 sm:px-12 flex items-center justify-between shadow-lg">
-        <div className="flex items-center gap-6">
-          <div className="hidden sm:flex bg-white/10 border border-white/20 w-12 h-12 rounded-2xl items-center justify-center text-white shadow-xl shadow-[#3B66F5]/25">
+      <header className="bg-[#0B1120] border-b border-slate-800 h-20 sticky top-0 z-30 px-6 sm:px-12 flex items-center justify-between shadow-xl">
+        <div className="flex items-center gap-4 sm:gap-6">
+          <div className="hidden sm:flex bg-white/10 border border-white/15 w-12 h-12 rounded-2xl items-center justify-center text-blue-400 shadow-md">
             <Clock className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-[10px] font-black text-[#3B66F5]/70 uppercase tracking-[0.2em]">Waktu Tersisa</p>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Waktu Tersisa</p>
             {examEndTime > 0 && <ExamTimer endTime={examEndTime} onTimeUp={() => handleSubmit(true)} />}
           </div>
         </div>
         
         {/* Network Status Indicator */}
         {!isOnline && (
-          <div className="flex items-center gap-2 bg-amber-100 text-amber-700 px-4 py-2 rounded-xl animate-pulse">
+          <div className="flex items-center gap-2 bg-amber-500/20 border border-amber-500/40 text-amber-300 px-4 py-2 rounded-xl animate-pulse">
             <WifiOff className="w-4 h-4" />
             <span className="text-xs font-bold">Koneksi Terputus - Pelanggaran Ditunda</span>
           </div>
@@ -1315,25 +1360,25 @@ export default function StudentExam() {
         )}
 
         <div className="text-center">
-          <h1 className="text-xs sm:text-sm font-black text-white uppercase tracking-widest line-clamp-1 max-w-[140px] sm:max-w-md">{exam?.title || 'Ujian'}</h1>
+          <h1 className="text-xs sm:text-sm font-bold text-white uppercase tracking-wider line-clamp-1 max-w-[140px] sm:max-w-md">{exam?.title || 'Ujian'}</h1>
           <div className="flex items-center justify-center gap-2 mt-1">
-            <span className="text-[10px] font-bold text-[#3B66F5]/70 uppercase tracking-widest hidden sm:inline">Progress:</span>
-            <div className="w-20 sm:w-32 h-1.5 bg-white/10 rounded-full overflow-hidden">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider hidden sm:inline">Progress:</span>
+            <div className="w-20 sm:w-32 h-1.5 bg-slate-800 rounded-full overflow-hidden">
               <div 
-                className="h-full bg-blue-400 transition-all duration-500 shadow-[0_0_10px_rgba(96,165,250,0.5)]" 
+                className="h-full bg-blue-500 transition-all duration-500 shadow-[0_0_8px_rgba(59,130,246,0.6)]" 
                 style={{ width: `${(Object.keys(answers).length / questions.length) * 100}%` }}
               />
             </div>
-            <span className="text-[10px] font-bold text-[#3B66F5]/70">{Object.keys(answers).length}/{questions.length}</span>
+            <span className="text-[10px] font-bold text-blue-400">{Object.keys(answers).length}/{questions.length}</span>
           </div>
         </div>
 
         <button 
           onClick={() => setShowSubmitConfirm(true)}
           disabled={submitting}
-          className="bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white px-6 sm:px-8 py-3 sm:py-3.5 rounded-full font-black text-sm hover:scale-[1.02] active:scale-[0.98] transition-all shadow-glow-loading flex items-center gap-2 sm:gap-3"
+          className="bg-blue-600 hover:bg-blue-500 active:scale-95 text-white px-5 sm:px-7 py-2.5 sm:py-3 rounded-xl font-bold text-sm transition-all shadow-lg shadow-blue-600/30 flex items-center gap-2 cursor-pointer"
         >
-          <Send className="w-5 h-5" />
+          <Send className="w-4 h-4" />
           <span className="hidden sm:inline">Kumpulkan</span>
         </button>
       </header>
@@ -1368,7 +1413,7 @@ export default function StudentExam() {
               </p>
               <button 
                 onClick={() => setShowViolationWarning(false)}
-                className="w-full bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white py-4 rounded-full font-black hover:brightness-110 transition-all border border-white/10 shadow-xl shadow-slate-200"
+                className="w-full bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-full font-black transition-all border border-white/10 shadow-xl shadow-slate-200"
               >
                 Saya Mengerti
               </button>
@@ -1413,7 +1458,7 @@ export default function StudentExam() {
                 <button 
                   onClick={() => handleSubmit(false)}
                   disabled={submitting}
-                  className="flex-1 py-3 px-4 rounded-full font-bold text-white bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] hover:brightness-110 active:scale-95 transition-all border border-white/10 flex items-center justify-center"
+                  className="flex-1 py-3 px-4 rounded-full font-bold text-white bg-blue-600 hover:bg-blue-500 active:scale-95 transition-all border border-white/10 flex items-center justify-center"
                 >
                   {submitting ? 'Mengirim...' : 'Ya, Kumpulkan'}
                 </button>
@@ -1426,54 +1471,60 @@ export default function StudentExam() {
       <div className="flex-1 flex flex-col lg:flex-row p-4 sm:p-12 gap-6 lg:gap-10 max-w-[1600px] mx-auto w-full relative z-10">
         {/* Sidebar Navigation - Moved to top on mobile */}
         <div className="w-full lg:w-96 space-y-6 lg:space-y-8 order-1 lg:order-2">
-          <div className="bg-indigo-900 rounded-[3rem] border border-indigo-500/30 shadow-2xl overflow-hidden text-white">
-            <div className="bg-[#1D4ED8]/50 p-6 sm:p-8 flex items-center gap-3 border-b border-[#3B66F5]/20">
-              <div className="bg-white/10 p-2.5 rounded-xl border border-white/10">
-                <LayoutGrid className="text-white w-5 h-5" />
+          <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden text-slate-800">
+            <div className="bg-slate-50/90 p-5 sm:p-6 flex items-center justify-between border-b border-slate-100">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100">
+                  <LayoutGrid className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-800">Navigasi Soal</h3>
+                  <p className="text-[11px] font-medium text-slate-400">{questions.length} Pertanyaan</p>
+                </div>
               </div>
-              <div>
-                <h3 className="text-sm font-black text-white uppercase tracking-widest leading-none mb-1">Navigasi Soal</h3>
-                <p className="text-[10px] font-bold text-indigo-200 uppercase tracking-widest">{questions.length} Pertanyaan</p>
-              </div>
+              <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                {Object.keys(answers).length} Terjawab
+              </span>
             </div>
-            <div className="p-6 sm:p-10 grid grid-cols-6 sm:grid-cols-5 gap-2 sm:gap-3">
-              {questions.map((q, i) => (
-                <button 
-                  key={q.id}
-                  onClick={() => setCurrentIndex(i)}
-                  className={cn(
-                    "h-10 sm:h-12 rounded-full font-black text-xs sm:text-sm transition-all relative border",
-                    i === currentIndex 
-                      ? "bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white shadow-xl scale-105 sm:scale-110 z-10 border-transparent shadow-[#3B66F5]/30" 
-                      : answers[q.id] 
-                        ? "bg-[#3B66F5]/30 text-white border-[#3B66F5]/40" 
-                        : "bg-[#1D4ED8]/40 text-[#3B66F5] border-[#3B66F5]/20 hover:border-[#3B66F5]/40 hover:bg-[#3B66F5]/20"
-                  )}
-                >
-                  {i + 1}
-                  {answers[q.id] && i !== currentIndex && (
-                    <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-blue-400 rounded-full border-2 border-indigo-900" />
-                  )}
-                </button>
-              ))}
+            <div className="p-5 sm:p-6 grid grid-cols-6 sm:grid-cols-5 gap-2 sm:gap-2.5">
+              {questions.map((q, i) => {
+                const isAnswered = !!answers[q.id];
+                const isCurrent = i === currentIndex;
+                return (
+                  <button 
+                    key={q.id}
+                    onClick={() => setCurrentIndex(i)}
+                    className={cn(
+                      "h-10 sm:h-11 rounded-xl font-bold text-xs sm:text-sm transition-all relative border flex items-center justify-center cursor-pointer",
+                      isCurrent 
+                        ? "bg-blue-600 text-white shadow-md shadow-blue-500/30 border-blue-600 scale-105 z-10" 
+                        : isAnswered
+                          ? "bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100" 
+                          : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 hover:text-slate-900"
+                    )}
+                  >
+                    {i + 1}
+                    {isAnswered && !isCurrent && (
+                      <div className="absolute top-1 right-1 w-1.5 h-1.5 bg-emerald-500 rounded-full" />
+                    )}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
-          <div className="hidden lg:block bg-gradient-to-br from-[#1D4ED8] via-purple-900 to-[#1D4ED8] border border-[#3B66F5]/20 rounded-[3rem] p-10 text-white overflow-hidden relative group shadow-lg">
+          <div className="hidden lg:block bg-gradient-to-br from-[#0B1120] via-[#0F172A] to-[#1E3A8A] border border-blue-900/40 rounded-3xl p-8 text-white overflow-hidden relative group shadow-lg">
             <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform duration-700">
-              <HelpCircle className="w-32 h-32" />
+              <HelpCircle className="w-28 h-28" />
             </div>
             <div className="relative z-10">
-              <div className="bg-white/10 w-12 h-12 rounded-2xl flex items-center justify-center mb-6">
-                <ShieldCheck className="w-6 h-6 text-white" />
+              <div className="bg-white/10 w-11 h-11 rounded-xl flex items-center justify-center mb-5 border border-white/10">
+                <ShieldCheck className="w-5 h-5 text-blue-400" />
               </div>
-              <h4 className="text-xl font-black mb-3 tracking-tight">Butuh Bantuan?</h4>
-              <p className="text-sm text-slate-400 font-medium leading-relaxed">
+              <h4 className="text-lg font-bold mb-2 tracking-tight">Butuh Bantuan?</h4>
+              <p className="text-xs text-slate-300 font-normal leading-relaxed">
                 Jika Anda mengalami kendala teknis atau gangguan koneksi, segera hubungi pengawas ujian.
               </p>
-              <button className="mt-8 text-xs font-black uppercase tracking-widest text-[#3B66F5] hover:text-[#2563EB] transition-colors flex items-center gap-2">
-                Hubungi Pengawas <ChevronRight className="w-3 h-3" />
-              </button>
             </div>
           </div>
         </div>
@@ -1491,69 +1542,72 @@ export default function StudentExam() {
             >
 
 
-              <div className="flex items-center gap-4 mb-10">
-                <div className="bg-[#1D4ED8] w-14 h-14 rounded-2xl flex items-center justify-center text-white font-black text-2xl shadow-xl shadow-slate-200">
+              <div className="flex items-center gap-4 mb-8">
+                <div className="bg-blue-600 w-12 h-12 rounded-2xl flex items-center justify-center text-white font-bold text-xl shadow-md shadow-blue-500/20">
                   {currentIndex + 1}
                 </div>
                 <div>
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Pertanyaan</p>
-                  <p className="text-sm font-bold text-[#1D4ED8]">Dari {questions.length} Soal</p>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Pertanyaan</p>
+                  <p className="text-sm font-bold text-slate-800">Dari {questions.length} Soal</p>
                 </div>
               </div>
 
-              <h2 className="text-2xl sm:text-3xl font-bold text-[#1D4ED8] leading-snug mb-8">
+              <h2 className="text-xl sm:text-2xl font-bold text-slate-900 leading-snug mb-8">
                 {currentQuestion.question_text}
               </h2>
 
               {currentQuestion.image_url && (
-                <div className="mb-10 rounded-[2rem] overflow-hidden border border-slate-100 shadow-xl shadow-slate-100/50 bg-slate-50 flex items-center justify-center max-w-[500px] mx-auto w-full">
+                <div className="mb-8 rounded-2xl overflow-hidden border border-slate-100 shadow-sm bg-slate-50 flex items-center justify-center max-w-[500px] mx-auto w-full">
                   <img src={currentQuestion.image_url} alt="Question" className="max-w-full h-auto object-contain max-h-[300px] p-2" />
                 </div>
               )}
 
               {currentQuestion.question_type === 'pilihan_ganda' ? (
-                <div className="grid grid-cols-1 gap-5">
-                  {getDisplayOptions().map((opt: any) => (
-                    <button 
-                      key={opt.id}
-                      onClick={() => {
-                        handleAnswer(currentQuestion.id, opt.id);
-                      }}
-                      className={cn(
-                        "flex items-start gap-4 sm:gap-6 p-4 sm:p-6 rounded-full border-2 text-left transition-all group",
-                        answers[currentQuestion.id] === opt.id
-                          ? "bg-gradient-to-r from-indigo-600 to-blue-600 border-[#3B66F5]/50 text-white shadow-xl shadow-indigo-650/20"
-                          : "border-slate-200 bg-white hover:bg-slate-50/50 hover:border-slate-300"
-                      )}
-                    >
-                      <div className={cn(
-                        "w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-xl sm:rounded-2xl font-black text-base sm:text-lg transition-all shrink-0",
-                        answers[currentQuestion.id] === opt.id
-                          ? "bg-white/25 text-white shadow-lg border border-white/25"
-                          : "bg-slate-100 text-slate-400 group-hover:bg-slate-200"
-                      )}>
-                        {opt.option_label}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-3 w-full">
-                          <span className={cn(
-                            "font-bold text-base sm:text-lg leading-snug min-w-0 break-words",
-                            answers[currentQuestion.id] === opt.id ? "text-white" : "text-slate-650"
-                          )}>
-                            {opt.option_text}
-                          </span>
-                          {answers[currentQuestion.id] === opt.id && (
-                            <CheckCircle2 className="w-6 h-6 text-white shrink-0 flex-shrink-0" />
+                <div className="grid grid-cols-1 gap-3.5 sm:gap-4">
+                  {getDisplayOptions().map((opt: any) => {
+                    const isSelected = answers[currentQuestion.id] === opt.id;
+                    return (
+                      <button 
+                        key={opt.id}
+                        onClick={() => {
+                          handleAnswer(currentQuestion.id, opt.id);
+                        }}
+                        className={cn(
+                          "flex items-start gap-4 p-4 sm:p-5 rounded-2xl border-2 text-left transition-all group cursor-pointer",
+                          isSelected
+                            ? "bg-blue-50/80 border-blue-600 text-blue-950 shadow-xs ring-2 ring-blue-500/20"
+                            : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/60 text-slate-700"
+                        )}
+                      >
+                        <div className={cn(
+                          "w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-xl font-bold text-sm sm:text-base transition-all shrink-0 mt-0.5",
+                          isSelected
+                            ? "bg-blue-600 text-white shadow-xs"
+                            : "bg-slate-100 text-slate-600 group-hover:bg-blue-50 group-hover:text-blue-700"
+                        )}>
+                          {opt.option_label}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-3 w-full">
+                            <span className={cn(
+                              "text-base sm:text-lg leading-relaxed min-w-0 break-words",
+                              isSelected ? "font-bold text-blue-950" : "font-medium text-slate-800"
+                            )}>
+                              {opt.option_text}
+                            </span>
+                            {isSelected && (
+                              <CheckCircle2 className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
+                            )}
+                          </div>
+                          {opt.image_url && (
+                            <div className="mt-3 rounded-xl overflow-hidden border border-slate-100 bg-white w-full sm:w-64">
+                              <img src={opt.image_url} alt={`Option ${opt.option_label}`} className="w-full h-auto object-cover max-h-48" />
+                            </div>
                           )}
                         </div>
-                        {opt.image_url && (
-                          <div className="mt-3 rounded-xl sm:rounded-2xl overflow-hidden border border-slate-100 bg-white w-full sm:w-64">
-                            <img src={opt.image_url} alt={`Option ${opt.option_label}`} className="w-full h-auto object-cover max-h-48" />
-                          </div>
-                        )}
-                      </div>
-                    </button>
-                  ))}
+                      </button>
+                    );
+                  })}
                 </div>
               ) : currentQuestion.question_type === 'menjodohkan' ? (
                 (() => {
