@@ -28,6 +28,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import React, { useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { cn } from '../lib/utils';
 import { useAlert } from '../context/AlertContext';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
@@ -300,8 +301,8 @@ export default function BankSoal() {
       setEditingId(question.id);
       
       let newFormData = {
-        question_text: question.question_text,
-        question_type: question.question_type,
+        question_text: question.question_text || '',
+        question_type: question.question_type || 'pilihan_ganda',
         category_id: question.category_id || '',
         correct_answer: question.correct_answer || '',
         image_url: question.image_url || '',
@@ -320,16 +321,21 @@ export default function BankSoal() {
       const newOptionPreviews: Record<string, string | null> = { A: null, B: null, C: null, D: null, E: null };
 
       if (question.question_type === 'pilihan_ganda') {
-        const { data: optionsData } = await supabase
-          .from('question_options')
-          .select('*')
-          .eq('question_id', question.id);
+        // Fast path: use already loaded question_options from memory (fetchData) to open immediately!
+        let optionsData = question.question_options;
+        if (!optionsData || optionsData.length === 0) {
+          const { data } = await supabase
+            .from('question_options')
+            .select('*')
+            .eq('question_id', question.id);
+          optionsData = data;
+        }
 
         if (optionsData) {
-          optionsData.forEach(opt => {
+          optionsData.forEach((opt: any) => {
             if (['A','B','C','D','E'].includes(opt.option_label)) {
               (newFormData.options as any)[opt.option_label] = {
-                text: opt.option_text,
+                text: opt.option_text || '',
                 image_url: opt.image_url || ''
               };
               newOptionPreviews[opt.option_label] = opt.image_url || null;
@@ -1877,21 +1883,22 @@ export default function BankSoal() {
 
       {/* Modal Tambah Folder */}
       <AnimatePresence>
-        {showFolderForm && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        {showFolderForm && typeof document !== 'undefined' && createPortal(
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 overflow-hidden">
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
               onClick={() => setShowFolderForm(false)}
-              className="absolute inset-0 bg-slate-900/40"
+              className="fixed inset-0 bg-black/60 backdrop-blur-xs"
             />
             <motion.div 
-              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              initial={{ opacity: 0, scale: 0.95, y: 12 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              exit={{ opacity: 0, scale: 0.95, y: 12 }}
               transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
-              className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl p-8 overflow-hidden border border-slate-100"
+              className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl p-8 overflow-hidden border border-slate-100 z-10 will-change-transform transform-gpu"
             >
               <div className="flex items-center justify-between mb-8">
                 <h3 className="text-xl font-bold text-[#1D4ED8]">Buat Folder Baru</h3>
@@ -1933,29 +1940,31 @@ export default function BankSoal() {
                 </div>
               </form>
             </motion.div>
-          </div>
+          </div>,
+          document.body
         )}
       </AnimatePresence>
 
       {/* Delete Folder Confirmation Modal */}
       <AnimatePresence>
-        {showDeleteFolderModal && folderToDelete && (
+        {showDeleteFolderModal && folderToDelete && typeof document !== 'undefined' && createPortal(
           <div 
-            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            className="fixed inset-0 z-[9999] flex items-center justify-center p-4 overflow-hidden"
             onClick={() => setShowDeleteFolderModal(false)}
           >
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-slate-900/40"
+              transition={{ duration: 0.15 }}
+              className="fixed inset-0 bg-black/60 backdrop-blur-xs"
             />
             <motion.div 
-              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              initial={{ opacity: 0, scale: 0.95, y: 12 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              exit={{ opacity: 0, scale: 0.95, y: 12 }}
               transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
-              className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl p-8 overflow-hidden border border-slate-100"
+              className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl p-8 overflow-hidden border border-slate-100 z-10 will-change-transform transform-gpu"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -1995,7 +2004,8 @@ export default function BankSoal() {
                 </button>
               </div>
             </motion.div>
-          </div>
+          </div>,
+          document.body
         )}
       </AnimatePresence>
 
@@ -2047,21 +2057,22 @@ export default function BankSoal() {
 
       {/* Modal Move to Folder */}
       <AnimatePresence>
-        {showMoveModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        {showMoveModal && typeof document !== 'undefined' && createPortal(
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 overflow-hidden">
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
               onClick={() => setShowMoveModal(false)}
-              className="absolute inset-0 bg-slate-900/40"
+              className="fixed inset-0 bg-black/60 backdrop-blur-xs"
             />
             <motion.div 
-              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              initial={{ opacity: 0, scale: 0.95, y: 12 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              exit={{ opacity: 0, scale: 0.95, y: 12 }}
               transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
-              className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl p-8 overflow-hidden border border-slate-100"
+              className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl p-8 overflow-hidden border border-slate-100 z-10 will-change-transform transform-gpu"
             >
               <div className="flex items-center justify-between mb-8">
                 <h3 className="text-xl font-bold text-[#1D4ED8]">Pindahkan {selectedQuestionIds.length} Soal</h3>
@@ -2104,27 +2115,29 @@ export default function BankSoal() {
                 </div>
               </div>
             </motion.div>
-          </div>
+          </div>,
+          document.body
         )}
       </AnimatePresence>
 
-      {/* Modal Tambah Soal */}
+      {/* Modal Tambah / Edit Soal */}
       <AnimatePresence>
-        {showAddForm && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        {showAddForm && typeof document !== 'undefined' && createPortal(
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-4 md:p-6 overflow-hidden">
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
               onClick={closeModal}
-              className="absolute inset-0 bg-slate-900/40"
+              className="fixed inset-0 bg-black/60 backdrop-blur-xs"
             />
             <motion.div 
-              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              initial={{ opacity: 0, scale: 0.96, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              exit={{ opacity: 0, scale: 0.96, y: 10 }}
               transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
-              className="relative w-full max-w-4xl bg-white rounded-[2rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh] border border-slate-100"
+              className="relative w-full max-w-4xl bg-white rounded-[2rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh] border border-slate-100 z-10 will-change-transform transform-gpu"
             >
               <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-white">
                 <div>
@@ -2431,7 +2444,8 @@ export default function BankSoal() {
                 </div>
               </form>
             </motion.div>
-          </div>
+          </div>,
+          document.body
         )}
       </AnimatePresence>
     </div>

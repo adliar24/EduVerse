@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2, X, Check, Search, Plus, QrCode, AlertTriangle, CheckCircle2, XCircle } from 'lucide-react';
 
@@ -115,32 +116,36 @@ export const Modal: React.FC<ModalProps> = ({
 
   return (
     <AnimatePresence>
-      {isOpen && (
-        <>
+      {isOpen && typeof document !== 'undefined' && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 overflow-hidden">
           <motion.div 
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 sm:p-6"
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }} 
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-xs"
             onClick={onClose}
+          />
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.96, y: 15 }} 
+            animate={{ opacity: 1, scale: 1, y: 0 }} 
+            exit={{ opacity: 0, scale: 0.96, y: 15 }}
+            transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+            className={`relative w-full ${sizeClasses[size]} bg-white rounded-3xl shadow-glow-loading border border-slate-200/50 z-10 overflow-hidden flex flex-col max-h-[85vh] sm:max-h-[90vh] transform-gpu will-change-transform`}
+            onClick={e => e.stopPropagation()}
           >
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.96, y: 15 }} 
-              animate={{ opacity: 1, scale: 1, y: 0 }} 
-              exit={{ opacity: 0, scale: 0.96, y: 15 }}
-              className={`w-full ${sizeClasses[size]} bg-white rounded-3xl shadow-glow-loading border border-slate-200/50 z-50 overflow-hidden flex flex-col max-h-[85vh] sm:max-h-[90vh]`}
-              onClick={e => e.stopPropagation()}
-            >
-              <div className="flex items-center justify-between p-5 border-b border-gray-100/50 shrink-0">
-                <h3 className="text-lg font-bold text-gray-800">{title}</h3>
-                <button type="button" onClick={onClose} className="p-2 hover:bg-gray-150 rounded-full transition-colors">
-                  <X className="w-5 h-5 text-gray-500" />
-                </button>
-              </div>
-              <div className="p-5 overflow-y-auto">
-                {children}
-              </div>
-            </motion.div>
+            <div className="flex items-center justify-between p-5 border-b border-gray-100/50 shrink-0">
+              <h3 className="text-lg font-bold text-gray-800">{title}</h3>
+              <button type="button" onClick={onClose} className="p-2 hover:bg-gray-150 rounded-full transition-colors">
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
+            <div className="p-5 overflow-y-auto">
+              {children}
+            </div>
           </motion.div>
-        </>
+        </div>,
+        document.body
       )}
     </AnimatePresence>
   );
