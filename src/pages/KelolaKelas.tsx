@@ -22,7 +22,7 @@ import {
   QrCode
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { cn } from '../lib/utils';
+import { cn, capitalizeEachWord } from '../lib/utils';
 import { useAlert } from '../context/AlertContext';
 import { staggerContainer, staggerItem } from '../lib/animations';
 import { useSchool } from '../context/SchoolContext';
@@ -574,8 +574,9 @@ export default function KelolaKelas() {
     setSubmitting(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
+      const formattedName = capitalizeEachWord(newStudentName);
       if (editingStudentId) {
-        const { data: updatedStudent, error } = await supabase.from('students').update({ name: newStudentName }).eq('id', editingStudentId).select().single();
+        const { data: updatedStudent, error } = await supabase.from('students').update({ name: formattedName }).eq('id', editingStudentId).select().single();
         if (error) throw error;
         
         if (updatedStudent) {
@@ -604,7 +605,7 @@ export default function KelolaKelas() {
         showAlert({ title: 'Berhasil', message: 'Nama murid berhasil diperbarui.', type: 'success' });
       } else {
         const { data: newStudent, error } = await supabase.from('students').insert([{ 
-          name: newStudentName, 
+          name: formattedName, 
           class_id: selectedClass.id, 
           teacher_id: user?.id, 
           school_id: activeSchool?.id === 'legacy' ? null : activeSchool?.id,
@@ -692,7 +693,7 @@ export default function KelolaKelas() {
     }
 
     const header = ['NAMA LENGKAP', 'KODE UNIK'];
-    const rows = classStudents.map(s => [s.name, s.student_code || '-']);
+    const rows = classStudents.map(s => [capitalizeEachWord(s.name), s.student_code || '-']);
 
     const worksheet = XLSXStyle.utils.aoa_to_sheet([header, ...rows]);
 
@@ -884,6 +885,8 @@ export default function KelolaKelas() {
             continue;
           }
           
+          const formattedName = capitalizeEachWord(rawName);
+
           try {
             const rawGender = genderIdx !== -1 ? String(row[genderIdx] || '').trim().toUpperCase() : '';
             let genderVal: 'M' | 'F' | null = null;
@@ -898,6 +901,7 @@ export default function KelolaKelas() {
             if (existingStudent) {
               // Update existing student instead of duplicate insert to avoid 409 Conflict
               const updatePayload: any = {};
+              if (existingStudent.name !== formattedName) updatePayload.name = formattedName;
               if (genderVal && !existingStudent.gender) updatePayload.gender = genderVal;
               if (nisnVal && !existingStudent.nisn) updatePayload.nisn = nisnVal;
 
@@ -913,7 +917,7 @@ export default function KelolaKelas() {
                 schoolId: activeSchool?.id === 'legacy' ? null : activeSchool?.id,
                 classId: selectedClass.id,
                 class_id: selectedClass.id,
-                name: existingStudent.name,
+                name: formattedName,
                 student_code: existingStudent.student_code,
                 password: 'murid19',
                 gender: genderVal || existingStudent.gender
@@ -924,7 +928,7 @@ export default function KelolaKelas() {
                 teacherId: user?.id,
                 schoolId: activeSchool?.id === 'legacy' ? null : activeSchool?.id,
                 idKelas: selectedClass.id,
-                nama: existingStudent.name,
+                nama: formattedName,
                 student_code: existingStudent.student_code,
                 password: 'murid19'
               } as any);
@@ -940,7 +944,7 @@ export default function KelolaKelas() {
                 try {
                   const { data: newStudent, error: insertError } = await supabase.from('students').insert([{ 
                     id: newId,
-                    name: rawName, 
+                    name: formattedName, 
                     class_id: selectedClass.id, 
                     teacher_id: user.id, 
                     school_id: activeSchool?.id === 'legacy' ? null : (activeSchool?.id || null),
@@ -1466,7 +1470,7 @@ export default function KelolaKelas() {
                             <tr key={s.id} className="group hover:bg-slate-50/50 transition-colors">
                               <td className="px-4 py-3 text-center text-sm font-medium text-slate-300">{idx + 1}</td>
                               <td className="px-4 py-3">
-                                <span className="font-semibold text-[#1D4ED8] text-sm group-hover:text-[#3B66F5] transition-colors">{s.name}</span>
+                                <span className="font-semibold text-[#1D4ED8] text-sm group-hover:text-[#3B66F5] transition-colors">{capitalizeEachWord(s.name)}</span>
                               </td>
                               <td className="px-4 py-3 text-center">
                                 {s.gender === 'M' || s.gender === 'L' ? (
