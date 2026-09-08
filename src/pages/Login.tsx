@@ -125,7 +125,7 @@ export default function Login() {
         <div className="my-auto py-8 relative max-w-lg">
           <h1 className="text-4xl lg:text-[42px] font-black leading-[1.15] tracking-tight text-white mb-4 text-center lg:text-left">
             Solusi Edukasi Terpadu &{' '}
-            <span className="text-amber-300 font-extrabold">Kemudahan Mengajar Guru</span>
+            <span className="text-white font-extrabold">Kemudahan Mengajar Guru</span>
           </h1>
           <p className="text-slate-100 text-base leading-relaxed font-medium text-center lg:text-left">
             EduVerse dirancang untuk membantu dan memudahkan guru dalam mengelola pembelajaran, presensi, hingga penilaian secara praktis dan efisien.

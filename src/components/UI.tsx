@@ -114,9 +114,11 @@ export const Modal: React.FC<ModalProps> = ({
     };
   }, [isOpen]);
 
-  return (
+  if (typeof document === 'undefined') return null;
+
+  return createPortal(
     <AnimatePresence>
-      {isOpen && typeof document !== 'undefined' && createPortal(
+      {isOpen && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 overflow-hidden">
           <motion.div 
             initial={{ opacity: 0 }} 
@@ -144,10 +146,10 @@ export const Modal: React.FC<ModalProps> = ({
               {children}
             </div>
           </motion.div>
-        </div>,
-        document.body
+        </div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 };
 

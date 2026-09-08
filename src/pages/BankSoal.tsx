@@ -321,24 +321,31 @@ export default function BankSoal() {
       const newOptionPreviews: Record<string, string | null> = { A: null, B: null, C: null, D: null, E: null };
 
       if (question.question_type === 'pilihan_ganda') {
-        // Fast path: use already loaded question_options from memory (fetchData) to open immediately!
-        let optionsData = question.question_options;
-        if (!optionsData || optionsData.length === 0) {
-          const { data } = await supabase
-            .from('question_options')
-            .select('*')
-            .eq('question_id', question.id);
-          optionsData = data;
+        let optionsData = Array.isArray(question.question_options) && question.question_options.length > 0
+          ? question.question_options
+          : null;
+
+        if (!optionsData) {
+          try {
+            const { data } = await supabase
+              .from('question_options')
+              .select('*')
+              .eq('question_id', question.id);
+            optionsData = data;
+          } catch (fetchErr) {
+            console.warn('Could not fetch options remotely:', fetchErr);
+          }
         }
 
-        if (optionsData) {
+        if (Array.isArray(optionsData)) {
           optionsData.forEach((opt: any) => {
-            if (['A','B','C','D','E'].includes(opt.option_label)) {
-              (newFormData.options as any)[opt.option_label] = {
-                text: opt.option_text || '',
-                image_url: opt.image_url || ''
+            const label = String(opt?.option_label || '').trim().toUpperCase();
+            if (['A','B','C','D','E'].includes(label)) {
+              (newFormData.options as any)[label] = {
+                text: opt?.option_text || '',
+                image_url: opt?.image_url || ''
               };
-              newOptionPreviews[opt.option_label] = opt.image_url || null;
+              newOptionPreviews[label] = opt?.image_url || null;
             }
           });
         }
@@ -365,6 +372,10 @@ export default function BankSoal() {
       
       setOptionImagePreviews(newOptionPreviews);
       setFormData(newFormData as any);
+      setShowAddForm(true);
+    } catch (err) {
+      console.error('Error in handleEdit:', err);
+      // Ensure form opens even on error
       setShowAddForm(true);
     } finally {
       setEditingQuestionIds(prev => prev.filter(id => id !== question.id));
@@ -1882,132 +1893,136 @@ export default function BankSoal() {
         </div>
 
       {/* Modal Tambah Folder */}
-      <AnimatePresence>
-        {showFolderForm && typeof document !== 'undefined' && createPortal(
-          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 overflow-hidden">
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
-              onClick={() => setShowFolderForm(false)}
-              className="fixed inset-0 bg-black/60 backdrop-blur-xs"
-            />
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95, y: 12 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 12 }}
-              transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
-              className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl p-8 overflow-hidden border border-slate-100 z-10 will-change-transform transform-gpu"
-            >
-              <div className="flex items-center justify-between mb-8">
-                <h3 className="text-xl font-bold text-[#1D4ED8]">Buat Folder Baru</h3>
-                <button onClick={() => setShowFolderForm(false)} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
-                  <Plus className="w-6 h-6 rotate-45 text-slate-400" />
-                </button>
-              </div>
-
-              <form onSubmit={handleCreateFolder} className="space-y-6">
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Nama Folder</label>
-                  <input 
-                    name="folderName"
-                    type="text" 
-                    autoFocus
-                    required
-                    placeholder={currentCategoryId ? "Contoh: Bab 1 - Aljabar" : "Contoh: Matematika"}
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 outline-none focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 transition-all text-sm font-medium text-slate-700"
-                  />
-                  <p className="text-[10px] text-slate-400 ml-1">
-                    {currentCategoryId ? "Folder ini akan menjadi sub-folder dari " + currentCategory?.name : "Folder ini akan menjadi kategori utama (Mata Pelajaran)"}
-                  </p>
+      {typeof document !== 'undefined' && createPortal(
+        <AnimatePresence>
+          {showFolderForm && (
+            <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 overflow-hidden">
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.15 }}
+                onClick={() => setShowFolderForm(false)}
+                className="fixed inset-0 bg-black/60 backdrop-blur-xs"
+              />
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.95, y: 12 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 12 }}
+                transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+                className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl p-8 overflow-hidden border border-slate-100 z-10 will-change-transform transform-gpu"
+              >
+                <div className="flex items-center justify-between mb-8">
+                  <h3 className="text-xl font-bold text-[#1D4ED8]">Buat Folder Baru</h3>
+                  <button onClick={() => setShowFolderForm(false)} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
+                    <Plus className="w-6 h-6 rotate-45 text-slate-400" />
+                  </button>
                 </div>
 
-                <div className="flex gap-3 pt-4">
+                <form onSubmit={handleCreateFolder} className="space-y-6">
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Nama Folder</label>
+                    <input 
+                      name="folderName"
+                      type="text" 
+                      autoFocus
+                      required
+                      placeholder={currentCategoryId ? "Contoh: Bab 1 - Aljabar" : "Contoh: Matematika"}
+                      className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 outline-none focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 transition-all text-sm font-medium text-slate-700"
+                    />
+                    <p className="text-[10px] text-slate-400 ml-1">
+                      {currentCategoryId ? "Folder ini akan menjadi sub-folder dari " + currentCategory?.name : "Folder ini akan menjadi kategori utama (Mata Pelajaran)"}
+                    </p>
+                  </div>
+
+                  <div className="flex gap-3 pt-4">
+                    <button 
+                      type="button"
+                      onClick={() => setShowFolderForm(false)}
+                      className="flex-1 py-3 rounded-xl font-semibold text-sm text-slate-500 hover:bg-slate-50 transition-all"
+                    >
+                      Batal
+                    </button>
+                    <button 
+                      type="submit"
+                      className="flex-1 py-3 rounded-xl font-semibold text-sm text-white bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] hover:brightness-110 border border-white/10 transition-all shadow-lg shadow-[#3B66F5]/25"
+                    >
+                      Buat Folder
+                    </button>
+                  </div>
+                </form>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
+
+      {/* Delete Folder Confirmation Modal */}
+      {typeof document !== 'undefined' && createPortal(
+        <AnimatePresence>
+          {showDeleteFolderModal && folderToDelete && (
+            <div 
+              className="fixed inset-0 z-[9999] flex items-center justify-center p-4 overflow-hidden"
+              onClick={() => setShowDeleteFolderModal(false)}
+            >
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.15 }}
+                className="fixed inset-0 bg-black/60 backdrop-blur-xs"
+              />
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.95, y: 12 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 12 }}
+                transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+                className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl p-8 overflow-hidden border border-slate-100 z-10 will-change-transform transform-gpu"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Trash2 className="w-8 h-8 text-red-600" />
+                </div>
+                
+                <h3 className="text-xl font-bold text-[#1D4ED8] text-center mb-2">Hapus Folder?</h3>
+                <p className="text-slate-500 text-center mb-2">
+                  Anda yakin ingin menghapus folder <strong>"{folderToDelete.name}"</strong>?
+                </p>
+                
+                {categories.some(c => c.parent_id === folderToDelete.id) && (
+                  <p className="text-amber-600 text-center text-sm mb-4 bg-amber-50 rounded-xl py-2 px-4">
+                    Folder ini memiliki sub-folder di dalamnya
+                  </p>
+                )}
+                
+                <p className="text-red-500 text-center text-sm mb-6">
+                  Semua sub-folder di dalamnya juga akan ikut dihapus.
+                </p>
+
+                <div className="flex gap-3">
                   <button 
-                    type="button"
-                    onClick={() => setShowFolderForm(false)}
+                    onClick={() => {
+                      setShowDeleteFolderModal(false);
+                      setFolderToDelete(null);
+                    }}
                     className="flex-1 py-3 rounded-xl font-semibold text-sm text-slate-500 hover:bg-slate-50 transition-all"
                   >
                     Batal
                   </button>
                   <button 
-                    type="submit"
-                    className="flex-1 py-3 rounded-xl font-semibold text-sm text-white bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] hover:brightness-110 border border-white/10 transition-all shadow-lg shadow-[#3B66F5]/25"
+                    onClick={handleDeleteFolder}
+                    className="flex-1 py-3 rounded-xl font-semibold text-sm text-white bg-red-600 hover:bg-red-700 transition-all shadow-lg shadow-red-200"
                   >
-                    Buat Folder
+                    Hapus
                   </button>
                 </div>
-              </form>
-            </motion.div>
-          </div>,
-          document.body
-        )}
-      </AnimatePresence>
-
-      {/* Delete Folder Confirmation Modal */}
-      <AnimatePresence>
-        {showDeleteFolderModal && folderToDelete && typeof document !== 'undefined' && createPortal(
-          <div 
-            className="fixed inset-0 z-[9999] flex items-center justify-center p-4 overflow-hidden"
-            onClick={() => setShowDeleteFolderModal(false)}
-          >
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
-              className="fixed inset-0 bg-black/60 backdrop-blur-xs"
-            />
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95, y: 12 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 12 }}
-              transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
-              className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl p-8 overflow-hidden border border-slate-100 z-10 will-change-transform transform-gpu"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Trash2 className="w-8 h-8 text-red-600" />
-              </div>
-              
-              <h3 className="text-xl font-bold text-[#1D4ED8] text-center mb-2">Hapus Folder?</h3>
-              <p className="text-slate-500 text-center mb-2">
-                Anda yakin ingin menghapus folder <strong>"{folderToDelete.name}"</strong>?
-              </p>
-              
-              {categories.some(c => c.parent_id === folderToDelete.id) && (
-                <p className="text-amber-600 text-center text-sm mb-4 bg-amber-50 rounded-xl py-2 px-4">
-                  Folder ini memiliki sub-folder di dalamnya
-                </p>
-              )}
-              
-              <p className="text-red-500 text-center text-sm mb-6">
-                Semua sub-folder di dalamnya juga akan ikut dihapus.
-              </p>
-
-              <div className="flex gap-3">
-                <button 
-                  onClick={() => {
-                    setShowDeleteFolderModal(false);
-                    setFolderToDelete(null);
-                  }}
-                  className="flex-1 py-3 rounded-xl font-semibold text-sm text-slate-500 hover:bg-slate-50 transition-all"
-                >
-                  Batal
-                </button>
-                <button 
-                  onClick={handleDeleteFolder}
-                  className="flex-1 py-3 rounded-xl font-semibold text-sm text-white bg-red-600 hover:bg-red-700 transition-all shadow-lg shadow-red-200"
-                >
-                  Hapus
-                </button>
-              </div>
-            </motion.div>
-          </div>,
-          document.body
-        )}
-      </AnimatePresence>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
 
       {/* Floating Action Bar (Bulk Mode) */}
       <AnimatePresence>
@@ -2056,89 +2071,92 @@ export default function BankSoal() {
       </AnimatePresence>
 
       {/* Modal Move to Folder */}
-      <AnimatePresence>
-        {showMoveModal && typeof document !== 'undefined' && createPortal(
-          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 overflow-hidden">
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
-              onClick={() => setShowMoveModal(false)}
-              className="fixed inset-0 bg-black/60 backdrop-blur-xs"
-            />
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95, y: 12 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 12 }}
-              transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
-              className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl p-8 overflow-hidden border border-slate-100 z-10 will-change-transform transform-gpu"
-            >
-              <div className="flex items-center justify-between mb-8">
-                <h3 className="text-xl font-bold text-[#1D4ED8]">Pindahkan {selectedQuestionIds.length} Soal</h3>
-                <button onClick={() => setShowMoveModal(false)} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
-                  <Plus className="w-6 h-6 rotate-45 text-slate-400" />
-                </button>
-              </div>
-
-              <div className="space-y-6">
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Pilih Folder Tujuan</label>
-                  <select 
-                    className="w-full px-5 py-4 rounded-2xl border border-slate-200 bg-slate-50 outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-bold text-slate-700"
-                    value={movingToCategoryId || ''}
-                    onChange={(e) => setMovingToCategoryId(e.target.value)}
-                  >
-                    <option value="">Beranda (Semua Soal)</option>
-                    {categories.map(cat => (
-                      <option key={cat.id} value={cat.id}>
-                        {cat.parent_id ? '　 ' : ''}📂 {cat.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="flex gap-3 pt-4">
-                  <button 
-                    type="button"
-                    onClick={() => setShowMoveModal(false)}
-                    className="flex-1 py-3 rounded-xl font-semibold text-sm text-slate-500 hover:bg-slate-50 transition-all"
-                  >
-                    Batal
-                  </button>
-                  <button 
-                    onClick={handleMoveQuestions}
-                    className="flex-1 py-3 rounded-xl font-semibold text-sm text-white bg-gradient-to-r from-[#685ECC] via-[#5C53D4] to-[#4F46E5] shadow-lg shadow-[#5C53D4]/25 hover:scale-[1.02] border border-white/10 transition-all"
-                  >
-                    Pindahkan
+      {typeof document !== 'undefined' && createPortal(
+        <AnimatePresence>
+          {showMoveModal && (
+            <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 overflow-hidden">
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.15 }}
+                onClick={() => setShowMoveModal(false)}
+                className="fixed inset-0 bg-black/60 backdrop-blur-xs"
+              />
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.95, y: 12 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 12 }}
+                transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+                className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl p-8 overflow-hidden border border-slate-100 z-10 will-change-transform transform-gpu"
+              >
+                <div className="flex items-center justify-between mb-8">
+                  <h3 className="text-xl font-bold text-[#1D4ED8]">Pindahkan {selectedQuestionIds.length} Soal</h3>
+                  <button onClick={() => setShowMoveModal(false)} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
+                    <Plus className="w-6 h-6 rotate-45 text-slate-400" />
                   </button>
                 </div>
-              </div>
-            </motion.div>
-          </div>,
-          document.body
-        )}
-      </AnimatePresence>
+
+                <div className="space-y-6">
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Pilih Folder Tujuan</label>
+                    <select 
+                      className="w-full px-5 py-4 rounded-2xl border border-slate-200 bg-slate-50 outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-bold text-slate-700"
+                      value={movingToCategoryId || ''}
+                      onChange={(e) => setMovingToCategoryId(e.target.value)}
+                    >
+                      <option value="">Beranda (Semua Soal)</option>
+                      {categories.map(cat => (
+                        <option key={cat.id} value={cat.id}>
+                          {cat.parent_id ? '　 ' : ''}📂 {cat.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="flex gap-3 pt-4">
+                    <button 
+                      type="button"
+                      onClick={() => setShowMoveModal(false)}
+                      className="flex-1 py-3 rounded-xl font-semibold text-sm text-slate-500 hover:bg-slate-50 transition-all"
+                    >
+                      Batal
+                    </button>
+                    <button 
+                      onClick={handleMoveQuestions}
+                      className="flex-1 py-3 rounded-xl font-semibold text-sm text-white bg-gradient-to-r from-[#685ECC] via-[#5C53D4] to-[#4F46E5] shadow-lg shadow-[#5C53D4]/25 hover:scale-[1.02] border border-white/10 transition-all"
+                    >
+                      Pindahkan
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
 
       {/* Modal Tambah / Edit Soal */}
-      <AnimatePresence>
-        {showAddForm && typeof document !== 'undefined' && createPortal(
-          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-4 md:p-6 overflow-hidden">
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
-              onClick={closeModal}
-              className="fixed inset-0 bg-black/60 backdrop-blur-xs"
-            />
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.96, y: 10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.96, y: 10 }}
-              transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
-              className="relative w-full max-w-4xl bg-white rounded-[2rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh] border border-slate-100 z-10 will-change-transform transform-gpu"
-            >
+      {typeof document !== 'undefined' && createPortal(
+        <AnimatePresence>
+          {showAddForm && (
+            <div className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-4 md:p-6 overflow-hidden">
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.15 }}
+                onClick={closeModal}
+                className="fixed inset-0 bg-black/60 backdrop-blur-xs"
+              />
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.96, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.96, y: 10 }}
+                transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+                className="relative w-full max-w-4xl bg-white rounded-[2rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh] border border-slate-100 z-10 will-change-transform transform-gpu"
+              >
               <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-white">
                 <div>
                   <h3 className="text-2xl font-bold text-[#1D4ED8]">{editingId ? 'Edit Soal' : 'Tambah Soal Baru'}</h3>
@@ -2260,12 +2278,12 @@ export default function BankSoal() {
                               required
                               className="flex-1 px-4 py-3 rounded-xl border border-slate-200 bg-white outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm sm:text-base font-medium text-slate-700"
                               placeholder={`Teks opsi ${label}`}
-                              value={(formData.options as any)[label].text}
+                              value={(formData.options as any)?.[label]?.text || ''}
                               onChange={(e) => setFormData({
                                 ...formData, 
                                 options: { 
                                   ...formData.options, 
-                                  [label]: { ...(formData.options as any)[label], text: e.target.value }
+                                  [label]: { ...((formData.options as any)?.[label] || {}), text: e.target.value }
                                 }
                               })}
                             />
@@ -2296,7 +2314,7 @@ export default function BankSoal() {
                                         ...prev,
                                         options: {
                                           ...prev.options,
-                                          [label]: { ...(prev.options as any)[label], image_url: '' }
+                                          [label]: { ...((prev.options as any)?.[label] || {}), image_url: '' }
                                         }
                                       }));
                                     }}
@@ -2444,10 +2462,11 @@ export default function BankSoal() {
                 </div>
               </form>
             </motion.div>
-          </div>,
-          document.body
+          </div>
         )}
-      </AnimatePresence>
+      </AnimatePresence>,
+      document.body
+    )}
     </div>
   );
 }
