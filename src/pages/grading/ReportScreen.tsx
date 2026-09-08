@@ -1,3 +1,4 @@
+import { capitalizeEachWord } from '../../lib/utils';
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { 
@@ -238,7 +239,7 @@ const ReportDetailView: React.FC<{ idKelas: string }> = ({ idKelas }) => {
                           <span className="text-sm font-black text-slate-400 tabular-nums">{idx + 1}</span>
                        </td>
                        <td className="px-4 py-5">
-                          <h4 className="font-black text-slate-800 uppercase text-[14px] md:text-[16px] group-hover:text-[#3B66F5] transition-colors leading-tight">{std.nama}</h4>
+                          <h4 className="font-black text-slate-800 text-[14px] md:text-[16px] group-hover:text-[#3B66F5] transition-colors leading-tight">{capitalizeEachWord(std.nama)}</h4>
                           <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mt-1 hidden-in-pdf">{stats[std.idSiswa]?.count} Aktivitas</span>
                        </td>
                        <td className="px-4 py-5 text-center">
@@ -302,7 +303,7 @@ const ReportDetailView: React.FC<{ idKelas: string }> = ({ idKelas }) => {
                      <tr key={std.idSiswa} style={{ borderBottom: '1px solid #f1f5f9' }}>
                         <td style={{ padding: '15px 8px', textAlign: 'center', fontSize: '13px', fontWeight: '900', color: '#94a3b8' }}>{idx + 1}</td>
                         <td style={{ padding: '15px 8px' }}>
-                           <div style={{ fontSize: '15px', fontWeight: '900', color: '#1e293b', textTransform: 'uppercase' }}>{std.nama}</div>
+                           <div style={{ fontSize: '15px', fontWeight: '900', color: '#1e293b' }}>{capitalizeEachWord(std.nama)}</div>
                         </td>
                         <td style={{ padding: '15px 8px', textAlign: 'center', fontSize: '15px', fontWeight: '900', color: '#334155' }}>{stats[std.idSiswa]?.pAvg}</td>
                         <td style={{ padding: '15px 8px', textAlign: 'center', fontSize: '15px', fontWeight: '900', color: '#334155' }}>{stats[std.idSiswa]?.kAvg}</td>

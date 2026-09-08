@@ -1,3 +1,4 @@
+import { capitalizeEachWord } from '../../lib/utils';
 import React, { Suspense, useRef, useState, lazy } from 'react';
 import { AppState, Student, ClassEntity, getCurrentSchoolName } from '../types';
 import { compareClassName } from '../../constants';
@@ -834,7 +835,7 @@ else if (fileExt === 'csv') {
                     <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 shrink-0">
                         <User className="w-5 h-5" />
                     </div>
-                    <span className="font-semibold text-gray-800 line-clamp-1">{s.name}</span>
+                    <span className="font-semibold text-gray-800 line-clamp-1">{capitalizeEachWord(s.name)}</span>
                     {(s.face_embedding || hasFaceEmbeddingLocal(s.id)) && (
                       <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">Wajah</span>
                     )}
@@ -863,7 +864,7 @@ else if (fileExt === 'csv') {
                         <td className="p-5 text-center text-gray-400 text-sm font-medium">{idx + 1}</td>
                         <td className="p-5">
                           <div className="flex items-center gap-2">
-                            <span className="font-bold text-gray-800 text-base">{s.name}</span>
+                            <span className="font-bold text-gray-800 text-base">{capitalizeEachWord(s.name)}</span>
                             {(s.face_embedding || hasFaceEmbeddingLocal(s.id)) && (
                               <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">Wajah</span>
                             )}
@@ -1017,7 +1018,7 @@ else if (fileExt === 'csv') {
                 <User className="w-8 h-8" />
               </div>
               <div>
-                <h3 className="font-bold text-xl text-gray-900">{selectedStudent.name}</h3>
+                <h3 className="font-bold text-xl text-gray-900">{capitalizeEachWord(selectedStudent.name)}</h3>
                 <p className="text-sm text-gray-500 font-mono">{selectedStudent.id}</p>
                 {(selectedStudent.face_embedding || hasFaceEmbeddingLocal(selectedStudent.id)) && (
                   <span className="inline-block mt-1 text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">✅ Data Wajah Tersedia</span>

@@ -1,3 +1,4 @@
+import { capitalizeEachWord } from '../../lib/utils';
 import React, { useState, useEffect } from 'react';
 import { AppState, AttendanceSession, AttendanceRecord, AttendanceStatus } from '../types';
 import { compareClassName } from '../../constants';
@@ -1252,7 +1253,7 @@ const saveSessionChanges = async (sessionId: string) => {
             <div>
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <div className="text-lg font-bold text-gray-900">{student.name}</div>
+                  <div className="text-lg font-bold text-gray-900">{capitalizeEachWord(student.name)}</div>
                   <div className="text-sm text-gray-500">{className}</div>
                 </div>
                 <div className="flex gap-2">

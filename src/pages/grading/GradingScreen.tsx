@@ -1,3 +1,4 @@
+import { capitalizeEachWord } from '../../lib/utils';
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { 
@@ -490,7 +491,7 @@ export const GradingScreen: React.FC = () => {
 
                         <span className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-[10px] font-black text-slate-400 shrink-0 hidden sm:flex">{idx + 1}</span>
                         <div className="min-w-0">
-                           <h4 className="font-black text-slate-800 uppercase text-sm md:text-base truncate">{std.nama}</h4>
+                           <h4 className="font-black text-slate-800 text-sm md:text-base truncate">{capitalizeEachWord(std.nama)}</h4>
                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">ID: {std.idSiswa}</p>
                         </div>
                      </div>

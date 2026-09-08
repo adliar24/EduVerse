@@ -1,3 +1,4 @@
+import { capitalizeEachWord } from '../../lib/utils';
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { 
@@ -271,7 +272,7 @@ export const StudentListScreen: React.FC = () => {
                     <div key={std.idSiswa} className="px-6 py-4 md:px-10 md:py-6 flex items-center justify-between hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0">
                       <div className="flex items-center gap-4 md:gap-8 overflow-hidden">
                         <span className="text-xs font-black text-slate-400 w-8 h-8 flex items-center justify-center bg-slate-100 rounded-lg tabular-nums">{idx + 1}</span>
-                        <div className="font-black text-slate-700 text-sm md:text-lg uppercase tracking-wide truncate">{std.nama}</div>
+                        <div className="font-black text-slate-700 text-sm md:text-lg tracking-wide truncate">{capitalizeEachWord(std.nama)}</div>
                       </div>
                       <button 
                         onClick={() => confirmDeleteStudent(std.idSiswa)} 
@@ -595,9 +596,9 @@ export const StudentQRModal: React.FC<{
                  </div>
 
                  <div className="absolute top-[81%] left-0 right-0 px-6 text-center">
-                    <h4 className="font-extrabold text-slate-800 uppercase text-[9px] sm:text-[10px] leading-tight line-clamp-3">
-                       {std.nama}
-                    </h4>
+                    <h4 className="font-extrabold text-slate-800 text-[9px] sm:text-[10px] leading-tight line-clamp-3">
+                        {capitalizeEachWord(std.nama)}
+                     </h4>
                  </div>
               </div>
             ))}

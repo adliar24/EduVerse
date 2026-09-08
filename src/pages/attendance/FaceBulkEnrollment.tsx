@@ -1,3 +1,4 @@
+import { capitalizeEachWord } from '../../lib/utils';
 import React, { useState, useMemo } from 'react';
 import { Button, Card } from '../../components/UI';
 import { getSupabaseClient } from '../../services/supabase';
@@ -269,7 +270,7 @@ export const FaceBulkEnrollment: React.FC<Props> = ({ state, notify }) => {
                       <div className="flex flex-col h-full space-y-3">
                         <div className="flex items-start justify-between min-h-[40px]">
                           <div className="min-w-0 pr-2">
-                            <h4 className="text-sm font-bold text-gray-800 truncate leading-tight uppercase font-outfit">{student.name}</h4>
+                            <h4 className="text-sm font-bold text-gray-800 truncate leading-tight font-outfit">{capitalizeEachWord(student.name)}</h4>
                             <span className="text-[9px] font-black text-gray-400 tracking-widest">{student.id}</span>
                           </div>
                           {status[student.id] && (

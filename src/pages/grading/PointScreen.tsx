@@ -15,6 +15,7 @@ import {
   Header, Layout, PageTransition, useToast
 } from '../Layout';
 import { useTeacherProfile, useClasses } from '../../services/hooks';
+import { capitalizeEachWord } from '../../lib/utils';
 
 // --- POINT SCREEN ---
 
@@ -355,7 +356,7 @@ export const PointScreen: React.FC = () => {
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-3 mb-1">
-                                                <h4 className={`font-black uppercase truncate text-sm md:text-base ${isSelected ? 'text-[#3B66F5]' : 'text-slate-700'}`}>{std.nama}</h4>
+                                                <h4 className={`font-black truncate text-sm md:text-base ${isSelected ? 'text-[#3B66F5]' : 'text-slate-700'}`}>{capitalizeEachWord(std.nama)}</h4>
                                                 <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-500 text-[10px] font-black uppercase tracking-widest border border-slate-200 whitespace-nowrap">
                                                     {getClassName(std.idKelas)}
                                                 </span>
@@ -450,10 +451,14 @@ export const PointScreen: React.FC = () => {
 
       <Modal isOpen={showModal} onClose={() => setShowModal(false)} title="Input Poin">
          <div className="py-2 space-y-8">
-            <div className="text-center">
-               <h3 className="text-xl font-black text-slate-800 uppercase leading-none mb-2">
-                   {selectedStudentIds.size > 1 ? `${selectedStudentIds.size} Siswa Terpilih` : 'Kelola Poin Siswa'}
-               </h3>
+             <div className="text-center">
+                <h3 className="text-xl font-black text-slate-800 leading-none mb-2">
+                    {selectedStudentIds.size > 1 
+                      ? `${selectedStudentIds.size} Siswa Terpilih` 
+                      : selectedStudentIds.size === 1 
+                        ? capitalizeEachWord(allStudents.find(s => selectedStudentIds.has(s.idSiswa))?.nama || allStudents.find(s => selectedStudentIds.has(s.idSiswa))?.name || 'Kelola Poin Siswa')
+                        : 'Kelola Poin Siswa'}
+                </h3>
                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
                    {pointForm.mode === 'add' ? 'Menambahkan Reward' : 'Memberikan Sanksi'}
                </p>

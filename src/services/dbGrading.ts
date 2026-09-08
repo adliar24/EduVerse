@@ -14,6 +14,7 @@ import {
   DEFAULT_WEIGHTS
 } from '../types';
 import { supabase } from './supabase';
+import { capitalizeEachWord } from '../lib/utils';
 
 const DB_NAME = 'EduScoreDB';
 const DB_VERSION = 4; 
@@ -487,15 +488,35 @@ export const getStudents = async (idKelas?: string, schoolId?: string): Promise<
       return cId && String(cId) === String(idKelas);
     });
   }
-  return filtered;
+  return filtered.map(s => {
+    const formatted = capitalizeEachWord(s.nama || s.name);
+    return {
+      ...s,
+      name: formatted,
+      nama: formatted
+    };
+  });
 };
 
 export const getStudentById = async (id: string): Promise<Student | undefined> => {
-  return getOne<Student>('students', id);
+  const student = await getOne<Student>('students', id);
+  if (!student) return undefined;
+  const formatted = capitalizeEachWord(student.nama || student.name);
+  return {
+    ...student,
+    name: formatted,
+    nama: formatted
+  };
 };
 
 export const saveStudent = async (student: Student): Promise<void> => {
-  await putOne('students', student);
+  const formattedName = capitalizeEachWord(student.nama || student.name);
+  const updatedStudent: Student = {
+    ...student,
+    name: formattedName,
+    nama: formattedName
+  };
+  await putOne('students', updatedStudent);
   if (supabase) {
     const { data: { session } } = await supabase.auth.getSession();
     if (session) {
@@ -506,8 +527,8 @@ export const saveStudent = async (student: Student): Promise<void> => {
         school_id: student.schoolId,
         class_id: student.idKelas,
         id_kelas: student.idKelas,
-        name: student.nama,
-        nama: student.nama,
+        name: updatedStudent.nama,
+        nama: updatedStudent.nama,
         nisn: student.nisn
       }).then(({ error }) => { if (error) console.warn("Background sync failed:", error); });
     }
@@ -1108,8 +1129,8 @@ const _syncCloudToLocalImpl = async (existingProfile?: TeacherProfile | null): P
             className: cName,
             namaKelas: cName,
             class_name: cName,
-            name: row.name || row.nama || 'Siswa',
-            nama: row.nama || row.name || 'Siswa',
+            name: capitalizeEachWord(row.name || row.nama || 'Siswa'),
+            nama: capitalizeEachWord(row.nama || row.name || 'Siswa'),
             studentCode: row.student_code,
             student_code: row.student_code,
             nisn: row.nisn || '',
