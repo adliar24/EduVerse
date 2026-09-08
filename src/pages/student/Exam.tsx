@@ -16,7 +16,8 @@ import {
   WifiOff,
   Lock,
   Unlock,
-  Maximize2
+  Maximize2,
+  X
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../../lib/utils';
@@ -80,6 +81,7 @@ export default function StudentExam() {
   const [violations, setViolations] = useState(0);
   const [showViolationWarning, setShowViolationWarning] = useState(false);
   const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
+  const [showQuestionPalette, setShowQuestionPalette] = useState(false);
   const [isOnline, setIsOnline] = useState(true);
   const [isBlocked, setIsBlocked] = useState(false);
   const [isPermanentlyBlocked, setIsPermanentlyBlocked] = useState(false);
@@ -1227,14 +1229,8 @@ export default function StudentExam() {
 
   if (loading) return (
     <div className="min-h-screen bg-[#0B1120] flex flex-col items-center justify-center p-6 relative overflow-hidden">
-      {/* Deep Blue Ambient Background Glow - No purple */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[45%] h-[45%] bg-blue-600/10 rounded-full blur-[140px]" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[45%] h-[45%] bg-indigo-600/10 rounded-full blur-[140px]" />
-      </div>
-
       <div className="relative z-10 flex flex-col items-center text-center max-w-md">
-        {/* Modern multi-ring pulsing spinner (no hourglass emoji) */}
+        {/* Modern multi-ring pulsing spinner */}
         <div className="relative w-24 h-24 mb-8 flex items-center justify-center">
           <div className="absolute inset-0 rounded-full border-2 border-blue-500/20 animate-ping opacity-25" />
           <div className="w-20 h-20 rounded-full border-3 border-blue-500/20 border-t-blue-500 animate-spin" />
@@ -1252,7 +1248,7 @@ export default function StudentExam() {
 
   if (initError) return (
     <div className="min-h-screen bg-[#0B1120] flex flex-col items-center justify-center p-6 relative overflow-hidden">
-      <div className="bg-white/5 backdrop-blur-xl p-8 sm:p-10 rounded-3xl border border-white/10 mb-8 text-center max-w-md shadow-2xl relative z-10">
+      <div className="bg-slate-900 p-8 sm:p-10 rounded-3xl border border-slate-800 mb-8 text-center max-w-md shadow-2xl relative z-10">
         <div className="bg-red-500/20 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6">
           <AlertCircle className="w-9 h-9 text-red-400" />
         </div>
@@ -1267,7 +1263,7 @@ export default function StudentExam() {
           </button>
           <button 
             onClick={() => navigate('/exam')}
-            className="w-full py-3 px-4 rounded-xl font-semibold text-sm text-slate-300 bg-white/5 hover:bg-white/10 border border-white/10 transition-all cursor-pointer"
+            className="w-full py-3 px-4 rounded-xl font-semibold text-sm text-slate-300 bg-slate-800 hover:bg-slate-700 border border-slate-700 transition-all cursor-pointer"
           >
             Kembali ke Daftar Ujian
           </button>
@@ -1280,14 +1276,14 @@ export default function StudentExam() {
 
   if (!loading && !initError && questions.length === 0) {
     return (
-      <div className="min-h-screen bg-[#1D4ED8] flex flex-col items-center justify-center p-6">
-        <div className="bg-white/5 backdrop-blur-xl p-10 rounded-[3rem] border border-white/10 mb-8 text-center max-w-md shadow-2xl">
+      <div className="min-h-screen bg-[#0B1120] flex flex-col items-center justify-center p-6">
+        <div className="bg-slate-900 p-10 rounded-3xl border border-slate-800 mb-8 text-center max-w-md shadow-2xl">
           <div className="bg-red-500/20 w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-6">
             <AlertCircle className="w-12 h-12 text-red-400" />
           </div>
           <h2 className="text-2xl font-black text-white mb-3">Tidak Ada Soal</h2>
-          <p className="text-indigo-200 font-medium mb-8 leading-relaxed">Tidak ada soal dalam ujian ini. Hubungi guru Anda.</p>
-          <button onClick={() => navigate('/exam')} className="w-full py-4 px-4 rounded-full font-black text-[#3B66F5]/70 bg-white/5 hover:bg-white/10 border border-white/5 transition-all">
+          <p className="text-slate-400 font-medium mb-8 leading-relaxed">Tidak ada soal dalam ujian ini. Hubungi guru Anda.</p>
+          <button onClick={() => navigate('/exam')} className="w-full py-4 px-4 rounded-full font-black text-slate-200 bg-slate-800 hover:bg-slate-700 border border-slate-700 transition-all">
             Kembali ke Daftar Ujian
           </button>
         </div>
@@ -1323,19 +1319,12 @@ export default function StudentExam() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col relative overflow-hidden">
-      {/* Decorative Background Elements */}
-      <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute top-[-5%] left-[-5%] w-[30%] h-[30%] bg-blue-400/10 rounded-full blur-[100px]" />
-        <div className="absolute bottom-[-5%] right-[-10%] w-[40%] h-[40%] bg-[#1D4ED8]/5 rounded-full blur-[120px]" />
-        <div className="absolute top-[40%] left-[50%] w-[25%] h-[25%] bg-emerald-400/5 rounded-full blur-[100px]" />
-      </div>
-
+    <div className="min-h-screen bg-slate-50 flex flex-col relative">
       {/* Header */}
-      <header className="bg-[#0B1120] border-b border-slate-800 h-20 sticky top-0 z-30 px-6 sm:px-12 flex items-center justify-between shadow-xl">
-        <div className="flex items-center gap-4 sm:gap-6">
-          <div className="hidden sm:flex bg-white/10 border border-white/15 w-12 h-12 rounded-2xl items-center justify-center text-blue-400 shadow-md">
-            <Clock className="w-6 h-6" />
+      <header className="bg-[#0B1120] border-b border-slate-800 h-20 sticky top-0 z-30 px-4 sm:px-8 md:px-12 flex items-center justify-between shadow-md">
+        <div className="flex items-center gap-3 sm:gap-6">
+          <div className="hidden sm:flex bg-white/10 border border-white/15 w-11 h-11 rounded-2xl items-center justify-center text-blue-400 shadow-sm">
+            <Clock className="w-5 h-5" />
           </div>
           <div>
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Waktu Tersisa</p>
@@ -1345,27 +1334,27 @@ export default function StudentExam() {
         
         {/* Network Status Indicator */}
         {!isOnline && (
-          <div className="flex items-center gap-2 bg-amber-500/20 border border-amber-500/40 text-amber-300 px-4 py-2 rounded-xl animate-pulse">
+          <div className="flex items-center gap-2 bg-amber-500/20 border border-amber-500/40 text-amber-300 px-3 py-1.5 rounded-xl animate-pulse text-xs font-bold">
             <WifiOff className="w-4 h-4" />
-            <span className="text-xs font-bold">Koneksi Terputus - Pelanggaran Ditunda</span>
+            <span className="hidden md:inline">Koneksi Terputus - Pelanggaran Ditunda</span>
           </div>
         )}
 
         {/* Offline Mode Active Banner */}
         {exam?.offline_mode && (
-          <div className="hidden md:flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-4 py-2 rounded-xl">
+          <div className="hidden md:flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-3 py-1.5 rounded-xl text-xs font-bold">
             <WifiOff className="w-4 h-4" />
-            <span className="text-xs font-bold">Mode Offline-First Aktif</span>
+            <span>Mode Offline-First</span>
           </div>
         )}
 
-        <div className="text-center">
+        <div className="hidden lg:block text-center">
           <h1 className="text-xs sm:text-sm font-bold text-white uppercase tracking-wider line-clamp-1 max-w-[140px] sm:max-w-md">{exam?.title || 'Ujian'}</h1>
           <div className="flex items-center justify-center gap-2 mt-1">
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider hidden sm:inline">Progress:</span>
             <div className="w-20 sm:w-32 h-1.5 bg-slate-800 rounded-full overflow-hidden">
               <div 
-                className="h-full bg-blue-500 transition-all duration-500 shadow-[0_0_8px_rgba(59,130,246,0.6)]" 
+                className="h-full bg-blue-500 transition-all duration-300 shadow-[0_0_8px_rgba(59,130,246,0.6)]" 
                 style={{ width: `${(Object.keys(answers).length / questions.length) * 100}%` }}
               />
             </div>
@@ -1373,14 +1362,30 @@ export default function StudentExam() {
           </div>
         </div>
 
-        <button 
-          onClick={() => setShowSubmitConfirm(true)}
-          disabled={submitting}
-          className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:brightness-110 active:scale-95 text-white px-5 sm:px-7 py-2.5 sm:py-3 rounded-xl font-bold text-sm transition-all shadow-lg shadow-emerald-500/30 border border-emerald-400/30 flex items-center gap-2 cursor-pointer"
-        >
-          <Send className="w-4 h-4 text-white" />
-          <span className="hidden sm:inline">Kumpulkan</span>
-        </button>
+        {/* Action Controls in Header: Papan Nomor Soal & Kumpulkan */}
+        <div className="flex items-center gap-2 sm:gap-3">
+          <button 
+            type="button"
+            onClick={() => setShowQuestionPalette(true)}
+            className="flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 border border-slate-700 font-bold text-xs sm:text-sm transition-colors cursor-pointer shadow-xs"
+            title="Daftar Nomor Soal"
+          >
+            <LayoutGrid className="w-4 h-4 text-blue-400" />
+            <span className="hidden sm:inline">Nomor Soal</span>
+            <span className="text-[11px] px-2 py-0.5 rounded-md bg-blue-600/40 text-blue-300 font-extrabold border border-blue-500/30">
+              {currentIndex + 1}/{questions.length}
+            </span>
+          </button>
+
+          <button 
+            onClick={() => setShowSubmitConfirm(true)}
+            disabled={submitting}
+            className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:brightness-110 active:scale-95 text-white px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-all shadow-md shadow-emerald-500/20 border border-emerald-400/30 flex items-center gap-2 cursor-pointer"
+          >
+            <Send className="w-4 h-4 text-white" />
+            <span className="hidden sm:inline">Kumpulkan</span>
+          </button>
+        </div>
       </header>
 
       {/* Violation Warning Modal */}
@@ -1391,13 +1396,13 @@ export default function StudentExam() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-red-950/80 backdrop-blur-md"
+              className="absolute inset-0 bg-red-950/85"
             />
             <motion.div 
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="relative w-full max-w-md bg-white rounded-[2.5rem] shadow-2xl p-10 text-center"
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl p-8 sm:p-10 text-center border border-red-100"
             >
               <div className="bg-red-50 w-20 h-20 rounded-3xl flex items-center justify-center text-red-600 mx-auto mb-6">
                 <AlertCircle className="w-10 h-10" />
@@ -1430,14 +1435,14 @@ export default function StudentExam() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+              className="absolute inset-0 bg-slate-950/70"
               onClick={() => setShowSubmitConfirm(false)}
             />
             <motion.div 
               initial={{ scale: 0.95, opacity: 0, y: 10 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 10 }}
-              className="bg-white rounded-[2rem] p-8 max-w-sm w-full relative z-10 shadow-2xl overflow-hidden"
+              className="bg-white rounded-3xl p-8 max-w-sm w-full relative z-10 shadow-2xl border border-slate-100 overflow-hidden"
             >
               <div className="w-16 h-16 bg-[#3B66F5]/5 text-[#3B66F5] rounded-2xl flex items-center justify-center mx-auto mb-6">
                 <AlertCircle className="w-8 h-8" />
@@ -1451,14 +1456,14 @@ export default function StudentExam() {
                 <button 
                   onClick={() => setShowSubmitConfirm(false)}
                   disabled={submitting}
-                  className="flex-1 py-3 px-4 rounded-full font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors"
+                  className="flex-1 py-3 px-4 rounded-xl font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors"
                 >
                   Tidak, Cek Lagi
                 </button>
                 <button 
                   onClick={() => handleSubmit(false)}
                   disabled={submitting}
-                  className="flex-1 py-3 px-4 rounded-full font-bold text-white bg-blue-600 hover:bg-blue-500 active:scale-95 transition-all border border-white/10 flex items-center justify-center"
+                  className="flex-1 py-3 px-4 rounded-xl font-bold text-white bg-blue-600 hover:bg-blue-500 active:scale-95 transition-all border border-white/10 flex items-center justify-center"
                 >
                   {submitting ? 'Mengirim...' : 'Ya, Kumpulkan'}
                 </button>
@@ -1468,69 +1473,109 @@ export default function StudentExam() {
         )}
       </AnimatePresence>
 
-      <div className="flex-1 flex flex-col lg:flex-row p-4 sm:p-12 gap-6 lg:gap-10 max-w-[1600px] mx-auto w-full relative z-10">
-        {/* Sidebar Navigation - Moved to top on mobile */}
-        <div className="w-full lg:w-96 space-y-6 lg:space-y-8 order-1 lg:order-2">
-          <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden text-slate-800">
-            <div className="bg-slate-50/90 p-5 sm:p-6 flex items-center justify-between border-b border-slate-100">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100">
-                  <LayoutGrid className="w-4 h-4" />
+      {/* Question Palette Modal (Popup Papan Nomor Soal) */}
+      <AnimatePresence>
+        {showQuestionPalette && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-slate-950/70"
+              onClick={() => setShowQuestionPalette(false)}
+            />
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0, y: 10 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 10 }}
+              className="bg-white rounded-3xl p-6 sm:p-8 max-w-xl w-full relative z-10 shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[85vh]"
+            >
+              <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100">
+                    <LayoutGrid className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-slate-800">Daftar Nomor Soal</h3>
+                    <p className="text-xs text-slate-500 font-medium">
+                      {Object.keys(answers).length} dari {questions.length} telah terjawab
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-sm font-bold text-slate-800">Navigasi Soal</h3>
-                  <p className="text-[11px] font-medium text-slate-400">{questions.length} Pertanyaan</p>
+                <button 
+                  onClick={() => setShowQuestionPalette(false)}
+                  className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Legend */}
+              <div className="flex flex-wrap items-center gap-3 sm:gap-4 p-3 rounded-2xl bg-slate-50 border border-slate-100 mb-4 text-xs font-semibold text-slate-600">
+                <div className="flex items-center gap-1.5">
+                  <span className="w-3.5 h-3.5 rounded-md bg-blue-600 inline-block" />
+                  <span>Sedang Dibuka</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-3.5 h-3.5 rounded-md bg-emerald-500 inline-block" />
+                  <span>Sudah Terjawab</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-3.5 h-3.5 rounded-md bg-white border border-slate-300 inline-block" />
+                  <span>Belum Dijawab</span>
                 </div>
               </div>
-              <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-                {Object.keys(answers).length} Terjawab
-              </span>
-            </div>
-            <div className="p-5 sm:p-6 grid grid-cols-6 sm:grid-cols-5 gap-2 sm:gap-2.5">
-              {questions.map((q, i) => {
-                const isAnswered = !!answers[q.id];
-                const isCurrent = i === currentIndex;
-                return (
-                  <button 
-                    key={q.id}
-                    onClick={() => setCurrentIndex(i)}
-                    className={cn(
-                      "h-10 sm:h-11 rounded-xl font-bold text-xs sm:text-sm transition-all relative border flex items-center justify-center cursor-pointer",
-                      isCurrent 
-                        ? "bg-blue-600 text-white shadow-md shadow-blue-500/30 border-blue-600 scale-105 z-10" 
-                        : isAnswered
-                          ? "bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100" 
-                          : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 hover:text-slate-900"
-                    )}
-                  >
-                    {i + 1}
-                    {isAnswered && !isCurrent && (
-                      <div className="absolute top-1 right-1 w-1.5 h-1.5 bg-emerald-500 rounded-full" />
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
 
-          <div className="hidden lg:block bg-gradient-to-br from-[#0B1120] via-[#0F172A] to-[#1E3A8A] border border-blue-900/40 rounded-3xl p-8 text-white overflow-hidden relative group shadow-lg">
-            <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform duration-700">
-              <HelpCircle className="w-28 h-28" />
-            </div>
-            <div className="relative z-10">
-              <div className="bg-white/10 w-11 h-11 rounded-xl flex items-center justify-center mb-5 border border-white/10">
-                <ShieldCheck className="w-5 h-5 text-blue-400" />
+              {/* Grid Soal */}
+              <div className="overflow-y-auto pr-1 flex-1 max-h-[50vh] p-1">
+                <div className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-8 gap-2 sm:gap-2.5">
+                  {questions.map((q, i) => {
+                    const isAnswered = !!answers[q.id];
+                    const isCurrent = i === currentIndex;
+                    return (
+                      <button 
+                        key={q.id}
+                        onClick={() => {
+                          setCurrentIndex(i);
+                          setShowQuestionPalette(false);
+                        }}
+                        className={cn(
+                          "h-11 rounded-xl font-bold text-sm transition-all relative border flex items-center justify-center cursor-pointer",
+                          isCurrent 
+                            ? "bg-blue-600 text-white shadow-md shadow-blue-500/30 border-blue-600 scale-105 z-10" 
+                            : isAnswered
+                              ? "bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100" 
+                              : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100 hover:text-slate-900"
+                        )}
+                      >
+                        {i + 1}
+                        {isAnswered && !isCurrent && (
+                          <div className="absolute top-1 right-1 w-1.5 h-1.5 bg-emerald-500 rounded-full" />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
-              <h4 className="text-lg font-bold mb-2 tracking-tight">Butuh Bantuan?</h4>
-              <p className="text-xs text-slate-300 font-normal leading-relaxed">
-                Jika Anda mengalami kendala teknis atau gangguan koneksi, segera hubungi pengawas ujian.
-              </p>
-            </div>
-          </div>
-        </div>
 
-        {/* Question Area */}
-        <div className="flex-1 space-y-6 lg:space-y-8 order-2 lg:order-1">
+              {/* Footer */}
+              <div className="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between">
+                <span className="text-xs text-slate-400">Klik nomor untuk berpindah soal secara instan.</span>
+                <button 
+                  onClick={() => setShowQuestionPalette(false)}
+                  className="px-5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors cursor-pointer"
+                >
+                  Tutup
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Main Question Interface */}
+      <div className="flex-1 p-4 sm:p-8 md:p-10 max-w-4xl mx-auto w-full relative z-10 flex flex-col justify-between">
+        <div className="space-y-6 sm:space-y-8">
           <AnimatePresence mode="wait">
             <motion.div 
               key={currentIndex}
@@ -1538,7 +1583,7 @@ export default function StudentExam() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.15 }}
-              className="bg-white rounded-3xl sm:rounded-[3rem] border border-slate-100 shadow-sm p-6 sm:p-16 relative overflow-hidden"
+              className="bg-white rounded-3xl sm:rounded-[2.5rem] border border-slate-200 shadow-sm p-6 sm:p-12 relative overflow-hidden"
             >
 
 
@@ -1859,17 +1904,14 @@ export default function StudentExam() {
               Sebelumnya
             </button>
             
-            <div className="hidden sm:flex items-center gap-2">
-              {questions.map((_, i) => (
-                <div 
-                  key={i}
-                  className={cn(
-                    "h-2 rounded-full transition-all duration-300",
-                    i === currentIndex ? "w-8 bg-blue-600" : answers[questions[i]?.id] ? "w-2 bg-emerald-400" : "w-2 bg-slate-200"
-                  )}
-                />
-              ))}
-            </div>
+            <button
+              type="button"
+              onClick={() => setShowQuestionPalette(true)}
+              className="hidden sm:flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs sm:text-sm cursor-pointer shadow-xs transition-colors"
+            >
+              <LayoutGrid className="w-4 h-4 text-blue-600" />
+              <span>Daftar Soal ({Object.keys(answers).length}/{questions.length})</span>
+            </button>
 
             {(() => {
               const isAllAnswered = questions.length > 0 && Object.keys(answers).length >= questions.length;
@@ -1939,7 +1981,7 @@ export default function StudentExam() {
       {/* Dynamic Lock Screen Overlay */}
       <AnimatePresence>
         {isBlocked && (
-          <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-lg">
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-950/90">
             <motion.div 
               initial={{ scale: 0.9, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
@@ -2020,7 +2062,7 @@ export default function StudentExam() {
       {/* Fullscreen Forcing Overlay */}
       <AnimatePresence>
         {!isFullscreen && !isBlocked && !loading && (
-          <div className="fixed inset-0 z-[190] flex items-center justify-center p-4 bg-slate-950/95 backdrop-blur-md">
+          <div className="fixed inset-0 z-[190] flex items-center justify-center p-4 bg-slate-950/95">
             <motion.div 
               initial={{ scale: 0.95, opacity: 0, y: 15 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}

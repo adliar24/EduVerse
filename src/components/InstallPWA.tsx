@@ -101,7 +101,7 @@ export const InstallPWA: React.FC = () => {
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 20, scale: 0.95 }}
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-          className="fixed bottom-5 right-5 z-50 max-w-sm w-[calc(100vw-2.5rem)] md:w-96 bg-gradient-to-br from-indigo-900 via-blue-900 to-indigo-950 text-white rounded-2xl p-4 shadow-2xl border border-white/20 backdrop-blur-xl"
+          className="fixed bottom-5 right-5 z-50 max-w-sm w-[calc(100vw-2.5rem)] md:w-96 bg-gradient-to-br from-indigo-900 via-blue-900 to-indigo-950 text-white rounded-2xl p-4 shadow-2xl border border-white/20"
         >
           <div className="flex items-start gap-3">
             <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 p-2.5 flex items-center justify-center shrink-0 shadow-md border border-white/20">
@@ -150,7 +150,7 @@ export const InstallPWA: React.FC = () => {
       {/* Modal Panduan Install iOS Safari */}
       <AnimatePresence>
         {showIOSModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}

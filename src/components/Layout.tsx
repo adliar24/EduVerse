@@ -312,24 +312,14 @@ export default function Layout({ session }: LayoutProps) {
           </motion.div>
         )}
       </AnimatePresence>
-      {/* Decorative Background Elements */}
-      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden bg-slate-50/20">
-        <motion.div 
-          className="absolute top-[-10%] left-[-10%] w-[45%] h-[45%] bg-blue-400/15 rounded-full blur-[120px] animate-float-slow transform-gpu hidden sm:block" 
-        />
-        <motion.div 
-          className="absolute bottom-[-10%] right-[-15%] w-[55%] h-[55%] bg-purple-400/10 rounded-full blur-[140px] animate-float-reverse transform-gpu hidden sm:block" 
-        />
-        <motion.div 
-          className="absolute top-[35%] left-[45%] w-[35%] h-[35%] bg-indigo-400/8 rounded-full blur-[100px] animate-float-slow transform-gpu hidden sm:block" 
-        />
-      </div>
+      {/* Background Container */}
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden bg-slate-50/20" />
 
       {/* Sidebar Desktop */}
       {!isFullScreenScanMode && (
         <aside className="w-[240px] sidebar-gradient hidden lg:flex flex-col sticky top-0 h-screen z-40 transition-all duration-300 shadow-xl">
           <div className="p-6 flex items-center gap-3 relative z-10 border-b border-white/10">
-            <div className="w-9 h-9 rounded-xl bg-white/15 backdrop-blur-md flex items-center justify-center border border-white/20 text-white shadow-sm shrink-0">
+            <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center border border-white/20 text-white shadow-sm shrink-0">
               <GraduationCap className="w-5 h-5 text-white" />
             </div>
             <span className="text-xl font-extrabold tracking-tight text-white">EduVerse</span>
@@ -388,7 +378,7 @@ export default function Layout({ session }: LayoutProps) {
                               className={cn(
                                 "flex items-center gap-2.5 px-3 py-2 rounded-xl text-[12px] font-medium transition-colors",
                                 location.pathname === sub.path
-                                  ? "text-white bg-white/20 font-bold backdrop-blur-sm"
+                                  ? "text-white bg-white/20 font-bold"
                                   : "text-slate-300 hover:text-white hover:bg-white/10"
                               )}
                             >
@@ -450,7 +440,7 @@ export default function Layout({ session }: LayoutProps) {
             <motion.div 
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={() => setIsMobileMenuOpen(false)}
-              className="fixed inset-0 bg-[#1D4ED8]/40 backdrop-blur-sm z-40 lg:hidden"
+              className="fixed inset-0 bg-[#1D4ED8]/40 z-40 lg:hidden"
             />
             <motion.aside 
               initial={{ x: '-100%' }} animate={{ x: 0 }} exit={{ x: '-100%' }}
@@ -459,7 +449,7 @@ export default function Layout({ session }: LayoutProps) {
             >
               <div className="p-6 flex items-center justify-between relative z-10 border-b border-white/10">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-white/15 backdrop-blur-md flex items-center justify-center border border-white/20 text-white shadow-sm shrink-0">
+                  <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center border border-white/20 text-white shadow-sm shrink-0">
                     <GraduationCap className="w-5 h-5 text-white" />
                   </div>
                   <span className="text-xl font-extrabold tracking-tight text-white">EduVerse</span>

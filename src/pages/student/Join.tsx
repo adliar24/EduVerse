@@ -364,7 +364,7 @@ export default function StudentJoin({ isDashboardView = false }: { isDashboardVi
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+                className="absolute inset-0 bg-slate-950/70"
                 onClick={() => setSelectedSession(null)}
               />
               <motion.div 
@@ -417,14 +417,7 @@ export default function StudentJoin({ isDashboardView = false }: { isDashboardVi
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 relative overflow-hidden">
-      {/* Decorative Background Elements */}
-      <div className="absolute inset-0 pointer-events-none z-0">
-        <div className="absolute top-[-5%] left-[-5%] w-[40%] h-[40%] bg-[#3B66F5]/50/10 rounded-full blur-[100px]" />
-        <div className="absolute bottom-[-5%] right-[-10%] w-[50%] h-[50%] bg-[#1D4ED8]/5 rounded-full blur-[120px]" />
-        <div className="absolute top-[40%] left-[50%] w-[30%] h-[30%] bg-emerald-500/5 rounded-full blur-[100px]" />
-      </div>
-
+    <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 relative">
       <motion.div 
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
@@ -577,7 +570,7 @@ export default function StudentJoin({ isDashboardView = false }: { isDashboardVi
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+              className="absolute inset-0 bg-slate-950/70"
               onClick={() => setSelectedSession(null)}
             />
             <motion.div 

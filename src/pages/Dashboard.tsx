@@ -30,7 +30,7 @@ import DomainTileIcon from '../components/DomainTileIcon';
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-white/95 border border-slate-100 p-4 shadow-xl rounded-2xl text-[11px] font-semibold backdrop-blur-md">
+      <div className="bg-white border border-slate-200 p-4 shadow-xl rounded-2xl text-[11px] font-semibold">
         <p className="text-slate-800 font-extrabold mb-1.5">{label}</p>
         {payload.map((entry: any) => (
           <div key={entry.name} className="flex items-center gap-2 mt-1">
@@ -437,13 +437,9 @@ export default function Dashboard() {
     >
       {/* Modern Colorful Banner Sambutan Guru */}
       <div className="bg-gradient-to-r from-[#0F172A] via-[#1E3A8A] to-[#1E40AF] text-white rounded-[2.25rem] p-6 sm:p-8 relative overflow-hidden shadow-xl border border-white/10">
-        <div className="absolute -right-10 -top-10 w-72 h-72 bg-blue-400/25 rounded-full blur-3xl pointer-events-none"></div>
-        <div className="absolute left-1/3 -bottom-10 w-64 h-64 bg-sky-400/20 rounded-full blur-3xl pointer-events-none"></div>
-        <div className="absolute right-1/3 top-0 w-48 h-48 bg-blue-500/20 rounded-full blur-2xl pointer-events-none"></div>
-        
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <div className="inline-flex items-center gap-1.5 px-3.5 py-1 bg-white/15 rounded-full text-xs font-bold tracking-wide text-blue-100 mb-2.5 backdrop-blur-md border border-white/20">
+            <div className="inline-flex items-center gap-1.5 px-3.5 py-1 bg-white/15 rounded-full text-xs font-bold tracking-wide text-blue-100 mb-2.5 border border-white/20">
               Tahun Ajaran {activeSchool?.academic_year || '2026/2027'} • Semester {activeSchool?.semester || 'Ganjil'}
             </div>
             <h2 className="text-2xl md:text-3xl font-black tracking-tight text-white">

@@ -326,12 +326,8 @@ export default function StudentDashboard() {
     <div className="space-y-5 pb-10">
       {/* Colorful Header Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5 bg-gradient-to-r from-[#0F172A] via-[#1E3A8A] to-[#1E40AF] p-6 sm:p-8 rounded-[2.25rem] text-white shadow-xl relative overflow-hidden border border-white/10">
-        <div className="absolute -right-10 -top-10 w-72 h-72 bg-blue-400/25 rounded-full blur-3xl pointer-events-none"></div>
-        <div className="absolute left-1/3 -bottom-10 w-64 h-64 bg-sky-400/20 rounded-full blur-3xl pointer-events-none"></div>
-        <div className="absolute right-1/3 top-0 w-48 h-48 bg-blue-500/20 rounded-full blur-2xl pointer-events-none"></div>
-
         <div className="flex items-center gap-4 relative z-10">
-          <div className="w-14 h-14 rounded-2xl bg-white/15 backdrop-blur-md text-white flex items-center justify-center font-bold text-xl shadow-lg border border-white/20 shrink-0">
+          <div className="w-14 h-14 rounded-2xl bg-white/15 text-white flex items-center justify-center font-bold text-xl shadow-lg border border-white/20 shrink-0">
             <Zap className="w-7 h-7 text-amber-300 fill-amber-300" />
           </div>
           <div>
@@ -344,7 +340,7 @@ export default function StudentDashboard() {
           <button
             onClick={() => fetchStudentData(true)}
             disabled={loading || refreshing}
-            className="bg-white/10 hover:bg-white/20 text-white px-4 py-3 rounded-full font-bold text-xs sm:text-sm flex items-center justify-center gap-2 border border-white/20 backdrop-blur-md hover:scale-[1.02] active:scale-[0.98] transition-all shrink-0 cursor-pointer disabled:opacity-50"
+            className="bg-white/10 hover:bg-white/20 text-white px-4 py-3 rounded-full font-bold text-xs sm:text-sm flex items-center justify-center gap-2 border border-white/20 hover:scale-[1.02] active:scale-[0.98] transition-all shrink-0 cursor-pointer disabled:opacity-50"
             title="Sinkronkan data terbaru"
           >
             <RotateCw className={`w-4 h-4 ${refreshing ? 'animate-spin text-amber-300' : 'text-white'}`} />
@@ -451,7 +447,7 @@ export default function StudentDashboard() {
       {activeExamSessions.length === 0 && recentResults.filter(r => r.status === 'ongoing').length > 0 && (
         <div className="bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 rounded-2xl p-4 px-6 text-white shadow-lg flex flex-wrap items-center justify-between gap-3 border border-white/20">
           <div className="flex items-center gap-3.5">
-            <div className="bg-white/20 p-2.5 rounded-xl backdrop-blur-md shrink-0">
+            <div className="bg-white/20 p-2.5 rounded-xl shrink-0">
               <Clock className="w-5 h-5 text-white" />
             </div>
             <div>

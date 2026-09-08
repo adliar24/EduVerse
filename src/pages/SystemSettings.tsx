@@ -257,7 +257,7 @@ export default function SystemSettings() {
       {/* Header Banner */}
       <div className="bg-gradient-to-r from-[#0F172A] via-[#1E3A8A] to-[#1E40AF] text-white p-6 sm:p-8 rounded-[2.5rem] shadow-xl border border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <span className="text-[10px] uppercase font-extrabold tracking-widest px-3 py-1 bg-white/15 backdrop-blur-md rounded-full text-blue-200 border border-white/20">
+          <span className="text-[10px] uppercase font-extrabold tracking-widest px-3 py-1 bg-white/15 rounded-full text-blue-200 border border-white/20">
             ⚙️ Konfigurasi Sistem & GPS
           </span>
           <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight mt-2">Pengaturan Sistem & Lokasi</h1>

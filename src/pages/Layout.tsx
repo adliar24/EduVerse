@@ -207,7 +207,7 @@ export const Modal: React.FC<{ isOpen: boolean, onClose: () => void, title: Reac
   
   return createPortal(
     <div 
-      className={`fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm ${isClosing ? 'animate-fade-out' : 'animate-fade'}`}
+      className={`fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 ${isClosing ? 'animate-fade-out' : 'animate-fade'}`}
       onClick={onClose}
     >
       <div 
@@ -341,7 +341,7 @@ export const Sidebar: React.FC<{ profile: TeacherProfile | null, refreshProfile:
   return (
     <aside className="hidden md:flex flex-col w-60 lg:w-64 fixed inset-y-0 left-0 bg-gradient-to-br from-[#0F172A] via-[#1E3A8A] to-[#0F172A] z-[50] text-white md:rounded-r-[2rem] shadow-2xl border-r border-white/10">
       <div className="p-6 flex items-center gap-3 relative z-10 border-b border-white/10">
-        <div className="w-9 h-9 rounded-xl bg-white/15 backdrop-blur-md flex items-center justify-center border border-white/20 text-white shadow-sm shrink-0">
+        <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center border border-white/20 text-white shadow-sm shrink-0">
           <GraduationCap className="w-5 h-5 text-white" />
         </div>
         <span className="text-xl font-extrabold tracking-tight text-white">EduVerse</span>
@@ -356,7 +356,7 @@ export const Sidebar: React.FC<{ profile: TeacherProfile | null, refreshProfile:
               to={item.path}
               className={`flex items-center gap-3.5 px-4 py-3 rounded-xl transition-all duration-300 font-bold text-[14px] group relative tracking-wide ${
                 active 
-                ? 'bg-white/15 text-white shadow-md backdrop-blur-md' 
+                ? 'bg-white/15 text-white shadow-md' 
                 : 'text-blue-100 hover:bg-white/5 hover:text-white'
               }`}
             >
@@ -412,7 +412,7 @@ export const BottomNav: React.FC = () => {
             to={item.path} 
             className={`relative flex flex-col items-center py-2 px-1 w-full transition-all duration-300 ${isActive(item.path) ? 'text-white' : 'text-[#3B66F5]/70'}`}
           >
-            <div className={`p-1.5 rounded-xl transition-all duration-300 ${isActive(item.path) ? 'bg-white/20 backdrop-blur-md translate-y-[-2px]' : ''}`}>
+            <div className={`p-1.5 rounded-xl transition-all duration-300 ${isActive(item.path) ? 'bg-white/20 translate-y-[-2px]' : ''}`}>
               <item.icon size={18} strokeWidth={isActive(item.path) ? 2.5 : 2} className={`transition-all duration-500 ${isActive(item.path) ? 'text-accent' : 'opacity-60'}`} />
             </div>
             <span className={`text-[10px] font-black mt-1 tracking-widest transition-opacity ${isActive(item.path) ? 'opacity-100' : 'opacity-40'}`}>{item.label.toUpperCase()}</span>
@@ -433,7 +433,7 @@ export const BottomNav: React.FC = () => {
             to={item.path} 
             className={`relative flex flex-col items-center py-2 px-1 w-full transition-all duration-300 ${isActive(item.path) ? 'text-white' : 'text-[#3B66F5]/70'}`}
           >
-            <div className={`p-1.5 rounded-xl transition-all duration-300 ${isActive(item.path) ? 'bg-white/20 backdrop-blur-md translate-y-[-2px]' : ''}`}>
+            <div className={`p-1.5 rounded-xl transition-all duration-300 ${isActive(item.path) ? 'bg-white/20 translate-y-[-2px]' : ''}`}>
               <item.icon size={18} strokeWidth={isActive(item.path) ? 2.5 : 2} className={`transition-all duration-500 ${isActive(item.path) ? 'text-accent' : 'opacity-60'}`} />
             </div>
             <span className={`text-[10px] font-black mt-1 tracking-widest transition-opacity ${isActive(item.path) ? 'opacity-100' : 'opacity-40'}`}>{item.label.toUpperCase()}</span>

@@ -212,10 +212,8 @@ export const LinkPreviewCard: React.FC<LinkPreviewCardProps> = ({ url, className
         ) : (
           /* Rich Brand Banner (16:9 Ratio - Notion/Slack Style) */
           <div className={`w-full h-full bg-gradient-to-br ${getBannerGradient()} p-6 flex items-center justify-between relative overflow-hidden`}>
-            <div className="absolute -right-8 -bottom-8 w-44 h-44 bg-white/10 rounded-full blur-3xl pointer-events-none" />
-            
             <div className="flex items-center gap-4 relative z-10">
-              <div className="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center shrink-0 shadow-xl">
+              <div className="w-14 h-14 rounded-2xl bg-white/15 border border-white/20 flex items-center justify-center shrink-0 shadow-xl">
                 <img 
                   src={ogData?.logo || faviconUrl} 
                   alt="" 
@@ -235,7 +233,7 @@ export const LinkPreviewCard: React.FC<LinkPreviewCardProps> = ({ url, className
               </div>
             </div>
 
-            <div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-md border border-white/15 flex items-center justify-center text-white shrink-0 group-hover:scale-110 transition-transform shadow-lg">
+            <div className="w-10 h-10 rounded-xl bg-white/15 border border-white/20 flex items-center justify-center text-white shrink-0 group-hover:scale-110 transition-transform shadow-lg">
               <ExternalLink className="w-5 h-5" />
             </div>
           </div>

@@ -185,7 +185,7 @@ const ReportDetailView: React.FC<{ idKelas: string }> = ({ idKelas }) => {
             <div className="flex justify-between items-end relative z-10">
                <div>
                   <div className="flex items-center gap-3 mb-2">
-                     <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center border border-white/30">
+                     <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center border border-white/30">
                         <BarChart3 size={24} />
                      </div>
                      <div>

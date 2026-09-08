@@ -652,7 +652,7 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
         <div className="bg-gradient-to-br from-[#0F172A] via-[#1E3A8A] to-[#1E40AF] p-8 rounded-[2.5rem] text-white shadow-xl border border-white/10 mb-6 relative overflow-hidden">
           <div className="flex items-center justify-between mb-8 relative z-10">
             <div>
-              <span className="text-[10px] uppercase font-extrabold tracking-widest px-3 py-1 bg-white/15 backdrop-blur-md rounded-full text-amber-300 border border-white/20">
+              <span className="text-[10px] uppercase font-extrabold tracking-widest px-3 py-1 bg-white/15 rounded-full text-amber-300 border border-white/20">
                 ⭐ Final Scoreboard
               </span>
               <h3 className="text-2xl font-black text-white tracking-tight mt-2">Papan Peringkat Tertinggi</h3>
@@ -828,7 +828,7 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 onClick={() => setShowDetailModal(false)}
-                className="absolute inset-0 bg-indigo-950/60 backdrop-blur-md"
+                className="absolute inset-0 bg-slate-950/75"
               />
               <motion.div 
                 initial={{ opacity: 0, scale: 0.95, y: 20 }}

@@ -1252,7 +1252,7 @@ export default function KelolaSiswa() {
       <AnimatePresence>
         {showForm && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowForm(false)} className="absolute inset-0 bg-[#1D4ED8]/30 backdrop-blur-sm" />
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowForm(false)} className="absolute inset-0 bg-slate-950/70" />
             <motion.div initial={{ opacity: 0, scale: 0.97, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.97, y: 10 }} className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl p-7">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-lg font-bold text-[#1D4ED8]">{editingId ? 'Edit Data Murid' : 'Tambah Murid Baru'}</h3>

@@ -67,18 +67,13 @@ export default function Register() {
     <div className="min-h-screen bg-white flex overflow-hidden">
       {/* Left Side - Visual/Marketing */}
       <div className="hidden lg:flex lg:w-1/2 bg-[#1D4ED8] relative items-center justify-center p-12 overflow-hidden">
-        <div className="absolute inset-0 opacity-20">
-          <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-[#3B66F5]/50 rounded-full blur-[120px]" />
-          <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-500 rounded-full blur-[120px]" />
-        </div>
-        
         <div className="relative z-10 max-w-lg">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <div className="bg-white/10 backdrop-blur-lg w-16 h-16 rounded-2xl flex items-center justify-center mb-8 border border-white/20">
+            <div className="bg-white/15 w-16 h-16 rounded-2xl flex items-center justify-center mb-8 border border-white/20">
               <Sparkles className="text-white w-8 h-8" />
             </div>
             <h1 className="text-5xl font-bold text-white leading-tight mb-6">

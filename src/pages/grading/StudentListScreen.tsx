@@ -582,7 +582,7 @@ export const StudentQRModal: React.FC<{
                   backgroundPosition: 'center'
                 }}
               >
-                 <div className="absolute top-[4%] right-[6%] w-[22%] h-[6%] flex items-center justify-center bg-white/10 border border-white/20 backdrop-blur-[4px] rounded-lg text-[6px] font-black text-white uppercase leading-tight text-center px-1">
+                 <div className="absolute top-[4%] right-[6%] w-[22%] h-[6%] flex items-center justify-center bg-white/20 border border-white/30 rounded-lg text-[6px] font-black text-white uppercase leading-tight text-center px-1">
                     {className}
                  </div>
                  

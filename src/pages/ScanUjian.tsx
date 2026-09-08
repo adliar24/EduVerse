@@ -560,7 +560,7 @@ export default function ScanUjian() {
 
             {/* Loading/Processing Overlay */}
             {isProcessingScan && (
-              <div className="absolute inset-0 bg-[#1D4ED8]/70 backdrop-blur-sm flex flex-col items-center justify-center text-white gap-2">
+              <div className="absolute inset-0 bg-[#1D4ED8]/85 flex flex-col items-center justify-center text-white gap-2">
                 <Loader2 className="w-8 h-8 animate-spin text-[#3B66F5]" />
                 <span className="text-xs font-bold uppercase tracking-widest text-indigo-200">Merekam Hasil...</span>
               </div>

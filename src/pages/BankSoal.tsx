@@ -772,6 +772,13 @@ export default function BankSoal() {
     ), [questions, searchTerm]
   );
 
+  const selectedSet = useMemo(() => new Set(selectedQuestionIds), [selectedQuestionIds]);
+
+  const areAllQuestionsSelected = useMemo(() => {
+    if (filteredQuestions.length === 0) return false;
+    return filteredQuestions.every(q => selectedSet.has(q.id));
+  }, [filteredQuestions, selectedSet]);
+
   const paginatedQuestions = useMemo(() => {
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
     return filteredQuestions.slice(startIndex, startIndex + ITEMS_PER_PAGE);
@@ -1636,29 +1643,25 @@ export default function BankSoal() {
               <div className="flex items-center gap-3">
                 <button 
                   onClick={() => {
-                    const allVisibleIds = filteredQuestions.map(q => q.id);
-                    const areAllSelected = allVisibleIds.every(id => selectedQuestionIds.includes(id));
-                    if (areAllSelected) {
-                      // Deselect all
+                    if (areAllQuestionsSelected) {
                       setSelectedQuestionIds([]);
                     } else {
-                      // Select all
-                      setSelectedQuestionIds(allVisibleIds);
+                      setSelectedQuestionIds(filteredQuestions.map(q => q.id));
                     }
                   }}
                   className="flex items-center gap-3 text-sm font-bold text-slate-600 hover:text-[#1D4ED8] transition-colors"
                 >
                   <div className={cn(
                     "w-6 h-6 rounded border-2 flex items-center justify-center transition-all",
-                    filteredQuestions.length > 0 && filteredQuestions.every(q => selectedQuestionIds.includes(q.id))
+                    areAllQuestionsSelected
                       ? "bg-[#1D4ED8] border-[#3B66F5] text-white"
                       : "border-slate-300 bg-white"
                   )}>
-                    {filteredQuestions.length > 0 && filteredQuestions.every(q => selectedQuestionIds.includes(q.id)) && (
+                    {areAllQuestionsSelected && (
                       <Check className="w-4 h-4 stroke-[3]" />
                     )}
                   </div>
-                  {filteredQuestions.length > 0 && filteredQuestions.every(q => selectedQuestionIds.includes(q.id)) 
+                  {areAllQuestionsSelected
                     ? "Batal Pilih Semua" 
                     : "Pilih Semua Soal"}
                 </button>
@@ -1674,40 +1677,39 @@ export default function BankSoal() {
             {loading ? (
               [1,2,3,4].map(i => <div key={i} className="h-32 bg-slate-100 animate-pulse rounded-[2rem]"></div>)
             ) : paginatedQuestions.length > 0 ? (
-              paginatedQuestions.map((q, index) => (
-                <motion.div 
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.05 }}
-                  key={q.id} 
-                  className={cn(
-                    "bg-white border-2 rounded-[2rem] p-6 transition-all duration-500 hover:border-slate-350 group relative",
-                    selectedQuestionIds.includes(q.id) 
-                      ? "border-[#3B66F5] bg-slate-50/50 shadow-lg shadow-slate-100" 
-                      : "border-slate-100"
-                  )}
-                >
-                  <div className="flex flex-col sm:flex-row justify-between gap-6">
-                    <div className="flex-1 flex gap-5">
-                      <div className="flex flex-col items-center gap-3">
-                        <button 
-                          onClick={() => {
-                            if (selectedQuestionIds.includes(q.id)) {
-                              setSelectedQuestionIds(prev => prev.filter(id => id !== q.id));
-                            } else {
-                              setSelectedQuestionIds(prev => [...prev, q.id]);
-                            }
-                          }}
-                          className={cn(
-                            "w-7 h-7 rounded-lg border-2 flex items-center justify-center transition-all shrink-0 cursor-pointer",
-                            selectedQuestionIds.includes(q.id) 
-                              ? "bg-[#1D4ED8] border-[#3B66F5] text-white" 
-                              : "border-slate-200 bg-white group-hover:border-slate-400 text-transparent"
-                          )}
-                        >
-                          {selectedQuestionIds.includes(q.id) && <Check className="w-4 h-4 stroke-[3]" />}
-                        </button>
-                      </div>
+              paginatedQuestions.map((q) => {
+                const isSelected = selectedSet.has(q.id);
+                return (
+                  <div 
+                    key={q.id} 
+                    className={cn(
+                      "bg-white border-2 rounded-[2rem] p-6 transition-all duration-200 hover:border-slate-350 group relative",
+                      isSelected 
+                        ? "border-[#3B66F5] bg-slate-50/50 shadow-md shadow-slate-100" 
+                        : "border-slate-100"
+                    )}
+                  >
+                    <div className="flex flex-col sm:flex-row justify-between gap-6">
+                      <div className="flex-1 flex gap-5">
+                        <div className="flex flex-col items-center gap-3">
+                          <button 
+                            onClick={() => {
+                              if (isSelected) {
+                                setSelectedQuestionIds(prev => prev.filter(id => id !== q.id));
+                              } else {
+                                setSelectedQuestionIds(prev => [...prev, q.id]);
+                              }
+                            }}
+                            className={cn(
+                              "w-7 h-7 rounded-lg border-2 flex items-center justify-center transition-all shrink-0 cursor-pointer",
+                              isSelected 
+                                ? "bg-[#1D4ED8] border-[#3B66F5] text-white" 
+                                : "border-slate-200 bg-white group-hover:border-slate-400 text-transparent"
+                            )}
+                          >
+                            {isSelected && <Check className="w-4 h-4 stroke-[3]" />}
+                          </button>
+                        </div>
                       <div className="flex-1">
                         <div className="flex flex-wrap items-center gap-2 mb-3">
                           <span className={cn(
@@ -1829,8 +1831,9 @@ export default function BankSoal() {
                       </button>
                     </div>
                   </div>
-                </motion.div>
-              ))
+                </div>
+              );
+            })
             ) : (
               <div className="text-center py-24 bg-white rounded-[2.5rem] border border-dashed border-slate-200">
                 <div className="bg-slate-50 w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-6">
@@ -2003,7 +2006,7 @@ export default function BankSoal() {
             initial={{ y: 100, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 100, opacity: 0 }}
-            className="fixed bottom-6 md:bottom-10 left-1/2 -translate-x-1/2 z-40 bg-[#3B66F5] text-white px-4 py-3 md:px-8 md:py-4 rounded-2xl md:rounded-3xl shadow-2xl flex items-center gap-4 md:gap-8 backdrop-blur-xl border border-white/10 w-[92%] sm:w-auto justify-between sm:justify-start max-w-full md:max-w-2xl lg:max-w-4xl"
+            className="fixed bottom-6 md:bottom-10 left-1/2 -translate-x-1/2 z-40 bg-[#1D4ED8] text-white px-4 py-3 md:px-8 md:py-4 rounded-2xl md:rounded-3xl shadow-2xl flex items-center gap-4 md:gap-8 border border-blue-400/30 w-[92%] sm:w-auto justify-between sm:justify-start max-w-full md:max-w-2xl lg:max-w-4xl"
           >
             <div className="flex items-center gap-2 md:gap-4 border-r border-white/10 pr-3 md:pr-8 shrink-0">
               <div className="bg-blue-600 w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center font-bold text-xs md:text-sm">

@@ -159,10 +159,10 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ profile: propProfile, re
                </p>
                
                <div className="flex flex-wrap items-center gap-2">
-                   <div className="inline-flex items-center px-3 py-1.5 bg-white/10 rounded-lg border border-white/10 backdrop-blur-sm shadow-sm">
+                   <div className="inline-flex items-center px-3 py-1.5 bg-white/15 rounded-lg border border-white/20 shadow-sm">
                       <span className="text-[9px] font-black uppercase tracking-widest text-blue-50">{profile?.tahunAjaran}</span>
                    </div>
-                   <div className="inline-flex items-center px-3 py-1.5 bg-white/10 rounded-lg border border-white/10 backdrop-blur-sm shadow-sm">
+                   <div className="inline-flex items-center px-3 py-1.5 bg-white/15 rounded-lg border border-white/20 shadow-sm">
                       <span className="text-[9px] font-black uppercase tracking-widest truncate max-w-[150px] text-blue-50">{profile?.schools?.find(s => s.id === profile?.activeSchoolId)?.nama || profile?.sekolah}</span>
                    </div>
                </div>

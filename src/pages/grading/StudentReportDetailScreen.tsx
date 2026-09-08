@@ -173,7 +173,7 @@ export const StudentReportDetailScreen: React.FC = () => {
                 const wb = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(wb, ws, 'Detail');
                 XLSX.writeFile(wb, `Laporan_${student.nama}.xlsx`);
-            }} className="!py-3 !px-6 !text-[13px] !bg-white/50 backdrop-blur-md border-slate-200 hidden md:flex">
+            }} className="!py-3 !px-6 !text-[13px] !bg-white border-slate-200 hidden md:flex">
                 <FileSpreadsheet size={18} className="mr-2 text-emerald-600"/> Excel
             </Button>
             <Button variant="accent" onClick={exportPDF} className="!py-3 !px-6 !text-[13px] shadow-glow-gold hidden md:flex">
@@ -185,12 +185,9 @@ export const StudentReportDetailScreen: React.FC = () => {
       <div ref={reportRef} data-pdf-detail className="bg-slate-50 min-h-screen">
          <PageTransition className="space-y-6 pb-20">
             <div className="bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] p-8 md:p-12 rounded-[3rem] text-white shadow-2xl relative overflow-hidden animate-fade">
-               <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-[80px] -mr-32 -mt-32"></div>
-               <div className="absolute bottom-0 left-0 w-48 h-48 bg-accent/10 rounded-full blur-[80px] -ml-24 -mb-24"></div>
-               
                <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-10">
                   <div className="flex flex-col items-center md:items-start text-center md:text-left">
-                     <span className="inline-block px-4 py-1.5 bg-white/10 backdrop-blur-md rounded-full text-[9px] font-black uppercase tracking-[0.3em] mb-4 border border-white/10">Murid</span>
+                     <span className="inline-block px-4 py-1.5 bg-white/15 rounded-full text-[9px] font-black uppercase tracking-[0.3em] mb-4 border border-white/20">Murid</span>
                      <h2 className="text-xl md:text-3xl font-black tracking-tighter uppercase leading-tight">{student.nama}</h2>
                      <div className="flex flex-wrap justify-center md:justify-start items-center gap-4 mt-6 opacity-80">
                         <div className="flex items-center gap-2">
@@ -199,9 +196,16 @@ export const StudentReportDetailScreen: React.FC = () => {
                         </div>
                         <div className="w-1.5 h-1.5 bg-white/20 rounded-full"></div>
                         <div className="flex items-center gap-2">
-                           <div className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center"><BookOpen size={14} /></div>
-                           <span className="text-sm font-bold uppercase truncate max-w-[200px]">{currentClass?.mapel}</span>
+                           <div className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center"><Calendar size={14} /></div>
+                           <span className="text-sm font-bold uppercase">{profile?.tahunAjaran}</span>
                         </div>
+                     </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-8 bg-white/10 p-6 md:p-8 rounded-[2.5rem] border border-white/20 shrink-0">
+                     <div className="text-center">
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-200 block mb-1">Rata-Rata</span>
+                        <span className="text-4xl md:text-5xl font-black tracking-tighter text-white">{averages.final}</span>
                      </div>
                   </div>
                </div>
@@ -245,9 +249,8 @@ export const StudentReportDetailScreen: React.FC = () => {
 
             {description && (
                 <div className="bg-slate-900 rounded-[2rem] p-6 md:p-8 text-white relative overflow-hidden shadow-xl group">
-                   <div className="absolute top-0 right-0 w-80 h-80 bg-[#3B66F5]/20 rounded-full blur-[100px] -mr-40 -mt-40 group-hover:scale-125 transition-transform duration-1000"></div>
                    <div className="relative z-10 flex flex-col md:flex-row gap-6 items-center">
-                      <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center shrink-0 border border-white/10 shadow-inner backdrop-blur-md">
+                      <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center shrink-0 border border-white/20 shadow-inner">
                          <Info size={24} className="text-accent" strokeWidth={2.5} />
                       </div>
                       <div>

@@ -273,10 +273,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ profile: initialPr
             </div>
 
             <div className="bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] rounded-[2.5rem] p-8 text-white relative shadow-2xl overflow-hidden flex flex-col items-center text-center isolate">
-                <div className="absolute top-[-20%] right-[-20%] w-[80%] h-[80%] bg-white/5 rounded-full blur-[60px] pointer-events-none -z-10" />
-                <div className="absolute bottom-[-20%] left-[-20%] w-[60%] h-[60%] bg-accent/10 rounded-full blur-[60px] pointer-events-none -z-10" />
-                
-                <Link to="/setup" className="absolute right-6 top-[28%] -translate-y-1/2 w-10 h-10 bg-white/10 rounded-full flex items-center justify-center hover:bg-white/20 transition-colors z-20 backdrop-blur-sm">
+                <Link to="/setup" className="absolute right-6 top-[28%] -translate-y-1/2 w-10 h-10 bg-white/10 rounded-full flex items-center justify-center hover:bg-white/20 transition-colors z-20">
                     <Pencil size={18} className="text-white" />
                 </Link>
 
@@ -300,7 +297,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ profile: initialPr
                   <ChevronDown size={14} />
                 </button>
 
-                <div className="w-full bg-white/10 border border-white/20 rounded-2xl py-3 px-4 mb-8 backdrop-blur-sm">
+                <div className="w-full bg-white/15 border border-white/20 rounded-2xl py-3 px-4 mb-8">
                     <div className="text-[10px] font-black uppercase tracking-widest text-white/90">
                         {profile.schools.find(s => s.id === profile.activeSchoolId)?.tahunAjaran || profile.tahunAjaran} • Semester {profile.schools.find(s => s.id === profile.activeSchoolId)?.semester === '1' ? 'Ganjil' : 'Genap'}
                     </div>
@@ -408,7 +405,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ profile: initialPr
                     ) : (
                         <User size={48} className="text-white/40" />
                     )}
-                    <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-[2px]">
+                    <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                         <Camera className="text-white drop-shadow-md" size={24} />
                     </div>
                     </div>
@@ -427,7 +424,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ profile: initialPr
                         <ChevronDown size={16} />
                     </button>
                     
-                    <div className="inline-flex px-4 py-2 rounded-lg bg-white/15 border border-white/10 backdrop-blur-md mb-6">
+                    <div className="inline-flex px-4 py-2 rounded-lg bg-white/15 border border-white/10 mb-6">
                     <span className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-blue-50">
                         TA {profile.schools.find(s => s.id === profile.activeSchoolId)?.tahunAjaran || profile.tahunAjaran} • Semester {profile.schools.find(s => s.id === profile.activeSchoolId)?.semester === '1' ? 'Ganjil' : 'Genap'}
                     </span>

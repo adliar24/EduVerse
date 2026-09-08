@@ -90,7 +90,7 @@ export default function Login() {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="fixed inset-0 bg-slate-950/95 backdrop-blur-md z-[9999] flex flex-col items-center justify-center text-white"
+            className="fixed inset-0 bg-slate-950/98 z-[9999] flex flex-col items-center justify-center text-white"
           >
             <motion.div
               initial={{ scale: 0.85, opacity: 0 }}
@@ -114,7 +114,7 @@ export default function Login() {
       {/* Left Panel - Branding */}
       <div className="hidden lg:flex flex-1 flex-col justify-between p-12 lg:p-16 relative z-10">
         <div className="flex items-center gap-3">
-          <div className="bg-white/15 backdrop-blur-md p-3 rounded-2xl border border-white/20 shadow-xl inline-flex items-center justify-center">
+          <div className="bg-white/15 p-3 rounded-2xl border border-white/20 shadow-xl inline-flex items-center justify-center">
             <GraduationCap className="text-white w-8 h-8" />
           </div>
           <div className="flex items-baseline gap-2">
@@ -141,7 +141,7 @@ export default function Login() {
       <div className="flex-1 flex flex-col justify-center items-center p-4 py-8 sm:p-8 lg:p-24 overflow-y-auto relative z-10">
         {/* Mobile Header Branding */}
         <div className="lg:hidden absolute top-8 sm:top-12 left-0 right-0 z-20 flex flex-col items-center text-center text-white space-y-1">
-          <div className="bg-white/15 backdrop-blur-md p-2.5 rounded-2xl border border-white/20 shadow-xl inline-flex items-center justify-center">
+          <div className="bg-white/15 p-2.5 rounded-2xl border border-white/20 shadow-xl inline-flex items-center justify-center">
             <GraduationCap className="text-white w-7 h-7" />
           </div>
           <div className="flex items-baseline justify-center gap-1.5 mt-0.5">

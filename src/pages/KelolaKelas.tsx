@@ -35,7 +35,7 @@ const ELECTRIC_BLUE_GRADIENT = {
   selectedBg: 'bg-gradient-to-br from-[#2563EB] via-[#1D4ED8] to-[#1E40AF] text-white border-white/40 shadow-[0_15px_35px_rgba(59,102,245,0.4)] scale-[1.02]',
   text: 'text-white',
   textMuted: 'text-blue-100/90',
-  badge: 'bg-white/20 text-white border-white/10 rounded-full backdrop-blur-md',
+  badge: 'bg-white/20 text-white border-white/10 rounded-full',
   divider: 'border-white/10',
   btnEdit: 'text-white/80 hover:text-white hover:bg-white/15 rounded-full',
   btnDelete: 'text-white/80 hover:text-red-200 hover:bg-red-500/30 rounded-full',
@@ -1397,7 +1397,7 @@ export default function KelolaKelas() {
             <motion.div 
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={() => setShowStudents(false)} 
-              className="absolute inset-0 bg-[#1D4ED8]/30 backdrop-blur-sm" 
+              className="absolute inset-0 bg-slate-950/70" 
             />
             <motion.div 
               initial={{ opacity: 0, scale: 0.97, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.97, y: 10 }}
@@ -1542,7 +1542,7 @@ export default function KelolaKelas() {
       <AnimatePresence>
         {showAddStudentForm && (
           <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowAddStudentForm(false)} className="absolute inset-0 bg-indigo-900/30 backdrop-blur-sm" />
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowAddStudentForm(false)} className="absolute inset-0 bg-slate-950/70" />
             <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.97 }} className="relative w-full max-w-sm bg-white rounded-2xl shadow-2xl p-6">
               <h3 className="text-lg font-bold text-[#1D4ED8] mb-5">{editingStudentId ? 'Edit Nama Murid' : 'Tambah Murid Manual'}</h3>
               <form onSubmit={handleAddStudent} className="space-y-4">
@@ -1569,7 +1569,7 @@ export default function KelolaKelas() {
       <AnimatePresence>
         {showForm && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowForm(false)} className="absolute inset-0 bg-[#1D4ED8]/30 backdrop-blur-sm" />
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowForm(false)} className="absolute inset-0 bg-slate-950/70" />
             <motion.div initial={{ opacity: 0, scale: 0.97, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.97, y: 10 }} className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl p-7">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">

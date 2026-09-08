@@ -31,7 +31,7 @@ const ELECTRIC_BLUE_GRADIENT = {
   selectedBg: 'bg-gradient-to-br from-[#2563EB] via-[#1D4ED8] to-[#1E40AF] text-white border-white/40 shadow-[0_15px_35px_rgba(59,102,245,0.4)] scale-[1.02]',
   text: 'text-white',
   textMuted: 'text-blue-100/90',
-  badge: 'bg-white/20 text-white border-white/10 rounded-full backdrop-blur-md',
+  badge: 'bg-white/20 text-white border-white/10 rounded-full',
   divider: 'border-white/10',
   btnEdit: 'text-white/80 hover:text-white hover:bg-white/15 rounded-full',
   btnDelete: 'text-white/80 hover:text-red-200 hover:bg-red-500/30 rounded-full',
@@ -953,7 +953,7 @@ export default function KelolaMateriTugas() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+              className="absolute inset-0 bg-slate-950/70"
               onClick={() => { if (!submitting) setShowModal(false); }}
             />
             {/* Panel */}

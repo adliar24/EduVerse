@@ -813,7 +813,7 @@ export default function Profil() {
           </div>
 
           {/* Right Column: Settings & Forms (col-span-7) */}
-          <div className="lg:col-span-7 bg-white/70 backdrop-blur-xl rounded-[2.5rem] border border-slate-100 shadow-sm p-8 sm:p-10 space-y-8 w-full">
+          <div className="lg:col-span-7 bg-white rounded-[2.5rem] border border-slate-100 shadow-sm p-8 sm:p-10 space-y-8 w-full">
             <div>
               <h3 className="text-2xl font-black text-[#1D4ED8] tracking-tight">Pengaturan Akun Pelajar</h3>
               <p className="text-sm text-slate-400 mt-1 font-medium">Ubah Username (Kode Siswa) dan Password Anda di sini. Data akan otomatis disinkronkan ke portal Admin.</p>
@@ -893,14 +893,14 @@ export default function Profil() {
       </div>
 
       <div className="max-w-3xl mx-auto">
-        <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div className="h-32 bg-[#1D4ED8] relative">
           <div className="absolute inset-0 bg-gradient-to-br from-indigo-900/50 to-transparent opacity-50" />
           <div className="absolute -bottom-10 left-8">
             <div className="w-20 h-20 rounded-2xl bg-white p-1 shadow-lg">
               <div className="w-full h-full rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 relative group overflow-hidden">
                 <User className="w-8 h-8" />
-                <button className="absolute inset-0 bg-[#3B66F5]/60 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center text-white backdrop-blur-sm">
+                <button className="absolute inset-0 bg-[#3B66F5]/70 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center text-white">
                   <Camera className="w-5 h-5" />
                 </button>
               </div>

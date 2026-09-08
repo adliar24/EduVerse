@@ -420,10 +420,6 @@ export default function ProfileSetup() {
 
   return (
     <div className="min-h-screen bg-slate-50 overflow-y-auto">
-      <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-400/20 rounded-full blur-[120px]" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-400/20 rounded-full blur-[120px]" />
-      </div>
 
       <div className="relative z-10 max-w-2xl mx-auto px-4 py-12">
         <motion.div

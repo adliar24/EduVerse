@@ -98,14 +98,7 @@ export default function StudentResult() {
   const isPassed = participant.score >= 75;
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 py-16 relative overflow-hidden">
-      {/* Decorative Background */}
-      <div className="absolute inset-0 pointer-events-none z-0">
-        <div className="absolute top-[-5%] left-[-5%] w-[40%] h-[40%] bg-[#1D4ED8]/5 rounded-full blur-[100px]" />
-        <div className="absolute bottom-[-5%] right-[-10%] w-[50%] h-[50%] bg-[#3B66F5]/50/5 rounded-full blur-[120px]" />
-        <div className="absolute top-[40%] left-[50%] w-[30%] h-[30%] bg-purple-500/5 rounded-full blur-[100px]" />
-      </div>
-
+    <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 py-16 relative">
       <motion.div 
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}

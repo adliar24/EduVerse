@@ -4,17 +4,6 @@ import { motion } from 'framer-motion';
 export default function ModernLoader() {
   return (
     <div className="fixed inset-0 bg-[#0F172A] flex flex-col items-center justify-center overflow-hidden z-[99999]">
-      {/* Ambient background glow */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div 
-          className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-indigo-500/20 rounded-full blur-[100px] animate-pulse"
-          style={{ transform: 'translateZ(0)', willChange: 'opacity' }}
-        />
-        <div 
-          className="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-96 h-96 bg-blue-600/20 rounded-full blur-[100px] animate-pulse"
-          style={{ transform: 'translateZ(0)', willChange: 'opacity' }}
-        />
-      </div>
 
       {/* Fluid / Organic Loader */}
       <div className="relative w-28 h-28 flex items-center justify-center z-10">

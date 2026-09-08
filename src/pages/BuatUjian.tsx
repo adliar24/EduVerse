@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { 
@@ -158,26 +158,28 @@ export default function BuatUjian() {
     }
   };
 
+  const selectedQuestionsSet = useMemo(() => new Set(selectedQuestions), [selectedQuestions]);
+
+  const areAllQuestionsSelected = useMemo(() => {
+    if (questions.length === 0) return false;
+    return questions.every(q => selectedQuestionsSet.has(q.id));
+  }, [questions, selectedQuestionsSet]);
+
   const handleToggleSelectAll = () => {
     const visibleQuestionIds = questions.map(q => q.id);
-    const areAllSelected = visibleQuestionIds.every(id => selectedQuestions.includes(id));
+    const areAllSelected = visibleQuestionIds.length > 0 && visibleQuestionIds.every(id => selectedQuestionsSet.has(id));
 
     if (areAllSelected) {
-      setSelectedQuestions(prev => prev.filter(id => !visibleQuestionIds.includes(id)));
+      const visibleSet = new Set(visibleQuestionIds);
+      setSelectedQuestions(prev => prev.filter(id => !visibleSet.has(id)));
     } else {
       setSelectedQuestions(prev => {
-        const newSelection = [...prev];
-        visibleQuestionIds.forEach(id => {
-          if (!newSelection.includes(id)) {
-            newSelection.push(id);
-          }
-        });
-        return newSelection;
+        const set = new Set(prev);
+        visibleQuestionIds.forEach(id => set.add(id));
+        return Array.from(set);
       });
     }
   };
-
-  const areAllQuestionsSelected = questions.length > 0 && questions.every(q => selectedQuestions.includes(q.id));
 
   const handleCreateExam = async () => {
     if (selectedQuestions.length === 0) {
@@ -709,54 +711,49 @@ export default function BuatUjian() {
             </div>
 
             <div className="grid grid-cols-1 gap-4">
-              <motion.div 
-                variants={staggerContainer}
-                initial="initial"
-                animate="animate"
-                className="grid grid-cols-1 gap-4"
-              >
-                {questions.map((q, index) => (
-                  <motion.label 
-                    variants={staggerItem}
-                    whileHover="hover"
-                whileTap="tap"
-                key={q.id}
-                  className={cn(
-                    "flex items-start gap-6 p-6 rounded-[2rem] border-2 transition-all cursor-pointer group",
-                    selectedQuestions.includes(q.id) 
-                      ? "border-[#3B66F5] bg-slate-50/50 shadow-lg shadow-slate-100" 
-                      : "border-slate-100 bg-white hover:border-slate-300"
-                  )}
-                >
-                  <div className={cn(
-                    "mt-1 w-7 h-7 rounded-lg border-2 flex items-center justify-center transition-all shrink-0",
-                    selectedQuestions.includes(q.id) ? "bg-[#1D4ED8] border-[#3B66F5]" : "border-slate-200 group-hover:border-slate-400"
-                  )}>
-                    {selectedQuestions.includes(q.id) && <Check className="text-white w-4 h-4" />}
-                  </div>
-                  <input 
-                    type="checkbox" 
-                    className="hidden"
-                    checked={selectedQuestions.includes(q.id)}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setSelectedQuestions([...selectedQuestions, q.id]);
-                      } else {
-                        setSelectedQuestions(selectedQuestions.filter(id => id !== q.id));
-                      }
-                    }}
-                  />
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-3">
-                      <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-lg bg-white border border-slate-100 text-slate-500">
-                        {q.question_type.replace('_', ' ')}
-                      </span>
-                    </div>
-                    <p className="text-[#1D4ED8] font-bold text-lg leading-snug">{q.question_text}</p>
-                  </div>
-                </motion.label>
-                ))}
-              </motion.div>
+              <div className="grid grid-cols-1 gap-4">
+                {questions.map((q) => {
+                  const isSelected = selectedQuestionsSet.has(q.id);
+                  return (
+                    <label 
+                      key={q.id}
+                      className={cn(
+                        "flex items-start gap-5 sm:gap-6 p-5 sm:p-6 rounded-2xl sm:rounded-[2rem] border-2 transition-all cursor-pointer group active:scale-[0.99]",
+                        isSelected 
+                          ? "border-[#3B66F5] bg-blue-50/20 shadow-sm" 
+                          : "border-slate-100 bg-white hover:border-slate-300"
+                      )}
+                    >
+                      <div className={cn(
+                        "mt-1 w-6 sm:w-7 h-6 sm:h-7 rounded-lg border-2 flex items-center justify-center transition-all shrink-0",
+                        isSelected ? "bg-[#1D4ED8] border-[#3B66F5]" : "border-slate-200 group-hover:border-slate-400"
+                      )}>
+                        {isSelected && <Check className="text-white w-4 h-4 stroke-[2.5]" />}
+                      </div>
+                      <input 
+                        type="checkbox" 
+                        className="hidden"
+                        checked={isSelected}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedQuestions(prev => [...prev, q.id]);
+                          } else {
+                            setSelectedQuestions(prev => prev.filter(id => id !== q.id));
+                          }
+                        }}
+                      />
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2.5">
+                          <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200 text-slate-500">
+                            {q.question_type.replace('_', ' ')}
+                          </span>
+                        </div>
+                        <p className="text-[#1D4ED8] font-bold text-base sm:text-lg leading-snug">{q.question_text}</p>
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
               {questions.length === 0 && (
                 <div className="text-center py-24 bg-white rounded-[2.5rem] border border-dashed border-slate-200">
                   <div className="bg-slate-50 w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-6">
@@ -788,7 +785,7 @@ export default function BuatUjian() {
             className="fixed inset-0 z-50 flex items-center justify-center p-4"
             onClick={() => setShowDatePicker(false)}
           >
-            <div className="absolute inset-0 bg-[#1D4ED8]/40 backdrop-blur-sm" />
+            <div className="absolute inset-0 bg-slate-900/60" />
             <motion.div 
               initial={{ opacity: 0, scale: 0.95, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}

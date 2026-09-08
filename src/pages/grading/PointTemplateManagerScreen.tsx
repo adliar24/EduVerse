@@ -116,7 +116,7 @@ export const PointTemplateManagerScreen: React.FC<{ profile: TeacherProfile | nu
                         </Button>
                     </div>
 
-                    <div className="sticky top-4 z-30 flex bg-slate-100/80 backdrop-blur-md p-1.5 rounded-[2.5rem] shadow-inner border border-slate-200/50">
+                    <div className="sticky top-4 z-30 flex bg-slate-100 p-1.5 rounded-[2.5rem] shadow-inner border border-slate-200">
                         <button 
                             onClick={() => setActiveListTab('positive')}
                             className={`flex-1 py-4 rounded-full text-[10px] md:text-xs font-black uppercase tracking-[0.1em] transition-all flex items-center justify-center gap-3 ${
