@@ -54,15 +54,21 @@ export default function Analisis() {
   const fetchExams = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
-    let query = supabase.from('exams').select('id, title').eq('teacher_id', user.id);
-    if (activeSchool?.id) {
-      if (activeSchool.id === 'legacy') {
-        query = query.is('school_id', null);
-      } else {
-        query = query.eq('school_id', activeSchool.id);
-      }
+    let query = supabase.from('exams').select('id, title, school_id').eq('teacher_id', user.id);
+    if (activeSchool?.id && activeSchool.id !== 'legacy') {
+      query = query.or(`school_id.eq.${activeSchool.id},school_id.is.null`);
+    } else if (activeSchool?.id === 'legacy') {
+      query = query.is('school_id', null);
     }
-    const { data } = await query;
+    let { data } = await query.order('created_at', { ascending: false });
+    if (!data || data.length === 0) {
+      const { data: allTeacherExams } = await supabase
+        .from('exams')
+        .select('id, title, school_id')
+        .eq('teacher_id', user.id)
+        .order('created_at', { ascending: false });
+      data = allTeacherExams || [];
+    }
     setExams(data || []);
   };
 
@@ -78,15 +84,22 @@ export default function Analisis() {
         query = query.eq('exam_id', selectedExam);
       } else {
         query = query.eq('exams.teacher_id', user.id);
-        if (activeSchool?.id) {
-          if (activeSchool.id === 'legacy') {
-            query = query.is('exams.school_id', null);
-          } else {
-            query = query.eq('exams.school_id', activeSchool.id);
-          }
+        if (activeSchool?.id && activeSchool.id !== 'legacy') {
+          query = query.or(`exams.school_id.eq.${activeSchool.id},exams.school_id.is.null`);
+        } else if (activeSchool?.id === 'legacy') {
+          query = query.is('exams.school_id', null);
         }
       }
-      const { data: participants } = await query;
+      let { data: participants } = await query;
+      
+      // Fallback if no participants found with school filter
+      if ((!participants || participants.length === 0) && selectedExam === 'all') {
+        const { data: allParticipants } = await supabase
+          .from('participants')
+          .select('*, exams!inner(teacher_id, school_id)')
+          .eq('exams.teacher_id', user.id);
+        participants = allParticipants || [];
+      }
 
       if (!participants || participants.length === 0) {
         setStats(null);

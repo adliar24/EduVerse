@@ -101,12 +101,10 @@ export default function DaftarUjian() {
         .select('id, teacher_id, title, exam_code, duration, total_questions, random_question, random_answer, start_time, end_time, is_active, show_score, strict_mode, offline_mode, qr_submission, bypass_code, is_archived, created_at, participants(count), exam_sessions(id, class_id, class_name, is_active)')
         .eq('teacher_id', user.id);
       
-      if (activeSchool?.id) {
-        if (activeSchool.id === 'legacy') {
-          query = query.is('school_id', null);
-        } else {
-          query = query.eq('school_id', activeSchool.id);
-        }
+      if (activeSchool?.id && activeSchool.id !== 'legacy') {
+        query = query.or(`school_id.eq.${activeSchool.id},school_id.is.null`);
+      } else if (activeSchool?.id === 'legacy') {
+        query = query.is('school_id', null);
       }
 
       let { data, error } = await query.order('created_at', { ascending: false });
@@ -118,12 +116,10 @@ export default function DaftarUjian() {
           .select('id, teacher_id, title, exam_code, duration, total_questions, random_question, random_answer, start_time, end_time, is_active, show_score, strict_mode, offline_mode, bypass_code, is_archived, created_at, participants(count), exam_sessions(id, class_id, class_name, is_active)')
           .eq('teacher_id', user.id);
         
-        if (activeSchool?.id) {
-          if (activeSchool.id === 'legacy') {
-            fallbackQuery = fallbackQuery.is('school_id', null);
-          } else {
-            fallbackQuery = fallbackQuery.eq('school_id', activeSchool.id);
-          }
+        if (activeSchool?.id && activeSchool.id !== 'legacy') {
+          fallbackQuery = fallbackQuery.or(`school_id.eq.${activeSchool.id},school_id.is.null`);
+        } else if (activeSchool?.id === 'legacy') {
+          fallbackQuery = fallbackQuery.is('school_id', null);
         }
         const { data: fallbackData, error: fallbackError } = await fallbackQuery.order('created_at', { ascending: false });
         if (fallbackError) throw fallbackError;
@@ -133,6 +129,16 @@ export default function DaftarUjian() {
         }));
       } else if (error) {
         throw error;
+      }
+
+      // If no exams found under school filter, fallback to all exams for this teacher
+      if (!data || data.length === 0) {
+        const { data: allTeacherExams } = await supabase
+          .from('exams')
+          .select('id, teacher_id, title, exam_code, duration, total_questions, random_question, random_answer, start_time, end_time, is_active, show_score, strict_mode, offline_mode, bypass_code, is_archived, created_at, participants(count), exam_sessions(id, class_id, class_name, is_active)')
+          .eq('teacher_id', user.id)
+          .order('created_at', { ascending: false });
+        data = allTeacherExams || [];
       }
 
       setExams(data || []);

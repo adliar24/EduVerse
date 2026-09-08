@@ -963,15 +963,80 @@ export default function StudentExam() {
       }
     });
     const answersString = answerTokens.join(',');
+    const finalScore = Math.round(score * 100) / 100;
+
+    // Helper UUID validator for option_id in PostgreSQL
+    const isUUID = (v: any) => typeof v === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
+
+    // Prepare answer records for is_correct and answers table
+    const finalAnswers = questions.map((q) => {
+      const userAnswer = answers[q.id];
+      const correctAnswerText = q._original_correct_answer_text || q.correct_answer;
+      let isCorrect = false;
+      
+      if (q.question_type === 'pilihan_ganda') {
+        const selectedOption = q.question_options?.find((opt: any) => opt.id === userAnswer);
+        if (selectedOption) {
+          isCorrect = (selectedOption.option_text || '').trim().toLowerCase() === (correctAnswerText || '').trim().toLowerCase();
+        }
+      } else if (q.question_type === 'menjodohkan') {
+        try {
+          const expectedPairs: any[] = JSON.parse(q.correct_answer || '[]');
+          const userPairs = JSON.parse(userAnswer || '{}');
+          if (expectedPairs.length > 0) {
+            let matched = 0;
+            expectedPairs.forEach((ep: any) => {
+              const uVal = userPairs[ep.id] || userPairs[ep.left];
+              if (uVal && uVal.trim().toLowerCase() === ep.right.trim().toLowerCase()) {
+                matched++;
+              }
+            });
+            isCorrect = matched === expectedPairs.length;
+          }
+        } catch (e) {
+          isCorrect = false;
+        }
+      } else if (q.question_type === 'essay') {
+        isCorrect = !!(userAnswer && userAnswer.trim().length > 0);
+      } else {
+        isCorrect = (userAnswer || '').trim().toLowerCase() === (correctAnswerText || '').trim().toLowerCase();
+      }
+      
+      return {
+        id: q.id,
+        question_type: q.question_type,
+        userAnswer: userAnswer,
+        isCorrect
+      };
+    });
+
+    const answersToInsert = finalAnswers.map(q => {
+      const isMCQ = q.question_type === 'pilihan_ganda';
+      const validOptionId = isMCQ && isUUID(q.userAnswer) ? q.userAnswer : null;
+      let answerTextVal: string | null = null;
+      if (!isMCQ) {
+        if (typeof q.userAnswer === 'object' && q.userAnswer !== null) {
+          answerTextVal = JSON.stringify(q.userAnswer);
+        } else if (q.userAnswer !== undefined && q.userAnswer !== null && q.userAnswer !== '') {
+          answerTextVal = String(q.userAnswer);
+        }
+      }
+      return {
+        participant_id: participantId,
+        question_id: q.id,
+        is_correct: q.isCorrect,
+        answer_text: answerTextVal,
+        option_id: validOptionId
+      };
+    });
 
     if (exam?.qr_submission) {
       setSubmitting(true);
       try {
         const studentInfoCached = localStorage.getItem(`participant_info_${participantId}`);
         const parsedStudentInfo = studentInfoCached ? JSON.parse(studentInfoCached) : {};
-        const finalScore = Math.round(score * 100) / 100;
 
-        // Generate QR data URL immediately (not on result page)
+        // 1. Generate QR data URL
         const { default: QRCode } = await import('qrcode');
         const qrPayload = `EDUTEST#${participantId}#${finalScore}#${answersString}`;
         const qrDataUrl = await QRCode.toDataURL(qrPayload, {
@@ -995,14 +1060,24 @@ export default function StudentExam() {
         };
         localStorage.setItem(`offline_result_${participantId}`, JSON.stringify(offlineResult));
 
-        // Mark end_time in DB to prevent re-entry
+        // 2. Dual-mode sync: ALSO save to DB online so admin sees results immediately!
         try {
           await supabase
             .from('participants')
-            .update({ end_time: new Date().toISOString() })
+            .update({ 
+              end_time: new Date().toISOString(),
+              score: finalScore,
+              status: 'completed'
+            })
             .eq('id', participantId);
+
+          const validAnswers = answersToInsert.filter(ans => ans.option_id !== null || ans.answer_text !== null);
+          if (validAnswers.length > 0) {
+            await supabase.from('answers').delete().eq('participant_id', participantId);
+            await supabase.from('answers').insert(validAnswers);
+          }
         } catch (dbErr) {
-          console.warn('Failed to update end_time in DB (QR mode):', dbErr);
+          console.warn('Online sync in QR mode encountered error (backup in QR active):', dbErr);
         }
 
         localStorage.removeItem(`exam_info_${participantId}`);
@@ -1020,38 +1095,13 @@ export default function StudentExam() {
 
     setSubmitting(true);
     try {
-      // Prepare answer records for is_correct update
-      const finalAnswers = questions.map((q, i) => {
-        const userAnswer = answers[q.id];
-        // Get original correct answer text (stored when randomized)
-        const correctAnswerText = q._original_correct_answer_text || q.correct_answer;
-        let isCorrect = false;
-        
-        if (q.question_type === 'pilihan_ganda') {
-          const selectedOption = q.question_options?.find((opt: any) => opt.id === userAnswer);
-          if (selectedOption) {
-            // Compare by text, not label
-            isCorrect = (selectedOption.option_text || '').trim().toLowerCase() === (correctAnswerText || '').trim().toLowerCase();
-          }
-        } else {
-          isCorrect = (userAnswer || '').trim().toLowerCase() === (correctAnswerText || '').trim().toLowerCase();
-        }
-        
-        return {
-          id: q.id,
-          question_type: q.question_type,
-          userAnswer: userAnswer,
-          isCorrect
-        };
-      });
-
       // Update Participant with retry logic
       const updateParticipant = async () => {
         const { error } = await supabase
           .from('participants')
           .update({
             end_time: new Date().toISOString(),
-            score: Math.round(score * 100) / 100,
+            score: finalScore,
             status: 'completed'
           })
           .eq('id', participantId);
@@ -1061,10 +1111,11 @@ export default function StudentExam() {
       let participantError = await updateParticipant();
       
       // Retry up to 3 times if network error
-      while (participantError && retryCount < 3 && (participantError.message.includes('fetch') || participantError.message.includes('network'))) {
-        await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1)));
+      let attemptCount = 0;
+      while (participantError && attemptCount < 3 && (participantError.message?.includes('fetch') || participantError.message?.includes('network'))) {
+        await new Promise(resolve => setTimeout(resolve, 1000 * (attemptCount + 1)));
         participantError = await updateParticipant();
-        retryCount++;
+        attemptCount++;
       }
 
       if (participantError) {
@@ -1077,54 +1128,46 @@ export default function StudentExam() {
         await new Promise(resolve => setTimeout(resolve, jitterDelay));
       }
 
-      // Prepare array of answer objects for single batch upsert
-      const answersToInsert = finalAnswers.map(q => {
-        const isMCQ = q.question_type === 'pilihan_ganda';
-        return {
-          participant_id: participantId,
-          question_id: q.id,
-          is_correct: q.isCorrect,
-          answer_text: isMCQ ? null : q.userAnswer,
-          option_id: isMCQ ? q.userAnswer : null
-        };
-      });
-
-      // Clear old answers and batch insert new ones with retry loop
+      // Batch insert answers with retry loop (non-blocking for overall completion)
       const upsertAnswersWithRetry = async (attempt = 0): Promise<any> => {
-        const { error: deleteError } = await supabase
-          .from('answers')
-          .delete()
-          .eq('participant_id', participantId);
-        
-        if (deleteError) {
-          if (attempt < 3) {
-            await new Promise(resolve => setTimeout(resolve, 1500 * (attempt + 1)));
-            return upsertAnswersWithRetry(attempt + 1);
-          }
-          return deleteError;
-        }
-
-        const validAnswers = answersToInsert.filter(ans => ans.option_id !== null || ans.answer_text !== null);
-        if (validAnswers.length > 0) {
-          const { error: insertError } = await supabase
+        try {
+          const { error: deleteError } = await supabase
             .from('answers')
-            .insert(validAnswers);
+            .delete()
+            .eq('participant_id', participantId);
           
-          if (insertError) {
-            if (attempt < 3) {
-              await new Promise(resolve => setTimeout(resolve, 1500 * (attempt + 1)));
+          if (deleteError) {
+            if (attempt < 2) {
+              await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
               return upsertAnswersWithRetry(attempt + 1);
             }
-            return insertError;
+            console.warn('[Exam] Delete old answers error:', deleteError);
+            return deleteError;
           }
+
+          const validAnswers = answersToInsert.filter(ans => ans.option_id !== null || ans.answer_text !== null);
+          if (validAnswers.length > 0) {
+            const { error: insertError } = await supabase
+              .from('answers')
+              .insert(validAnswers);
+            
+            if (insertError) {
+              if (attempt < 2) {
+                await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
+                return upsertAnswersWithRetry(attempt + 1);
+              }
+              console.warn('[Exam] Insert answers error:', insertError);
+              return insertError;
+            }
+          }
+          return null;
+        } catch (e: any) {
+          console.warn('[Exam] Upsert answers exception:', e);
+          return e;
         }
-        return null;
       };
 
-      const upsertError = await upsertAnswersWithRetry();
-      if (upsertError) {
-        throw new Error('Gagal mengirim rincian jawaban: ' + upsertError.message);
-      }
+      await upsertAnswersWithRetry();
 
       // Clear local storage upon completion
       localStorage.removeItem(`exam_info_${participantId}`);

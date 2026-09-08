@@ -68,18 +68,27 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
     if (!user) return;
 
     let query = supabase.from('exams')
-      .select('id, title')
+      .select('id, title, school_id')
       .eq('teacher_id', user.id);
 
-    if (activeSchool?.id) {
-      if (activeSchool.id === 'legacy') {
-        query = query.is('school_id', null);
-      } else {
-        query = query.eq('school_id', activeSchool.id);
-      }
+    if (activeSchool?.id && activeSchool.id !== 'legacy') {
+      query = query.or(`school_id.eq.${activeSchool.id},school_id.is.null`);
+    } else if (activeSchool?.id === 'legacy') {
+      query = query.is('school_id', null);
     }
 
-    const { data } = await query;
+    let { data } = await query.order('created_at', { ascending: false });
+    
+    // Fallback if no exams found with school filter
+    if (!data || data.length === 0) {
+      const { data: allExams } = await supabase
+        .from('exams')
+        .select('id, title, school_id')
+        .eq('teacher_id', user.id)
+        .order('created_at', { ascending: false });
+      data = allExams || [];
+    }
+
     setExams(data || []);
   };
 
@@ -103,17 +112,22 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
     let query = supabase.from('classes')
       .select('id, name');
     
-    if (activeSchool?.id) {
-      if (activeSchool.id === 'legacy') {
-        query = query.is('school_id', null).eq('teacher_id', user.id);
-      } else {
-        query = query.eq('school_id', activeSchool.id);
-      }
+    if (activeSchool?.id && activeSchool.id !== 'legacy') {
+      query = query.or(`school_id.eq.${activeSchool.id},school_id.is.null`);
+    } else if (activeSchool?.id === 'legacy') {
+      query = query.is('school_id', null).eq('teacher_id', user.id);
     } else {
       query = query.eq('teacher_id', user.id);
     }
 
-    const { data } = await query.order('name');
+    let { data } = await query.order('name');
+    if (!data || data.length === 0) {
+      const { data: fallbackClasses } = await supabase
+        .from('classes')
+        .select('id, name')
+        .order('name');
+      data = fallbackClasses || [];
+    }
     setClasses(data || []);
   };
 
@@ -125,21 +139,32 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
 
       let examsQuery = supabase
         .from('exams')
-        .select('id')
+        .select('id, school_id')
         .eq('teacher_id', user.id);
 
-      if (activeSchool?.id) {
-        if (activeSchool.id === 'legacy') {
-          examsQuery = examsQuery.is('school_id', null);
-        } else {
-          examsQuery = examsQuery.eq('school_id', activeSchool.id);
-        }
+      if (activeSchool?.id && activeSchool.id !== 'legacy') {
+        examsQuery = examsQuery.or(`school_id.eq.${activeSchool.id},school_id.is.null`);
+      } else if (activeSchool?.id === 'legacy') {
+        examsQuery = examsQuery.is('school_id', null);
       }
 
-      const { data: teacherExams } = await examsQuery;
+      let { data: teacherExams } = await examsQuery;
+
+      if (!teacherExams || teacherExams.length === 0) {
+        const { data: allTeacherExams } = await supabase
+          .from('exams')
+          .select('id, school_id')
+          .eq('teacher_id', user.id);
+        teacherExams = allTeacherExams || [];
+      }
 
       const examIds = teacherExams?.map(e => e.id) || [];
       
+      // Always include selectedExam in examIds if specifically chosen
+      if (selectedExam !== 'all' && !examIds.includes(selectedExam)) {
+        examIds.push(selectedExam);
+      }
+
       if (examIds.length === 0) {
         setResults([]);
         setLoading(false);
@@ -158,6 +183,7 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
           status,
           start_time,
           end_time,
+          created_at,
           exams (
             title
           ),
@@ -166,7 +192,7 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
           )
         `)
         .in('exam_id', examIds)
-        .order('end_time', { ascending: false });
+        .order('created_at', { ascending: false });
 
       if (selectedExam !== 'all') {
         query = query.eq('exam_id', selectedExam);
