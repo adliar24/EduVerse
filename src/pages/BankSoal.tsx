@@ -1069,59 +1069,137 @@ export default function BankSoal() {
         const result = await mammoth.extractRawText({ arrayBuffer });
         const text = result.value;
 
-        // Simple Parser Logic
-        const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-        const parsedQuestions: any[] = [];
-        let currentQuestion: any = null;
+        // Intelligent Docx Parser Logic (Supports numbered and unnumbered question blocks)
+        const allLines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+        let parsedQuestions: any[] = [];
 
-        lines.forEach(line => {
-          // Detect New Question (Starts with number followed by . or ))
-          const qMatch = line.match(/^(\d+)[\.\)]\s*(.*)/);
-          if (qMatch) {
-            if (currentQuestion) parsedQuestions.push(currentQuestion);
-            currentQuestion = {
-              question_text: qMatch[2],
-              question_type: 'isian_singkat',
-              options: {},
-              correct_answer: ''
-            };
-            return;
+        // Check if file uses numbered format like "1.", "1)"
+        const hasNumberedQuestions = allLines.some(l => /^\d+[\.\)]\s+/.test(l));
+
+        if (hasNumberedQuestions) {
+          let currentQuestion: any = null;
+          allLines.forEach(line => {
+            const qMatch = line.match(/^(\d+)[\.\)]\s*(.*)/);
+            if (qMatch) {
+              if (currentQuestion && currentQuestion.question_text) parsedQuestions.push(currentQuestion);
+              currentQuestion = {
+                question_text: qMatch[2],
+                question_type: 'isian_singkat',
+                options: {},
+                correct_answer: ''
+              };
+              return;
+            }
+
+            if (!currentQuestion) return;
+
+            const optMatch = line.match(/^([A-E])[\.\)]\s*(.*)/i);
+            if (optMatch) {
+              currentQuestion.question_type = 'pilihan_ganda';
+              const label = optMatch[1].toUpperCase();
+              currentQuestion.options[label] = optMatch[2];
+              return;
+            }
+
+            const ansMatch = line.match(/^(?:Kunci\s+Jawaban|Kunci|Jawaban|Ans|Answer):\s*(.*)/i);
+            if (ansMatch) {
+              const letterMatch = ansMatch[1].match(/([A-E])/i);
+              currentQuestion.correct_answer = letterMatch ? letterMatch[1].toUpperCase() : ansMatch[1].trim();
+              return;
+            }
+
+            if (line.startsWith('Pembahasan:')) return;
+
+            if (currentQuestion && !line.match(/^[A-E][\.\)]/i)) {
+              currentQuestion.question_text += ' ' + line;
+            }
+          });
+          if (currentQuestion && currentQuestion.question_text) parsedQuestions.push(currentQuestion);
+        } else {
+          // Unnumbered format (e.g. raw ASAT exam document)
+          const headerEndIdx = allLines.findIndex(l => /DAFTAR SOAL|SOAL PILIHAN GANDA/i.test(l));
+          const lines = headerEndIdx !== -1 ? allLines.slice(headerEndIdx + 1) : allLines;
+
+          let currentQText = '';
+          let currentOptions: string[] = [];
+
+          for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+
+            const keyMatch = line.match(/^(?:Kunci\s+Jawaban|Kunci|Jawaban|Ans|Answer):\s*(.*)/i);
+            if (keyMatch) {
+              const letterMatch = keyMatch[1].match(/([A-E])/i);
+              const key = letterMatch ? letterMatch[1].toUpperCase() : keyMatch[1].trim();
+
+              if (i + 1 < lines.length && lines[i + 1].startsWith('Pembahasan:')) {
+                i++;
+              }
+
+              if (currentQText && currentOptions.length >= 2) {
+                const optObj: Record<string, string> = {};
+                const labels = ['A', 'B', 'C', 'D', 'E'];
+                currentOptions.slice(0, 5).forEach((opt, idx) => {
+                  optObj[labels[idx]] = opt.replace(/^[A-E][\.\)]\s*/i, '');
+                });
+
+                parsedQuestions.push({
+                  question_text: currentQText,
+                  question_type: 'pilihan_ganda',
+                  options: optObj,
+                  correct_answer: key
+                });
+              }
+
+              currentQText = '';
+              currentOptions = [];
+              continue;
+            }
+
+            if (line.startsWith('Pembahasan:')) continue;
+
+            if (!currentQText) {
+              currentQText = line;
+            } else {
+              currentOptions.push(line);
+            }
           }
+        }
 
-          if (!currentQuestion) return;
-
-          // Detect Options (A. B. C. D. E.)
-          const optMatch = line.match(/^([A-E])[\.\)]\s*(.*)/i);
-          if (optMatch) {
-            currentQuestion.question_type = 'pilihan_ganda';
-            const label = optMatch[1].toUpperCase();
-            currentQuestion.options[label] = optMatch[2];
-            return;
-          }
-
-          // Detect Answer
-          const ansMatch = line.match(/^(Jawaban|Kunci|Ans|Answer):\s*(.*)/i);
-          if (ansMatch) {
-            currentQuestion.correct_answer = ansMatch[2].trim();
-            return;
-          }
-
-          // Append to question text if it's a multiline question
-          if (currentQuestion && !line.match(/^[A-E][\.\)]/i)) {
-             currentQuestion.question_text += ' ' + line;
-          }
-        });
-
-        if (currentQuestion) parsedQuestions.push(currentQuestion);
-
-        if (parsedQuestions.length === 0) throw new Error("Format tidak dikenali. Gunakan template yang disediakan.");
+        if (parsedQuestions.length === 0) throw new Error("Format tidak dikenali. Pastikan soal memiliki nomor (1. ) atau kunci jawaban (Jawaban: A).");
 
         // Upload to Database
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) throw new Error("User not found");
 
+        // Detect or fallback category
+        let targetCategoryId = currentCategoryId;
+        if (!targetCategoryId) {
+          const headerMatch = text.match(/Mata\s*Pelajaran[\s:\n]+([^\n\r]+)/i);
+          const detectedSubject = headerMatch ? headerMatch[1].trim() : null;
+          if (detectedSubject) {
+            const { data: subjectCat } = await supabase
+              .from('categories')
+              .select('id')
+              .eq('teacher_id', user.id)
+              .eq('name', detectedSubject)
+              .is('parent_id', null)
+              .maybeSingle();
+            
+            if (subjectCat) {
+              targetCategoryId = subjectCat.id;
+            } else {
+              const { data: newSubject } = await supabase
+                .from('categories')
+                .insert([{ name: detectedSubject, teacher_id: user.id, school_id: null }])
+                .select().single();
+              if (newSubject) targetCategoryId = newSubject.id;
+            }
+          }
+        }
+
         let successCount = 0;
         for (const q of parsedQuestions) {
+          const cleanAns = q.correct_answer ? (q.correct_answer.match(/([A-E])/i)?.[1]?.toUpperCase() || q.correct_answer) : null;
           const { data: question, error: qError } = await supabase
             .from('questions')
             .insert([{
@@ -1129,12 +1207,15 @@ export default function BankSoal() {
               school_id: null,
               question_text: q.question_text,
               question_type: q.question_type,
-              correct_answer: q.question_type === 'pilihan_ganda' ? (q.correct_answer?.toUpperCase() || null) : (q.correct_answer || null),
-              category_id: currentCategoryId
+              correct_answer: q.question_type === 'pilihan_ganda' ? cleanAns : (q.correct_answer || null),
+              category_id: targetCategoryId
             }])
             .select().single();
           
-          if (qError) continue;
+          if (qError) {
+            console.error('Error inserting question:', qError);
+            continue;
+          }
 
           if (q.question_type === 'pilihan_ganda' && question) {
             const opts = Object.entries(q.options).map(([label, text]) => ({
