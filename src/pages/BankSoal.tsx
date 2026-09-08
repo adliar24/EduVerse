@@ -363,6 +363,51 @@ export default function BankSoal() {
     });
   };
 
+  const uploadBase64ToStorage = async (
+    base64Data: string,
+    userId: string,
+    prefix = 'img'
+  ): Promise<string | null> => {
+    if (!base64Data || !base64Data.startsWith('data:image/')) return base64Data || null;
+
+    try {
+      const compressedDataUrl = await compressBase64Image(base64Data, 800, 800, 0.75);
+      const arr = compressedDataUrl.split(',');
+      const mimeMatch = arr[0].match(/:(.*?);/);
+      const mime = mimeMatch ? mimeMatch[1] : 'image/jpeg';
+      const bstr = atob(arr[1]);
+      let n = bstr.length;
+      const u8arr = new Uint8Array(n);
+      while (n--) {
+        u8arr[n] = bstr.charCodeAt(n);
+      }
+      const blob = new Blob([u8arr], { type: mime });
+      const ext = mime.includes('png') ? 'png' : 'jpg';
+      const fileName = `${userId}/imported/${Date.now()}_${prefix}_${Math.random().toString(36).substring(2, 7)}.${ext}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('question-images')
+        .upload(fileName, blob, {
+          contentType: mime,
+          upsert: true
+        });
+
+      if (uploadError) {
+        console.warn('Supabase storage upload warning, fallback to compressed data:', uploadError);
+        return compressedDataUrl;
+      }
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('question-images')
+        .getPublicUrl(fileName);
+
+      return publicUrl || compressedDataUrl;
+    } catch (err) {
+      console.error('Error uploading image to storage:', err);
+      return base64Data;
+    }
+  };
+
   const getBreadcrumbs = () => {
     const crumbs = [];
     let current = categories.find(c => c.id === currentCategoryId);
@@ -787,199 +832,257 @@ export default function BankSoal() {
         const arrayBuffer = event.target?.result as ArrayBuffer;
         const { default: mammoth } = await import('mammoth');
         
-        // Extract HTML with embedded base64 images
+        // 1. Extract HTML with embedded base64 images
         const htmlResult = await mammoth.convertToHtml({ arrayBuffer });
         const html = htmlResult.value || '';
         const rawText = html.replace(/<[^>]*>/g, ' ');
 
-        // Parse HTML into semantic item list with images
-        const tokenRegex = /<(p|li|td|th)(?:[^>]*)>([\s\S]*?)<\/\1>/gi;
-        let match;
-        const items: { text: string; images: string[] }[] = [];
+        // 2. Tokenize into document segments preserving tables and list structures
+        const cleanHtml = html.replace(/<br\s*\/?>/gi, '\n');
+        const tableRegex = /<table[\s\S]*?<\/table>/gi;
+        let lastIdx = 0;
+        let tableMatch;
 
-        while ((match = tokenRegex.exec(html)) !== null) {
-          const content = match[2];
-          const imgMatches = [...content.matchAll(/<img[^>]+src="([^">]+)"/gi)].map(m => m[1]);
-          const text = content.replace(/<img[^>]*>/gi, '').replace(/<.*?>/g, ' ').replace(/\s+/g, ' ').trim();
-          if (text || imgMatches.length > 0) {
-            items.push({ text, images: imgMatches });
+        const segments: { type: 'html' | 'table'; content: string }[] = [];
+        while ((tableMatch = tableRegex.exec(cleanHtml)) !== null) {
+          if (tableMatch.index > lastIdx) {
+            segments.push({ type: 'html', content: cleanHtml.substring(lastIdx, tableMatch.index) });
           }
+          segments.push({ type: 'table', content: tableMatch[0] });
+          lastIdx = tableMatch.index + tableMatch[0].length;
+        }
+        if (lastIdx < cleanHtml.length) {
+          segments.push({ type: 'html', content: cleanHtml.substring(lastIdx) });
         }
 
-        const hasNumberedQuestions = items.some(it => /^\d+[\.\)]\s+/.test(it.text));
-        let parsedQuestions: any[] = [];
+        interface DocToken {
+          type: 'cell' | 'key' | 'li' | 'p';
+          text: string;
+          images: string[];
+          key?: string;
+        }
 
-        if (hasNumberedQuestions) {
-          let currentQ: any = null;
-          let currentOptionLabel: string | null = null;
+        const tokens: DocToken[] = [];
 
-          items.forEach(it => {
-            const qMatch = it.text.match(/^(\d+)[\.\)]\s*(.*)/);
-            if (qMatch) {
-              if (currentQ && currentQ.question_text) parsedQuestions.push(currentQ);
-              currentQ = {
-                question_text: qMatch[2],
-                question_type: 'pilihan_ganda',
-                image_url: it.images[0] || null,
-                options: {},
-                correct_answer: ''
-              };
-              currentOptionLabel = null;
-              return;
-            }
-
-            if (!currentQ) return;
-
-            // Check if this item is an image belonging to current question before options
-            if (it.images.length > 0 && Object.keys(currentQ.options).length === 0 && !currentOptionLabel && !it.text.match(/^[A-E][\.\)]/i)) {
-              if (!currentQ.image_url) currentQ.image_url = it.images[0];
-            }
-
-            // Check for Option A-E
-            const optMatch = it.text.match(/^([A-E])[\.\)]\s*(.*)/i);
-            if (optMatch) {
-              const label = optMatch[1].toUpperCase();
-              currentOptionLabel = label;
-              currentQ.options[label] = {
-                text: optMatch[2] || `Pilihan ${label}`,
-                image_url: it.images[0] || null
-              };
-              return;
-            }
-
-            // If previous item was an option and this item is an image
-            if (currentOptionLabel && it.images.length > 0 && currentQ.options[currentOptionLabel]) {
-              if (!currentQ.options[currentOptionLabel].image_url) {
-                currentQ.options[currentOptionLabel].image_url = it.images[0];
-                if (it.text && currentQ.options[currentOptionLabel].text === `Pilihan ${currentOptionLabel}`) {
-                  currentQ.options[currentOptionLabel].text = it.text;
-                }
-              }
-            }
-
-            // Check Answer Key
-            const ansMatch = it.text.match(/^(?:Kunci\s+Jawaban|Kunci|Jawaban|Ans|Answer):\s*([A-E])/i);
-            if (ansMatch) {
-              currentQ.correct_answer = ansMatch[1].toUpperCase();
-              currentOptionLabel = null;
-              return;
-            }
-
-            const simpleAns = it.text.match(/^(?:Kunci\s+Jawaban|Kunci|Jawaban|Ans|Answer):\s*(.*)/i);
-            if (simpleAns) {
-              const letter = simpleAns[1].match(/([A-E])/i);
-              currentQ.correct_answer = letter ? letter[1].toUpperCase() : simpleAns[1].trim();
-              currentOptionLabel = null;
-              return;
-            }
-
-            if (it.text.startsWith('Pembahasan:')) {
-              currentOptionLabel = null;
-              return;
-            }
-
-            // Multiline question text
-            if (Object.keys(currentQ.options).length === 0 && !it.text.match(/^[A-E][\.\)]/i)) {
-              currentQ.question_text += ' ' + it.text;
-              if (it.images[0] && !currentQ.image_url) currentQ.image_url = it.images[0];
-            }
-          });
-
-          if (currentQ && currentQ.question_text) parsedQuestions.push(currentQ);
-        } else {
-          // Unnumbered format (e.g. raw ASAT exam document)
-          const headerIdx = items.findIndex(it => /DAFTAR SOAL|SOAL PILIHAN GANDA/i.test(it.text));
-          const contentItems = headerIdx !== -1 ? items.slice(headerIdx + 1) : items;
-
-          let currentQText = '';
-          let currentQImg: string | null = null;
-          let currentOpts: any[] = [];
-
-          for (let i = 0; i < contentItems.length; i++) {
-            const it = contentItems[i];
-
-            const keyMatch = it.text.match(/^(?:Kunci\s+Jawaban|Kunci|Jawaban|Ans|Answer):\s*([A-E])/i);
+        for (const seg of segments) {
+          if (seg.type === 'table') {
+            const tableContent = seg.content;
+            const keyMatch = tableContent.match(/(?:Kunci\s*(?:Jawaban)?|Jawaban|Answer)\s*[:=]\s*([A-Ea-e])/i);
             if (keyMatch) {
-              const key = keyMatch[1].toUpperCase();
-
-              if (currentQText && currentOpts.length >= 2) {
-                const optMap: Record<string, { text: string; image_url: string | null }> = {};
-                const labels = ['A', 'B', 'C', 'D', 'E'];
-                currentOpts.slice(0, 5).forEach((opt, idx) => {
-                  const label = opt.label || labels[idx];
-                  optMap[label] = {
-                    text: opt.text.replace(/^[A-E][\.\)]\s*/i, '') || `Pilihan ${label}`,
-                    image_url: opt.image_url || null
-                  };
-                });
-
-                parsedQuestions.push({
-                  question_text: currentQText,
-                  question_type: 'pilihan_ganda',
-                  image_url: currentQImg,
-                  options: optMap,
-                  correct_answer: key
-                });
-              }
-
-              currentQText = '';
-              currentQImg = null;
-              currentOpts = [];
+              tokens.push({
+                type: 'key',
+                key: keyMatch[1].toUpperCase(),
+                text: tableContent.replace(/<.*?>/g, ' ').replace(/\s+/g, ' ').trim(),
+                images: []
+              });
               continue;
             }
 
-            if (it.text.startsWith('Pembahasan:')) continue;
+            // Skip metadata table if it has no question options
+            if (/Mata Pelajaran|Guru Pengampu|Kelas/i.test(tableContent) && !/[A-E][\.\)]/i.test(tableContent)) {
+              continue;
+            }
 
-            if (!currentQText) {
-              currentQText = it.text;
-              if (it.images.length > 0) currentQImg = it.images[0];
-            } else {
-              if (it.images.length > 0 && (!it.text || /^\d+$/.test(it.text)) && currentOpts.length === 0) {
-                currentQImg = it.images[0];
+            // Extract table cells (useful for option grids like RAM / VGA questions)
+            const cellRegex = /<td(?:[^>]*)>([\s\S]*?)<\/td>/gi;
+            let cellMatch;
+            while ((cellMatch = cellRegex.exec(tableContent)) !== null) {
+              const cellHtml = cellMatch[1];
+              const imgs = [...cellHtml.matchAll(/<img[^>]+src="([^">]+)"/gi)].map(m => m[1]);
+              const text = cellHtml.replace(/<img[^>]*>/gi, '').replace(/<.*?>/g, ' ').replace(/\s+/g, ' ').trim();
+              tokens.push({
+                type: 'cell',
+                text,
+                images: imgs
+              });
+            }
+          } else {
+            const blockRegex = /<(h[1-6]|p|li)(?:[^>]*)>([\s\S]*?)<\/\1>/gi;
+            let bMatch;
+            while ((bMatch = blockRegex.exec(seg.content)) !== null) {
+              const tag = bMatch[1].toLowerCase();
+              const bContent = bMatch[2];
+              const imgs = [...bContent.matchAll(/<img[^>]+src="([^">]+)"/gi)].map(m => m[1]);
+              const text = bContent.replace(/<img[^>]*>/gi, '').replace(/<.*?>/g, ' ').replace(/\s+/g, ' ').trim();
+
+              const keyMatch = text.match(/^(?:Kunci\s*(?:Jawaban)?|Jawaban|Answer)\s*[:=]\s*([A-Ea-e])/i);
+              if (keyMatch) {
+                tokens.push({
+                  type: 'key',
+                  key: keyMatch[1].toUpperCase(),
+                  text,
+                  images: imgs
+                });
+                continue;
+              }
+
+              if (text || imgs.length > 0) {
+                tokens.push({
+                  type: tag === 'li' ? 'li' : 'p',
+                  text,
+                  images: imgs
+                });
+              }
+            }
+          }
+        }
+
+        // 3. Strip header noise
+        const headerEndIdx = tokens.findIndex(t => /DAFTAR SOAL|SOAL PILIHAN GANDA/i.test(t.text));
+        let scanTokens = headerEndIdx !== -1 ? tokens.slice(headerEndIdx + 1) : tokens;
+        while (scanTokens.length > 0 && /PAKET SOAL|SMAN|Mata Pelajaran|Guru Pengampu|Kelas/i.test(scanTokens[0].text)) {
+          scanTokens.shift();
+        }
+
+        // 4. Helper to build single question from token group
+        const buildQuestionFromTokens = (qTokens: DocToken[], correctKey: string | null) => {
+          if (qTokens.length === 0) return null;
+          const validTokens = qTokens.filter(t => !t.text.startsWith('Pembahasan:'));
+          if (validTokens.length === 0) return null;
+
+          let qText = '';
+          let qImg: string | null = null;
+          const options: Record<string, { text: string; image_url: string | null }> = {};
+          const optLetters = ['A', 'B', 'C', 'D', 'E'];
+          let currentOptLabel: string | null = null;
+
+          for (let i = 0; i < validTokens.length; i++) {
+            const t = validTokens[i];
+
+            // Table cell (e.g. A. with image, D. with image)
+            if (t.type === 'cell') {
+              const match = t.text.match(/^([A-E])[\.\)]\s*(.*)/i);
+              if (match) {
+                const label = match[1].toUpperCase();
+                currentOptLabel = label;
+                options[label] = {
+                  text: match[2].trim() || (t.images.length > 0 ? '' : `Pilihan ${label}`),
+                  image_url: t.images[0] || null
+                };
+              } else if (t.images.length > 0) {
+                const nextLetter = optLetters.find(l => !options[l]) || 'A';
+                options[nextLetter] = {
+                  text: t.text || '',
+                  image_url: t.images[0] || null
+                };
+                currentOptLabel = nextLetter;
+              }
+              continue;
+            }
+
+            // Explicit letter option (e.g. A. Dekomposisi)
+            const letterMatch = t.text.match(/^([A-E])[\.\)]\s*(.*)/i);
+            if (letterMatch) {
+              const label = letterMatch[1].toUpperCase();
+              currentOptLabel = label;
+              options[label] = {
+                text: letterMatch[2].trim() || (t.images.length > 0 ? '' : `Pilihan ${label}`),
+                image_url: t.images[0] || null
+              };
+              continue;
+            }
+
+            // Image only token
+            if (t.images.length > 0 && !t.text) {
+              if (Object.keys(options).length === 0) {
+                if (!qImg) qImg = t.images[0];
+              } else if (currentOptLabel && options[currentOptLabel] && !options[currentOptLabel].image_url) {
+                options[currentOptLabel].image_url = t.images[0];
+              }
+              continue;
+            }
+
+            // If options have not started yet:
+            if (Object.keys(options).length === 0) {
+              if (!qText) {
+                qText = t.text.replace(/^\d+[\.\)]\s*/, '');
+                if (t.images[0]) qImg = t.images[0];
               } else {
-                const optLabelMatch = it.text.match(/^([A-E])[\.\)]/i);
-                if (optLabelMatch) {
-                  currentOpts.push({
-                    label: optLabelMatch[1].toUpperCase(),
-                    text: it.text.replace(/^[A-E][\.\)]\s*/i, '') || `Pilihan ${optLabelMatch[1].toUpperCase()}`,
-                    image_url: it.images[0] || null
-                  });
+                if (t.type === 'li') {
+                  options['A'] = { text: t.text, image_url: t.images[0] || null };
+                  currentOptLabel = 'A';
                 } else {
-                  if (currentOpts.length > 0 && it.images.length > 0 && !currentOpts[currentOpts.length - 1].image_url && !it.text) {
-                    currentOpts[currentOpts.length - 1].image_url = it.images[0];
-                  } else {
-                    currentOpts.push({
-                      text: it.text,
-                      image_url: it.images[0] || null
-                    });
-                  }
+                  qText += ' ' + t.text;
+                  if (t.images[0] && !qImg) qImg = t.images[0];
                 }
               }
+              continue;
             }
+
+            // Options already started: sequential option
+            const optCount = Object.keys(options).length;
+            if (optCount < 5) {
+              const nextLetter = optLetters[optCount];
+              options[nextLetter] = { text: t.text, image_url: t.images[0] || null };
+              currentOptLabel = nextLetter;
+            }
+          }
+
+          // Ensure all options A-E exist if options are present
+          optLetters.forEach(l => {
+            if (!options[l]) {
+              options[l] = { text: `Pilihan ${l}`, image_url: null };
+            }
+          });
+
+          return {
+            question_text: qText.trim() || 'Soal Pilihan Ganda',
+            question_type: 'pilihan_ganda',
+            correct_answer: correctKey || null,
+            image_url: qImg,
+            options
+          };
+        };
+
+        // 5. Extract all questions
+        const keyTokens = scanTokens.filter(t => t.type === 'key');
+        let parsedQuestions: any[] = [];
+
+        if (keyTokens.length >= 2) {
+          // Key-delimited questions: highly reliable demarcation
+          let currentTokens: DocToken[] = [];
+          for (const t of scanTokens) {
+            if (t.type === 'key') {
+              const q = buildQuestionFromTokens(currentTokens, t.key || null);
+              if (q) parsedQuestions.push(q);
+              currentTokens = [];
+            } else {
+              currentTokens.push(t);
+            }
+          }
+        } else {
+          // Numbered or list-demarcated questions without keys
+          let currentTokens: DocToken[] = [];
+          for (let i = 0; i < scanTokens.length; i++) {
+            const t = scanTokens[i];
+            const isNum = /^\d+[\.\)]\s+/.test(t.text);
+            const optCountInCurrent = currentTokens.filter(x => x.type === 'cell' || /^[A-E][\.\)]/i.test(x.text)).length;
+            const liCount = currentTokens.filter(x => x.type === 'li').length;
+            const isCompleteListQuestion = (optCountInCurrent >= 5) || (liCount >= 6);
+
+            if (currentTokens.length > 0 && (isNum || isCompleteListQuestion)) {
+              const q = buildQuestionFromTokens(currentTokens, null);
+              if (q) parsedQuestions.push(q);
+              currentTokens = [t];
+            } else {
+              currentTokens.push(t);
+            }
+          }
+
+          if (currentTokens.length > 0) {
+            const q = buildQuestionFromTokens(currentTokens, null);
+            if (q) parsedQuestions.push(q);
           }
         }
 
-        if (parsedQuestions.length === 0) throw new Error("Format tidak dikenali. Pastikan soal memiliki nomor (1. ) atau kunci jawaban (Jawaban: A).");
-
-        // Automatically compress all extracted images to optimize database size and speed
-        for (const q of parsedQuestions) {
-          if (q.image_url) {
-            q.image_url = await compressBase64Image(q.image_url, 800, 800, 0.7);
-          }
-          if (q.options) {
-            for (const optKey of Object.keys(q.options)) {
-              if (q.options[optKey]?.image_url) {
-                q.options[optKey].image_url = await compressBase64Image(q.options[optKey].image_url, 800, 800, 0.7);
-              }
-            }
-          }
+        if (parsedQuestions.length === 0) {
+          throw new Error("Format dokumen Word tidak dikenali. Pastikan soal memiliki kunci jawaban atau nomor urut soal.");
         }
 
-        // Upload to Database
+        // 6. Authenticate User & Target Category
         const { data: { user } } = await supabase.auth.getUser();
-        if (!user) throw new Error("User not found");
+        if (!user) throw new Error("Sesi pengguna tidak ditemukan. Silakan login kembali.");
 
-        // Detect or fallback category
         let targetCategoryId = currentCategoryId;
         if (!targetCategoryId) {
           const headerMatch = rawText.match(/Mata\s*Pelajaran[\s:\n]+([^\n\r]+)/i);
@@ -1005,9 +1108,31 @@ export default function BankSoal() {
           }
         }
 
+        // 7. Upload all extracted Base64 images to Supabase Storage Bucket
+        for (let i = 0; i < parsedQuestions.length; i++) {
+          const q = parsedQuestions[i];
+          if (q.image_url && q.image_url.startsWith('data:image/')) {
+            q.image_url = await uploadBase64ToStorage(q.image_url, user.id, `q_${i + 1}`);
+          }
+          if (q.options) {
+            for (const optKey of Object.keys(q.options)) {
+              if (q.options[optKey]?.image_url && q.options[optKey].image_url.startsWith('data:image/')) {
+                q.options[optKey].image_url = await uploadBase64ToStorage(
+                  q.options[optKey].image_url,
+                  user.id,
+                  `opt_${i + 1}_${optKey}`
+                );
+              }
+            }
+          }
+        }
+
+        // 8. Insert Questions and Options into Database
         let successCount = 0;
-        for (const q of parsedQuestions) {
+        for (let i = 0; i < parsedQuestions.length; i++) {
+          const q = parsedQuestions[i];
           const cleanAns = q.correct_answer ? (q.correct_answer.match(/([A-E])/i)?.[1]?.toUpperCase() || q.correct_answer) : null;
+          
           const { data: question, error: qError } = await supabase
             .from('questions')
             .insert([{
@@ -1022,7 +1147,7 @@ export default function BankSoal() {
             .select().single();
           
           if (qError) {
-            console.error('Error inserting question:', qError);
+            console.error(`Gagal menyimpan soal ke-${i + 1}:`, qError);
             continue;
           }
 
@@ -1036,20 +1161,24 @@ export default function BankSoal() {
                 image_url: typeof optVal === 'object' ? (optVal?.image_url || null) : null
               };
             });
-            await supabase.from('question_options').insert(opts);
+            const { error: optError } = await supabase.from('question_options').insert(opts);
+            if (optError) {
+              console.error(`Gagal menyimpan opsi untuk soal ke-${i + 1}:`, optError);
+            }
           }
           successCount++;
         }
 
         showAlert({ 
           title: 'Impor Selesai', 
-          message: `${successCount} soal berhasil diimpor dari Word (termasuk kompresi gambar otomatis).`, 
-          type: 'success' 
+          message: `${successCount} dari ${parsedQuestions.length} soal berhasil diimpor dari Word beserta seluruh gambarnya.`, 
+          type: successCount === parsedQuestions.length ? 'success' : 'info' 
         });
         fetchData();
         fetchCategories();
       } catch (err: any) {
-        showAlert({ title: 'Gagal', message: err.message, type: 'error' });
+        console.error('Import Word error:', err);
+        showAlert({ title: 'Gagal Impor Soal', message: err.message || 'Terjadi kesalahan saat memproses file Word.', type: 'error' });
       } finally {
         setImporting(false);
         if (docxInputRef.current) docxInputRef.current.value = '';
