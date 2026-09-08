@@ -57,15 +57,16 @@ export default function DaftarUjian() {
       if (!user) return;
 
       let query = supabase.from('classes')
-        .select('id, name, subject, teacher_id, created_at')
-        .eq('teacher_id', user.id);
+        .select('id, name, subject, teacher_id, created_at');
       
       if (activeSchool?.id) {
         if (activeSchool.id === 'legacy') {
-          query = query.is('school_id', null);
+          query = query.is('school_id', null).eq('teacher_id', user.id);
         } else {
           query = query.eq('school_id', activeSchool.id);
         }
+      } else {
+        query = query.eq('teacher_id', user.id);
       }
 
       const { data: classesData } = await query.order('name');

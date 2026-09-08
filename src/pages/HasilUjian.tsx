@@ -101,15 +101,16 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
     if (!user) return;
 
     let query = supabase.from('classes')
-      .select('id, name')
-      .eq('teacher_id', user.id);
+      .select('id, name');
     
     if (activeSchool?.id) {
       if (activeSchool.id === 'legacy') {
-        query = query.is('school_id', null);
+        query = query.is('school_id', null).eq('teacher_id', user.id);
       } else {
         query = query.eq('school_id', activeSchool.id);
       }
+    } else {
+      query = query.eq('teacher_id', user.id);
     }
 
     const { data } = await query.order('name');
