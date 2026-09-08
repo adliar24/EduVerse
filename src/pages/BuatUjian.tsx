@@ -19,7 +19,8 @@ import {
   Shield,
   ShieldOff,
   WifiOff,
-  QrCode
+  QrCode,
+  Users
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import React from 'react';
@@ -61,10 +62,52 @@ export default function BuatUjian() {
     strict_limit: 3
   });
 
+  const [classes, setClasses] = useState<any[]>([]);
+  const [selectedClasses, setSelectedClasses] = useState<string[]>([]);
+  const [autoActivate, setAutoActivate] = useState(true);
+
   useEffect(() => {
     fetchQuestions();
     fetchCategories();
+    fetchClasses();
   }, [selectedCategoryId, activeSchool]);
+
+  const fetchClasses = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      let query = supabase.from('classes')
+        .select('id, name, subject, teacher_id, created_at')
+        .eq('teacher_id', user.id);
+      
+      if (activeSchool?.id) {
+        if (activeSchool.id === 'legacy') {
+          query = query.is('school_id', null);
+        } else {
+          query = query.eq('school_id', activeSchool.id);
+        }
+      }
+
+      const { data: classesData } = await query.order('name');
+      
+      const classesWithCount = await Promise.all(
+        (classesData || []).map(async (cls) => {
+          const { count } = await supabase
+            .from('students')
+            .select('*', { count: 'exact', head: true })
+            .eq('class_id', cls.id);
+          return { ...cls, student_count: count || 0 };
+        })
+      );
+      
+      setClasses(classesWithCount);
+      // Default to selecting all classes so it is easy for teacher
+      setSelectedClasses(classesWithCount.map(c => c.id));
+    } catch (error) {
+      console.error('Error fetching classes:', error);
+    }
+  };
 
   const fetchCategories = async () => {
     try {
@@ -141,6 +184,8 @@ export default function BuatUjian() {
       const examCode = generateExamCode();
       const bypassCode = examCode;
 
+      const isExamActive = autoActivate && selectedClasses.length > 0;
+
       const { data: exam, error: examError } = await supabase
         .from('exams')
         .insert([{
@@ -153,7 +198,7 @@ export default function BuatUjian() {
           random_answer: formData.randomized,
           start_time: formData.start_time || null,
           end_time: formData.end_time || null,
-          is_active: formData.is_active,
+          is_active: isExamActive,
           show_score: formData.show_score,
           strict_mode: formData.strict_mode,
           offline_mode: formData.offline_mode,
@@ -176,6 +221,22 @@ export default function BuatUjian() {
       }));
 
       await supabase.from('exam_questions').insert(examQuestions);
+
+      // Insert target classes sessions
+      if (selectedClasses.length > 0) {
+        const sessionsToInsert = selectedClasses.map(classId => {
+          const classData = classes.find(c => c.id === classId);
+          return {
+            exam_id: exam.id,
+            class_id: classId,
+            class_name: classData?.name || '',
+            is_active: isExamActive,
+            started_at: new Date().toISOString(),
+            expected_students: classData?.student_count || 0
+          };
+        });
+        await supabase.from('exam_sessions').insert(sessionsToInsert);
+      }
       
       showAlert({
         title: 'Berhasil!',
@@ -462,6 +523,102 @@ export default function BuatUjian() {
                     </div>
                     <QrCode className={cn("w-6 h-6", formData.qr_submission ? "text-[#1D4ED8]" : "text-slate-300")} />
                   </div>
+                </label>
+              </div>
+            </div>
+
+            {/* Target Kelas Section */}
+            <div className="space-y-4 pt-4 border-t border-slate-100">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <div className="bg-[#1D4ED8] p-1.5 rounded-lg">
+                    <Users className="text-white w-3 h-3" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-[#1D4ED8] text-sm tracking-tight">Target Kelas Peserta Ujian</h4>
+                    <p className="text-xs text-slate-500 font-medium">Pilih kelas yang diizinkan untuk melihat & mengerjakan ujian ini.</p>
+                  </div>
+                </div>
+                {classes.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (selectedClasses.length === classes.length) {
+                        setSelectedClasses([]);
+                      } else {
+                        setSelectedClasses(classes.map(c => c.id));
+                      }
+                    }}
+                    className="text-xs font-bold text-[#1D4ED8] hover:underline cursor-pointer self-start sm:self-auto"
+                  >
+                    {selectedClasses.length === classes.length ? 'Batalkan Semua' : 'Pilih Semua Kelas'}
+                  </button>
+                )}
+              </div>
+
+              {classes.length === 0 ? (
+                <div className="p-4 rounded-2xl bg-slate-50 border border-dashed border-slate-200 text-center">
+                  <p className="text-xs text-slate-400 italic">Belum ada kelas yang terdaftar. Anda tetap dapat membuat ujian dan mengatur kelasnya nanti di menu Daftar Ujian.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {classes.map(cls => {
+                    const isChecked = selectedClasses.includes(cls.id);
+                    return (
+                      <label
+                        key={cls.id}
+                        className={cn(
+                          "flex items-center gap-3 p-3.5 rounded-2xl border-2 cursor-pointer transition-all",
+                          isChecked
+                            ? "bg-blue-50/50 border-[#3B66F5] shadow-xs"
+                            : "bg-white border-slate-100 hover:border-slate-200"
+                        )}
+                      >
+                        <div className={cn(
+                          "w-5 h-5 rounded-lg border-2 flex items-center justify-center transition-all shrink-0",
+                          isChecked ? "bg-[#1D4ED8] border-[#3B66F5]" : "border-slate-200"
+                        )}>
+                          {isChecked && <Check className="text-white w-3.5 h-3.5" />}
+                        </div>
+                        <input
+                          type="checkbox"
+                          className="hidden"
+                          checked={isChecked}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedClasses(prev => [...prev, cls.id]);
+                            } else {
+                              setSelectedClasses(prev => prev.filter(id => id !== cls.id));
+                            }
+                          }}
+                        />
+                        <div className="min-w-0">
+                          <p className="text-xs sm:text-sm font-bold text-slate-900 truncate">{cls.name}</p>
+                          <p className="text-[10px] text-slate-400 font-medium">{cls.student_count || 0} Siswa</p>
+                        </div>
+                      </label>
+                    );
+                  })}
+                </div>
+              )}
+
+              <div className="pt-2">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <div className={cn(
+                    "w-5 h-5 rounded-lg border-2 flex items-center justify-center transition-all shrink-0",
+                    autoActivate ? "bg-[#1D4ED8] border-[#3B66F5]" : "border-slate-200"
+                  )}>
+                    {autoActivate && <Check className="text-white w-3.5 h-3.5" />}
+                  </div>
+                  <input
+                    type="checkbox"
+                    className="hidden"
+                    checked={autoActivate}
+                    onChange={(e) => setAutoActivate(e.target.checked)}
+                  />
+                  <span className="text-xs font-bold text-slate-700">
+                    Langsung aktifkan ujian untuk kelas terpilih setelah diterbitkan (muncul di dashboard murid)
+                  </span>
                 </label>
               </div>
             </div>

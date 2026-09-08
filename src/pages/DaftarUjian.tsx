@@ -97,7 +97,7 @@ export default function DaftarUjian() {
       if (!user) return;
 
       let query = supabase.from('exams')
-        .select('id, teacher_id, title, exam_code, duration, total_questions, random_question, random_answer, start_time, end_time, is_active, show_score, strict_mode, offline_mode, qr_submission, bypass_code, is_archived, created_at, participants(count)')
+        .select('id, teacher_id, title, exam_code, duration, total_questions, random_question, random_answer, start_time, end_time, is_active, show_score, strict_mode, offline_mode, qr_submission, bypass_code, is_archived, created_at, participants(count), exam_sessions(id, class_id, class_name, is_active)')
         .eq('teacher_id', user.id);
       
       if (activeSchool?.id) {
@@ -114,7 +114,7 @@ export default function DaftarUjian() {
       if (error && error.message.includes('qr_submission')) {
         console.warn('qr_submission column not found, falling back to query without it.');
         let fallbackQuery = supabase.from('exams')
-          .select('id, teacher_id, title, exam_code, duration, total_questions, random_question, random_answer, start_time, end_time, is_active, show_score, strict_mode, offline_mode, bypass_code, is_archived, created_at, participants(count)')
+          .select('id, teacher_id, title, exam_code, duration, total_questions, random_question, random_answer, start_time, end_time, is_active, show_score, strict_mode, offline_mode, bypass_code, is_archived, created_at, participants(count), exam_sessions(id, class_id, class_name, is_active)')
           .eq('teacher_id', user.id);
         
         if (activeSchool?.id) {
@@ -234,42 +234,92 @@ export default function DaftarUjian() {
     }
   };
 
+  const openTargetClassesModal = (exam: any) => {
+    setSelectedExam(exam);
+    const activeClassIds = (exam.exam_sessions || [])
+      .filter((s: any) => s.is_active !== false)
+      .map((s: any) => s.class_id)
+      .filter(Boolean);
+    setSelectedClasses(activeClassIds);
+    setShowActivateModal(true);
+  };
+
   const handleActivateExam = async () => {
-    if (!selectedExam || selectedClasses.length === 0) return;
+    if (!selectedExam) return;
     
     setActivating(true);
     try {
-      const sessionsToInsert = selectedClasses.map(classId => {
-        const classData = classes.find(c => c.id === classId);
-        return {
-          exam_id: selectedExam.id,
-          class_id: classId,
-          class_name: classData?.name || '',
-          is_active: true,
-          started_at: new Date().toISOString(),
-          expected_students: classData?.student_count || 0
-        };
-      });
-      
-      const { error } = await supabase
+      // Get existing sessions for this exam
+      const { data: existingSessions, error: sessErr } = await supabase
         .from('exam_sessions')
-        .insert(sessionsToInsert);
+        .select('id, class_id, is_active')
+        .eq('exam_id', selectedExam.id);
       
-      if (error) throw error;
-      
+      if (sessErr) throw sessErr;
+
+      const existingMap = new Map((existingSessions || []).map((s: any) => [s.class_id, s]));
+
+      // Deactivate unselected sessions
+      for (const [classId, s] of existingMap.entries()) {
+        if (!selectedClasses.includes(classId) && s.is_active) {
+          await supabase
+            .from('exam_sessions')
+            .update({ is_active: false, ended_at: new Date().toISOString() })
+            .eq('id', s.id);
+        }
+      }
+
+      // Activate or insert selected classes
+      const sessionsToInsert: any[] = [];
+      for (const classId of selectedClasses) {
+        const existing = existingMap.get(classId);
+        if (existing) {
+          if (!existing.is_active) {
+            await supabase
+              .from('exam_sessions')
+              .update({ is_active: true, started_at: new Date().toISOString() })
+              .eq('id', existing.id);
+          }
+        } else {
+          const classData = classes.find(c => c.id === classId);
+          sessionsToInsert.push({
+            exam_id: selectedExam.id,
+            class_id: classId,
+            class_name: classData?.name || '',
+            is_active: true,
+            started_at: new Date().toISOString(),
+            expected_students: classData?.student_count || 0
+          });
+        }
+      }
+
+      if (sessionsToInsert.length > 0) {
+        const { error: insError } = await supabase
+          .from('exam_sessions')
+          .insert(sessionsToInsert);
+        if (insError) throw insError;
+      }
+
+      const hasActive = selectedClasses.length > 0;
       await supabase
         .from('exams')
-        .update({ is_active: true })
+        .update({ is_active: hasActive })
         .eq('id', selectedExam.id);
-      
+
       setShowActivateModal(false);
       setSelectedExam(null);
       setSelectedClasses([]);
       fetchExams();
-      showAlert({ title: 'Berhasil', message: 'Ujian berhasil diaktifkan untuk kelas yang dipilih', type: 'success' });
-    } catch (error) {
+      showAlert({ 
+        title: 'Berhasil', 
+        message: hasActive 
+          ? `Ujian berhasil diaktifkan untuk ${selectedClasses.length} kelas terpilih.`
+          : 'Ujian dinonaktifkan (tidak ada kelas terpilih).', 
+        type: 'success' 
+      });
+    } catch (error: any) {
       console.error(error);
-      showAlert({ title: 'Gagal', message: 'Gagal mengaktifkan ujian', type: 'error' });
+      showAlert({ title: 'Gagal', message: 'Gagal menyimpan target kelas: ' + (error?.message || ''), type: 'error' });
     } finally {
       setActivating(false);
     }
@@ -369,8 +419,9 @@ export default function DaftarUjian() {
       }
     } else {
       const exam = exams.find(e => e.id === id);
-      setSelectedExam(exam);
-      setShowActivateModal(true);
+      if (exam) {
+        openTargetClassesModal(exam);
+      }
     }
   };
 
@@ -434,20 +485,22 @@ export default function DaftarUjian() {
         {loading ? (
           [1,2,3,4,5,6].map(i => <div key={i} className="h-64 bg-slate-100 animate-pulse rounded-[2rem]"></div>)
         ) : filteredExams.length > 0 ? (
-          filteredExams.map((exam, index) => (
+          filteredExams.map((exam, index) => {
+            const activeSessionsForExam = (exam.exam_sessions || []).filter((s: any) => s.is_active !== false);
+            return (
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.05 }}
               key={exam.id}
-              className="bg-gradient-to-br from-amber-500 via-amber-600 to-orange-600 text-white rounded-[2rem] border border-white/20 shadow-lg shadow-amber-500/20 group hover:shadow-2xl hover:scale-[1.01] transition-all duration-300 flex flex-col overflow-hidden"
+              className="bg-white text-slate-800 rounded-[2rem] border border-slate-200/90 shadow-sm hover:shadow-xl hover:border-blue-300 transition-all duration-300 flex flex-col overflow-hidden group"
             >
-              <div className="pt-7 px-7 pb-5 flex-1">
-                {/* Card Top Header: Token & Action Dropdown */}
-                <div className="flex justify-between items-center mb-5">
-                  <div className="flex items-center gap-2.5">
-                    <div className="bg-white/20 p-2 rounded-xl text-white backdrop-blur-md border border-white/20">
-                      <FileText className="w-5 h-5" />
+              <div className="pt-6 px-6 pb-4 flex-1">
+                {/* Card Top Header: Token & Delete Action */}
+                <div className="flex justify-between items-center mb-4">
+                  <div className="flex items-center gap-2">
+                    <div className="bg-slate-100 p-2 rounded-xl text-[#1D4ED8] border border-slate-200/80">
+                      <FileText className="w-4 h-4" />
                     </div>
                     <button 
                       onClick={() => {
@@ -455,38 +508,68 @@ export default function DaftarUjian() {
                         showAlert({ title: 'Salin Kode', message: `Token / Kode Bypass "${exam.exam_code}" berhasil disalin!`, type: 'success' });
                       }}
                       title="Klik untuk salin token & kode bypass"
-                      className="flex items-center gap-1.5 px-3 py-1.5 bg-white/20 border border-white/20 backdrop-blur-md rounded-xl text-white hover:bg-white/30 font-bold transition-all text-[11px] group/token cursor-pointer"
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0F172A] border border-slate-800 rounded-xl text-white hover:bg-slate-800 font-bold transition-all text-[11px] group/token cursor-pointer shadow-sm"
                     >
                       <span className="font-mono text-white tracking-wider">Token: {exam.exam_code}</span>
-                      <Copy className="w-3 h-3 text-white/80 group-hover/token:scale-105 transition-all" />
+                      <Copy className="w-3 h-3 text-slate-300 group-hover/token:scale-110 transition-all" />
                     </button>
                   </div>
                   
                   <button 
                     onClick={() => deleteExam(exam.id)}
                     title="Hapus Ujian"
-                    className="p-2 rounded-full border border-white/20 bg-white/10 text-white hover:bg-rose-500/30 hover:border-white/30 transition-all cursor-pointer flex items-center justify-center"
+                    className="p-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-400 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-200 transition-all cursor-pointer flex items-center justify-center"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
 
                 {/* Title & Duration/Questions */}
-                <h3 className="text-xl font-extrabold text-white mb-2 line-clamp-2 leading-tight min-h-[3.5rem] flex items-center">{exam.title}</h3>
+                <h3 className="text-xl font-black text-slate-900 mb-2 line-clamp-2 leading-tight group-hover:text-[#1D4ED8] transition-colors">{exam.title}</h3>
                 
-                <div className="flex flex-wrap items-center gap-2 text-[10px] font-extrabold text-white/90 uppercase tracking-wider mb-5">
-                  <div className="flex items-center gap-1.5 bg-white/20 px-2.5 py-1.5 rounded-xl border border-white/20 backdrop-blur-md">
-                    <Clock className="w-3.5 h-3.5 text-white" />
+                <div className="flex flex-wrap items-center gap-2 text-[11px] font-bold text-slate-600 mb-4">
+                  <div className="flex items-center gap-1.5 bg-slate-50 px-2.5 py-1.5 rounded-xl border border-slate-200">
+                    <Clock className="w-3.5 h-3.5 text-[#1D4ED8]" />
                     <span>{exam.duration} Menit</span>
                   </div>
-                  <div className="flex items-center gap-1.5 bg-white/20 px-2.5 py-1.5 rounded-xl border border-white/20 backdrop-blur-md">
-                    <FileText className="w-3.5 h-3.5 text-white" />
+                  <div className="flex items-center gap-1.5 bg-slate-50 px-2.5 py-1.5 rounded-xl border border-slate-200">
+                    <FileText className="w-3.5 h-3.5 text-emerald-600" />
                     <span>{exam.total_questions} Soal</span>
                   </div>
                 </div>
 
-                {/* Exam Settings Toggles (Icon + Premium Tooltip) */}
-                <div className="flex items-center justify-between bg-slate-50/70 border border-slate-100 rounded-2xl p-2.5 mb-6">
+                {/* Target Kelas Section */}
+                <div className="mb-4 p-3 rounded-2xl bg-blue-50/50 border border-blue-100/80">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                      <Users className="w-3.5 h-3.5 text-[#1D4ED8]" />
+                      <span>Target Kelas</span>
+                    </div>
+                    <button
+                      onClick={() => openTargetClassesModal(exam)}
+                      className="text-[11px] font-bold text-[#1D4ED8] hover:underline cursor-pointer"
+                    >
+                      Kelola Kelas
+                    </button>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {activeSessionsForExam.length > 0 ? (
+                      activeSessionsForExam.map((s: any) => (
+                        <span key={s.id} className="inline-flex items-center gap-1 px-2.5 py-1 bg-white border border-blue-200 text-[#1D4ED8] rounded-lg text-xs font-bold shadow-xs">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                          {s.class_name || 'Kelas'}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-xs text-slate-400 font-medium italic">
+                        Belum ada kelas aktif (Klik "Kelola Kelas")
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Exam Settings Toggles (Icon + Tooltip) */}
+                <div className="flex items-center justify-between bg-slate-50 border border-slate-200/80 rounded-2xl p-2.5 mb-4">
                   {/* Strict Mode (Anti-Curang) */}
                   <div className="relative flex-1 flex justify-center">
                     <button 
@@ -496,8 +579,8 @@ export default function DaftarUjian() {
                       className={cn(
                         "w-10 h-10 rounded-xl border flex items-center justify-center transition-all cursor-pointer",
                         exam.strict_mode !== false 
-                          ? "bg-emerald-50 border-emerald-100 text-emerald-600 hover:bg-emerald-100" 
-                          : "bg-white border-slate-200 text-slate-400 hover:bg-slate-50"
+                          ? "bg-emerald-50 border-emerald-200 text-emerald-600 hover:bg-emerald-100" 
+                          : "bg-white border-slate-200 text-slate-400 hover:bg-slate-100"
                       )}
                     >
                       {exam.strict_mode !== false ? (
@@ -507,13 +590,13 @@ export default function DaftarUjian() {
                       )}
                     </button>
                     <div className={cn(
-                      "absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-[#3B66F5] text-white text-[10px] font-bold rounded-xl transition-all duration-200 shadow-xl whitespace-nowrap z-50 pointer-events-none",
+                      "absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-[#0F172A] text-white text-[10px] font-bold rounded-xl transition-all duration-200 shadow-xl whitespace-nowrap z-50 pointer-events-none",
                       activeTooltip?.examId === exam.id && activeTooltip?.type === 'strict'
                         ? "opacity-100 translate-y-0 scale-100"
                         : "opacity-0 translate-y-1 scale-95"
                     )}>
                       {exam.strict_mode !== false ? "Proteksi Ketat: Aktif" : "Proteksi: Standar"}
-                      <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-indigo-950" />
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-[#0F172A]" />
                     </div>
                   </div>
 
@@ -526,20 +609,20 @@ export default function DaftarUjian() {
                       className={cn(
                         "w-10 h-10 rounded-xl border flex items-center justify-center transition-all cursor-pointer",
                         exam.random_answer 
-                          ? "bg-emerald-50 border-emerald-100 text-emerald-600 hover:bg-emerald-100" 
-                          : "bg-white border-slate-200 text-slate-400 hover:bg-slate-50"
+                          ? "bg-emerald-50 border-emerald-200 text-emerald-600 hover:bg-emerald-100" 
+                          : "bg-white border-slate-200 text-slate-400 hover:bg-slate-100"
                       )}
                     >
                       <Shuffle className={cn("w-4.5 h-4.5 shrink-0 transition-transform", exam.random_answer && "rotate-180")} />
                     </button>
                     <div className={cn(
-                      "absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-[#3B66F5] text-white text-[10px] font-bold rounded-xl transition-all duration-200 shadow-xl whitespace-nowrap z-50 pointer-events-none",
+                      "absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-[#0F172A] text-white text-[10px] font-bold rounded-xl transition-all duration-200 shadow-xl whitespace-nowrap z-50 pointer-events-none",
                       activeTooltip?.examId === exam.id && activeTooltip?.type === 'random'
                         ? "opacity-100 translate-y-0 scale-100"
                         : "opacity-0 translate-y-1 scale-95"
                     )}>
                       {exam.random_answer ? "Acak Jawaban: Aktif" : "Urutan Tetap"}
-                      <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-indigo-950" />
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-[#0F172A]" />
                     </div>
                   </div>
 
@@ -552,8 +635,8 @@ export default function DaftarUjian() {
                       className={cn(
                         "w-10 h-10 rounded-xl border flex items-center justify-center transition-all cursor-pointer",
                         exam.show_score 
-                          ? "bg-emerald-50 border-emerald-100 text-emerald-600 hover:bg-emerald-100" 
-                          : "bg-white border-slate-200 text-slate-400 hover:bg-slate-50"
+                          ? "bg-emerald-50 border-emerald-200 text-emerald-600 hover:bg-emerald-100" 
+                          : "bg-white border-slate-200 text-slate-400 hover:bg-slate-100"
                       )}
                     >
                       {exam.show_score ? (
@@ -563,13 +646,13 @@ export default function DaftarUjian() {
                       )}
                     </button>
                     <div className={cn(
-                      "absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-[#3B66F5] text-white text-[10px] font-bold rounded-xl transition-all duration-200 shadow-xl whitespace-nowrap z-50 pointer-events-none",
+                      "absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-[#0F172A] text-white text-[10px] font-bold rounded-xl transition-all duration-200 shadow-xl whitespace-nowrap z-50 pointer-events-none",
                       activeTooltip?.examId === exam.id && activeTooltip?.type === 'score'
                         ? "opacity-100 translate-y-0 scale-100"
                         : "opacity-0 translate-y-1 scale-95"
                     )}>
                       {exam.show_score ? "Tampilkan Nilai: Aktif" : "Sembunyikan Nilai"}
-                      <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-indigo-950" />
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-[#0F172A]" />
                     </div>
                   </div>
 
@@ -582,8 +665,8 @@ export default function DaftarUjian() {
                       className={cn(
                         "w-10 h-10 rounded-xl border flex items-center justify-center transition-all cursor-pointer",
                         exam.offline_mode 
-                          ? "bg-emerald-50 border-emerald-100 text-emerald-600 hover:bg-emerald-100" 
-                          : "bg-white border-slate-200 text-slate-400 hover:bg-slate-50"
+                          ? "bg-emerald-50 border-emerald-200 text-emerald-600 hover:bg-emerald-100" 
+                          : "bg-white border-slate-200 text-slate-400 hover:bg-slate-100"
                       )}
                     >
                       {exam.offline_mode ? (
@@ -593,13 +676,13 @@ export default function DaftarUjian() {
                       )}
                     </button>
                     <div className={cn(
-                      "absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-[#3B66F5] text-white text-[10px] font-bold rounded-xl transition-all duration-200 shadow-xl whitespace-nowrap z-50 pointer-events-none",
+                      "absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-[#0F172A] text-white text-[10px] font-bold rounded-xl transition-all duration-200 shadow-xl whitespace-nowrap z-50 pointer-events-none",
                       activeTooltip?.examId === exam.id && activeTooltip?.type === 'offline'
                         ? "opacity-100 translate-y-0 scale-100"
                         : "opacity-0 translate-y-1 scale-95"
                     )}>
                       {exam.offline_mode ? "Mode Offline: Aktif" : "Mode Online (Realtime)"}
-                      <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-indigo-950" />
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-[#0F172A]" />
                     </div>
                   </div>
 
@@ -612,48 +695,48 @@ export default function DaftarUjian() {
                       className={cn(
                         "w-10 h-10 rounded-xl border flex items-center justify-center transition-all cursor-pointer",
                         exam.qr_submission 
-                          ? "bg-emerald-50 border-emerald-100 text-emerald-600 hover:bg-emerald-100" 
-                          : "bg-white border-slate-200 text-slate-400 hover:bg-slate-50"
+                          ? "bg-emerald-50 border-emerald-200 text-emerald-600 hover:bg-emerald-100" 
+                          : "bg-white border-slate-200 text-slate-400 hover:bg-slate-100"
                       )}
                     >
                       <QrCode className="w-4.5 h-4.5 shrink-0" />
                     </button>
                     <div className={cn(
-                      "absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-[#3B66F5] text-white text-[10px] font-bold rounded-xl transition-all duration-200 shadow-xl whitespace-nowrap z-50 pointer-events-none",
+                      "absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-[#0F172A] text-white text-[10px] font-bold rounded-xl transition-all duration-200 shadow-xl whitespace-nowrap z-50 pointer-events-none",
                       activeTooltip?.examId === exam.id && activeTooltip?.type === 'qr'
                         ? "opacity-100 translate-y-0 scale-100"
                         : "opacity-0 translate-y-1 scale-95"
                     )}>
                       {exam.qr_submission ? "Mode QR Code: Aktif" : "Mode Biasa"}
-                      <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-indigo-950" />
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-[#0F172A]" />
                     </div>
                   </div>
                 </div>
 
                 {/* Status & Participants */}
-                <div className="flex items-center justify-between px-2">
-                  <div className="flex flex-col gap-1.5 items-start">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-0.5">Status Sesi</p>
+                <div className="flex items-center justify-between px-1">
+                  <div className="flex flex-col gap-1 items-start">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Status Sesi</p>
                     <button 
                       onClick={() => toggleIsActive(exam.id, exam.is_active)} 
                       title={exam.is_active ? "Klik untuk menonaktifkan" : "Klik untuk mengaktifkan"}
                       className={cn(
-                        "px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 border cursor-pointer bg-white shadow-sm hover:shadow", 
+                        "px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 border cursor-pointer shadow-xs", 
                         exam.is_active 
-                          ? "text-emerald-600 border-emerald-200 hover:bg-emerald-50" 
-                          : "text-slate-500 border-slate-200 hover:bg-slate-50"
+                          ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100" 
+                          : "bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200"
                       )}
                     >
                       <div className={cn("w-2 h-2 rounded-full", exam.is_active ? "bg-emerald-500 animate-pulse" : "bg-slate-400")} />
                       {exam.is_active ? 'Sedang Aktif' : 'Nonaktif'}
                     </button>
                   </div>
-                  <div className="flex flex-col gap-1.5 items-end">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mr-0.5">Peserta</p>
-                    <div className="flex items-center gap-2 h-[34px]">
+                  <div className="flex flex-col gap-1 items-end">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Peserta</p>
+                    <div className="flex items-center gap-2 h-[32px]">
                       <div className="flex -space-x-1.5">
                         {[1, 2, 3].map(i => (
-                          <div key={i} className="w-5.5 h-5.5 rounded-full border border-white bg-slate-200 shadow-sm" />
+                          <div key={i} className="w-5.5 h-5.5 rounded-full border-2 border-white bg-slate-200 shadow-xs" />
                         ))}
                       </div>
                       <span className="font-bold text-slate-700 text-xs">+{exam.participants?.[0]?.count || 0}</span>
@@ -663,11 +746,11 @@ export default function DaftarUjian() {
               </div>
 
               {/* Bottom Actions: Monitor & Analisis */}
-              <div className="p-5 bg-slate-50/50 border-t border-slate-100 mt-auto flex flex-col gap-2.5 rounded-b-[2.5rem]">
+              <div className="p-4 bg-slate-50/80 border-t border-slate-100 mt-auto flex flex-col gap-2 rounded-b-[2rem]">
                 {exam.qr_submission ? (
                   <button 
                     onClick={() => navigate(`/scan-ujian/${exam.id}`)}
-                    className="w-full bg-emerald-50/70 border border-emerald-100 text-emerald-600 py-3 rounded-full font-bold text-xs hover:bg-emerald-100 hover:text-emerald-700 transition-all shadow-sm flex items-center justify-center gap-2 button-hover cursor-pointer"
+                    className="w-full bg-emerald-50 border border-emerald-200 text-emerald-700 py-2.5 rounded-xl font-bold text-xs hover:bg-emerald-100 transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer"
                   >
                     <QrCode className="w-4 h-4 shrink-0" />
                     <span>Pindai QR</span>
@@ -676,7 +759,7 @@ export default function DaftarUjian() {
                   !exam.offline_mode && (
                     <button 
                       onClick={() => navigate(`/monitor-ujian/${exam.id}`)}
-                      className="w-full bg-[#3B66F5]/5/70 border border-[#3B66F5]/20 text-[#3B66F5] py-3 rounded-full font-bold text-xs hover:bg-[#3B66F5]/10 hover:text-blue-700 transition-all shadow-sm flex items-center justify-center gap-2 button-hover cursor-pointer"
+                      className="w-full bg-blue-50 border border-blue-200/80 text-[#1D4ED8] py-2.5 rounded-xl font-bold text-xs hover:bg-blue-100/70 transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer"
                     >
                       <Activity className="w-4 h-4 shrink-0" />
                       <span>Live Monitor</span>
@@ -685,7 +768,7 @@ export default function DaftarUjian() {
                 )}
                 <button 
                   onClick={() => navigate('/hasil-ujian', { state: { examId: exam.id } })}
-                  className="w-full bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white py-3 rounded-full font-bold text-xs hover:brightness-110 transition-all shadow-md flex items-center justify-center gap-2 group/btn button-hover cursor-pointer border border-white/10"
+                  className="w-full bg-gradient-to-r from-[#0F172A] via-[#1E3A8A] to-[#1D4ED8] text-white py-2.5 rounded-xl font-bold text-xs hover:brightness-110 active:scale-[0.99] transition-all shadow-md flex items-center justify-center gap-2 group/btn cursor-pointer border border-white/10"
                 >
                   <BarChart3 className="w-4 h-4 shrink-0" />
                   <span>Analisis & Nilai</span>
@@ -693,7 +776,8 @@ export default function DaftarUjian() {
                 </button>
               </div>
             </motion.div>
-          ))
+            );
+          })
         ) : (
           <div className="col-span-full text-center py-32 bg-white rounded-[3rem] border border-dashed border-slate-200">
             <div className="bg-slate-50 w-24 h-24 rounded-[2rem] flex items-center justify-center mx-auto mb-8">
@@ -729,7 +813,7 @@ export default function DaftarUjian() {
               className="bg-white rounded-[2rem] p-8 max-w-md w-full relative z-10 shadow-2xl"
             >
               <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-bold text-[#1D4ED8]">Aktifkan Ujian</h3>
+                <h3 className="text-xl font-bold text-[#1D4ED8]">Target Kelas & Aktivasi Ujian</h3>
                 <button 
                   onClick={() => setShowActivateModal(false)}
                   className="p-2 hover:bg-slate-100 rounded-xl transition-colors"
@@ -744,7 +828,7 @@ export default function DaftarUjian() {
 
               <div className="space-y-4 mb-8">
                 <div>
-                  <label className="text-sm font-bold text-slate-700 mb-3 block">Pilih Kelas (bisa pilih banyak)</label>
+                  <label className="text-sm font-bold text-slate-700 mb-3 block">Pilih Kelas yang Diizinkan Mengikuti Ujian</label>
                   <div className="max-h-48 overflow-y-auto space-y-2 p-2 bg-slate-50 rounded-xl border border-slate-100">
                     <label className="flex items-center gap-3 p-3 rounded-full bg-[#3B66F5]/5 cursor-pointer border border-[#3B66F5]/30">
                       <input 
@@ -793,21 +877,21 @@ export default function DaftarUjian() {
               <div className="flex gap-3">
                 <button 
                   onClick={() => setShowActivateModal(false)}
-                  className="flex-1 py-3 rounded-xl font-semibold text-sm text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors"
+                  className="flex-1 py-3 rounded-xl font-semibold text-sm text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer"
                 >
                   Batal
                 </button>
                 <button 
                   onClick={handleActivateExam}
-                  disabled={selectedClasses.length === 0 || activating}
-                  className="flex-1 py-3 rounded-xl font-semibold text-sm text-white bg-gradient-to-r from-[#685ECC] via-[#5C53D4] to-[#4F46E5] shadow-lg shadow-[#5C53D4]/25 hover:scale-[1.02] border border-white/10 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+                  disabled={activating}
+                  className="flex-1 py-3 rounded-xl font-semibold text-sm text-white bg-gradient-to-r from-[#0F172A] via-[#1E3A8A] to-[#1D4ED8] shadow-lg shadow-blue-900/20 hover:brightness-110 active:scale-[0.98] border border-white/10 disabled:opacity-50 transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
                   {activating ? (
                     <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                   ) : (
                     <>
                       <Play className="w-4 h-4" />
-                      Aktifkan
+                      {selectedClasses.length > 0 ? 'Terapkan & Aktifkan' : 'Nonaktifkan Sesi'}
                     </>
                   )}
                 </button>

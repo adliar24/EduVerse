@@ -28,6 +28,9 @@ export default function StudentDashboard() {
   const [recentResults, setRecentResults] = useState<any[]>([]);
   const [latestMaterials, setLatestMaterials] = useState<any[]>([]);
   const [latestAssignments, setLatestAssignments] = useState<any[]>([]);
+  const [activeExamSessions, setActiveExamSessions] = useState<any[]>([]);
+  const [studentProfile, setStudentProfile] = useState<any>(null);
+  const [startingExamId, setStartingExamId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -55,7 +58,7 @@ export default function StudentDashboard() {
 
       const { data: studentDb, error: studentDbErr } = await supabase
         .from('students')
-        .select('name, class_id, classes!students_class_id_fkey(name)')
+        .select('id, name, student_code, class_id, classes!students_class_id_fkey(name)')
         .eq('id', studentObj.id)
         .maybeSingle();
 
@@ -65,6 +68,12 @@ export default function StudentDashboard() {
         return;
       }
 
+      const className = studentDb.classes 
+        ? (Array.isArray(studentDb.classes) ? studentDb.classes[0]?.name : (studentDb.classes as any).name)
+        : '';
+
+      const classId = studentDb.class_id;
+
       // Synchronize latest student profile back to local session
       localStorage.setItem('student_session', JSON.stringify({
         ...studentObj,
@@ -72,13 +81,14 @@ export default function StudentDashboard() {
         class_id: studentDb.class_id
       }));
 
-      const className = studentDb.classes 
-        ? (Array.isArray(studentDb.classes) ? studentDb.classes[0]?.name : (studentDb.classes as any).name)
-        : '';
+      setStudentProfile({
+        id: studentDb.id,
+        name: studentDb.name,
+        class_id: studentDb.class_id,
+        className: className
+      });
 
-      const classId = studentDb.class_id;
-
-      const [resultsRes, materialsRes, assignmentsRes] = await Promise.all([
+      const [resultsRes, materialsRes, assignmentsRes, activeSessionsRes] = await Promise.all([
         supabase
           .from('participants')
           .select(`
@@ -86,17 +96,54 @@ export default function StudentDashboard() {
             exams (
               title,
               exam_code,
-              duration
+              duration,
+              total_questions,
+              strict_limit
             )
           `)
           .eq('name', studentDb.name)
           .eq('class', className || '')
           .order('created_at', { ascending: false }),
         classId ? supabase.from('materials').select('*').eq('class_id', classId).order('created_at', { ascending: false }).limit(6) : Promise.resolve({ data: [] }),
-        classId ? supabase.from('assignments').select('*').eq('class_id', classId).order('created_at', { ascending: false }).limit(6) : Promise.resolve({ data: [] })
+        classId ? supabase.from('assignments').select('*').eq('class_id', classId).order('created_at', { ascending: false }).limit(6) : Promise.resolve({ data: [] }),
+        classId ? supabase.from('exam_sessions')
+          .select(`
+            id,
+            exam_id,
+            class_id,
+            class_name,
+            is_active,
+            started_at,
+            exams (
+              id,
+              title,
+              exam_code,
+              duration,
+              total_questions,
+              strict_mode,
+              offline_mode,
+              strict_limit
+            )
+          `)
+          .eq('class_id', classId)
+          .eq('is_active', true)
+          : Promise.resolve({ data: [] })
       ]);
 
       const results = resultsRes.data || [];
+
+      // Filter out exams that student has already completed
+      const completedExamIds = new Set(
+        results.filter(r => r.status === 'completed' || r.end_time).map(r => r.exam_id)
+      );
+
+      const availableSessions = (activeSessionsRes.data || []).filter((s: any) => {
+        if (!s.exams) return false;
+        if (completedExamIds.has(s.exam_id)) return false;
+        return true;
+      });
+
+      setActiveExamSessions(availableSessions);
 
       if (materialsRes.data) {
         const filteredM = (materialsRes.data as any[]).filter(m => 
@@ -123,7 +170,7 @@ export default function StudentDashboard() {
       setStats({
         examsTaken: totalTaken,
         avgScore: Math.round(avgScore),
-        ongoingExams: results?.filter(r => r.status === 'ongoing').length || 0
+        ongoingExams: availableSessions.length
       });
       setRecentResults(results || []);
     } catch (error) {
@@ -131,6 +178,74 @@ export default function StudentDashboard() {
     } finally {
       setLoading(false);
       setRefreshing(false);
+    }
+  };
+
+  const handleStartExamFromDashboard = async (session: any) => {
+    if (!studentProfile) return;
+    setStartingExamId(session.id);
+    try {
+      const examId = session.exam_id;
+      const examCode = session.exams?.exam_code;
+      if (!examCode) throw new Error('Kode ujian tidak ditemukan');
+
+      // Check existing participants
+      const { data: existingParticipants, error: fetchErr } = await supabase
+        .from('participants')
+        .select('id, status, name, is_locked, violations, end_time')
+        .eq('session_id', session.id);
+
+      if (fetchErr) throw fetchErr;
+
+      const existingParticipant = existingParticipants?.find(
+        (p: any) => p.name?.trim().toLowerCase() === studentProfile.name?.trim().toLowerCase()
+      );
+
+      let participantId: string;
+
+      if (existingParticipant) {
+        if (existingParticipant.status === 'completed' || existingParticipant.end_time) {
+          alert('Akses ditolak. Anda sudah menyelesaikan ujian ini.');
+          setStartingExamId(null);
+          return;
+        }
+        if (existingParticipant.is_locked || existingParticipant.status === 'blocked') {
+          alert('Akun Anda terkunci karena pelanggaran atau kendala teknis. Silakan hubungi guru.');
+          setStartingExamId(null);
+          return;
+        }
+        participantId = existingParticipant.id;
+      } else {
+        const { data: newParticipant, error: insertErr } = await supabase
+          .from('participants')
+          .insert([{
+            exam_id: examId,
+            session_id: session.id,
+            name: studentProfile.name,
+            class: session.class_name || studentProfile.className || '',
+            start_time: new Date().toISOString(),
+            status: 'ongoing',
+            is_locked: false,
+            violations: 0,
+            last_position: 0
+          }])
+          .select()
+          .single();
+
+        if (insertErr) throw insertErr;
+        participantId = newParticipant?.id;
+      }
+
+      try {
+        localStorage.setItem(`exam_session_${examCode}`, participantId);
+      } catch (e) {}
+
+      navigate(`/exam/start/${examCode}?p=${participantId}`, { replace: true });
+    } catch (err: any) {
+      console.error('Error starting exam from dashboard:', err);
+      alert('Gagal memulai ujian: ' + (err?.message || 'Terjadi kesalahan sistem.'));
+    } finally {
+      setStartingExamId(null);
     }
   };
 
@@ -219,8 +334,94 @@ export default function StudentDashboard() {
         </div>
       </div>
 
-      {/* Ongoing Exams Banner (Compact Alert Strip) */}
-      {recentResults.filter(r => r.status === 'ongoing').length > 0 && (
+      {/* Active Exam Sessions Ready to Take */}
+      {activeExamSessions.length > 0 && (
+        <div className="bg-white rounded-[2rem] border-2 border-blue-500/20 shadow-lg p-6 sm:p-7 relative overflow-hidden">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-100">
+            <div className="flex items-center gap-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#0F172A] via-[#1E3A8A] to-[#1D4ED8] text-white flex items-center justify-center shadow-md shadow-blue-500/20 shrink-0">
+                <Zap className="w-6 h-6 text-amber-300 fill-amber-300" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2.5">
+                  <h3 className="text-xl font-black text-slate-900 tracking-tight">Ujian Siap Dikerjakan</h3>
+                  <span className="bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 text-[11px] font-extrabold px-3 py-0.5 rounded-full flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+                    Aktif
+                  </span>
+                </div>
+                <p className="text-xs text-slate-500 font-medium mt-0.5">Sesi ujian resmi yang telah diaktifkan guru untuk kelas Anda.</p>
+              </div>
+            </div>
+            <span className="text-xs font-bold text-[#1D4ED8] bg-blue-50 px-3 py-1.5 rounded-xl border border-blue-100 self-start sm:self-auto">
+              {activeExamSessions.length} Ujian Tersedia
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {activeExamSessions.map((session) => {
+              const exam = session.exams;
+              const isOngoing = recentResults.some(r => r.session_id === session.id && r.status === 'ongoing');
+              return (
+                <div
+                  key={session.id}
+                  className="p-5 rounded-2xl border border-slate-200/90 bg-gradient-to-br from-white to-blue-50/20 hover:border-blue-400/80 hover:shadow-md transition-all flex flex-col justify-between gap-4 group"
+                >
+                  <div>
+                    <div className="flex items-center justify-between gap-2 mb-2.5">
+                      <span className="px-2.5 py-1 rounded-lg text-[11px] font-mono font-bold bg-[#0F172A] text-white tracking-wider">
+                        Token: {exam?.exam_code}
+                      </span>
+                      {exam?.strict_mode && (
+                        <span className="text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md">
+                          Proteksi Ketat
+                        </span>
+                      )}
+                    </div>
+                    <h4 className="font-extrabold text-base text-slate-900 group-hover:text-blue-600 transition-colors line-clamp-2">
+                      {exam?.title}
+                    </h4>
+                    <div className="flex flex-wrap items-center gap-2.5 mt-3 text-xs font-bold text-slate-600">
+                      <span className="flex items-center gap-1.5 bg-slate-100 px-2.5 py-1 rounded-lg">
+                        <Clock className="w-3.5 h-3.5 text-[#1D4ED8]" />
+                        {exam?.duration} Menit
+                      </span>
+                      <span className="flex items-center gap-1.5 bg-slate-100 px-2.5 py-1 rounded-lg">
+                        <FileText className="w-3.5 h-3.5 text-emerald-600" />
+                        {exam?.total_questions} Soal
+                      </span>
+                      {session.class_name && (
+                        <span className="flex items-center gap-1.5 bg-blue-50 text-blue-700 px-2.5 py-1 rounded-lg border border-blue-100">
+                          {session.class_name}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => handleStartExamFromDashboard(session)}
+                    disabled={startingExamId === session.id}
+                    className="w-full bg-gradient-to-r from-[#0F172A] via-[#1E3A8A] to-[#1D4ED8] hover:brightness-110 active:scale-[0.98] text-white py-3 px-4 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer disabled:opacity-50"
+                  >
+                    {startingExamId === session.id ? (
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    ) : (
+                      <>
+                        <Zap className="w-4 h-4 text-amber-300 fill-amber-300" />
+                        <span>{isOngoing ? 'Lanjutkan Ujian' : 'Mulai Ujian Sekarang'}</span>
+                        <ArrowUpRight className="w-4 h-4" />
+                      </>
+                    )}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Ongoing Exams Banner (Fallback Alert Strip if no sessions directly loaded) */}
+      {activeExamSessions.length === 0 && recentResults.filter(r => r.status === 'ongoing').length > 0 && (
         <div className="bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 rounded-2xl p-4 px-6 text-white shadow-lg flex flex-wrap items-center justify-between gap-3 border border-white/20">
           <div className="flex items-center gap-3.5">
             <div className="bg-white/20 p-2.5 rounded-xl backdrop-blur-md shrink-0">
