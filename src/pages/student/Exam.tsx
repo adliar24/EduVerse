@@ -1376,9 +1376,9 @@ export default function StudentExam() {
         <button 
           onClick={() => setShowSubmitConfirm(true)}
           disabled={submitting}
-          className="bg-blue-600 hover:bg-blue-500 active:scale-95 text-white px-5 sm:px-7 py-2.5 sm:py-3 rounded-xl font-bold text-sm transition-all shadow-lg shadow-blue-600/30 flex items-center gap-2 cursor-pointer"
+          className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:brightness-110 active:scale-95 text-white px-5 sm:px-7 py-2.5 sm:py-3 rounded-xl font-bold text-sm transition-all shadow-lg shadow-emerald-500/30 border border-emerald-400/30 flex items-center gap-2 cursor-pointer"
         >
-          <Send className="w-4 h-4" />
+          <Send className="w-4 h-4 text-white" />
           <span className="hidden sm:inline">Kumpulkan</span>
         </button>
       </header>
@@ -1849,13 +1849,13 @@ export default function StudentExam() {
           </AnimatePresence>
 
           {/* Navigation */}
-          <div className="flex items-center justify-between gap-6">
+          <div className="flex items-center justify-between gap-4 sm:gap-6 pt-2">
             <button 
               disabled={currentIndex === 0}
               onClick={() => setCurrentIndex(prev => prev - 1)}
-              className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 sm:gap-3 px-4 sm:px-10 py-3 sm:py-5 rounded-full font-black text-xs sm:text-base text-slate-500 bg-white border-2 border-slate-100 hover:border-slate-300 disabled:opacity-30 transition-all group"
+              className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 sm:gap-3 px-4 sm:px-8 py-3 sm:py-4 rounded-2xl font-bold text-xs sm:text-base text-slate-600 bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50 disabled:opacity-30 disabled:pointer-events-none transition-all group cursor-pointer shadow-xs"
             >
-              <ChevronLeft className="w-4 h-4 sm:w-6 sm:h-6 group-hover:-translate-x-1 transition-transform" />
+              <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 group-hover:-translate-x-1 transition-transform" />
               Sebelumnya
             </button>
             
@@ -1864,21 +1864,72 @@ export default function StudentExam() {
                 <div 
                   key={i}
                   className={cn(
-                    "h-2 rounded-full transition-all duration-500",
-                    i === currentIndex ? "w-12 bg-indigo-600" : "w-2 bg-slate-200"
+                    "h-2 rounded-full transition-all duration-300",
+                    i === currentIndex ? "w-8 bg-blue-600" : answers[questions[i]?.id] ? "w-2 bg-emerald-400" : "w-2 bg-slate-200"
                   )}
                 />
               ))}
             </div>
 
-            <button 
-              disabled={currentIndex === questions.length - 1}
-              onClick={() => setCurrentIndex(prev => prev + 1)}
-              className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 sm:gap-3 px-4 sm:px-10 py-3 sm:py-5 rounded-full font-black text-xs sm:text-base text-slate-500 bg-white border-2 border-slate-100 hover:border-slate-300 disabled:opacity-30 transition-all group"
-            >
-              Selanjutnya
-              <ChevronRight className="w-4 h-4 sm:w-6 sm:h-6 group-hover:translate-x-1 transition-transform" />
-            </button>
+            {(() => {
+              const isAllAnswered = questions.length > 0 && Object.keys(answers).length >= questions.length;
+              const isLastQuestion = currentIndex === questions.length - 1;
+
+              if (isAllAnswered && isLastQuestion) {
+                return (
+                  <button 
+                    onClick={() => setShowSubmitConfirm(true)}
+                    className="flex-1 sm:flex-none flex items-center justify-center gap-2 sm:gap-3 px-6 sm:px-10 py-3 sm:py-4 rounded-2xl font-bold text-xs sm:text-base text-white bg-gradient-to-r from-emerald-500 to-teal-500 hover:brightness-110 active:scale-95 transition-all shadow-lg shadow-emerald-500/30 border border-emerald-400/30 cursor-pointer animate-pulse"
+                  >
+                    <Send className="w-4 h-4 sm:w-5 sm:h-5" />
+                    <span>Kirim Jawaban</span>
+                  </button>
+                );
+              }
+
+              if (isAllAnswered && !isLastQuestion) {
+                return (
+                  <div className="flex items-center gap-2 sm:gap-3 flex-1 sm:flex-none justify-end">
+                    <button 
+                      onClick={() => setCurrentIndex(prev => prev + 1)}
+                      className="flex items-center justify-center gap-1.5 sm:gap-2 px-4 sm:px-6 py-3 sm:py-4 rounded-2xl font-bold text-xs sm:text-sm text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 transition-all cursor-pointer shadow-xs"
+                    >
+                      Selanjutnya
+                      <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
+                    </button>
+                    <button 
+                      onClick={() => setShowSubmitConfirm(true)}
+                      className="flex items-center justify-center gap-2 px-5 sm:px-7 py-3 sm:py-4 rounded-2xl font-bold text-xs sm:text-sm text-white bg-gradient-to-r from-emerald-500 to-teal-500 hover:brightness-110 active:scale-95 transition-all shadow-md shadow-emerald-500/30 border border-emerald-400/30 cursor-pointer animate-pulse"
+                    >
+                      <Send className="w-4 h-4" />
+                      <span>Kirim</span>
+                    </button>
+                  </div>
+                );
+              }
+
+              if (isLastQuestion) {
+                return (
+                  <button 
+                    onClick={() => setShowSubmitConfirm(true)}
+                    className="flex-1 sm:flex-none flex items-center justify-center gap-2 sm:gap-3 px-6 sm:px-8 py-3 sm:py-4 rounded-2xl font-bold text-xs sm:text-base text-white bg-blue-600 hover:bg-blue-500 active:scale-95 transition-all shadow-md shadow-blue-600/20 cursor-pointer"
+                  >
+                    <Send className="w-4 h-4 sm:w-5 sm:h-5" />
+                    <span>Kumpulkan</span>
+                  </button>
+                );
+              }
+
+              return (
+                <button 
+                  onClick={() => setCurrentIndex(prev => prev + 1)}
+                  className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 sm:gap-3 px-4 sm:px-8 py-3 sm:py-4 rounded-2xl font-bold text-xs sm:text-base text-slate-700 bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-all group cursor-pointer shadow-xs"
+                >
+                  Selanjutnya
+                  <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
+                </button>
+              );
+            })()}
           </div>
         </div>
 
