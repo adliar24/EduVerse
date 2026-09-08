@@ -18,4 +18,5 @@ tmp_chrome_profile2/
 scratch/
 nul
 *.xlsx
+!public/*.xlsx
 
