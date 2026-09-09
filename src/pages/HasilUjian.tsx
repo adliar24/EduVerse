@@ -19,7 +19,8 @@ import {
   CheckCircle,
   XCircle as XCircleIcon,
   Loader2,
-  ArrowUpDown
+  ArrowUpDown,
+  RotateCcw
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import React from 'react';
@@ -239,6 +240,66 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
       console.error(error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResetParticipant = async (participantId: string, participantName: string) => {
+    const confirmed = window.confirm(
+      `Apakah Anda yakin ingin me-reset ujian untuk siswa "${participantName}"?\n\n` +
+      `• Nilai dan jawaban yang telah tersimpan akan dihapus.\n` +
+      `• Status ujian akan diubah kembali ke awal (ongoing).\n` +
+      `• Waktu (timer) pengerjaan akan diulang dengan durasi penuh.\n` +
+      `• Siswa dapat membuka kembali ujian dan mengerjakan ulang dari awal.`
+    );
+    if (!confirmed) return;
+
+    try {
+      // 1. Delete answers
+      try {
+        await supabaseAnon.from('answers').delete().eq('participant_id', participantId);
+      } catch (e) {
+        console.warn('Anon delete answers error:', e);
+      }
+      try {
+        await supabase.from('answers').delete().eq('participant_id', participantId);
+      } catch (e) {
+        console.warn('Auth delete answers error:', e);
+      }
+
+      // 2. Reset participant record
+      const resetPayload = {
+        status: 'ongoing',
+        score: null,
+        end_time: null,
+        start_time: new Date().toISOString(),
+        violations: 0,
+        is_locked: false,
+        lock_reason: null,
+        last_position: 0
+      };
+
+      let resetError = null;
+      const { error: anonErr } = await supabaseAnon
+        .from('participants')
+        .update(resetPayload)
+        .eq('id', participantId);
+
+      if (anonErr) {
+        const { error: authErr } = await supabase
+          .from('participants')
+          .update(resetPayload)
+          .eq('id', participantId);
+        resetError = authErr;
+      }
+
+      if (resetError) throw resetError;
+
+      setShowDetailModal(false);
+      fetchResults();
+      alert(`Ujian untuk "${participantName}" berhasil di-reset! Siswa dapat membuka ujian dan mulai mengerjakan kembali.`);
+    } catch (err: any) {
+      console.error('Error resetting participant in HasilUjian:', err);
+      alert('Gagal me-reset peserta: ' + (err.message || 'Terjadi kesalahan'));
     }
   };
 
@@ -795,9 +856,21 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
                       </div>
                     </td>
                     <td className="px-8 py-6 text-right">
-                      <button className="p-3 text-slate-300 group-hover:text-indigo-950 group-hover:bg-white rounded-full transition-all shadow-sm opacity-0 group-hover:opacity-100">
-                        <ChevronRight className="w-5 h-5" />
-                      </button>
+                      <div className="flex items-center justify-end gap-2">
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleResetParticipant(result.id, result.name);
+                          }}
+                          className="p-2 text-slate-400 hover:text-amber-700 hover:bg-amber-50 rounded-xl transition-all border border-transparent hover:border-amber-200 shadow-xs cursor-pointer"
+                          title="Reset Ujian Siswa (Hapus jawaban & mulai ulang)"
+                        >
+                          <RotateCcw className="w-4 h-4" />
+                        </button>
+                        <button className="p-3 text-slate-300 group-hover:text-indigo-950 group-hover:bg-white rounded-full transition-all shadow-sm opacity-0 group-hover:opacity-100">
+                          <ChevronRight className="w-5 h-5" />
+                        </button>
+                      </div>
                     </td>
                   </motion.tr>
                 ))
@@ -841,12 +914,22 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
                     <h3 className="text-xl sm:text-2xl font-bold text-indigo-950">Detail Jawaban: {capitalizeEachWord(selectedResult.name)}</h3>
                     <p className="text-sm text-slate-500 font-medium mt-1">Kelas: {selectedResult.class} | Skor: {selectedResult.score}</p>
                   </div>
-                  <button 
-                    onClick={() => setShowDetailModal(false)} 
-                    className="p-2 hover:bg-white rounded-xl transition-all shadow-sm active:scale-95 group"
-                  >
-                    <XCircleIcon className="w-6 h-6 text-slate-400 group-hover:text-rose-500 transition-colors" />
-                  </button>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => handleResetParticipant(selectedResult.id, selectedResult.name)}
+                      className="bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-95"
+                      title="Reset ujian siswa ini agar bisa mengerjakan ulang dari awal"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5 text-amber-600" />
+                      <span>Reset Ujian Siswa</span>
+                    </button>
+                    <button 
+                      onClick={() => setShowDetailModal(false)} 
+                      className="p-2 hover:bg-white rounded-xl transition-all shadow-sm active:scale-95 group"
+                    >
+                      <XCircleIcon className="w-6 h-6 text-slate-400 group-hover:text-rose-500 transition-colors" />
+                    </button>
+                  </div>
                 </div>
 
                 <div className="p-4 sm:p-8 overflow-y-auto space-y-6 custom-scrollbar flex-1 bg-white">

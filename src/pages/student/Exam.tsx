@@ -350,6 +350,23 @@ export default function StudentExam() {
       setExam(examData);
       setQuestions(qs);
       
+      // If server indicates participant is active and NOT locked with 0 violations (e.g. after admin reset),
+      // clear any previous local lock, violations, or answers caches
+      const isCleanState = !participant.is_locked && participant.status === 'ongoing' && (participant.violations || 0) === 0;
+      if (isCleanState) {
+        try {
+          localStorage.removeItem(`violations_${pId}`);
+          localStorage.removeItem(`is_locked_${pId}`);
+          localStorage.removeItem(`is_locked_permanent_${pId}`);
+          if (!participant.end_time && participant.score == null) {
+            localStorage.removeItem(`exam_answers_${pId}`);
+            localStorage.removeItem(`last_position_${pId}`);
+          }
+        } catch (e) {
+          console.warn('[Exam] Error clearing reset storage:', e);
+        }
+      }
+
       // Load violations (offline-first check local storage)
       const localViolations = localStorage.getItem(`violations_${pId}`);
       const initialViolations = Math.max(participant.violations || 0, localViolations ? parseInt(localViolations) : 0);
@@ -420,6 +437,39 @@ export default function StudentExam() {
         roomRef.current = room;
 
         room.on('presence', { event: 'sync' }, () => {
+        });
+
+        // Listen for reset broadcast from teacher
+        room.on('broadcast', { event: 'participant_reset' }, ({ payload }) => {
+          if (payload?.participantId === pId) {
+            console.log('[Exam] Received participant_reset event from teacher!');
+            try {
+              localStorage.removeItem(`violations_${pId}`);
+              localStorage.removeItem(`is_locked_${pId}`);
+              localStorage.removeItem(`is_locked_permanent_${pId}`);
+              localStorage.removeItem(`exam_answers_${pId}`);
+              localStorage.removeItem(`last_position_${pId}`);
+            } catch (e) {}
+            alert('Ujian Anda telah di-reset oleh guru/pengawas. Halaman akan dimuat ulang untuk memulai kembali dari awal.');
+            window.location.reload();
+          }
+        });
+
+        // Listen for unlock broadcast from teacher
+        room.on('broadcast', { event: 'participant_unlocked' }, ({ payload }) => {
+          if (payload?.participantId === pId) {
+            console.log('[Exam] Received participant_unlocked event from teacher!');
+            try {
+              localStorage.setItem(`violations_${pId}`, '0');
+              localStorage.setItem(`is_locked_${pId}`, 'false');
+              localStorage.removeItem(`is_locked_permanent_${pId}`);
+            } catch (e) {}
+            setViolations(0);
+            setIsBlocked(false);
+            setIsPermanentlyBlocked(false);
+            setShowViolationWarning(false);
+            alert('Akun Anda telah dibuka oleh guru/pengawas. Silakan lanjutkan pengerjaan ujian.');
+          }
         });
 
         room.subscribe(async (status, err) => {

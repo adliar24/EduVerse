@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
+import { supabase, supabaseAnon } from '../lib/supabase';
 import { 
   FileText, 
   Copy, 
@@ -25,7 +25,8 @@ import {
   WifiOff,
   Key,
   QrCode,
-  Check
+  Check,
+  RotateCcw
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
@@ -92,6 +93,24 @@ export default function DaftarUjian() {
     fetchExams();
   }, [activeSchool]);
 
+  // Realtime subscription to refresh participant counts whenever students submit or join
+  useEffect(() => {
+    const channel = supabase
+      .channel('participants_realtime_daftar_ujian')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'participants' },
+        () => {
+          fetchExams();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [activeSchool]);
+
   const fetchExams = async () => {
     try {
       setLoading(true);
@@ -140,6 +159,58 @@ export default function DaftarUjian() {
           .eq('teacher_id', user.id)
           .order('created_at', { ascending: false });
         data = allTeacherExams || [];
+      }
+
+      const rawExams = data || [];
+      const examIds = rawExams.map((e: any) => e.id);
+
+      if (examIds.length > 0) {
+        // Query participants using supabaseAnon with dual fallback to bypass auth RLS restrictions
+        let participantsList: any[] = [];
+        try {
+          const { data: anonParts, error: pErr } = await supabaseAnon
+            .from('participants')
+            .select('id, exam_id, name, class, status, score, end_time')
+            .in('exam_id', examIds);
+
+          if (!pErr && anonParts) {
+            participantsList = anonParts;
+          } else {
+            const { data: authParts } = await supabase
+              .from('participants')
+              .select('id, exam_id, name, class, status, score, end_time')
+              .in('exam_id', examIds);
+            if (authParts) participantsList = authParts;
+          }
+        } catch (pError) {
+          console.warn('Error fetching participants count for exams:', pError);
+        }
+
+        // Aggregate counts: submitted participants vs total
+        const submittedMap = new Map<string, { count: number; names: string[]; total: number }>();
+        for (const p of participantsList) {
+          const isSubmitted = p.status === 'completed' || p.status === 'selesai' || !!p.end_time;
+          const current = submittedMap.get(p.exam_id) || { count: 0, names: [], total: 0 };
+          current.total += 1;
+          if (isSubmitted) {
+            current.count += 1;
+            if (p.name && current.names.length < 5) {
+              current.names.push(p.name);
+            }
+          }
+          submittedMap.set(p.exam_id, current);
+        }
+
+        data = rawExams.map((e: any) => {
+          const sub = submittedMap.get(e.id);
+          const fallbackCount = e.participants?.[0]?.count || 0;
+          return {
+            ...e,
+            submitted_count: sub ? sub.count : fallbackCount,
+            total_participants: sub ? sub.total : fallbackCount,
+            submitted_names: sub?.names || []
+          };
+        });
       }
 
       setExams(data || []);
@@ -740,14 +811,49 @@ export default function DaftarUjian() {
                     </button>
                   </div>
                   <div className="flex flex-col gap-1 items-end">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Peserta</p>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Peserta Mengirim</p>
                     <div className="flex items-center gap-2 h-[32px]">
-                      <div className="flex -space-x-1.5">
-                        {[1, 2, 3].map(i => (
-                          <div key={i} className="w-5.5 h-5.5 rounded-full border-2 border-white bg-slate-200 shadow-xs" />
-                        ))}
-                      </div>
-                      <span className="font-bold text-slate-700 text-xs">+{exam.participants?.[0]?.count || 0}</span>
+                      {exam.submitted_names && exam.submitted_names.length > 0 ? (
+                        <div className="flex -space-x-1.5">
+                          {exam.submitted_names.slice(0, 3).map((name: string, i: number) => {
+                            const colors = [
+                              'from-blue-600 to-indigo-600',
+                              'from-emerald-600 to-teal-600',
+                              'from-violet-600 to-purple-600',
+                              'from-amber-500 to-orange-600'
+                            ];
+                            return (
+                              <div 
+                                key={i} 
+                                title={name}
+                                className={cn(
+                                  "w-6 h-6 rounded-full border-2 border-white text-white font-black text-[9px] flex items-center justify-center shadow-xs bg-gradient-to-tr",
+                                  colors[i % colors.length]
+                                )}
+                              >
+                                {name.charAt(0).toUpperCase()}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div className="flex -space-x-1.5">
+                          {[1, 2, 3].map(i => (
+                            <div key={i} className="w-5.5 h-5.5 rounded-full border-2 border-white bg-slate-200 shadow-xs" />
+                          ))}
+                        </div>
+                      )}
+                      <span 
+                        className={cn(
+                          "font-bold text-xs px-2 py-0.5 rounded-md",
+                          (exam.submitted_count || 0) > 0 
+                            ? "text-blue-700 bg-blue-50 border border-blue-100" 
+                            : "text-slate-500 bg-slate-100"
+                        )}
+                        title={`${exam.submitted_count || 0} murid sudah mengirim ujian`}
+                      >
+                        +{exam.submitted_count ?? 0}
+                      </span>
                     </div>
                   </div>
                 </div>
