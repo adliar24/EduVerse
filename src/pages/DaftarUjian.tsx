@@ -593,14 +593,48 @@ export default function DaftarUjian() {
                       <Copy className="w-3 h-3 text-slate-300 group-hover/token:scale-110 transition-all" />
                     </button>
                   </div>
-                  
-                  <button 
-                    onClick={() => deleteExam(exam.id)}
-                    title="Hapus Ujian"
-                    className="p-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-400 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-200 transition-all cursor-pointer flex items-center justify-center"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+
+                  {/* Card Top Right: Toggle ON/OFF & Delete Action */}
+                  <div className="flex items-center gap-2">
+                    {/* Toggle Switch On/Off */}
+                    <button
+                      type="button"
+                      onClick={() => toggleIsActive(exam.id, exam.is_active)}
+                      title={exam.is_active ? "Ujian Aktif (Klik untuk nonaktifkan)" : "Ujian Nonaktif (Klik untuk aktifkan)"}
+                      className={cn(
+                        "relative inline-flex items-center h-7 rounded-full p-0.5 transition-all duration-300 cursor-pointer border shadow-xs select-none",
+                        exam.is_active 
+                          ? "w-16 bg-emerald-500 border-emerald-600 shadow-emerald-500/25" 
+                          : "w-16 bg-slate-200 border-slate-300 hover:bg-slate-300"
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          "inline-flex items-center justify-center w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300",
+                          exam.is_active ? "translate-x-9" : "translate-x-0"
+                        )}
+                      >
+                        <span className={cn(
+                          "w-1.5 h-1.5 rounded-full transition-colors", 
+                          exam.is_active ? "bg-emerald-500" : "bg-slate-400"
+                        )} />
+                      </span>
+                      <span className={cn(
+                        "absolute text-[9px] font-black tracking-wider select-none pointer-events-none transition-all",
+                        exam.is_active ? "left-2 text-white" : "right-2 text-slate-600"
+                      )}>
+                        {exam.is_active ? 'ON' : 'OFF'}
+                      </span>
+                    </button>
+
+                    <button 
+                      onClick={() => deleteExam(exam.id)}
+                      title="Hapus Ujian"
+                      className="p-1.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-400 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-200 transition-all cursor-pointer flex items-center justify-center"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
 
                 {/* Title & Duration/Questions */}

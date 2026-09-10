@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
-import { GraduationCap, Mail, Lock, Loader2, AlertCircle, ArrowRight, User, ChevronLeft, Shield, Database, Sparkles } from 'lucide-react';
+import { GraduationCap, Mail, Lock, Loader2, AlertCircle, ArrowRight, User, ChevronLeft, Shield, Database, Sparkles, RefreshCw } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import React from 'react';
 import FluidCanvas from '../components/FluidCanvas';
-
+import { cn } from '../lib/utils';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 export default function Login() {
@@ -19,6 +19,61 @@ export default function Login() {
   const [studentPassword, setStudentPassword] = useState('');
   const [view, setView] = useState<'selection' | 'login' | 'student-login'>('selection');
   const [isRedirecting, setIsRedirecting] = useState(false);
+  const [isUpdatingCache, setIsUpdatingCache] = useState(false);
+
+  const handleClearCacheAndUpdate = async () => {
+    setIsUpdatingCache(true);
+    try {
+      // 1. Clear CacheStorage API
+      if (typeof window !== 'undefined' && 'caches' in window) {
+        const cacheNames = await window.caches.keys();
+        await Promise.all(
+          cacheNames.map(name => {
+            // Keep heavy AI models if present, delete all application caches
+            if (!name.includes('face-api-models')) {
+              return window.caches.delete(name);
+            }
+            return Promise.resolve(true);
+          })
+        );
+      }
+
+      // 2. Unregister all Service Workers
+      if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
+        try {
+          const registrations = await navigator.serviceWorker.getRegistrations();
+          for (const reg of registrations) {
+            await reg.unregister().catch(() => {});
+          }
+        } catch (swErr) {
+          console.warn('SW unregister warning:', swErr);
+        }
+      }
+
+      // 3. Clear application temporary cache & version markers (only EduVerse specific version keys)
+      try {
+        const keysToRemove = [
+          'eduverse_applied_version',
+          'eduverse_last_update_reload',
+          'eduverse_build_id',
+          'app_version'
+        ];
+        keysToRemove.forEach(k => localStorage.removeItem(k));
+      } catch (storageErr) {
+        console.warn('Storage clear warning:', storageErr);
+      }
+
+      // 4. Force hard reload with timestamp query to bypass browser HTTP/disk cache completely
+      setTimeout(() => {
+        const targetUrl = new URL(window.location.href);
+        targetUrl.searchParams.set('_update', Date.now().toString());
+        window.location.replace(targetUrl.toString());
+      }, 500);
+    } catch (err) {
+      console.error('Failed to clear cache:', err);
+      window.location.reload();
+    }
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -104,6 +159,35 @@ export default function Login() {
               <div>
                 <h3 className="text-2xl font-black tracking-tight text-white mb-2">Menyiapkan Ruang Belajar...</h3>
                 <p className="text-slate-200 text-sm font-medium">Menghubungkan ke server EduVerse...</p>
+              </div>
+              <Loader2 className="w-8 h-8 text-sky-400 animate-spin" />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Updating Cache Overlay */}
+      <AnimatePresence>
+        {isUpdatingCache && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="fixed inset-0 bg-slate-950/98 z-[9999] flex flex-col items-center justify-center text-white p-6"
+          >
+            <motion.div
+              initial={{ scale: 0.85, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.1, duration: 0.3 }}
+              className="flex flex-col items-center text-center space-y-6 max-w-sm"
+            >
+              <div className="w-20 h-20 bg-gradient-to-tr from-sky-500 via-blue-600 to-indigo-600 rounded-3xl flex items-center justify-center shadow-2xl shadow-sky-500/40 border border-white/20">
+                <RefreshCw className="w-10 h-10 text-white animate-spin" />
+              </div>
+              <div>
+                <h3 className="text-2xl font-black tracking-tight text-white mb-2">Memperbarui Versi...</h3>
+                <p className="text-slate-300 text-xs sm:text-sm font-medium leading-relaxed">
+                  Menghapus cache dan data lama, kemudian memuat versi terbaru EduVerse.
+                </p>
               </div>
               <Loader2 className="w-8 h-8 text-sky-400 animate-spin" />
             </motion.div>
@@ -326,6 +410,23 @@ export default function Login() {
               </motion.div>
             )}
           </AnimatePresence>
+        </div>
+
+        {/* Update Versi Baru & Bersihkan Cache Button */}
+        <div className="relative z-30 mt-6 text-center flex flex-col items-center">
+          <button
+            type="button"
+            onClick={handleClearCacheAndUpdate}
+            disabled={isUpdatingCache}
+            title="Klik jika tampilan belum update atau ada pembaruan sistem"
+            className="group inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs font-black backdrop-blur-md shadow-lg transition-all active:scale-95 cursor-pointer disabled:opacity-50"
+          >
+            <RefreshCw className={cn("w-3.5 h-3.5 transition-transform", isUpdatingCache ? "animate-spin text-sky-300" : "group-hover:rotate-180 duration-500")} />
+            <span>{isUpdatingCache ? 'Memperbarui Aplikasi...' : 'Update Versi Baru'}</span>
+          </button>
+          <p className="text-[11px] text-slate-300/80 mt-1.5 font-medium">
+            Hapus cache & muat ulang versi terbaru sistem
+          </p>
         </div>
       </div>
     </div>
