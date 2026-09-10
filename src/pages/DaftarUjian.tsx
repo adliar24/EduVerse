@@ -72,16 +72,29 @@ export default function DaftarUjian() {
       }
 
       const { data: classesData } = await query.order('name');
-      
-      const classesWithCount = await Promise.all(
-        (classesData || []).map(async (cls) => {
-          const { count } = await supabase
-            .from('students')
-            .select('*', { count: 'exact', head: true })
-            .eq('class_id', cls.id);
-          return { ...cls, student_count: count || 0 };
-        })
-      );
+      if (!classesData || classesData.length === 0) {
+        setClasses([]);
+        return;
+      }
+
+      // Single batched query to get student counts instantly
+      const classIds = classesData.map((c: any) => c.id);
+      const { data: studentsData } = await supabase
+        .from('students')
+        .select('class_id')
+        .in('class_id', classIds);
+
+      const countMap = new Map<string, number>();
+      (studentsData || []).forEach((s: any) => {
+        if (s.class_id) {
+          countMap.set(s.class_id, (countMap.get(s.class_id) || 0) + 1);
+        }
+      });
+
+      const classesWithCount = classesData.map((cls: any) => ({
+        ...cls,
+        student_count: countMap.get(cls.id) || 0
+      }));
       
       setClasses(classesWithCount);
     } catch (error) {
@@ -338,26 +351,30 @@ export default function DaftarUjian() {
 
       const existingMap = new Map((existingSessions || []).map((s: any) => [s.class_id, s]));
 
-      // Deactivate unselected sessions
+      // 1. Batch deactivate unselected sessions in a single query
+      const idsToDeactivate: string[] = [];
       for (const [classId, s] of existingMap.entries()) {
         if (!selectedClasses.includes(classId) && s.is_active) {
-          await supabase
-            .from('exam_sessions')
-            .update({ is_active: false, ended_at: new Date().toISOString() })
-            .eq('id', s.id);
+          idsToDeactivate.push(s.id);
         }
       }
+      if (idsToDeactivate.length > 0) {
+        await supabase
+          .from('exam_sessions')
+          .update({ is_active: false, ended_at: new Date().toISOString() })
+          .in('id', idsToDeactivate);
+      }
 
-      // Activate or insert selected classes
+      // 2. Batch activate or prepare sessions to insert
+      const idsToActivate: string[] = [];
       const sessionsToInsert: any[] = [];
+      const nowIso = new Date().toISOString();
+
       for (const classId of selectedClasses) {
         const existing = existingMap.get(classId);
         if (existing) {
           if (!existing.is_active) {
-            await supabase
-              .from('exam_sessions')
-              .update({ is_active: true, started_at: new Date().toISOString() })
-              .eq('id', existing.id);
+            idsToActivate.push(existing.id);
           }
         } else {
           const classData = classes.find(c => c.id === classId);
@@ -366,12 +383,20 @@ export default function DaftarUjian() {
             class_id: classId,
             class_name: classData?.name || '',
             is_active: true,
-            started_at: new Date().toISOString(),
+            started_at: nowIso,
             expected_students: classData?.student_count || 0
           });
         }
       }
 
+      if (idsToActivate.length > 0) {
+        await supabase
+          .from('exam_sessions')
+          .update({ is_active: true, started_at: nowIso })
+          .in('id', idsToActivate);
+      }
+
+      // 3. Batch insert new sessions
       if (sessionsToInsert.length > 0) {
         const { error: insError } = await supabase
           .from('exam_sessions')
@@ -951,36 +976,38 @@ export default function DaftarUjian() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-slate-950/70"
+              transition={{ duration: 0.12 }}
+              className="absolute inset-0 bg-slate-950/60"
               onClick={() => setShowActivateModal(false)}
             />
             <motion.div 
-              initial={{ scale: 0.95, opacity: 0, y: 10 }}
+              initial={{ scale: 0.98, opacity: 0, y: 8 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.95, opacity: 0, y: 10 }}
-              className="bg-white rounded-[2rem] p-6 sm:p-8 max-w-md w-full relative z-10 shadow-2xl border border-slate-100"
+              exit={{ scale: 0.98, opacity: 0, y: 8 }}
+              transition={{ duration: 0.15, ease: 'easeOut' }}
+              className="bg-white rounded-[2rem] p-6 sm:p-7 max-w-md w-full relative z-10 shadow-2xl border border-slate-100 will-change-transform transform-gpu"
             >
               <div className="flex justify-between items-start mb-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 border border-blue-100">
+                  <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 border border-blue-100 shrink-0">
                     <Users className="w-5 h-5" />
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <h3 className="text-lg font-bold text-slate-900 leading-tight">Kelola Target Kelas</h3>
-                    <p className="text-xs text-slate-500 line-clamp-1 mt-0.5">
+                    <p className="text-xs text-slate-500 truncate mt-0.5">
                       {selectedExam?.title}
                     </p>
                   </div>
                 </div>
                 <button 
                   onClick={() => setShowActivateModal(false)}
-                  className="p-1.5 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer text-slate-400 hover:text-slate-600"
+                  className="p-1.5 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer text-slate-400 hover:text-slate-600 shrink-0"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
-              <div className="space-y-4 my-6">
+              <div className="space-y-4 my-5">
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">Pilih Kelas Peserta</label>
@@ -1008,7 +1035,7 @@ export default function DaftarUjian() {
                         <label 
                           key={cls.id} 
                           className={cn(
-                            "flex items-center justify-between p-3 rounded-xl cursor-pointer transition-all border",
+                            "flex items-center justify-between p-3 rounded-xl cursor-pointer transition-colors duration-100 border",
                             isSelected 
                               ? "bg-white border-blue-300 shadow-xs ring-1 ring-blue-500/20" 
                               : "hover:bg-white border-transparent text-slate-600"
@@ -1020,12 +1047,12 @@ export default function DaftarUjian() {
                               checked={isSelected}
                               onChange={(e) => {
                                 if (e.target.checked) {
-                                  setSelectedClasses([...selectedClasses, cls.id]);
+                                  setSelectedClasses(prev => [...prev, cls.id]);
                                 } else {
-                                  setSelectedClasses(selectedClasses.filter(id => id !== cls.id));
+                                  setSelectedClasses(prev => prev.filter(id => id !== cls.id));
                                 }
                               }}
-                              className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                              className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
                             />
                             <span className={cn("text-sm font-semibold truncate", isSelected ? "text-blue-900" : "text-slate-700")}>
                               {cls.name}
