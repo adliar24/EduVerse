@@ -99,6 +99,11 @@ export default function StudentExam() {
   useEffect(() => {
     return () => {
       isMountedRef.current = false;
+      if (screen.orientation && typeof screen.orientation.unlock === 'function') {
+        try {
+          screen.orientation.unlock();
+        } catch (_) {}
+      }
       try {
         const doc = document as any;
         if (doc.fullscreenElement || doc.webkitFullscreenElement || doc.mozFullScreenElement || doc.msFullscreenElement) {
@@ -812,6 +817,18 @@ export default function StudentExam() {
       
       setIsFullscreen(isFull);
 
+      if (isFull) {
+        if (screen.orientation && typeof screen.orientation.lock === 'function') {
+          screen.orientation.lock('portrait').catch(() => {});
+        }
+      } else {
+        if (screen.orientation && typeof screen.orientation.unlock === 'function') {
+          try {
+            screen.orientation.unlock();
+          } catch (_) {}
+        }
+      }
+
       // Trigger violation if student exits fullscreen during exam and strict mode is active
       if (!isFull && !loading && !submitting && exam?.strict_mode !== false) {
         handleViolation();
@@ -832,6 +849,9 @@ export default function StudentExam() {
       doc.msFullscreenElement
     );
     setIsFullscreen(initialFull);
+    if (initialFull && screen.orientation && typeof screen.orientation.lock === 'function') {
+      screen.orientation.lock('portrait').catch(() => {});
+    }
 
     return () => {
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
@@ -2148,6 +2168,11 @@ export default function StudentExam() {
                       await (docEl as any).mozRequestFullScreen();
                     } else if ((docEl as any).msRequestFullscreen) {
                       await (docEl as any).msRequestFullscreen();
+                    }
+                    if (screen.orientation && typeof screen.orientation.lock === 'function') {
+                      try {
+                        await screen.orientation.lock('portrait');
+                      } catch (_) {}
                     }
                     setIsFullscreen(true);
                   } catch (err) {

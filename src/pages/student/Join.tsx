@@ -397,6 +397,11 @@ export default function StudentJoin({ isDashboardView = false }: { isDashboardVi
                         } else if ((document.documentElement as any).webkitRequestFullscreen) {
                           await (document.documentElement as any).webkitRequestFullscreen();
                         }
+                        if (screen.orientation && typeof screen.orientation.lock === 'function') {
+                          try {
+                            await screen.orientation.lock('portrait');
+                          } catch (_) {}
+                        }
                       } catch (err) {
                         console.warn('Failed to enter fullscreen:', err);
                       }
@@ -602,6 +607,11 @@ export default function StudentJoin({ isDashboardView = false }: { isDashboardVi
                         await document.documentElement.requestFullscreen();
                       } else if ((document.documentElement as any).webkitRequestFullscreen) {
                         await (document.documentElement as any).webkitRequestFullscreen();
+                      }
+                      if (screen.orientation && typeof screen.orientation.lock === 'function') {
+                        try {
+                          await screen.orientation.lock('portrait');
+                        } catch (_) {}
                       }
                     } catch (err) {
                       console.warn('Failed to enter fullscreen:', err);

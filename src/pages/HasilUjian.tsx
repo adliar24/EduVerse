@@ -205,6 +205,7 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
       }
 
       let { data, error } = await query;
+      let finalData: any[] = data || [];
 
       // Robust fallback: if error or empty (e.g. due to PostgREST RLS on authenticated role or join issues),
       // query with supabaseAnon which always has full access to participants table
@@ -228,14 +229,14 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
         const { data: anonData } = await fallbackQuery;
         if (anonData && anonData.length > 0) {
           const examTitleMap = new Map((teacherExams || []).map(e => [e.id, e.title]));
-          data = anonData.map(p => ({
+          finalData = anonData.map(p => ({
             ...p,
             exams: { title: examTitleMap.get(p.exam_id) || 'Ujian' }
           }));
         }
       }
 
-      setResults(data || []);
+      setResults(finalData || []);
     } catch (error) {
       console.error(error);
     } finally {
@@ -427,6 +428,10 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
         const timeA = new Date(a.end_time || a.start_time).getTime();
         const timeB = new Date(b.end_time || b.start_time).getTime();
         return timeA - timeB;
+      } else if (sortBy === 'nilai-tinggi') {
+        return (Number(b.score) || 0) - (Number(a.score) || 0);
+      } else if (sortBy === 'nilai-rendah') {
+        return (Number(a.score) || 0) - (Number(b.score) || 0);
       } else if (sortBy === 'a-z') {
         return a.name.localeCompare(b.name, 'id');
       } else if (sortBy === 'z-a') {
@@ -437,6 +442,47 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
 
     return temp;
   }, [results, searchTerm, sortBy]);
+
+  const leaderboardResults = useMemo(() => {
+    const source = searchTerm.trim() ? filteredResults : results;
+    const valid = source.filter(
+      r => r.status !== 'menunggu_scan' && r.score !== null && r.score !== undefined
+    );
+
+    // Keep highest score per student if duplicate submissions exist
+    const bestByStudent = new Map<string, typeof valid[0]>();
+    for (const r of valid) {
+      const key = (r.name || '').trim().toLowerCase();
+      const existing = bestByStudent.get(key);
+      if (!existing || (Number(r.score) || 0) > (Number(existing.score) || 0)) {
+        bestByStudent.set(key, r);
+      }
+    }
+
+    return Array.from(bestByStudent.values())
+      .sort((a, b) => {
+        const scoreA = Number(a.score) || 0;
+        const scoreB = Number(b.score) || 0;
+        if (scoreB !== scoreA) {
+          return scoreB - scoreA; // Highest score first
+        }
+        // Tie breaker 1: Faster duration
+        if (a.start_time && a.end_time && b.start_time && b.end_time) {
+          const durA = new Date(a.end_time).getTime() - new Date(a.start_time).getTime();
+          const durB = new Date(b.end_time).getTime() - new Date(b.start_time).getTime();
+          if (durA > 0 && durB > 0 && durA !== durB) {
+            return durA - durB;
+          }
+        }
+        // Tie breaker 2: Completed earlier
+        const timeA = new Date(a.end_time || a.start_time || 0).getTime();
+        const timeB = new Date(b.end_time || b.start_time || 0).getTime();
+        if (timeA && timeB && timeA !== timeB) return timeA - timeB;
+
+        // Tie breaker 3: Alphabetical
+        return (a.name || '').localeCompare(b.name || '', 'id');
+      });
+  }, [results, filteredResults, searchTerm]);
 
   const exportToExcel = async () => {
     const { default: XLSXStyle } = await import('xlsx-js-style');
@@ -701,6 +747,8 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
           >
             <option value="terbaru">Terbaru</option>
             <option value="terlama">Terlama</option>
+            <option value="nilai-tinggi">Nilai Tertinggi</option>
+            <option value="nilai-rendah">Nilai Terendah</option>
             <option value="a-z">Nama A-Z</option>
             <option value="z-a">Nama Z-A</option>
           </select>
@@ -709,7 +757,7 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
       </div>
 
       {/* Quizzo 3D Leaderboard Podium */}
-      {!loading && filteredResults.length >= 3 && (
+      {!loading && leaderboardResults.length >= 3 && (
         <div className="bg-gradient-to-br from-[#0F172A] via-[#1E3A8A] to-[#1E40AF] p-8 rounded-[2.5rem] text-white shadow-xl border border-white/10 mb-6 relative overflow-hidden">
           <div className="flex items-center justify-between mb-8 relative z-10">
             <div>
@@ -723,45 +771,62 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
 
           <div className="grid grid-cols-3 gap-3 sm:gap-6 items-end max-w-xl mx-auto pt-4 pb-2 relative z-10">
             {/* Rank 2 - Silver */}
-            {filteredResults[1] && (
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="flex flex-col items-center text-center">
-                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-slate-200 text-slate-800 font-black text-xl flex items-center justify-center border-4 border-slate-300 shadow-xl mb-2 relative">
-                  {filteredResults[1].name.charAt(0)}
+            {leaderboardResults[1] && (
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }} 
+                animate={{ opacity: 1, y: 0 }} 
+                transition={{ delay: 0.1 }} 
+                className="flex flex-col items-center text-center cursor-pointer group"
+                onClick={() => fetchDetail(leaderboardResults[1])}
+              >
+                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-slate-200 text-slate-800 font-black text-xl flex items-center justify-center border-4 border-slate-300 shadow-xl mb-2 relative group-hover:scale-105 transition-transform">
+                  {leaderboardResults[1].name.charAt(0)}
                   <span className="absolute -bottom-2 bg-slate-400 text-white text-[10px] font-black px-2 py-0.5 rounded-full border border-white">2</span>
                 </div>
-                <p className="font-extrabold text-xs sm:text-sm text-white truncate max-w-[90px] sm:max-w-[120px]">{capitalizeEachWord(filteredResults[1].name)}</p>
-                <span className="text-[11px] font-bold text-slate-200 bg-white/20 px-3 py-1 rounded-full mt-1">{Math.round(filteredResults[1].score)} Poin</span>
-                <div className="w-full h-24 sm:h-28 bg-gradient-to-t from-slate-400/40 to-slate-300/20 rounded-t-2xl mt-3 flex items-center justify-center border-t border-white/30">
+                <p className="font-extrabold text-xs sm:text-sm text-white truncate max-w-[90px] sm:max-w-[120px]">{capitalizeEachWord(leaderboardResults[1].name)}</p>
+                <span className="text-[11px] font-bold text-slate-200 bg-white/20 px-3 py-1 rounded-full mt-1">{Math.round(leaderboardResults[1].score)} Poin</span>
+                <div className="w-full h-24 sm:h-28 bg-gradient-to-t from-slate-400/40 to-slate-300/20 rounded-t-2xl mt-3 flex items-center justify-center border-t border-white/30 group-hover:from-slate-400/50 transition-colors">
                   <span className="text-2xl font-black text-white/50">🥈 2</span>
                 </div>
               </motion.div>
             )}
 
             {/* Rank 1 - Gold */}
-            {filteredResults[0] && (
-              <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center text-center -mt-6">
-                <div className="w-18 h-18 sm:w-20 sm:h-20 rounded-full bg-gradient-to-tr from-amber-300 to-amber-500 text-amber-950 font-black text-2xl flex items-center justify-center border-4 border-amber-300 shadow-2xl shadow-amber-500/50 mb-2 relative">
-                  {filteredResults[0].name.charAt(0)}
+            {leaderboardResults[0] && (
+              <motion.div 
+                initial={{ opacity: 0, y: 30 }} 
+                animate={{ opacity: 1, y: 0 }} 
+                className="flex flex-col items-center text-center -mt-6 cursor-pointer group"
+                onClick={() => fetchDetail(leaderboardResults[0])}
+              >
+                <div className="w-18 h-18 sm:w-20 sm:h-20 rounded-full bg-gradient-to-tr from-amber-300 to-amber-500 text-amber-950 font-black text-2xl flex items-center justify-center border-4 border-amber-300 shadow-2xl shadow-amber-500/50 mb-2 relative group-hover:scale-105 transition-transform">
+                  {leaderboardResults[0].name.charAt(0)}
                   <span className="absolute -bottom-2 bg-amber-500 text-amber-950 text-xs font-black px-2.5 py-0.5 rounded-full border border-white">1</span>
                 </div>
-                <p className="font-extrabold text-sm sm:text-base text-amber-200 truncate max-w-[100px] sm:max-w-[140px]">{capitalizeEachWord(filteredResults[0].name)}</p>
-                <span className="text-xs font-black text-amber-950 bg-amber-400 px-3.5 py-1 rounded-full mt-1 shadow-md">{Math.round(filteredResults[0].score)} Poin</span>
-                <div className="w-full h-32 sm:h-36 bg-gradient-to-t from-amber-500/50 to-amber-400/25 rounded-t-3xl mt-3 flex items-center justify-center border-t border-amber-300/50">
+                <p className="font-extrabold text-sm sm:text-base text-amber-200 truncate max-w-[100px] sm:max-w-[140px]">{capitalizeEachWord(leaderboardResults[0].name)}</p>
+                <span className="text-xs font-black text-amber-950 bg-amber-400 px-3.5 py-1 rounded-full mt-1 shadow-md">{Math.round(leaderboardResults[0].score)} Poin</span>
+                <div className="w-full h-32 sm:h-36 bg-gradient-to-t from-amber-500/50 to-amber-400/25 rounded-t-3xl mt-3 flex items-center justify-center border-t border-amber-300/50 group-hover:from-amber-500/60 transition-colors">
                   <span className="text-3xl font-black text-amber-300">🥇 1</span>
                 </div>
               </motion.div>
             )}
 
             {/* Rank 3 - Bronze */}
-            {filteredResults[2] && (
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="flex flex-col items-center text-center">
-                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-amber-700/80 text-amber-100 font-black text-xl flex items-center justify-center border-4 border-amber-600 shadow-xl mb-2 relative">
-                  {filteredResults[2].name.charAt(0)}
+            {leaderboardResults[2] && (
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }} 
+                animate={{ opacity: 1, y: 0 }} 
+                transition={{ delay: 0.2 }} 
+                className="flex flex-col items-center text-center cursor-pointer group"
+                onClick={() => fetchDetail(leaderboardResults[2])}
+              >
+                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-amber-700/80 text-amber-100 font-black text-xl flex items-center justify-center border-4 border-amber-600 shadow-xl mb-2 relative group-hover:scale-105 transition-transform">
+                  {leaderboardResults[2].name.charAt(0)}
                   <span className="absolute -bottom-2 bg-amber-700 text-white text-[10px] font-black px-2 py-0.5 rounded-full border border-white">3</span>
                 </div>
-                <p className="font-extrabold text-xs sm:text-sm text-white truncate max-w-[90px] sm:max-w-[120px]">{capitalizeEachWord(filteredResults[2].name)}</p>
-                <span className="text-[11px] font-bold text-amber-100 bg-white/20 px-3 py-1 rounded-full mt-1">{Math.round(filteredResults[2].score)} Poin</span>
-                <div className="w-full h-20 sm:h-24 bg-gradient-to-t from-amber-700/40 to-amber-600/20 rounded-t-2xl mt-3 flex items-center justify-center border-t border-white/30">
+                <p className="font-extrabold text-xs sm:text-sm text-white truncate max-w-[90px] sm:max-w-[120px]">{capitalizeEachWord(leaderboardResults[2].name)}</p>
+                <span className="text-[11px] font-bold text-amber-100 bg-white/20 px-3 py-1 rounded-full mt-1">{Math.round(leaderboardResults[2].score)} Poin</span>
+                <div className="w-full h-20 sm:h-24 bg-gradient-to-t from-amber-700/40 to-amber-600/20 rounded-t-2xl mt-3 flex items-center justify-center border-t border-white/30 group-hover:from-amber-700/50 transition-colors">
                   <span className="text-2xl font-black text-white/50">🥉 3</span>
                 </div>
               </motion.div>
