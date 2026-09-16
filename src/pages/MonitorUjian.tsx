@@ -16,7 +16,8 @@ import {
   Unlock,
   ShieldAlert,
   UserPlus,
-  RotateCcw
+  RotateCcw,
+  Play
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn, capitalizeEachWord } from '../lib/utils';
@@ -267,6 +268,80 @@ export default function MonitorUjian() {
     } catch (err) {
       console.error('Error unlocking participant:', err);
       alert('Gagal membuka kunci akun. Silakan coba lagi.');
+    }
+  };
+
+  const handleResumeParticipant = async (participantId: string, participantName: string) => {
+    const confirmed = window.confirm(
+      `Izinkan "${participantName}" melanjutkan ujian?\n\n` +
+      `✓ Jawaban yang sudah dikerjakan TETAP TERSIMPAN.\n` +
+      `✓ Status selesai / terblokir akan dibuka kembali.\n` +
+      `✓ Siswa dapat masuk kembali dan melanjutkan pengerjaan soal.`
+    );
+    if (!confirmed) return;
+
+    try {
+      // Find current participant to adjust remaining duration
+      const participant = allParticipants.find(p => p.id === participantId);
+      const examDurationMinutes = exam?.duration || 60;
+      
+      // Calculate adjusted start_time if time had elapsed or expired,
+      // giving them at least 25 minutes (or full remaining time) to finish
+      let adjustedStartTime = participant?.start_time || new Date().toISOString();
+      if (participant?.start_time) {
+        const startMs = new Date(participant.start_time).getTime();
+        const elapsedMinutes = (Date.now() - startMs) / (60 * 1000);
+        if (elapsedMinutes >= examDurationMinutes - 5) {
+          // Grant additional 25 minutes
+          const newStartMs = Date.now() - ((examDurationMinutes - 25) * 60 * 1000);
+          adjustedStartTime = new Date(newStartMs).toISOString();
+        }
+      }
+
+      const resumePayload = {
+        status: 'ongoing',
+        score: null,
+        end_time: null,
+        start_time: adjustedStartTime,
+        violations: 0,
+        is_locked: false,
+        lock_reason: null
+      };
+
+      let resumeError = null;
+      const { error: anonErr } = await supabaseAnon
+        .from('participants')
+        .update(resumePayload)
+        .eq('id', participantId);
+
+      if (anonErr) {
+        const { error: authErr } = await supabase
+          .from('participants')
+          .update(resumePayload)
+          .eq('id', participantId);
+        resumeError = authErr;
+      }
+
+      if (resumeError) throw resumeError;
+
+      // Broadcast unlock event to active presence room
+      if (roomChannelRef.current) {
+        try {
+          await roomChannelRef.current.send({
+            type: 'broadcast',
+            event: 'participant_unlocked',
+            payload: { participantId }
+          });
+        } catch (bErr) {
+          console.warn('Broadcast unlock error:', bErr);
+        }
+      }
+
+      fetchExamAndParticipants();
+      alert(`Siswa "${participantName}" berhasil diizinkan melanjutkan ujian! Jawaban tetap aman dan tersimpan, siswa dapat langsung masuk kembali.`);
+    } catch (err: any) {
+      console.error('Error resuming participant:', err);
+      alert('Gagal mengaktifkan kembali ujian: ' + (err.message || 'Terjadi kesalahan'));
     }
   };
 
@@ -599,30 +674,40 @@ export default function MonitorUjian() {
                           <span className="text-emerald-700">{new Date(p.end_time).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</span>
                         </div>
                       )}
-                      <button
-                        onClick={() => handleResetParticipant(p.id, p.name)}
-                        className="w-full bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200/80 px-3 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-98"
-                        title="Reset ujian agar siswa dapat mengerjakan ulang dari awal"
-                      >
-                        <RotateCcw className="w-3.5 h-3.5 shrink-0 text-amber-600" />
-                        <span>Reset Ujian (Mulai Ulang)</span>
-                      </button>
+                      <div className="flex flex-col gap-1.5 mt-2">
+                        <button
+                          onClick={() => handleResumeParticipant(p.id, p.name)}
+                          className="w-full bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200/80 px-3 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-98"
+                          title="Izinkan siswa melanjutkan ujian (seluruh jawaban sebelumnya tetap tersimpan)"
+                        >
+                          <Play className="w-3.5 h-3.5 shrink-0 text-emerald-600" />
+                          <span>Izinkan Lanjut (Simpan Jawaban)</span>
+                        </button>
+                        <button
+                          onClick={() => handleResetParticipant(p.id, p.name)}
+                          className="w-full bg-slate-50 hover:bg-rose-50 text-slate-500 hover:text-rose-700 border border-slate-200/70 hover:border-rose-200 px-3 py-1.5 rounded-xl text-[11px] font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                          title="Hapus jawaban & reset waktu agar siswa mengulang dari awal"
+                        >
+                          <RotateCcw className="w-3 h-3 shrink-0 text-slate-400 hover:text-rose-500" />
+                          <span>Reset Total (Mulai Ulang dari 0)</span>
+                        </button>
+                      </div>
                     </div>
                   )}
 
                   {status.type === 'blocked' && (
                     <div className="flex flex-col gap-1.5 mt-2">
                       <button
-                        onClick={() => handleUnlockParticipant(p.id, p.name)}
+                        onClick={() => handleResumeParticipant(p.id, p.name)}
                         className="w-full bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200/80 px-3 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-98"
-                        title="Buka kunci agar siswa dapat melanjutkan ujian dari posisi terakhir"
+                        title="Buka kunci agar siswa dapat melanjutkan ujian dan jawaban tetap tersimpan"
                       >
                         <Unlock className="w-3.5 h-3.5 shrink-0 text-blue-600" />
-                        <span>Buka Kunci (Lanjutkan)</span>
+                        <span>Buka Kunci (Lanjutkan Jawaban)</span>
                       </button>
                       <button
                         onClick={() => handleResetParticipant(p.id, p.name)}
-                        className="w-full bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200/80 px-3 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-98"
+                        className="w-full bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200/80 px-3 py-1.5 rounded-xl text-[11px] font-bold flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-98"
                         title="Hapus jawaban & reset waktu agar siswa mengulang dari awal"
                       >
                         <RotateCcw className="w-3.5 h-3.5 shrink-0 text-rose-600" />

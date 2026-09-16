@@ -5,6 +5,17 @@ import { GraduationCap, ArrowRight, AlertCircle, Loader2, Key, ChevronLeft, Book
 import { motion, AnimatePresence } from 'framer-motion';
 import React from 'react';
 import { cn } from '../../lib/utils';
+import { checkForAppUpdate } from '../../lib/versionManager';
+
+const lockPortrait = async () => {
+  if (typeof screen !== 'undefined' && screen.orientation && typeof screen.orientation.lock === 'function') {
+    try {
+      await (screen.orientation.lock('portrait-primary') as any).catch(() => {
+        return screen.orientation.lock('portrait').catch(() => {});
+      });
+    } catch (_) {}
+  }
+};
 
 export default function StudentJoin({ isDashboardView = false }: { isDashboardView?: boolean }) {
   const navigate = useNavigate();
@@ -17,6 +28,7 @@ export default function StudentJoin({ isDashboardView = false }: { isDashboardVi
   const [selectedSession, setSelectedSession] = useState<any>(null);
 
   React.useEffect(() => {
+    checkForAppUpdate();
     const sessionStr = localStorage.getItem('student_session');
     if (sessionStr) {
       const sess = JSON.parse(sessionStr);
@@ -397,11 +409,7 @@ export default function StudentJoin({ isDashboardView = false }: { isDashboardVi
                         } else if ((document.documentElement as any).webkitRequestFullscreen) {
                           await (document.documentElement as any).webkitRequestFullscreen();
                         }
-                        if (screen.orientation && typeof screen.orientation.lock === 'function') {
-                          try {
-                            await screen.orientation.lock('portrait');
-                          } catch (_) {}
-                        }
+                        await lockPortrait();
                       } catch (err) {
                         console.warn('Failed to enter fullscreen:', err);
                       }
@@ -608,11 +616,7 @@ export default function StudentJoin({ isDashboardView = false }: { isDashboardVi
                       } else if ((document.documentElement as any).webkitRequestFullscreen) {
                         await (document.documentElement as any).webkitRequestFullscreen();
                       }
-                      if (screen.orientation && typeof screen.orientation.lock === 'function') {
-                        try {
-                          await screen.orientation.lock('portrait');
-                        } catch (_) {}
-                      }
+                      await lockPortrait();
                     } catch (err) {
                       console.warn('Failed to enter fullscreen:', err);
                     }

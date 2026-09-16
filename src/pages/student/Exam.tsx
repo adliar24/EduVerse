@@ -17,7 +17,8 @@ import {
   Lock,
   Unlock,
   Maximize2,
-  X
+  X,
+  Smartphone
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../../lib/utils';
@@ -26,14 +27,23 @@ import React from 'react';
 // Timer Component Isolated to prevent parent re-renders every 1 second
 const ExamTimer = React.memo(({ endTime, onTimeUp }: { endTime: number, onTimeUp: () => void }) => {
   const [timeLeft, setTimeLeft] = useState(() => Math.max(0, Math.floor((endTime - Date.now()) / 1000)));
+  const mountedAtRef = useRef(Date.now());
 
   useEffect(() => {
     if (timeLeft <= 0) {
-      onTimeUp();
+      if (Date.now() - mountedAtRef.current > 5000) {
+        onTimeUp();
+      }
       return;
     }
     const timer = setInterval(() => {
-      setTimeLeft(Math.max(0, Math.floor((endTime - Date.now()) / 1000)));
+      const remaining = Math.max(0, Math.floor((endTime - Date.now()) / 1000));
+      setTimeLeft(remaining);
+      if (remaining <= 0) {
+        if (Date.now() - mountedAtRef.current > 5000) {
+          onTimeUp();
+        }
+      }
     }, 1000);
     return () => clearInterval(timer);
   }, [endTime, onTimeUp]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -50,6 +60,87 @@ const ExamTimer = React.memo(({ endTime, onTimeUp }: { endTime: number, onTimeUp
     )}>
       {formatted}
     </p>
+  );
+});
+
+// Helper for portrait orientation locking
+const lockPortraitOrientation = async () => {
+  if (typeof screen !== 'undefined' && screen.orientation && typeof screen.orientation.lock === 'function') {
+    try {
+      await (screen.orientation.lock('portrait-primary') as any).catch(() => {
+        return screen.orientation.lock('portrait').catch(() => {});
+      });
+    } catch (_) {}
+  }
+};
+
+// Memoized Essay Editor: isolate textarea state so typing doesn't re-render 2000 lines of Exam component
+const EssayEditor = React.memo(({ 
+  questionId, 
+  initialValue, 
+  isEssay, 
+  onSave 
+}: { 
+  questionId: string; 
+  initialValue: string; 
+  isEssay: boolean; 
+  onSave: (val: string) => void;
+}) => {
+  const [val, setVal] = useState(initialValue);
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    setVal(initialValue);
+  }, [questionId, initialValue]);
+
+  const handleChange = (newVal: string) => {
+    setVal(newVal);
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    debounceTimerRef.current = setTimeout(() => {
+      onSave(newVal);
+    }, 400);
+  };
+
+  const handleBlur = () => {
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    onSave(val);
+  };
+
+  const wordCount = val.trim() ? val.trim().split(/\s+/).length : 0;
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between ml-1">
+        <label className="text-xs sm:text-sm font-black text-slate-400 uppercase tracking-widest">
+          {isEssay ? 'Lembar Jawaban Essay / Uraian' : 'Jawaban Singkat'}
+        </label>
+        <span className="text-xs font-bold text-emerald-600 flex items-center gap-1">
+          ✓ Tersimpan otomatis
+        </span>
+      </div>
+      <textarea 
+        rows={isEssay ? 7 : 3}
+        className="w-full p-4 sm:p-6 rounded-2xl sm:rounded-[2rem] border-2 border-slate-200 bg-slate-50/60 focus:border-blue-500 focus:bg-white outline-none transition-all font-medium text-base sm:text-lg text-slate-800 placeholder:text-slate-300 shadow-inner max-h-[42vh] sm:max-h-[50vh] overflow-y-auto resize-y"
+        style={{ touchAction: 'manipulation' }}
+        placeholder={isEssay 
+          ? "Ketikkan jawaban uraian / essay lengkap Anda secara terstruktur di sini..." 
+          : "Ketikkan jawaban singkat Anda di sini..."}
+        value={val}
+        onChange={(e) => handleChange(e.target.value)}
+        onBlur={handleBlur}
+        onFocus={(e) => {
+          setTimeout(() => {
+            e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }, 300);
+        }}
+      />
+      {isEssay && (
+        <div className="flex items-center justify-between px-2 text-xs font-semibold text-slate-400">
+          <span>Hitungan: {wordCount} kata</span>
+          <span>{val.length} karakter</span>
+        </div>
+      )}
+    </div>
   );
 });
 
@@ -94,8 +185,28 @@ export default function StudentExam() {
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isMountedRef = useRef(true);
   const lastSavedAnswersRef = useRef<Record<string, string>>({});
+  const [isLandscapeMobile, setIsLandscapeMobile] = useState(false);
 
-  // Exit fullscreen on component unmount
+  useEffect(() => {
+    const checkOrientation = () => {
+      if (typeof window === 'undefined') return;
+      const isLandscape = window.innerWidth > window.innerHeight;
+      const isMobileWidth = window.innerWidth <= 960 || window.innerHeight <= 550;
+      const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+      setIsLandscapeMobile(isLandscape && isMobileWidth && isTouch);
+      if (isLandscape && isTouch) {
+        lockPortraitOrientation();
+      }
+    };
+
+    checkOrientation();
+    window.addEventListener('resize', checkOrientation);
+    window.addEventListener('orientationchange', checkOrientation);
+    return () => {
+      window.removeEventListener('resize', checkOrientation);
+      window.removeEventListener('orientationchange', checkOrientation);
+    };
+  }, []);
   useEffect(() => {
     return () => {
       isMountedRef.current = false;
@@ -363,10 +474,6 @@ export default function StudentExam() {
           localStorage.removeItem(`violations_${pId}`);
           localStorage.removeItem(`is_locked_${pId}`);
           localStorage.removeItem(`is_locked_permanent_${pId}`);
-          if (!participant.end_time && participant.score == null) {
-            localStorage.removeItem(`exam_answers_${pId}`);
-            localStorage.removeItem(`last_position_${pId}`);
-          }
         } catch (e) {
           console.warn('[Exam] Error clearing reset storage:', e);
         }
@@ -727,10 +834,9 @@ export default function StudentExam() {
         return;
       }
 
-      // Clear local storage (only for regular online mode)
+      // Clear local session storage (keep answers safe for recovery)
       localStorage.removeItem(`exam_info_${participantId}`);
       localStorage.removeItem(`exam_questions_${participantId}`);
-      localStorage.removeItem(`exam_answers_${participantId}`);
       localStorage.removeItem(`exam_session_${examCode}`);
       localStorage.removeItem(`violations_${participantId}`);
       localStorage.removeItem(`last_position_${participantId}`);
@@ -818,9 +924,7 @@ export default function StudentExam() {
       setIsFullscreen(isFull);
 
       if (isFull) {
-        if (screen.orientation && typeof screen.orientation.lock === 'function') {
-          screen.orientation.lock('portrait').catch(() => {});
-        }
+        lockPortraitOrientation();
       } else {
         if (screen.orientation && typeof screen.orientation.unlock === 'function') {
           try {
@@ -849,8 +953,8 @@ export default function StudentExam() {
       doc.msFullscreenElement
     );
     setIsFullscreen(initialFull);
-    if (initialFull && screen.orientation && typeof screen.orientation.lock === 'function') {
-      screen.orientation.lock('portrait').catch(() => {});
+    if (initialFull) {
+      lockPortraitOrientation();
     }
 
     return () => {
@@ -861,18 +965,21 @@ export default function StudentExam() {
     };
   }, [loading, submitting, exam, handleViolation]);
 
+  const handleViolationRef = useRef(handleViolation);
+  handleViolationRef.current = handleViolation;
+
   useEffect(() => {
     // Apabila Mode Anti Curang dinonaktifkan dari pengaturan
     if (exam && exam.strict_mode === false) {
       return;
     }
 
-    // Grace period: 5 detik sebelum pelanggaran dihitung
-    // Ini mencegah false positive dari klik address bar, minimize, dll
+    // Grace period: 3.5 detik toleran sebelum pelanggaran dihitung
+    // Mencegah false positive dari pop-up keyboard, notifikasi, minimize sekilas, dll
     let graceTimeout: NodeJS.Timeout | null = null;
     let isProcessingViolation = false;
     let hasTriggeredViolation = false;
-    const GRACE_PERIOD = 1000; // 1 detik grace period (lebih ketat)
+    const GRACE_PERIOD = 3500; // 3.5 detik grace period toleran
     const COOLDOWN = 1500; // 1.5 detik cooldown setelah pelanggaran
 
     const triggerViolation = async () => {
@@ -882,7 +989,7 @@ export default function StudentExam() {
 
       isProcessingViolation = true;
       try {
-        await handleViolation();
+        await handleViolationRef.current();
         hasTriggeredViolation = true;
         setTimeout(() => {
           hasTriggeredViolation = false;
@@ -894,9 +1001,14 @@ export default function StudentExam() {
 
     const onBlur = () => {
       if (isProcessingViolation || hasTriggeredViolation) return;
+      // Jangan hitung pelanggaran saat membuka/menutup keyboard virtual di input atau textarea
+      const active = document.activeElement;
+      if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || (active as HTMLElement).isContentEditable)) {
+        return;
+      }
       if (graceTimeout) clearTimeout(graceTimeout);
       graceTimeout = setTimeout(() => {
-        if (!hasTriggeredViolation && !isProcessingViolation) {
+        if (!hasTriggeredViolation && !isProcessingViolation && document.visibilityState === 'hidden') {
           triggerViolation();
         }
       }, GRACE_PERIOD);
@@ -918,9 +1030,15 @@ export default function StudentExam() {
       }
     };
 
-    // Cegah Copy-Paste dan Klik Kanan
+    // Cegah Copy-Paste dan Klik Kanan tanpa merusak touch scroll atau teks input
     const onContextMenu = (e: MouseEvent) => e.preventDefault();
-    const onSelectStart = (e: Event) => e.preventDefault();
+    const onSelectStart = (e: Event) => {
+      const target = e.target as HTMLElement;
+      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) {
+        return;
+      }
+      e.preventDefault();
+    };
     const onCopy = (e: ClipboardEvent) => {
       e.preventDefault();
       alert("Menyalin teks dilarang selama ujian!");
@@ -958,7 +1076,7 @@ export default function StudentExam() {
       document.removeEventListener('paste', onPaste);
       window.removeEventListener('beforeunload', onBeforeUnload);
     };
-  }, [handleViolation, violations, exam, isOnline]);
+  }, [exam?.strict_mode, loading, submitting, participantId, isOnline, exam?.offline_mode]);
 
   // DEBUG: Log whenever questions change
   useEffect(() => {
@@ -1388,6 +1506,12 @@ export default function StudentExam() {
     }
   };
 
+  const answeredCount = questions.filter(q => {
+    const ans = answers[q.id];
+    return ans !== undefined && ans !== null && String(ans).trim() !== '';
+  }).length;
+  const isAllAnswered = questions.length > 0 && answeredCount >= questions.length;
+
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col relative">
       {/* Header */}
@@ -1425,10 +1549,10 @@ export default function StudentExam() {
             <div className="w-20 sm:w-32 h-1.5 bg-slate-800 rounded-full overflow-hidden">
               <div 
                 className="h-full bg-blue-500 transition-all duration-300 shadow-[0_0_8px_rgba(59,130,246,0.6)]" 
-                style={{ width: `${(Object.keys(answers).length / questions.length) * 100}%` }}
+                style={{ width: `${(answeredCount / Math.max(1, questions.length)) * 100}%` }}
               />
             </div>
-            <span className="text-[10px] font-bold text-blue-400">{Object.keys(answers).length}/{questions.length}</span>
+            <span className="text-[10px] font-bold text-blue-400">{answeredCount}/{questions.length}</span>
           </div>
         </div>
 
@@ -1447,13 +1571,37 @@ export default function StudentExam() {
             </span>
           </button>
 
+          {/* Tombol Kumpulkan: Dinonaktifkan jika belum semua soal selesai untuk cegah salah pencet */}
           <button 
-            onClick={() => setShowSubmitConfirm(true)}
-            disabled={submitting}
-            className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:brightness-110 active:scale-95 text-white px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-all shadow-md shadow-emerald-500/20 border border-emerald-400/30 flex items-center gap-2 cursor-pointer"
+            type="button"
+            onClick={() => {
+              if (!isAllAnswered) {
+                alert(`Belum semua soal dijawab (${answeredCount} dari ${questions.length} soal). Mohon selesaikan semua soal terlebih dahulu.`);
+                return;
+              }
+              setShowSubmitConfirm(true);
+            }}
+            disabled={submitting || !isAllAnswered}
+            className={cn(
+              "px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-all flex items-center gap-2",
+              isAllAnswered 
+                ? "bg-gradient-to-r from-emerald-500 to-teal-500 hover:brightness-110 active:scale-95 text-white shadow-md shadow-emerald-500/20 border border-emerald-400/30 cursor-pointer animate-pulse"
+                : "bg-slate-800/90 text-slate-400 border border-slate-700/60 cursor-not-allowed opacity-60"
+            )}
+            title={isAllAnswered ? "Kumpulkan Jawaban" : `Belum Lengkap (${answeredCount}/${questions.length} terjawab)`}
           >
-            <Send className="w-4 h-4 text-white" />
-            <span className="hidden sm:inline">Kumpulkan</span>
+            {isAllAnswered ? (
+              <>
+                <Send className="w-4 h-4 text-white" />
+                <span className="hidden sm:inline">Kumpulkan</span>
+              </>
+            ) : (
+              <>
+                <Lock className="w-3.5 h-3.5 text-slate-400" />
+                <span className="text-[11px] sm:text-xs font-semibold">{answeredCount}/{questions.length}</span>
+                <span className="hidden sm:inline text-[11px] font-medium text-slate-400">Terjawab</span>
+              </>
+            )}
           </button>
         </div>
       </header>
@@ -1644,7 +1792,7 @@ export default function StudentExam() {
       </AnimatePresence>
 
       {/* Main Question Interface */}
-      <div className="flex-1 p-4 sm:p-8 md:p-10 max-w-4xl mx-auto w-full relative z-10 flex flex-col justify-between">
+      <div className="flex-1 p-4 sm:p-8 md:p-10 max-w-4xl mx-auto w-full relative z-10 flex flex-col justify-between pb-48 sm:pb-24">
         <div className="space-y-6 sm:space-y-8">
           <AnimatePresence mode="wait">
             <motion.div 
@@ -1667,13 +1815,13 @@ export default function StudentExam() {
                 </div>
               </div>
 
-              <h2 className="text-xl sm:text-2xl font-bold text-slate-900 leading-snug mb-8">
+              <h2 className="text-xl sm:text-2xl font-bold text-slate-900 leading-snug mb-8 select-none">
                 {currentQuestion.question_text}
               </h2>
 
               {currentQuestion.image_url && (
                 <div className="mb-8 rounded-2xl overflow-hidden border border-slate-100 shadow-sm bg-slate-50 flex items-center justify-center max-w-[500px] mx-auto w-full">
-                  <img src={currentQuestion.image_url} alt="Question" className="max-w-full h-auto object-contain max-h-[300px] p-2" />
+                  <img src={currentQuestion.image_url} alt="Question" className="max-w-full h-auto object-contain max-h-[300px] p-2 select-none" />
                 </div>
               )}
 
@@ -1683,7 +1831,9 @@ export default function StudentExam() {
                     const isSelected = answers[currentQuestion.id] === opt.id;
                     return (
                       <button 
+                        type="button"
                         key={opt.id}
+                        style={{ touchAction: 'manipulation' }}
                         onClick={() => {
                           handleAnswer(currentQuestion.id, opt.id);
                         }}
@@ -1788,7 +1938,7 @@ export default function StudentExam() {
                           <p className="text-xs sm:text-sm text-slate-600 font-medium">
                             1. Klik item di <strong>Kolom Kiri</strong>, lalu klik pasangan yang cocok di <strong>Kolom Kanan</strong>.
                           </p>
-                          <p className="text-[11px] text-slate-400 mt-0.5">Anda juga bisa melakukan drag & drop dari kolom kanan ke kiri.</p>
+                          <p className="text-[11px] text-slate-400 mt-0.5">Anda juga bisa melakukan drag & drop dari kolom kanan ke kiri jika menggunakan komputer/laptop.</p>
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
                           <span className="text-xs font-bold px-3 py-1.5 rounded-full bg-white border border-indigo-200 text-indigo-700 shadow-2xs">
@@ -1823,6 +1973,7 @@ export default function StudentExam() {
                             return (
                               <div
                                 key={item.key}
+                                style={{ touchAction: 'manipulation' }}
                                 onClick={() => {
                                   setSelectedMatchLeft(isSelected ? null : item.key);
                                 }}
@@ -1883,18 +2034,19 @@ export default function StudentExam() {
                         <div className="space-y-3">
                           <div className="flex items-center justify-between px-1">
                             <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Kolom Kanan (Jawaban)</span>
-                            <span className="text-[11px] font-bold text-slate-400">Klik / Drag ke kiri</span>
+                            <span className="text-[11px] font-bold text-slate-400">Klik pasangan</span>
                           </div>
 
                           {rightItems.map((rText, rIdx) => {
                             const assignedLeftKey = Object.keys(currentMatches).find(k => currentMatches[k] === rText);
                             const pairIdx = assignedLeftKey ? getPairIndex(assignedLeftKey) : -1;
                             const palette = pairIdx >= 0 ? colorPalettes[pairIdx % colorPalettes.length] : null;
+                            const isFinePointer = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(pointer: fine)').matches;
 
                             return (
                               <div
                                 key={rIdx}
-                                draggable
+                                draggable={isFinePointer}
                                 onDragStart={(e) => e.dataTransfer.setData('text/plain', rText)}
                                 onClick={() => {
                                   if (selectedMatchLeft) {
@@ -1903,6 +2055,7 @@ export default function StudentExam() {
                                     setSelectedMatchLeft(assignedLeftKey);
                                   }
                                 }}
+                                style={{ touchAction: 'manipulation' }}
                                 className={cn(
                                   "p-4 sm:p-5 rounded-2xl border-2 transition-all cursor-pointer relative select-none",
                                   assignedLeftKey && palette
@@ -1934,31 +2087,13 @@ export default function StudentExam() {
                   );
                 })()
               ) : (
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between ml-1">
-                    <label className="text-sm font-black text-slate-400 uppercase tracking-widest">
-                      {currentQuestion.question_type === 'essay' ? 'Lembar Jawaban Essay / Uraian' : 'Jawaban Singkat'}
-                    </label>
-                    <span className="text-xs font-bold text-emerald-600 flex items-center gap-1">
-                      ✓ Tersimpan otomatis
-                    </span>
-                  </div>
-                  <textarea 
-                    rows={currentQuestion.question_type === 'essay' ? 8 : 4}
-                    className="w-full p-6 sm:p-8 rounded-[2rem] border-2 border-slate-200 bg-slate-50/60 focus:border-[#3B66F5] focus:bg-white outline-none transition-all font-medium text-base sm:text-lg text-[#1D4ED8] placeholder:text-slate-300 shadow-inner"
-                    placeholder={currentQuestion.question_type === 'essay' 
-                      ? "Ketikkan jawaban uraian / essay lengkap Anda secara terstruktur di sini..." 
-                      : "Ketikkan jawaban singkat Anda di sini..."}
-                    value={answers[currentQuestion.id] || ''}
-                    onChange={(e) => handleAnswer(currentQuestion.id, e.target.value)}
-                  />
-                  {currentQuestion.question_type === 'essay' && (
-                    <div className="flex items-center justify-between px-2 text-xs font-semibold text-slate-400">
-                      <span>Hitungan: {(answers[currentQuestion.id] || '').trim() ? (answers[currentQuestion.id] || '').trim().split(/\s+/).length : 0} kata</span>
-                      <span>{(answers[currentQuestion.id] || '').length} karakter</span>
-                    </div>
-                  )}
-                </div>
+                <EssayEditor 
+                  key={currentQuestion.id}
+                  questionId={currentQuestion.id}
+                  initialValue={answers[currentQuestion.id] || ''}
+                  isEssay={currentQuestion.question_type === 'essay'}
+                  onSave={(val) => handleAnswer(currentQuestion.id, val)}
+                />
               )}
             </motion.div>
           </AnimatePresence>
@@ -2169,11 +2304,7 @@ export default function StudentExam() {
                     } else if ((docEl as any).msRequestFullscreen) {
                       await (docEl as any).msRequestFullscreen();
                     }
-                    if (screen.orientation && typeof screen.orientation.lock === 'function') {
-                      try {
-                        await screen.orientation.lock('portrait');
-                      } catch (_) {}
-                    }
+                    await lockPortraitOrientation();
                     setIsFullscreen(true);
                   } catch (err) {
                     console.warn('Failed to enter fullscreen, using fallback:', err);
@@ -2188,6 +2319,26 @@ export default function StudentExam() {
           </div>
         )}
       </AnimatePresence>
+
+      {/* Mobile Landscape Orientation Warning Overlay */}
+      {isLandscapeMobile && (
+        <div className="fixed inset-0 z-[250] bg-slate-950/95 flex flex-col items-center justify-center p-6 text-center text-white backdrop-blur-sm">
+          <div className="w-16 h-16 rounded-3xl bg-blue-600/20 border border-blue-500/30 flex items-center justify-center mb-5 text-blue-400 animate-bounce">
+            <Smartphone className="w-8 h-8 rotate-90" />
+          </div>
+          <h3 className="text-xl font-bold mb-2">Posisi Layar Terdeteksi Miring (Landscape)</h3>
+          <p className="text-slate-400 text-sm max-w-xs mb-6 leading-relaxed">
+            Untuk kenyamanan dan integritas ujian, halaman ini wajib dikerjakan dalam posisi <strong>Tegak (Portrait)</strong>. Silakan putar kembali perangkat Anda.
+          </p>
+          <button
+            type="button"
+            onClick={() => lockPortraitOrientation()}
+            className="px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm shadow-lg shadow-blue-600/30 cursor-pointer"
+          >
+            Kunci Posisi Tegak (Portrait)
+          </button>
+        </div>
+      )}
     </div>
   );
 }

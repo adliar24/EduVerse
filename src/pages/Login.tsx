@@ -7,6 +7,7 @@ import React from 'react';
 import FluidCanvas from '../components/FluidCanvas';
 import { cn } from '../lib/utils';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { checkForAppUpdate } from '../lib/versionManager';
 
 export default function Login() {
   useDocumentTitle('Masuk');
@@ -20,6 +21,10 @@ export default function Login() {
   const [view, setView] = useState<'selection' | 'login' | 'student-login'>('selection');
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [isUpdatingCache, setIsUpdatingCache] = useState(false);
+
+  React.useEffect(() => {
+    checkForAppUpdate();
+  }, []);
 
   const handleClearCacheAndUpdate = async () => {
     setIsUpdatingCache(true);

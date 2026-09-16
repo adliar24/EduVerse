@@ -9,8 +9,8 @@
 declare const __APP_BUILD_ID__: string;
 
 const RUNNING_BUILD_ID = typeof __APP_BUILD_ID__ !== 'undefined' ? __APP_BUILD_ID__ : '';
-const CHECK_INTERVAL_MS = 5 * 60 * 1000; // Check every 5 minutes in background
-const MIN_RELOAD_INTERVAL_MS = 5 * 60 * 1000; // Minimum 5 minutes between reloads to prevent loops
+const CHECK_INTERVAL_MS = 2 * 60 * 1000; // Check every 2 minutes in background
+const MIN_RELOAD_INTERVAL_MS = 15 * 1000; // 15 seconds debounce to prevent reload loop
 
 // Clean up browser CacheStorage while preserving heavy AI models
 export async function clearStaleCaches(): Promise<void> {
@@ -35,7 +35,7 @@ export async function clearStaleCaches(): Promise<void> {
 export function isUserInExam(): boolean {
   if (typeof window === 'undefined') return false;
   const path = window.location.pathname.toLowerCase();
-  return path.includes('/student/exam') || path.includes('/ujian-siswa');
+  return path.includes('/student/exam') || path.includes('/ujian-siswa') || path.includes('/exam/start');
 }
 
 let isUpdating = false;
@@ -66,6 +66,7 @@ export async function checkForAppUpdate(): Promise<boolean> {
     const data = await response.json();
     const remoteVersion = data?.version;
 
+    // If versions match or invalid, no update needed
     if (!remoteVersion || remoteVersion === 'dev' || remoteVersion === RUNNING_BUILD_ID) {
       return false;
     }
@@ -76,13 +77,7 @@ export async function checkForAppUpdate(): Promise<boolean> {
       return false;
     }
 
-    // Check if this version was already applied to prevent any loop
-    const appliedVersion = localStorage.getItem('eduverse_applied_version');
-    if (appliedVersion === remoteVersion) {
-      return false;
-    }
-
-    // Throttle reloads to at most once every 5 minutes
+    // Prevent immediate infinite reload loop (within 15 seconds)
     const lastReload = localStorage.getItem('eduverse_last_update_reload');
     const now = Date.now();
     if (lastReload && now - parseInt(lastReload, 10) < MIN_RELOAD_INTERVAL_MS) {
@@ -94,7 +89,7 @@ export async function checkForAppUpdate(): Promise<boolean> {
     localStorage.setItem('eduverse_applied_version', remoteVersion);
     localStorage.setItem('eduverse_build_id', remoteVersion);
 
-    console.log(`[EduVerse Version] New deployment detected: ${remoteVersion}. Refreshing...`);
+    console.log(`[EduVerse Version] New deployment detected: ${remoteVersion} (current: ${RUNNING_BUILD_ID}). Auto-refreshing...`);
 
     // 1. Clear stale caches
     await clearStaleCaches();
@@ -111,8 +106,10 @@ export async function checkForAppUpdate(): Promise<boolean> {
       }
     }
 
-    // 3. Reload application cleanly
-    window.location.reload();
+    // 3. Reload application cleanly with cache busting query
+    const currentUrl = new URL(window.location.href);
+    currentUrl.searchParams.set('_v', String(now));
+    window.location.replace(currentUrl.toString());
     return true;
   } catch (error) {
     console.warn('[EduVerse Version] Failed to check for app update:', error);
@@ -127,14 +124,20 @@ export function initVersionManager(): void {
   // Never run in dev
   if (typeof window === 'undefined' || import.meta.env.DEV) return;
 
-  // Run initial check 10 seconds after page has loaded
-  window.addEventListener('load', () => {
-    setTimeout(() => {
-      checkForAppUpdate();
-    }, 10000);
-  });
+  // Run immediate check as soon as possible
+  if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    checkForAppUpdate();
+  } else {
+    document.addEventListener('DOMContentLoaded', () => checkForAppUpdate());
+    window.addEventListener('load', () => checkForAppUpdate());
+  }
 
-  // Check when user switches back to this tab
+  // Also check after 1.5 seconds to catch any slow-loading state
+  setTimeout(() => {
+    checkForAppUpdate();
+  }, 1500);
+
+  // Check when user switches back to this tab / brings app to foreground
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') {
       checkForAppUpdate();
