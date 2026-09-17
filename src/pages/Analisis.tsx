@@ -208,13 +208,13 @@ export default function Analisis() {
             <span>Eksport Data</span>
           </button>
 
-          <div className="relative flex items-center bg-slate-100 p-1.5 rounded-full shrink-0 overflow-hidden">
+          <div className="relative flex items-center bg-slate-100 p-1 rounded-full shrink-0 overflow-hidden">
             <motion.div
-              className="absolute top-1.5 bottom-1.5 bg-white rounded-full shadow-sm"
+              className="absolute top-1 bottom-1 bg-white rounded-full shadow-sm"
               initial={false}
               animate={{
-                left: activeTab === 'statistik' ? '4px' : '50%',
-                width: 'calc(50% - 4px)'
+                left: activeTab === 'statistik' ? '4px' : 'calc(50% + 2px)',
+                width: 'calc(50% - 6px)'
               }}
               transition={{ type: 'spring', stiffness: 400, damping: 30 }}
             />

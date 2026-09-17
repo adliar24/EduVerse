@@ -214,12 +214,12 @@ const InputSection: React.FC<InputSectionProps> = ({ onStudentsLoaded, currentCo
       </div>
 
       <div className="p-6">
-        <div className="flex bg-slate-100 p-1.5 rounded-full mb-6">
+        <div className="flex bg-slate-100 p-1 rounded-full mb-6">
           {tabs.map((tab, i) => (
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`flex-1 py-2.5 px-6 rounded-full text-sm font-bold transition-all duration-300 cursor-pointer whitespace-nowrap ${
+              className={`flex-1 py-2 sm:py-2.5 px-3 sm:px-4 rounded-full text-xs sm:text-sm font-bold transition-all duration-300 cursor-pointer text-center truncate ${
                 activeTab === tab.key
                   ? 'bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white shadow-md shadow-blue-500/20 border border-white/10'
                   : 'text-slate-500 hover:text-slate-800'

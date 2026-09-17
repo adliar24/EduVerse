@@ -98,10 +98,10 @@ const ConfigSection: React.FC<ConfigSectionProps> = ({ config, setConfig, totalS
           <label className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3 flex items-center gap-2">
             <Hash className="w-3 h-3" /> Metode Pembagian
           </label>
-          <div className="flex bg-slate-100 p-1.5 rounded-full mb-4">
+          <div className="flex bg-slate-100 p-1 rounded-full mb-4">
              <button
                onClick={() => handleModeChange(GroupingMode.BY_COUNT)}
-               className={`flex-1 py-2.5 px-6 text-sm font-bold rounded-full transition-all duration-300 cursor-pointer whitespace-nowrap ${
+               className={`flex-1 py-2 sm:py-2.5 px-3 sm:px-4 text-xs sm:text-sm font-bold rounded-full transition-all duration-300 cursor-pointer text-center truncate ${
                  config.mode === GroupingMode.BY_COUNT 
                    ? 'bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white shadow-md shadow-blue-500/20 border border-white/10' 
                    : 'text-slate-500 hover:text-slate-700'
@@ -111,7 +111,7 @@ const ConfigSection: React.FC<ConfigSectionProps> = ({ config, setConfig, totalS
              </button>
              <button
                onClick={() => handleModeChange(GroupingMode.BY_SIZE)}
-               className={`flex-1 py-2.5 px-6 text-sm font-bold rounded-full transition-all duration-300 cursor-pointer whitespace-nowrap ${
+               className={`flex-1 py-2 sm:py-2.5 px-3 sm:px-4 text-xs sm:text-sm font-bold rounded-full transition-all duration-300 cursor-pointer text-center truncate ${
                  config.mode === GroupingMode.BY_SIZE 
                    ? 'bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white shadow-md shadow-blue-500/20 border border-white/10' 
                    : 'text-slate-500 hover:text-slate-700'
@@ -149,46 +149,46 @@ const ConfigSection: React.FC<ConfigSectionProps> = ({ config, setConfig, totalS
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
              <button
                onClick={() => handleStrategyChange(DistributionStrategy.RANDOM)}
-               className={`py-3.5 px-6 rounded-full border text-left transition-all cursor-pointer ${config.strategy === DistributionStrategy.RANDOM ? 'border-[#3B66F5] bg-[#3B66F5]/5 ring-1 ring-[#3B66F5]' : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'}`}
+               className={`p-4 rounded-2xl border text-left transition-all cursor-pointer ${config.strategy === DistributionStrategy.RANDOM ? 'border-[#3B66F5] bg-[#3B66F5]/5 ring-1 ring-[#3B66F5]' : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'}`}
              >
                <div className="flex items-center gap-2 font-bold text-slate-800 text-sm">
                  <div className="p-1.5 rounded-lg bg-slate-100 text-[#1D4ED8]"><Shuffle className="w-4 h-4 text-[#1D4ED8]" /></div>
                  Acak Total
                </div>
-               <p className="text-[10px] text-slate-500 mt-1 pl-[34px]">Murni acak tanpa aturan khusus.</p>
+               <p className="text-[11px] text-slate-500 mt-1.5 pl-[34px]">Murni acak tanpa aturan khusus.</p>
              </button>
 
              <button
                onClick={() => handleStrategyChange(DistributionStrategy.GENDER_BALANCE)}
-               className={`py-3.5 px-6 rounded-full border text-left transition-all cursor-pointer ${config.strategy === DistributionStrategy.GENDER_BALANCE ? 'border-[#3B66F5] bg-[#3B66F5]/5 ring-1 ring-[#3B66F5]' : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'}`}
+               className={`p-4 rounded-2xl border text-left transition-all cursor-pointer ${config.strategy === DistributionStrategy.GENDER_BALANCE ? 'border-[#3B66F5] bg-[#3B66F5]/5 ring-1 ring-[#3B66F5]' : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'}`}
              >
                <div className="flex items-center gap-2 font-bold text-slate-800 text-sm">
                  <div className="p-1.5 rounded-lg bg-slate-100 text-[#1D4ED8]"><Scale className="w-4 h-4 text-[#1D4ED8]" /></div>
                  Seimbang Gender
                </div>
-               <p className="text-[10px] text-slate-500 mt-1 pl-[34px]">Laki-laki & Perempuan dibagi rata.</p>
+               <p className="text-[11px] text-slate-500 mt-1.5 pl-[34px]">Laki-laki & Perempuan dibagi rata.</p>
              </button>
 
              <button
                onClick={() => handleStrategyChange(DistributionStrategy.ABILITY_HETEROGENEOUS)}
-               className={`py-3.5 px-6 rounded-full border text-left transition-all cursor-pointer ${config.strategy === DistributionStrategy.ABILITY_HETEROGENEOUS ? 'border-[#3B66F5] bg-[#3B66F5]/5 ring-1 ring-[#3B66F5]' : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'}`}
+               className={`p-4 rounded-2xl border text-left transition-all cursor-pointer ${config.strategy === DistributionStrategy.ABILITY_HETEROGENEOUS ? 'border-[#3B66F5] bg-[#3B66F5]/5 ring-1 ring-[#3B66F5]' : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'}`}
              >
                <div className="flex items-center gap-2 font-bold text-slate-800 text-sm">
                  <div className="p-1.5 rounded-lg bg-slate-100 text-[#1D4ED8]"><UserCheck className="w-4 h-4 text-[#1D4ED8]" /></div>
                  Heterogen (Skill)
                </div>
-               <p className="text-[10px] text-slate-500 mt-1 pl-[34px]">Campur Mahir & Dasar dalam 1 tim.</p>
+               <p className="text-[11px] text-slate-500 mt-1.5 pl-[34px]">Campur Mahir & Dasar dalam 1 tim.</p>
              </button>
 
              <button
                onClick={() => handleStrategyChange(DistributionStrategy.GENDER_AND_ABILITY_HETEROGENEOUS)}
-               className={`py-3.5 px-6 rounded-full border text-left transition-all cursor-pointer ${config.strategy === DistributionStrategy.GENDER_AND_ABILITY_HETEROGENEOUS ? 'border-[#3B66F5] bg-[#3B66F5]/5 ring-1 ring-[#3B66F5]' : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'}`}
+               className={`p-4 rounded-2xl border text-left transition-all cursor-pointer ${config.strategy === DistributionStrategy.GENDER_AND_ABILITY_HETEROGENEOUS ? 'border-[#3B66F5] bg-[#3B66F5]/5 ring-1 ring-[#3B66F5]' : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'}`}
              >
                <div className="flex items-center gap-2 font-bold text-slate-800 text-sm">
                  <div className="p-1.5 rounded-lg bg-slate-100 text-[#1D4ED8]"><Layers className="w-4 h-4 text-[#1D4ED8]" /></div>
                  Super Mix
                </div>
-               <p className="text-[10px] text-slate-500 mt-1 pl-[34px]">Keseimbangan gender & skill sekaligus.</p>
+               <p className="text-[11px] text-slate-500 mt-1.5 pl-[34px]">Keseimbangan gender & skill sekaligus.</p>
              </button>
           </div>
         </div>
