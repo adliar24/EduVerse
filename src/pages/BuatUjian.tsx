@@ -650,7 +650,7 @@ export default function BuatUjian() {
               <button 
                 onClick={() => setStep(2)}
                 disabled={!formData.title}
-                className="w-full bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white py-3 px-6 rounded-xl font-bold hover:brightness-110 active:scale-[0.98] transition-all border border-white/10 shadow-lg shadow-slate-200 disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2"
+                className="w-full bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white py-3.5 px-6 rounded-full font-bold hover:brightness-110 active:scale-[0.98] transition-all border border-white/10 shadow-lg shadow-blue-500/20 disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2 cursor-pointer"
               >
                 Lanjut Pilih Pertanyaan
                 <ChevronRight className="w-5 h-5" />
@@ -668,15 +668,15 @@ export default function BuatUjian() {
             <div className="bg-white p-6 sm:p-8 rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6">
               <div className="flex items-center gap-4 shrink-0">
                 <div className="bg-[#3B66F5]/5 w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl flex items-center justify-center text-[#3B66F5] shadow-inner">
-                  <Zap className="w-6 h-6 sm:w-8 sm:h-8" />
+                  <FileText className="w-6 h-6 sm:w-8 sm:h-8" />
                 </div>
                 <div>
-                  <p className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-widest">Soal Terpilih</p>
-                  <p className="text-2xl sm:text-3xl font-bold text-[#1D4ED8] tracking-tight">{selectedQuestions.length}</p>
+                  <h3 className="font-bold text-[#1D4ED8] text-lg sm:text-xl">Pilih Soal Ujian</h3>
+                  <p className="text-xs sm:text-sm text-slate-500 font-medium">Pilih soal yang relevan untuk dimasukkan ke dalam paket ujian.</p>
                 </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto md:flex-1 md:justify-end">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
                 <div className="relative w-full sm:max-w-xs">
                   <FolderIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
                   <select 
@@ -699,20 +699,20 @@ export default function BuatUjian() {
                     type="button"
                     onClick={handleToggleSelectAll}
                     disabled={questions.length === 0}
-                    className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl font-semibold text-sm text-[#1D4ED8] bg-[#3B66F5]/10 hover:bg-indigo-100 disabled:opacity-50 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                    className="flex-1 sm:flex-none px-4 py-2.5 rounded-full font-bold text-sm text-[#1D4ED8] bg-[#3B66F5]/10 hover:bg-indigo-100 disabled:opacity-50 transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-[0.98]"
                   >
                     {areAllQuestionsSelected ? 'Batal Pilih Semua' : 'Pilih Semua'}
                   </button>
                   <button 
                     onClick={() => setStep(1)}
-                    className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl font-semibold text-sm text-slate-500 bg-slate-100 hover:bg-slate-200 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                    className="flex-1 sm:flex-none px-4 py-2.5 rounded-full font-bold text-sm text-slate-600 bg-slate-100 hover:bg-slate-200 border border-slate-200/60 transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-[0.98]"
                   >
                     <ChevronLeft className="w-4 h-4" />
                     <span>Kembali</span>
                   </button>
                   <button 
                     onClick={handleCreateExam}
-                    className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl font-semibold text-sm text-white bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] hover:brightness-110 transition-all border border-white/10 shadow-lg shadow-slate-200/50 flex items-center justify-center gap-1.5 cursor-pointer"
+                    className="flex-1 sm:flex-none px-5 py-2.5 rounded-full font-bold text-sm text-white bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] hover:brightness-110 active:scale-[0.98] transition-all border border-white/10 shadow-lg shadow-blue-500/20 flex items-center justify-center gap-1.5 cursor-pointer"
                   >
                     <span>Terbitkan</span>
                     <CheckCircle2 className="w-4 h-4" />
@@ -910,7 +910,7 @@ export default function BuatUjian() {
                     setFormData(prev => ({ ...prev, start_time: '' }));
                     setShowDatePicker(false);
                   }}
-                  className="flex-1 py-3 rounded-xl font-semibold text-sm text-slate-500 hover:bg-slate-50 transition-all"
+                  className="flex-1 py-3 rounded-full font-bold text-sm text-slate-600 bg-slate-100 hover:bg-slate-200 transition-all cursor-pointer active:scale-[0.98]"
                 >
                   Hapus
                 </button>
@@ -921,7 +921,7 @@ export default function BuatUjian() {
                     setFormData(prev => ({ ...prev, start_time: selectedDate.toISOString().slice(0, 16) }));
                     setShowDatePicker(false);
                   }}
-                  className="flex-1 py-3 rounded-xl font-semibold text-sm text-white bg-[#3B66F5] hover:bg-[#2563EB] transition-all shadow-lg shadow-[#3B66F5]/25"
+                  className="flex-1 py-3 rounded-full font-bold text-sm text-white bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] hover:brightness-110 active:scale-[0.98] transition-all shadow-lg shadow-blue-500/20 border border-white/10 cursor-pointer"
                 >
                   Simpan
                 </button>

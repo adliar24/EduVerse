@@ -109,21 +109,21 @@ export const Button: React.FC<React.ButtonHTMLAttributes<HTMLButtonElement> & { 
   variant = 'primary', 
   children, 
   isLoading,
-  disabled,
+  disabled, 
   ...props 
 }) => {
-  const baseStyle = "btn-press inline-flex items-center justify-center rounded-xl font-black transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 tracking-wide";
+  const baseStyle = "btn-press inline-flex items-center justify-center rounded-full font-bold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 tracking-wide cursor-pointer";
   
   const variants = {
-    primary: "bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white shadow-md shadow-[#3B66F5]/10 hover:shadow-lg border border-transparent",
+    primary: "bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white shadow-md shadow-[#3B66F5]/25 hover:brightness-110 border border-white/10",
     accent: "bg-accent text-[#1D4ED8] shadow-md shadow-amber-500/10 hover:shadow-lg border border-transparent",
     secondary: "bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 shadow-sm",
     outline: "border-2 border-[#3B66F5] text-[#3B66F5] hover:bg-[#3B66F5]/5",
-    ghost: "text-slate-500 hover:bg-slate-50 hover:text-[#3B66F5]",
-    danger: "bg-red-50 text-red-600 hover:bg-red-600 hover:text-white border border-red-100 transition-all"
+    ghost: "text-slate-600 hover:bg-slate-50 hover:text-[#3B66F5]",
+    danger: "bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white border border-rose-200 transition-all"
   };
 
-  const sizes = "px-4 py-2 text-sm sm:text-[14px]";
+  const sizes = "px-5 py-2.5 text-sm sm:text-[14px]";
 
   return (
     <button 

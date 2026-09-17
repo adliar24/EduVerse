@@ -567,7 +567,7 @@ export default function DaftarUjian() {
         </div>
         <button 
           onClick={() => navigate('/buat-ujian')}
-          className="bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white px-5 py-2.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 hover:brightness-110 active:scale-[0.98] transition-all shadow-lg shadow-slate-200 border border-white/10"
+          className="bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white px-5 py-2.5 rounded-full font-bold text-sm flex items-center justify-center gap-2 hover:brightness-110 active:scale-[0.98] transition-all shadow-lg shadow-blue-500/20 border border-white/10 cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           Buat Ujian Baru
@@ -923,7 +923,7 @@ export default function DaftarUjian() {
                 {exam.qr_submission ? (
                   <button 
                     onClick={() => navigate(`/scan-ujian/${exam.id}`)}
-                    className="w-full bg-emerald-50 border border-emerald-200 text-emerald-700 py-2.5 rounded-xl font-bold text-xs hover:bg-emerald-100 transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer"
+                    className="w-full bg-emerald-50 border border-emerald-200 text-emerald-700 py-2.5 rounded-full font-bold text-xs hover:bg-emerald-100 transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"
                   >
                     <QrCode className="w-4 h-4 shrink-0" />
                     <span>Pindai QR</span>
@@ -932,7 +932,7 @@ export default function DaftarUjian() {
                   !exam.offline_mode && (
                     <button 
                       onClick={() => navigate(`/monitor-ujian/${exam.id}`)}
-                      className="w-full bg-blue-50 border border-blue-200/80 text-[#1D4ED8] py-2.5 rounded-xl font-bold text-xs hover:bg-blue-100/70 transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer"
+                      className="w-full bg-blue-50 border border-blue-200/80 text-[#1D4ED8] py-2.5 rounded-full font-bold text-xs hover:bg-blue-100/70 transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"
                     >
                       <Activity className="w-4 h-4 shrink-0" />
                       <span>Live Monitor</span>
@@ -941,7 +941,7 @@ export default function DaftarUjian() {
                 )}
                 <button 
                   onClick={() => navigate('/hasil-ujian', { state: { examId: exam.id } })}
-                  className="w-full bg-gradient-to-r from-[#0F172A] via-[#1E3A8A] to-[#1D4ED8] text-white py-2.5 rounded-xl font-bold text-xs hover:brightness-110 active:scale-[0.99] transition-all shadow-md flex items-center justify-center gap-2 group/btn cursor-pointer border border-white/10"
+                  className="w-full bg-gradient-to-r from-[#0F172A] via-[#1E3A8A] to-[#1D4ED8] text-white py-2.5 rounded-full font-bold text-xs hover:brightness-110 active:scale-[0.98] transition-all shadow-md flex items-center justify-center gap-2 group/btn cursor-pointer border border-white/10"
                 >
                   <BarChart3 className="w-4 h-4 shrink-0" />
                   <span>Analisis & Nilai</span>
@@ -960,7 +960,7 @@ export default function DaftarUjian() {
             <p className="text-slate-400 font-medium max-w-sm mx-auto">Anda belum menerbitkan ujian apapun. Mulai buat ujian pertama Anda sekarang.</p>
             <button 
               onClick={() => navigate('/buat-ujian')}
-              className="mt-8 bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white px-6 py-3 rounded-xl font-semibold text-sm hover:brightness-110 transition-all shadow-lg shadow-slate-200 flex items-center gap-2 mx-auto border border-white/10"
+              className="mt-8 bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white px-6 py-3 rounded-full font-bold text-sm hover:brightness-110 transition-all shadow-lg shadow-blue-500/20 flex items-center gap-2 mx-auto border border-white/10 cursor-pointer active:scale-[0.98]"
             >
               <Plus className="w-4 h-4" />
               Buat Ujian Sekarang
@@ -1078,14 +1078,14 @@ export default function DaftarUjian() {
               <div className="flex gap-3 pt-2">
                 <button 
                   onClick={() => setShowActivateModal(false)}
-                  className="flex-1 py-2.5 rounded-xl font-semibold text-sm text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer"
+                  className="flex-1 py-2.5 rounded-full font-bold text-sm text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer active:scale-[0.98]"
                 >
                   Batal
                 </button>
                 <button 
                   onClick={handleActivateExam}
                   disabled={activating}
-                  className="flex-1 py-2.5 rounded-xl font-semibold text-sm text-white bg-blue-600 hover:bg-blue-700 active:scale-[0.98] shadow-md shadow-blue-500/20 disabled:opacity-50 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  className="flex-1 py-2.5 rounded-full font-bold text-sm text-white bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] hover:brightness-110 active:scale-[0.98] shadow-md shadow-blue-500/25 disabled:opacity-50 transition-all flex items-center justify-center gap-2 cursor-pointer border border-white/10"
                 >
                   {activating ? (
                     <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />

@@ -1215,7 +1215,7 @@ export default function BankSoal() {
                 setShowTemplateDropdown(!showTemplateDropdown);
                 setShowImportDropdown(false);
               }}
-              className="bg-white text-[#1D4ED8] border border-slate-200 px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 shadow-sm transition-all hover:bg-slate-50"
+              className="bg-white text-[#1D4ED8] border border-slate-200 px-5 py-2.5 rounded-full font-bold text-sm flex items-center justify-center gap-2 shadow-sm transition-all hover:bg-slate-50 active:scale-[0.98] cursor-pointer"
             >
               <Download className="w-4 h-4" />
               Templat
@@ -1254,7 +1254,7 @@ export default function BankSoal() {
                 setShowImportDropdown(!showImportDropdown);
                 setShowTemplateDropdown(false);
               }}
-              className="bg-white text-[#1D4ED8] border border-slate-200 px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 shadow-sm transition-all hover:bg-slate-50 disabled:opacity-50"
+              className="bg-white text-[#1D4ED8] border border-slate-200 px-5 py-2.5 rounded-full font-bold text-sm flex items-center justify-center gap-2 shadow-sm transition-all hover:bg-slate-50 active:scale-[0.98] cursor-pointer disabled:opacity-50"
             >
               <Upload className="w-4 h-4" />
               {importing ? 'Mengimpor...' : 'Impor'}
@@ -1282,14 +1282,14 @@ export default function BankSoal() {
                  className="w-full px-4 py-3 text-left text-sm font-bold text-slate-600 hover:bg-slate-50 hover:text-[#1D4ED8] flex items-center gap-3 border-t border-slate-50"
                >
                  <FileText className="w-4 h-4 text-[#3B66F5]" />
-                 Impor Word
+                 Word Template
                </button>
             </div>
           </div>
 
           <button 
             onClick={() => { setQuestionToEdit(null); setShowAddForm(true); }}
-            className="bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white px-5 py-2.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 shadow-lg shadow-slate-200/50 border border-white/10 transition-all hover:brightness-110 active:scale-[0.98]"
+            className="bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white px-5 py-2.5 rounded-full font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20 border border-white/10 transition-all hover:brightness-110 active:scale-[0.98] cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             Tambah Baru
@@ -1320,7 +1320,7 @@ export default function BankSoal() {
             <div className="flex items-center gap-2 shrink-0">
               <button 
                 onClick={() => setShowFolderForm(true)}
-                className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl font-semibold text-sm text-[#3B66F5] bg-[#3B66F5]/5 hover:bg-[#3B66F5]/10 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                className="flex-1 sm:flex-none px-4 py-2.5 rounded-full font-bold text-sm text-[#3B66F5] bg-[#3B66F5]/5 hover:bg-[#3B66F5]/10 transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-[0.98]"
                 title="Tambah Folder Baru"
               >
                 <FolderPlus className="w-4 h-4" /> Folder Baru
@@ -1328,7 +1328,7 @@ export default function BankSoal() {
               {currentCategoryId && (
                 <button 
                   onClick={(e) => openDeleteFolderModal(categories.find(c => c.id === currentCategoryId), e)}
-                  className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl font-semibold text-sm text-rose-600 bg-rose-50 hover:bg-rose-100 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="flex-1 sm:flex-none px-4 py-2.5 rounded-full font-bold text-sm text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-100 transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-[0.98]"
                   title="Hapus Folder Aktif"
                 >
                   <Trash2 className="w-4 h-4" /> Hapus Folder

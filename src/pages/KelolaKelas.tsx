@@ -1250,7 +1250,7 @@ export default function KelolaKelas() {
         </div>
         <button 
           onClick={() => { setEditingId(null); setFormData({ name: '', subject: '' }); setShowForm(true); }}
-          className="bg-blue-600 hover:bg-blue-500 text-white px-5 py-3 rounded-full font-bold text-xs sm:text-sm flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-md shadow-blue-600/25 cursor-pointer border border-blue-400/30 self-start lg:self-auto"
+          className="bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] hover:brightness-110 text-white px-5 py-3 rounded-full font-bold text-xs sm:text-sm flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-lg shadow-blue-500/20 cursor-pointer border border-white/10 self-start lg:self-auto"
         >
           <Plus className="w-4 h-4" />
           Tambah Kelas
@@ -1386,7 +1386,7 @@ export default function KelolaKelas() {
             </div>
             <h3 className="text-base font-bold text-slate-800 mb-1">Belum Ada Kelas</h3>
             <p className="text-slate-400 text-xs font-medium max-w-sm text-center">Tambah kelas untuk mulai mengelola siswa dan jadwal.</p>
-            <button onClick={() => setShowForm(true)} className="mt-4 px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-full font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all">
+            <button onClick={() => setShowForm(true)} className="mt-4 px-5 py-2.5 bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] hover:brightness-110 text-white rounded-full font-bold text-xs flex items-center gap-1.5 shadow-lg shadow-blue-500/20 transition-all border border-white/10 cursor-pointer active:scale-[0.98]">
               <Plus className="w-4 h-4" />
               Tambah Kelas
             </button>

@@ -1159,7 +1159,7 @@ export default function Profil() {
                           placeholder="Tambah mata pelajaran manual..."
                         />
                         <button type="button" onClick={handleAddCustomSubject} disabled={!newCustomSubject.trim()}
-                          className="px-4 py-2.5 bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white rounded-xl hover:brightness-110 disabled:opacity-50 transition-colors border border-white/10 shadow-sm"
+                          className="px-4 py-2.5 bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white rounded-full hover:brightness-110 disabled:opacity-50 transition-colors border border-white/10 shadow-sm cursor-pointer"
                         >
                           <Plus className="w-4 h-4" />
                         </button>

@@ -335,7 +335,7 @@ export default function SystemSettings() {
                 <button
                   type="submit"
                   disabled={isSavingGps}
-                  className="px-6 py-3 bg-gradient-to-r from-[#1E3A8A] via-[#2563EB] to-[#3B82F6] text-white font-extrabold text-xs rounded-full hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-blue-600/30 flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                  className="px-6 py-3 bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] hover:brightness-110 text-white font-extrabold text-xs rounded-full active:scale-[0.98] transition-all shadow-lg shadow-blue-500/25 flex items-center gap-2 cursor-pointer disabled:opacity-50 border border-white/10"
                 >
                   {isSavingGps ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                   <span>Simpan Lokasi GPS Sekolah</span>

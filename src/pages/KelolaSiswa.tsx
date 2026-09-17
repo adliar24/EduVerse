@@ -1078,7 +1078,7 @@ export default function KelolaSiswa() {
             </button>
           )}
           <button onClick={() => { setEditingId(null); setFormData({ name: '', class_id: '', student_code: '', password: '', gender: '' }); setShowForm(true); }}
-            className="bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white px-5 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 hover:brightness-110 transition-all shadow-lg shadow-slate-200/50 active:scale-[0.98] border border-white/10"
+            className="bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white px-5 py-2.5 rounded-full font-bold text-sm flex items-center gap-2 hover:brightness-110 transition-all shadow-lg shadow-blue-500/20 active:scale-[0.98] border border-white/10 cursor-pointer"
           >
             <Plus className="w-4 h-4" /> Tambah Murid
           </button>
@@ -1235,7 +1235,7 @@ export default function KelolaSiswa() {
               <button
                 onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                 disabled={currentPage === 1}
-                className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs font-bold text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                className="px-3.5 py-1.5 rounded-full border border-slate-200 bg-white text-xs font-bold text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer"
               >
                 Sebelumnya
               </button>
@@ -1245,7 +1245,7 @@ export default function KelolaSiswa() {
               <button
                 onClick={() => setCurrentPage(prev => Math.min(Math.ceil(filteredStudents.length / ITEMS_PER_PAGE), prev + 1))}
                 disabled={currentPage === Math.ceil(filteredStudents.length / ITEMS_PER_PAGE)}
-                className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs font-bold text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                className="px-3.5 py-1.5 rounded-full border border-slate-200 bg-white text-xs font-bold text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer"
               >
                 Selanjutnya
               </button>

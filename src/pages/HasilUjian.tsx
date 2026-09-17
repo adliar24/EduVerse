@@ -658,16 +658,16 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
           <div className="flex flex-col sm:flex-row gap-3">
             <button 
               onClick={generatePDF}
-              className="bg-white border-2 border-slate-200 text-indigo-950 px-8 py-4 rounded-2xl font-bold flex items-center justify-center gap-3 hover:bg-slate-50 transition-all shadow-xl shadow-slate-100 active:scale-[0.98]"
+              className="bg-white border border-slate-200 text-slate-700 px-6 py-2.5 sm:px-7 sm:py-3 rounded-full font-bold flex items-center justify-center gap-2.5 hover:bg-slate-50 transition-all shadow-sm active:scale-[0.98] cursor-pointer"
             >
-              <Download className="w-5 h-5 text-indigo-600" />
+              <Download className="w-4 h-4 text-[#2563EB]" />
               PDF
             </button>
             <button 
               onClick={exportToExcel}
-              className="bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white px-8 py-4 rounded-2xl font-bold flex items-center justify-center gap-3 hover:brightness-110 border border-white/10 transition-all shadow-xl shadow-slate-200 active:scale-[0.98]"
+              className="bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white px-6 py-2.5 sm:px-7 sm:py-3 rounded-full font-bold flex items-center justify-center gap-2.5 hover:brightness-110 border border-white/10 transition-all shadow-lg shadow-blue-500/20 active:scale-[0.98] cursor-pointer"
             >
-              <FileSpreadsheet className="w-5 h-5" />
+              <FileSpreadsheet className="w-4 h-4" />
               Excel
             </button>
           </div>
@@ -982,7 +982,7 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
                   <div className="flex items-center gap-3">
                     <button
                       onClick={() => handleResetParticipant(selectedResult.id, selectedResult.name)}
-                      className="bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-95"
+                      className="bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 px-3.5 py-2 rounded-full text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-95"
                       title="Reset ujian siswa ini agar bisa mengerjakan ulang dari awal"
                     >
                       <RotateCcw className="w-3.5 h-3.5 text-amber-600" />

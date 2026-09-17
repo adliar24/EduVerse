@@ -27,11 +27,11 @@ export const Button: React.FC<ButtonProps> = ({
   const baseStyle = "relative inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full font-semibold text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed";
   
   const variants = {
-    primary: "bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white shadow-lg shadow-[#3B66F5]/25 focus:ring-[#3B66F5] hover:scale-[1.02] border border-white/10",
-    secondary: "bg-gradient-to-r from-slate-100 to-slate-200 text-slate-800 hover:shadow-md transition-all duration-300 focus:ring-slate-300",
-    danger: "bg-gradient-to-r from-red-500 to-rose-600 text-white shadow-lg shadow-red-500/20 focus:ring-red-500",
-    outline: "border-2 border-[#3B66F5] text-[#3B66F5] hover:bg-[#3B66F5]/10 focus:ring-[#3B66F5]",
-    ghost: "bg-transparent text-gray-600 hover:bg-gray-100",
+    primary: "bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white shadow-lg shadow-[#3B66F5]/25 focus:ring-[#3B66F5] hover:brightness-110 border border-white/10 active:scale-[0.98]",
+    secondary: "bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 shadow-sm transition-all focus:ring-slate-300 font-bold",
+    danger: "bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white border border-rose-200 transition-all focus:ring-red-500 font-bold",
+    outline: "border-2 border-[#3B66F5] text-[#3B66F5] hover:bg-[#3B66F5]/10 focus:ring-[#3B66F5] font-bold",
+    ghost: "bg-transparent text-slate-600 hover:bg-slate-100 font-semibold",
   };
 
   return (
