@@ -1659,13 +1659,13 @@ export default function BankSoal() {
                     <button 
                       type="button"
                       onClick={() => setShowFolderForm(false)}
-                      className="flex-1 py-3 rounded-xl font-semibold text-sm text-slate-500 hover:bg-slate-50 transition-all"
+                      className="flex-1 py-3 rounded-full font-bold text-sm text-slate-500 hover:bg-slate-50 transition-all cursor-pointer"
                     >
                       Batal
                     </button>
                     <button 
                       type="submit"
-                      className="flex-1 py-3 rounded-xl font-semibold text-sm text-white bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] hover:brightness-110 border border-white/10 transition-all shadow-lg shadow-[#3B66F5]/25"
+                      className="flex-1 py-3 rounded-full font-bold text-sm text-white bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] hover:brightness-110 border border-white/10 transition-all shadow-lg shadow-[#3B66F5]/25 cursor-pointer active:scale-[0.98]"
                     >
                       Buat Folder
                     </button>
@@ -1726,13 +1726,13 @@ export default function BankSoal() {
                       setShowDeleteFolderModal(false);
                       setFolderToDelete(null);
                     }}
-                    className="flex-1 py-3 rounded-xl font-semibold text-sm text-slate-500 hover:bg-slate-50 transition-all"
+                    className="flex-1 py-3 rounded-full font-bold text-sm text-slate-500 hover:bg-slate-50 transition-all cursor-pointer"
                   >
                     Batal
                   </button>
                   <button 
                     onClick={handleDeleteFolder}
-                    className="flex-1 py-3 rounded-xl font-semibold text-sm text-white bg-red-600 hover:bg-red-700 transition-all shadow-lg shadow-red-200"
+                    className="flex-1 py-3 rounded-full font-bold text-sm text-white bg-red-600 hover:bg-red-700 transition-all shadow-lg shadow-red-200 cursor-pointer active:scale-[0.98]"
                   >
                     Hapus
                   </button>
@@ -1838,13 +1838,13 @@ export default function BankSoal() {
                     <button 
                       type="button"
                       onClick={() => setShowMoveModal(false)}
-                      className="flex-1 py-3 rounded-xl font-semibold text-sm text-slate-500 hover:bg-slate-50 transition-all"
+                      className="flex-1 py-3 rounded-full font-bold text-sm text-slate-500 hover:bg-slate-50 transition-all cursor-pointer"
                     >
                       Batal
                     </button>
                     <button 
                       onClick={handleMoveQuestions}
-                      className="flex-1 py-3 rounded-xl font-semibold text-sm text-white bg-gradient-to-r from-[#685ECC] via-[#5C53D4] to-[#4F46E5] shadow-lg shadow-[#5C53D4]/25 hover:scale-[1.02] border border-white/10 transition-all"
+                      className="flex-1 py-3 rounded-full font-bold text-sm text-white bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] hover:brightness-110 shadow-lg shadow-blue-500/20 border border-white/10 transition-all cursor-pointer active:scale-[0.98]"
                     >
                       Pindahkan
                     </button>

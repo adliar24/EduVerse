@@ -214,7 +214,7 @@ const InputSection: React.FC<InputSectionProps> = ({ onStudentsLoaded, currentCo
       </div>
 
       <div className="p-6">
-        <div className="flex bg-slate-100 p-1 rounded-xl mb-6">
+        <div className="flex bg-slate-100 p-1.5 rounded-full mb-6">
           {tabs.map((tab, i) => (
             <button
               key={tab.key}

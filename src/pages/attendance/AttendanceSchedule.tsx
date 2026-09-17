@@ -408,16 +408,16 @@ export const Schedule: React.FC<Props> = ({ state, refresh, notify }) => {
       <Header title="Kelola Jadwal Mengajar" subtitle="Atur jadwal mingguan kelas." />
         
         {/* Mobile Toggle only */}
-        <div className="lg:hidden flex bg-gray-100 p-1 rounded-xl self-start">
+        <div className="lg:hidden flex bg-gray-100 p-1.5 rounded-full self-start">
             <button 
                 onClick={() => setTab('weekly')}
-                className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all ${tab === 'weekly' ? 'bg-white shadow text-[#3B66F5]' : 'text-gray-500'}`}
+                className={`px-4 py-2 text-sm font-semibold rounded-full transition-all cursor-pointer ${tab === 'weekly' ? 'bg-white shadow text-[#3B66F5]' : 'text-gray-500'}`}
             >
                 Jadwal
             </button>
             <button 
                 onClick={() => setTab('events')}
-                className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all ${tab === 'events' ? 'bg-white shadow text-[#3B66F5]' : 'text-gray-500'}`}
+                className={`px-4 py-2 text-sm font-semibold rounded-full transition-all cursor-pointer ${tab === 'events' ? 'bg-white shadow text-[#3B66F5]' : 'text-gray-500'}`}
             >
                 Kalender
             </button>

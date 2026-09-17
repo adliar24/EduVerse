@@ -207,14 +207,14 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ profile: propProfile, re
                 </div>
 
                 <div className="flex items-center justify-between mb-6">
-                    <div className="flex bg-slate-50 p-1 rounded-xl border border-slate-100 overflow-x-auto custom-scrollbar-hide max-w-[200px] md:max-w-none">
+                    <div className="flex bg-slate-100/80 p-1 rounded-full border border-slate-200/60 overflow-x-auto custom-scrollbar-hide max-w-[220px] md:max-w-none">
                         {(['minggu', 'bulan', 'semester'] as const).map(mode => (
                             <button 
                                 key={mode}
                                 onClick={() => setChartMode(mode)}
-                                className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all whitespace-nowrap ${
+                                className={`px-3.5 py-1.5 rounded-full text-[9px] font-black uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
                                     chartMode === mode 
-                                    ? 'bg-white text-[#3B66F5] shadow-sm border border-slate-100' 
+                                    ? 'bg-white text-[#3B66F5] shadow-sm border border-slate-200/60' 
                                     : 'text-slate-400 hover:text-slate-600'
                                 }`}
                             >

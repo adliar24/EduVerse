@@ -954,7 +954,7 @@ const CertificateGenerator: React.FC = () => {
               </div>
 
               {/* Single Export Toolbar (Under Preview) */}
-              <div className="w-full grid grid-cols-3 gap-3 bg-slate-50 border border-slate-200 p-2.5 rounded-xl shadow-inner">
+              <div className="w-full grid grid-cols-3 gap-3 bg-slate-50 border border-slate-200 p-2 rounded-full shadow-inner">
                 <button
                   onClick={handleShareToWhatsApp}
                   disabled={isGenerating}

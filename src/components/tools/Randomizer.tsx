@@ -541,7 +541,7 @@ const Randomizer: React.FC = () => {
             <div className="absolute inset-0 bg-slate-50/30"></div>
             
             {/* TOOLBAR */}
-            <div className="relative z-20 flex justify-between items-center mb-8 bg-white/80 p-2 rounded-2xl border border-slate-200/60 shadow-sm">
+            <div className="relative z-20 flex justify-between items-center mb-8 bg-white/90 p-1.5 rounded-full border border-slate-200/60 shadow-sm">
               <div className="flex gap-1">
                 <button 
                   onClick={() => setMode('wheel')}

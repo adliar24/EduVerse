@@ -792,7 +792,7 @@ export const QuestionModal: React.FC<QuestionModalProps> = ({
                 <button 
                   type="submit"
                   disabled={saving}
-                  className="flex-1 py-3.5 rounded-full font-bold text-sm text-white bg-[#3B66F5] hover:bg-[#2563EB] transition-all shadow-lg shadow-[#3B66F5]/25 cursor-pointer button-hover flex items-center justify-center gap-2 disabled:opacity-75"
+                  className="flex-1 py-3.5 rounded-full font-bold text-sm text-white bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] hover:brightness-110 border border-white/10 transition-all shadow-lg shadow-blue-500/25 cursor-pointer button-hover flex items-center justify-center gap-2 disabled:opacity-75 active:scale-[0.98]"
                 >
                   {saving ? (
                     <>

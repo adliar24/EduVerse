@@ -796,7 +796,7 @@ else if (fileExt === 'csv') {
       </div>
 
       {/* MOBILE TABS (Hidden on Desktop) */}
-      <div className="flex lg:hidden gap-2 mb-6 bg-gray-100 p-1 rounded-2xl max-w-md md:max-w-xs">
+      <div className="flex lg:hidden gap-2 mb-6 bg-gray-100 p-1.5 rounded-full max-w-md md:max-w-xs">
         <button 
           className={`flex-1 py-2 rounded-full text-sm font-semibold transition-all ${activeTab === 'list' ? 'bg-white shadow text-[#3B66F5]' : 'text-gray-500'}`}
           onClick={() => setActiveTab('list')}

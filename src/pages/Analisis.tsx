@@ -208,9 +208,9 @@ export default function Analisis() {
             <span>Eksport Data</span>
           </button>
 
-          <div className="relative flex items-center bg-slate-100 p-1.5 rounded-xl shrink-0 overflow-hidden">
+          <div className="relative flex items-center bg-slate-100 p-1.5 rounded-full shrink-0 overflow-hidden">
             <motion.div
-              className="absolute top-1.5 bottom-1.5 bg-white rounded-lg shadow-sm"
+              className="absolute top-1.5 bottom-1.5 bg-white rounded-full shadow-sm"
               initial={false}
               animate={{
                 left: activeTab === 'statistik' ? '4px' : '50%',
@@ -220,13 +220,13 @@ export default function Analisis() {
             />
             <button 
               onClick={() => setActiveTab('statistik')}
-              className={cn("relative z-10 flex-1 px-5 py-2 rounded-lg text-sm font-bold transition-colors", activeTab === 'statistik' ? "text-[#1D4ED8]" : "text-slate-500 hover:text-[#1D4ED8]")}
+              className={cn("relative z-10 flex-1 px-5 py-2 rounded-full text-sm font-bold transition-colors cursor-pointer", activeTab === 'statistik' ? "text-[#1D4ED8]" : "text-slate-500 hover:text-[#1D4ED8]")}
             >
               Statistik
             </button>
             <button 
               onClick={() => setActiveTab('nilai')}
-              className={cn("relative z-10 flex-1 px-5 py-2 rounded-lg text-sm font-bold transition-colors", activeTab === 'nilai' ? "text-[#1D4ED8]" : "text-slate-500 hover:text-[#1D4ED8]")}
+              className={cn("relative z-10 flex-1 px-5 py-2 rounded-full text-sm font-bold transition-colors cursor-pointer", activeTab === 'nilai' ? "text-[#1D4ED8]" : "text-slate-500 hover:text-[#1D4ED8]")}
             >
               Nilai
             </button>
