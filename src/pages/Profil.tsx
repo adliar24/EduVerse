@@ -806,9 +806,9 @@ export default function Profil() {
             <button 
               onClick={downloadStudentCard}
               disabled={saving}
-              className="w-[320px] bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white py-4 rounded-full font-bold text-sm hover:brightness-110 active:scale-[0.98] transition-all border border-white/10 shadow-lg flex items-center justify-center gap-2"
+              className="w-[320px] max-w-full bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white py-4 rounded-full font-bold text-sm hover:brightness-110 active:scale-[0.98] transition-all border border-white/10 shadow-lg flex items-center justify-center gap-2 cursor-pointer"
             >
-              Unduh Kartu Pelajar (PNG)
+              Unduh Kartu (PNG)
             </button>
           </div>
 

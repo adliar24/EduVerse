@@ -101,23 +101,23 @@ const ConfigSection: React.FC<ConfigSectionProps> = ({ config, setConfig, totalS
           <div className="flex bg-slate-100 p-1 rounded-full mb-4">
              <button
                onClick={() => handleModeChange(GroupingMode.BY_COUNT)}
-               className={`flex-1 py-2 sm:py-2.5 px-3 sm:px-4 text-xs sm:text-sm font-bold rounded-full transition-all duration-300 cursor-pointer text-center truncate ${
+               className={`flex-1 py-2 sm:py-2.5 px-3 sm:px-4 text-xs sm:text-sm font-bold rounded-full transition-all duration-300 cursor-pointer text-center whitespace-nowrap ${
                  config.mode === GroupingMode.BY_COUNT 
                    ? 'bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white shadow-md shadow-blue-500/20 border border-white/10' 
                    : 'text-slate-500 hover:text-slate-700'
                }`}
              >
-               Jumlah Kelompok
+               Jml Kelompok
              </button>
              <button
                onClick={() => handleModeChange(GroupingMode.BY_SIZE)}
-               className={`flex-1 py-2 sm:py-2.5 px-3 sm:px-4 text-xs sm:text-sm font-bold rounded-full transition-all duration-300 cursor-pointer text-center truncate ${
+               className={`flex-1 py-2 sm:py-2.5 px-3 sm:px-4 text-xs sm:text-sm font-bold rounded-full transition-all duration-300 cursor-pointer text-center whitespace-nowrap ${
                  config.mode === GroupingMode.BY_SIZE 
                    ? 'bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white shadow-md shadow-blue-500/20 border border-white/10' 
                    : 'text-slate-500 hover:text-slate-700'
                }`}
              >
-               Siswa per Kelompok
+               Jml Anggota
              </button>
           </div>
 

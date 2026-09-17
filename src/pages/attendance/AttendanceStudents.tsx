@@ -789,7 +789,7 @@ else if (fileExt === 'csv') {
                     className="!px-4 !py-2.5 !text-xs bg-[#3B66F5]/5 text-blue-700 hover:bg-[#3B66F5]/10 border-[#3B66F5]/30 font-bold"
                 >
                     {isGenerating ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <IdCard className="w-4 h-4 mr-2" />}
-                    Unduh Semua Kartu (ZIP)
+                    Unduh Kartu (ZIP)
                 </Button>
             )}
          </div>

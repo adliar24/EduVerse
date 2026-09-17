@@ -193,8 +193,8 @@ const InputSection: React.FC<InputSectionProps> = ({ onStudentsLoaded, currentCo
   };
 
   const tabs = showClassSelector
-    ? ([{ key: 'class' as const, label: 'Pilih dari Kelas' }, { key: 'manual' as const, label: 'Manual' }, { key: 'file' as const, label: 'Upload Excel' }])
-    : ([{ key: 'manual' as const, label: 'Manual' }, { key: 'file' as const, label: 'Upload Excel' }]);
+    ? ([{ key: 'class' as const, label: 'Dari Kelas' }, { key: 'manual' as const, label: 'Manual' }, { key: 'file' as const, label: 'Excel' }])
+    : ([{ key: 'manual' as const, label: 'Manual' }, { key: 'file' as const, label: 'Excel' }]);
 
   return (
     <div className="bg-white rounded-2xl h-full transition-all duration-300 hover:shadow-md border border-slate-200/80">
@@ -219,7 +219,7 @@ const InputSection: React.FC<InputSectionProps> = ({ onStudentsLoaded, currentCo
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`flex-1 py-2 sm:py-2.5 px-3 sm:px-4 rounded-full text-xs sm:text-sm font-bold transition-all duration-300 cursor-pointer text-center truncate ${
+              className={`flex-1 py-2 sm:py-2.5 px-3 sm:px-4 rounded-full text-xs sm:text-sm font-bold transition-all duration-300 cursor-pointer text-center whitespace-nowrap ${
                 activeTab === tab.key
                   ? 'bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white shadow-md shadow-blue-500/20 border border-white/10'
                   : 'text-slate-500 hover:text-slate-800'
@@ -325,7 +325,7 @@ const InputSection: React.FC<InputSectionProps> = ({ onStudentsLoaded, currentCo
                           : 'bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white shadow-lg shadow-blue-500/20 border border-white/10 hover:brightness-110 active:scale-[0.98] cursor-pointer'
                       }`}
                     >
-                      Muat Siswa Terpilih ({checkedStudentIds.size})
+                      Muat ({checkedStudentIds.size}) Siswa
                     </button>
                   </>
                 )}
@@ -346,7 +346,7 @@ const InputSection: React.FC<InputSectionProps> = ({ onStudentsLoaded, currentCo
                  <ToggleLeft className="w-6 h-6 text-slate-400" />
                )}
                <span className={`text-sm font-semibold ${isGenderMode ? `text-[#1D4ED8] font-bold` : 'text-slate-600'}`}>
-                 Mode Bagi Rata Gender (L/P)
+                 Bagi Rata Gender (L/P)
                </span>
             </div>
 

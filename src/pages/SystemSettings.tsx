@@ -328,8 +328,8 @@ export default function SystemSettings() {
                   onClick={handleGetCurrentLocation}
                   className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs rounded-full transition-all flex items-center gap-2 cursor-pointer"
                 >
-                  <MapPin className="w-4 h-4 text-blue-600" />
-                  <span>Deteksi Lokasi Saya Sekarang</span>
+                  <MapPin className="w-4 h-4 text-blue-600 shrink-0" />
+                  <span>Deteksi Lokasi GPS</span>
                 </button>
 
                 <button
@@ -337,8 +337,8 @@ export default function SystemSettings() {
                   disabled={isSavingGps}
                   className="px-6 py-3 bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] hover:brightness-110 text-white font-extrabold text-xs rounded-full active:scale-[0.98] transition-all shadow-lg shadow-blue-500/25 flex items-center gap-2 cursor-pointer disabled:opacity-50 border border-white/10"
                 >
-                  {isSavingGps ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                  <span>Simpan Lokasi GPS Sekolah</span>
+                  {isSavingGps ? <Loader2 className="w-4 h-4 animate-spin shrink-0" /> : <Save className="w-4 h-4 shrink-0" />}
+                  <span>Simpan Lokasi GPS</span>
                 </button>
               </div>
             </form>

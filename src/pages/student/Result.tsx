@@ -136,18 +136,18 @@ export default function StudentResult() {
           <div className="bg-slate-50 rounded-[2rem] sm:rounded-[3rem] p-6 sm:p-10 mb-8 sm:mb-12 grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-10 border border-slate-100 text-left sm:text-center">
             <div className="space-y-1">
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Peserta Ujian</p>
-              <p className="text-xl sm:text-2xl font-black text-[#1D4ED8] truncate">{participant.name}</p>
+              <p className="text-xl sm:text-2xl font-black text-[#1D4ED8] break-words leading-tight">{participant.name}</p>
               <div className="flex items-center gap-2 text-slate-500 font-bold text-xs sm:text-base">
-                <GraduationCap className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                {participant.class}
+                <GraduationCap className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+                <span>{participant.class}</span>
               </div>
             </div>
             <div className="sm:text-right space-y-1">
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Mata Pelajaran</p>
-              <p className="text-xl sm:text-2xl font-black text-[#1D4ED8] truncate">{exam.title}</p>
+              <p className="text-xl sm:text-2xl font-black text-[#1D4ED8] break-words leading-tight">{exam.title}</p>
               <div className="flex items-center sm:justify-end gap-2 text-slate-500 font-bold text-xs sm:text-base">
-                <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                Kode: {exam.exam_code}
+                <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+                <span>Kode: {exam.exam_code}</span>
               </div>
             </div>
           </div>
