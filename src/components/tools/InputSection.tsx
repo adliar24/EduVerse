@@ -321,7 +321,7 @@ const InputSection: React.FC<InputSectionProps> = ({ onStudentsLoaded, currentCo
                       disabled={checkedStudentIds.size === 0}
                       className={`w-full py-3.5 px-8 rounded-full font-bold text-sm transition-all flex items-center justify-center gap-2 ${
                         checkedStudentIds.size === 0
-                          ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed shadow-none'
+                          ? 'bg-slate-200 text-slate-500 border border-slate-300 cursor-not-allowed shadow-none'
                           : 'bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white shadow-lg shadow-blue-500/20 border border-white/10 hover:brightness-110 active:scale-[0.98] cursor-pointer'
                       }`}
                     >
@@ -397,7 +397,7 @@ const InputSection: React.FC<InputSectionProps> = ({ onStudentsLoaded, currentCo
                   disabled={isManualDisabled}
                   className={`w-full py-3.5 px-8 rounded-full font-bold text-sm transition-all flex items-center justify-center gap-2 ${
                     isManualDisabled
-                      ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed shadow-none'
+                      ? 'bg-slate-200 text-slate-500 border border-slate-300 cursor-not-allowed shadow-none'
                       : 'bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white shadow-lg shadow-blue-500/20 border border-white/10 hover:brightness-110 active:scale-[0.98] cursor-pointer'
                   }`}
                 >
