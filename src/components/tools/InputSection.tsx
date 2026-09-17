@@ -219,10 +219,10 @@ const InputSection: React.FC<InputSectionProps> = ({ onStudentsLoaded, currentCo
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-               className={`flex-1 py-2 px-3 rounded-full text-sm font-bold transition-all duration-300 cursor-pointer ${
+              className={`flex-1 py-2.5 px-6 rounded-full text-sm font-bold transition-all duration-300 cursor-pointer whitespace-nowrap ${
                 activeTab === tab.key
-                  ? `${themeClasses.tabActive}`
-                  : 'text-slate-500 hover:text-slate-700'
+                  ? 'bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white shadow-md shadow-blue-500/20 border border-white/10'
+                  : 'text-slate-500 hover:text-slate-800'
               }`}
             >
               {tab.label}
@@ -319,7 +319,11 @@ const InputSection: React.FC<InputSectionProps> = ({ onStudentsLoaded, currentCo
                     <button
                       onClick={handleLoadFromClass}
                       disabled={checkedStudentIds.size === 0}
-                      className={`w-full py-3 bg-gradient-to-r text-white rounded-full font-bold shadow-md transition-all active:scale-[0.98] disabled:from-slate-200 disabled:to-slate-300 disabled:text-slate-400 disabled:shadow-none disabled:cursor-not-allowed cursor-pointer ${themeClasses.button}`}
+                      className={`w-full py-3.5 px-8 rounded-full font-bold text-sm transition-all flex items-center justify-center gap-2 ${
+                        checkedStudentIds.size === 0
+                          ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed shadow-none'
+                          : 'bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white shadow-lg shadow-blue-500/20 border border-white/10 hover:brightness-110 active:scale-[0.98] cursor-pointer'
+                      }`}
                     >
                       Muat Siswa Terpilih ({checkedStudentIds.size})
                     </button>
@@ -385,13 +389,22 @@ const InputSection: React.FC<InputSectionProps> = ({ onStudentsLoaded, currentCo
               </div>
             )}
 
-            <button
-              onClick={handleManualSubmit}
-              disabled={isGenderMode ? (!maleText.trim() && !femaleText.trim()) : !manualText.trim()}
-              className={`w-full py-3 bg-gradient-to-r text-white rounded-full font-bold shadow-md transition-all active:scale-[0.98] disabled:from-slate-200 disabled:to-slate-300 disabled:text-slate-400 disabled:shadow-none disabled:cursor-not-allowed cursor-pointer ${themeClasses.button}`}
-            >
-              Muat Data Manual
-            </button>
+            {(() => {
+              const isManualDisabled = isGenderMode ? (!maleText.trim() && !femaleText.trim()) : !manualText.trim();
+              return (
+                <button
+                  onClick={handleManualSubmit}
+                  disabled={isManualDisabled}
+                  className={`w-full py-3.5 px-8 rounded-full font-bold text-sm transition-all flex items-center justify-center gap-2 ${
+                    isManualDisabled
+                      ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed shadow-none'
+                      : 'bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white shadow-lg shadow-blue-500/20 border border-white/10 hover:brightness-110 active:scale-[0.98] cursor-pointer'
+                  }`}
+                >
+                  Muat Data Manual
+                </button>
+              );
+            })()}
           </div>
         )}
 

@@ -222,13 +222,13 @@ const GroupGenerator: React.FC<GroupGeneratorProps> = ({ themeColor = 'blue' }) 
           <button
             onClick={handleGenerate}
             disabled={enrichedStudents.length < 2}
-            className={`w-full py-4 rounded-full font-bold text-lg shadow-lg flex items-center justify-center gap-3 transition-all transform active:scale-95 cursor-pointer ${
+            className={`w-full py-4 px-8 rounded-full font-bold text-base sm:text-lg shadow-lg flex items-center justify-center gap-3 transition-all transform active:scale-95 ${
               enrichedStudents.length >= 2
-                ? `bg-gradient-to-r ${buttonGradient} text-white hover:shadow-xl hover:translate-y-[-2px]`
-                : 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
+                ? `bg-gradient-to-r ${buttonGradient} text-white hover:shadow-xl hover:translate-y-[-2px] cursor-pointer border border-white/10`
+                : 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed shadow-none'
             }`}
           >
-            <Shuffle className="w-6 h-6 text-white" />
+            <Shuffle className={`w-6 h-6 ${enrichedStudents.length >= 2 ? 'text-white' : 'text-slate-400'}`} />
             Acak dan Bagi Kelompok
           </button>
         </div>
