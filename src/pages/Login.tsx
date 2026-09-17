@@ -140,7 +140,7 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen w-full flex flex-col lg:flex-row relative bg-gradient-to-br from-[#0F172A] via-[#1E3A8A] to-[#0F172A] font-sans overflow-hidden">
+    <div className="min-h-screen w-full flex flex-col lg:flex-row relative bg-gradient-to-br from-[#0F172A] via-[#1E3A8A] to-[#0F172A] font-sans overflow-x-hidden overflow-y-auto lg:overflow-hidden">
       {/* 60fps Fluid Loop Canvas Animation */}
       <FluidCanvas />
 
@@ -227,19 +227,22 @@ export default function Login() {
       </div>
 
       {/* Right Panel - Interactive Area */}
-      <div className="flex-1 flex flex-col justify-center items-center p-4 py-8 sm:p-8 lg:p-24 overflow-y-auto relative z-10">
-        {/* Mobile Header Branding */}
-        <div className="lg:hidden absolute top-8 sm:top-12 left-0 right-0 z-20 flex flex-col items-center text-center text-white space-y-1">
-          <div className="bg-white/15 p-2.5 rounded-2xl border border-white/20 shadow-xl inline-flex items-center justify-center">
-            <GraduationCap className="text-white w-7 h-7" />
+      <div className="flex-1 flex flex-col justify-center items-center px-4 py-8 sm:p-8 lg:p-16 overflow-y-auto relative z-10 w-full min-h-screen lg:min-h-0">
+        <div className="w-full max-w-[350px] sm:max-w-md mx-auto my-auto flex flex-col items-center">
+          {/* Mobile Header Branding - In natural flow, guaranteed no overlap */}
+          <div className="lg:hidden flex flex-col items-center text-center text-white mb-6 space-y-2 shrink-0">
+            <div className="bg-white/15 p-2.5 rounded-2xl border border-white/20 shadow-xl inline-flex items-center justify-center backdrop-blur-md">
+              <GraduationCap className="text-white w-7 h-7" />
+            </div>
+            <div className="flex items-baseline justify-center gap-1.5 mt-0.5">
+              <span className="text-2xl font-black tracking-tight text-white drop-shadow-sm">EduVerse</span>
+            </div>
+            <p className="text-xs text-slate-200/90 font-medium max-w-xs px-2 leading-relaxed text-center">
+              Solusi Cerdas &amp; Kemudahan Mengajar Guru
+            </p>
           </div>
-          <div className="flex items-baseline justify-center gap-1.5 mt-0.5">
-            <span className="text-2xl font-black tracking-tight text-white">EduVerse</span>
-          </div>
-          <p className="text-[11px] text-slate-200 font-medium max-w-xs">Solusi Cerdas & Kemudahan Mengajar Guru</p>
-        </div>
 
-        <div className="relative z-30 w-full max-w-[340px] sm:max-w-md mx-auto bg-white/98 p-6 sm:p-9 rounded-[2.5rem] shadow-2xl border border-white/90 min-h-[400px] sm:min-h-[430px] flex flex-col justify-center">
+          <div className="relative z-30 w-full bg-white/98 p-6 sm:p-9 rounded-[2rem] sm:rounded-[2.5rem] shadow-2xl border border-white/90 min-h-[380px] sm:min-h-[420px] flex flex-col justify-center backdrop-blur-xl">
           <AnimatePresence mode="wait">
             {view === 'selection' && (
               <motion.div
@@ -432,6 +435,7 @@ export default function Login() {
               Bersihkan cache jika tampilan atau fitur belum terupdate
             </p>
           </div>
+        </div>
         </div>
       </div>
     </div>

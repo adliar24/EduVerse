@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { 
   FileSpreadsheet, FileText, Users, BookOpen, 
   TrendingUp, Star, Info, CheckCircle2, 
-  ClipboardCheck, GraduationCap, Database, Plus, Trash2
+  ClipboardCheck, GraduationCap, Database, Plus, Trash2, Calendar
 } from 'lucide-react';
 import { Student, StudentPoint, DEFAULT_WEIGHTS } from '../../types';
 import * as db from '../../services/dbGrading';
