@@ -15,16 +15,20 @@ import {
   ChevronLeft,
   Loader2,
   Check,
-  AlertCircle
+  AlertCircle,
+  Eye,
+  CheckCircle2,
+  Award
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAlert } from '../context/AlertContext';
 import { useSchool } from '../context/SchoolContext';
 import { getScopedState, addMaterial, deleteMaterial, addAssignment, deleteAssignment } from '../services/dbAttendance';
-import { ClassEntity, Student, Material, Assignment } from '../types';
+import { ClassEntity, Student, Material, Assignment, AssignmentSubmission } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 import LinkPreviewCard from '../components/LinkPreviewCard';
 import DomainTileIcon from '../components/DomainTileIcon';
+import SubmissionReviewModal from '../components/SubmissionReviewModal';
 
 const ELECTRIC_BLUE_GRADIENT = {
   bg: 'bg-gradient-to-br from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white border border-white/20 hover:scale-[1.01] transition-all shadow-xl shadow-[#3B66F5]/20',
@@ -60,6 +64,11 @@ export default function KelolaMateriTugas() {
   const [students, setStudents] = useState<Student[]>([]);
   const [materials, setMaterials] = useState<Material[]>([]);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
+  const [allSubmissions, setAllSubmissions] = useState<AssignmentSubmission[]>([]);
+
+  // Review Modal State
+  const [selectedReviewAssignment, setSelectedReviewAssignment] = useState<Assignment | null>(null);
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
 
   // Form States
   const [showModal, setShowModal] = useState(false);
@@ -147,6 +156,18 @@ export default function KelolaMateriTugas() {
         if (localClasses.length > 0 && !formClassId) {
           setFormClassId(localClasses[0].id);
         }
+      }
+
+      // Fetch submissions for statistics
+      try {
+        const { data: subData } = await supabase
+          .from('assignment_submissions')
+          .select('*');
+        if (subData && isMountedRef.current) {
+          setAllSubmissions(subData as AssignmentSubmission[]);
+        }
+      } catch (subErr) {
+        console.warn('Could not fetch assignment_submissions:', subErr);
       }
 
       // Background pull from Supabase Cloud to update local databases
@@ -912,6 +933,46 @@ export default function KelolaMateriTugas() {
                       </div>
                     )}
 
+                    {/* Submissions Progress & Review Button */}
+                    {(() => {
+                      const subList = allSubmissions.filter(s => s.assignment_id === a.id);
+                      const subCount = subList.length;
+                      const gradedCount = subList.filter(s => s.status === 'graded' && s.score !== null).length;
+                      const classStudents = students.filter(s => (s.class_id || (s as any).classId) === (a.class_id || (a as any).classId));
+                      const targetCount = a.target_type === 'students' && a.student_ids ? a.student_ids.length : classStudents.length;
+
+                      return (
+                        <div className="bg-slate-50/80 p-3 rounded-2xl border border-slate-200/80 flex items-center justify-between gap-3 mt-2">
+                          <div>
+                            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-0.5">
+                              Pengumpulan Siswa
+                            </span>
+                            <p className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                              <span className="text-indigo-600 font-extrabold text-sm">{subCount}</span>
+                              <span className="text-slate-400 font-medium">/ {targetCount} Siswa</span>
+                              {gradedCount > 0 && (
+                                <span className="text-emerald-700 bg-emerald-50 text-[10px] font-extrabold px-2 py-0.5 rounded-full border border-emerald-200/60">
+                                  {gradedCount} Dinilai
+                                </span>
+                              )}
+                            </p>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedReviewAssignment(a);
+                              setIsReviewModalOpen(true);
+                            }}
+                            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-bold text-xs shadow-sm transition-all cursor-pointer shrink-0"
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                            <span>Periksa ({subCount})</span>
+                          </button>
+                        </div>
+                      );
+                    })()}
+
                     <div className="border-t border-slate-100 pt-3 flex items-center justify-end">
                       <div className="flex gap-1.5">
                         <button 
@@ -923,7 +984,7 @@ export default function KelolaMateriTugas() {
                         </button>
                         <button 
                           onClick={() => handleDelete(a.ids || [a.id], a.title, 'assignment')}
-                          className="p-2 rounded-full text-white/80 hover:text-rose-200 hover:bg-rose-500/30 transition-colors"
+                          className="p-2 rounded-xl text-rose-500 hover:text-rose-700 hover:bg-rose-50 transition-colors cursor-pointer"
                           title="Hapus Tugas"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -1199,9 +1260,27 @@ export default function KelolaMateriTugas() {
               </form>
             </div>
           </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+        </div>
+      )}
+    </AnimatePresence>
+
+      {/* Teacher Submission Review Modal */}
+      <SubmissionReviewModal
+        isOpen={isReviewModalOpen}
+        onClose={() => {
+          setIsReviewModalOpen(false);
+          setSelectedReviewAssignment(null);
+        }}
+        assignment={selectedReviewAssignment}
+        studentsInClass={
+          selectedReviewAssignment
+            ? (selectedReviewAssignment.target_type === 'students' && selectedReviewAssignment.student_ids
+                ? students.filter(s => selectedReviewAssignment.student_ids?.includes(s.id))
+                : students.filter(s => (s.class_id || (s as any).classId) === (selectedReviewAssignment.class_id || (selectedReviewAssignment as any).classId)))
+            : []
+        }
+        onGradeSaved={fetchData}
+      />
     </div>
   );
 }

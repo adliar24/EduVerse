@@ -386,3 +386,27 @@ export interface Assignment {
   created_at?: string;
   createdAt?: string;
 }
+
+export interface AssignmentSubmission {
+  id?: string;
+  assignment_id: string;
+  student_id: string;
+  school_id?: string | null;
+  class_id?: string | null;
+  student_name?: string;
+  student_code?: string;
+  text_response?: string;
+  file_url?: string | null;
+  file_name?: string | null;
+  file_type?: string | null;
+  file_size?: number | null;
+  submitted_at?: string;
+  status?: 'submitted' | 'late' | 'graded';
+  score?: number | null;
+  feedback?: string | null;
+  graded_at?: string | null;
+  graded_by?: string | null;
+  created_at?: string;
+  updated_at?: string;
+}
+

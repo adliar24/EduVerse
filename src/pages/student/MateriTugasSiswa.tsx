@@ -11,11 +11,16 @@ import {
   Users,
   Search,
   RotateCw,
-  AlertCircle
+  AlertCircle,
+  CheckCircle2,
+  Upload,
+  Award,
+  ArrowUpRight
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Material, Assignment } from '../../types';
+import { Material, Assignment, AssignmentSubmission } from '../../types';
 import LinkPreviewCard from '../../components/LinkPreviewCard';
+import StudentSubmissionModal from '../../components/StudentSubmissionModal';
 
 export default function MateriTugasSiswa() {
   const [loading, setLoading] = useState(true);
@@ -26,6 +31,10 @@ export default function MateriTugasSiswa() {
   
   const [materials, setMaterials] = useState<Material[]>([]);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
+  const [submissions, setSubmissions] = useState<Record<string, AssignmentSubmission>>({});
+  
+  const [selectedAssignmentForSubmission, setSelectedAssignmentForSubmission] = useState<Assignment | null>(null);
+  const [isSubmissionModalOpen, setIsSubmissionModalOpen] = useState(false);
   
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -80,10 +89,11 @@ export default function MateriTugasSiswa() {
       const classId = studentDb.class_id || studentDb.classId || studentDb.idKelas || studentObj.class_id;
 
       if (classId) {
-        // Fetch materials and assignments for this class
-        const [materialsRes, assignmentsRes] = await Promise.all([
+        // Fetch materials, assignments, and student submissions in parallel
+        const [materialsRes, assignmentsRes, submissionsRes] = await Promise.all([
           supabase.from('materials').select('*').eq('class_id', classId),
-          supabase.from('assignments').select('*').eq('class_id', classId)
+          supabase.from('assignments').select('*').eq('class_id', classId),
+          supabase.from('assignment_submissions').select('*').eq('student_id', studentDb.id)
         ]);
 
         if (materialsRes.data) {
@@ -101,6 +111,14 @@ export default function MateriTugasSiswa() {
             (a.target_type === 'students' && (a.student_ids || []).includes(studentDb.id))
           );
           setAssignments(filteredA);
+        }
+
+        if (submissionsRes.data) {
+          const subMap: Record<string, AssignmentSubmission> = {};
+          (submissionsRes.data as AssignmentSubmission[]).forEach((sub) => {
+            subMap[sub.assignment_id] = sub;
+          });
+          setSubmissions(subMap);
         }
       }
     } catch (err: any) {
@@ -314,12 +332,22 @@ export default function MateriTugasSiswa() {
               const deadlineDate = hasDeadline ? new Date(a.deadline!) : null;
               const isOverdue = deadlineDate ? deadlineDate.getTime() < Date.now() : false;
               
+              const sub = submissions[a.id];
+              const isSubmitted = !!sub;
+              const isGraded = sub?.status === 'graded' && sub?.score !== null && sub?.score !== undefined;
+
               return (
                 <motion.div 
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   key={a.id} 
-                  className="bg-white p-6 rounded-2xl border border-slate-200/90 shadow-sm hover:shadow-md hover:border-indigo-300 transition-all flex flex-col justify-between gap-4 group"
+                  className={`bg-white p-6 rounded-2xl border transition-all flex flex-col justify-between gap-4 group ${
+                    isGraded 
+                      ? 'border-emerald-200 shadow-sm hover:border-emerald-300' 
+                      : isSubmitted 
+                      ? 'border-indigo-200 shadow-sm hover:border-indigo-300' 
+                      : 'border-slate-200/90 shadow-sm hover:shadow-md hover:border-indigo-300'
+                  }`}
                 >
                   <div className="space-y-3">
                     <div className="flex items-center justify-between flex-wrap gap-2">
@@ -329,15 +357,31 @@ export default function MateriTugasSiswa() {
                       </span>
                       
                       <div className="flex gap-1.5 flex-wrap">
-                        {hasDeadline && (
+                        {/* Submission Status Badge */}
+                        {isGraded ? (
+                          <span className="bg-emerald-500 text-white text-[11px] font-extrabold px-3 py-1 rounded-full flex items-center gap-1 shadow-xs">
+                            <Award className="w-3.5 h-3.5" />
+                            Nilai: {sub.score} / 100
+                          </span>
+                        ) : isSubmitted ? (
+                          <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border flex items-center gap-1 ${
+                            sub.status === 'late'
+                              ? 'bg-amber-50 text-amber-700 border-amber-200'
+                              : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                          }`}>
+                            <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                            {sub.status === 'late' ? 'Terkumpul (Terlambat)' : 'Sudah Dikumpulkan'}
+                          </span>
+                        ) : (
                           <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${
                             isOverdue 
                               ? 'bg-rose-50 text-rose-700 border-rose-200' 
-                              : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                              : 'bg-slate-100 text-slate-600 border-slate-200'
                           }`}>
-                            {isOverdue ? 'Lewat Tenggat' : 'Tersedia'}
+                            {isOverdue ? 'Lewat Tenggat' : 'Belum Dikumpulkan'}
                           </span>
                         )}
+
                         {a.target_type === 'students' && (
                           <span className="bg-indigo-50 text-indigo-700 border border-indigo-200/70 text-[10px] font-bold px-2.5 py-0.5 rounded-full">
                             Khusus Anda
@@ -355,14 +399,22 @@ export default function MateriTugasSiswa() {
                         {a.description}
                       </p>
                     )}
+
+                    {/* Show Teacher Feedback snippet if graded */}
+                    {isGraded && sub.feedback && (
+                      <div className="bg-emerald-50/70 border border-emerald-100 p-2.5 rounded-xl text-xs text-emerald-900">
+                        <span className="font-bold block text-[11px] text-emerald-800 mb-0.5">Catatan Guru:</span>
+                        <p className="line-clamp-2 italic">"{sub.feedback}"</p>
+                      </div>
+                    )}
                   </div>
  
                   <div className="space-y-3 pt-2 border-t border-slate-100">
                     {/* Deadline info strip */}
                     {hasDeadline ? (
-                      <div className="flex items-center gap-2 text-xs font-semibold text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-200/80">
-                        <Clock className={`w-4 h-4 ${isOverdue ? 'text-rose-500' : 'text-indigo-600'}`} />
-                        <span>Tenggat: <b className={isOverdue ? 'text-rose-600' : 'text-slate-800'}>
+                      <div className="flex items-center gap-2 text-xs font-semibold text-slate-600 bg-slate-50 p-2.5 rounded-xl border border-slate-200/80">
+                        <Clock className={`w-4 h-4 shrink-0 ${isOverdue ? 'text-rose-500' : 'text-indigo-600'}`} />
+                        <span className="truncate">Tenggat: <b className={isOverdue ? 'text-rose-600' : 'text-slate-800'}>
                           {new Date(a.deadline!).toLocaleDateString('id-ID', {
                             weekday: 'short',
                             day: 'numeric',
@@ -373,32 +425,56 @@ export default function MateriTugasSiswa() {
                         </b></span>
                       </div>
                     ) : (
-                      <div className="flex items-center gap-2 text-xs font-semibold text-emerald-700 bg-emerald-50/60 p-3 rounded-xl border border-emerald-100">
-                        <Calendar className="w-4 h-4 text-emerald-600" />
+                      <div className="flex items-center gap-2 text-xs font-semibold text-emerald-700 bg-emerald-50/60 p-2.5 rounded-xl border border-emerald-100">
+                        <Calendar className="w-4 h-4 shrink-0 text-emerald-600" />
                         <span>Tenggat: <b>Tanpa Batas Waktu</b></span>
                       </div>
                     )}
 
-                    {/* High-visibility Action Button (CTA) */}
-                    {a.link ? (
-                      <div className="space-y-2">
+                    {/* Main CTA: Kumpulkan Tugas */}
+                    <button
+                      onClick={() => {
+                        setSelectedAssignmentForSubmission(a);
+                        setIsSubmissionModalOpen(true);
+                      }}
+                      className={`w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-bold text-xs sm:text-sm shadow-sm hover:shadow transition-all cursor-pointer active:scale-[0.98] ${
+                        isGraded
+                          ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                          : isSubmitted
+                          ? 'bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200'
+                          : 'bg-indigo-600 hover:bg-indigo-700 text-white'
+                      }`}
+                    >
+                      {isGraded ? (
+                        <>
+                          <Award className="w-4 h-4" />
+                          <span>Lihat Nilai & Hasil Tugas</span>
+                        </>
+                      ) : isSubmitted ? (
+                        <>
+                          <CheckCircle2 className="w-4 h-4 text-indigo-600" />
+                          <span>Lihat / Perbarui Pengumpulan</span>
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="w-4 h-4" />
+                          <span>Kumpulkan Tugas (Teks / Foto / PDF)</span>
+                        </>
+                      )}
+                    </button>
+
+                    {/* Secondary Link button if teacher provided an external link */}
+                    {a.link && (
+                      <div className="pt-1">
                         <a
                           href={a.link.startsWith('http') ? a.link : `https://${a.link}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:scale-[0.98] text-white font-bold text-xs sm:text-sm shadow-sm hover:shadow transition-all cursor-pointer"
+                          className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold text-xs border border-slate-200 transition-colors"
                         >
-                          <span>📝 Buka & Kerjakan Lembar Tugas</span>
-                          <ExternalLink className="w-4 h-4 ml-0.5" />
+                          <span>Buka Dokumen / Link Lampiran Guru</span>
+                          <ArrowUpRight className="w-3.5 h-3.5 text-slate-400" />
                         </a>
-
-                        <div className="pt-1">
-                          <LinkPreviewCard url={a.link} />
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 text-center text-xs font-semibold text-slate-400">
-                        Instruksi Pengumpulan Diberitahukan di Kelas
                       </div>
                     )}
                   </div>
@@ -407,6 +483,7 @@ export default function MateriTugasSiswa() {
             })}
           </div>
         ) : (
+
           <div className="text-center py-20 bg-white rounded-2xl border border-slate-200/80 shadow-sm max-w-4xl">
             <div className="w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-500 mx-auto mb-3 border border-indigo-100">
               <FileText className="w-7 h-7" />
@@ -418,6 +495,19 @@ export default function MateriTugasSiswa() {
           </div>
         )
       )}
+      {/* Student Submission Modal */}
+      <StudentSubmissionModal
+        isOpen={isSubmissionModalOpen}
+        onClose={() => {
+          setIsSubmissionModalOpen(false);
+          setSelectedAssignmentForSubmission(null);
+        }}
+        assignment={selectedAssignmentForSubmission}
+        studentInfo={studentInfo}
+        existingSubmission={selectedAssignmentForSubmission ? submissions[selectedAssignmentForSubmission.id] || null : null}
+        onSuccess={() => fetchStudentData(true)}
+      />
     </div>
   );
 }
+
