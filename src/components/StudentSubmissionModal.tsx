@@ -10,7 +10,6 @@ import {
   Trash2, 
   Clock, 
   ExternalLink,
-  Zap,
   Eye,
   Award,
   MessageSquare
@@ -290,11 +289,8 @@ export default function StudentSubmissionModal({
 
           {/* File Upload Section */}
           <div className="space-y-2">
-            <label className="text-xs font-bold text-slate-700 flex items-center justify-between">
-              <span>Lampiran Berkas (Foto Buku / Gambar / PDF)</span>
-              <span className="text-[10px] font-semibold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">
-                Auto-Compressed Max 1800px
-              </span>
+            <label className="text-xs font-bold text-slate-700 block">
+              Lampiran Berkas (Foto / Gambar / PDF)
             </label>
 
             {/* Hidden native input */}
@@ -347,16 +343,6 @@ export default function StudentSubmissionModal({
                     </button>
                   </div>
                 </div>
-
-                {/* Compression Efficiency Chip for Images */}
-                {compressionResult && compressionResult.reductionPercentage > 0 && (
-                  <div className="flex items-center gap-1.5 text-[11px] font-bold text-emerald-700 bg-emerald-50/80 px-3 py-1.5 rounded-xl border border-emerald-200/60">
-                    <Zap className="w-3.5 h-3.5 text-emerald-600 fill-emerald-600" />
-                    <span>
-                      Foto terkompresi otomatis: {formatFileSize(compressionResult.originalSize)} ➔ {formatFileSize(compressionResult.compressedSize)} (Hemat {compressionResult.reductionPercentage}%)
-                    </span>
-                  </div>
-                )}
               </div>
             ) : existingSubmission?.file_url ? (
               /* If there is an existing submitted file from previous submission */
@@ -403,8 +389,8 @@ export default function StudentSubmissionModal({
                 {isCompressing ? (
                   <div className="flex flex-col items-center justify-center space-y-2">
                     <Loader2 className="w-6 h-6 text-indigo-600 animate-spin" />
-                    <p className="text-xs font-bold text-indigo-900">Mengompresi foto tugas Anda...</p>
-                    <p className="text-[11px] text-slate-400">Menjaga tulisan tetap jelas & hemat ukuran</p>
+                    <p className="text-xs font-bold text-indigo-900">Memproses berkas...</p>
+                    <p className="text-[11px] text-slate-400">Mohon tunggu sebentar</p>
                   </div>
                 ) : (
                   <div className="space-y-1.5">
