@@ -562,12 +562,15 @@ export default function KelolaMateriTugas({ defaultTab = 'materials', fixedTab =
     const groups: { [key: string]: any } = {};
     materials.forEach(m => {
       const classId = m.classId || (m as any).class_id;
-      const key = `${(m.title || '').trim()}_${(m.description || '').trim()}_${m.link || ''}_${m.target_type || m.targetType || ''}`;
+      const key = (m.title || '').trim().toLowerCase();
+      if (!key) return;
+
       if (!groups[key]) {
         groups[key] = {
           id: m.id,
           ids: [m.id],
           classIds: classId ? [classId] : [],
+          materialByClass: classId ? { [classId]: m } : {},
           title: m.title,
           description: m.description,
           link: m.link,
@@ -576,9 +579,17 @@ export default function KelolaMateriTugas({ defaultTab = 'materials', fixedTab =
           created_at: m.created_at || m.createdAt
         };
       } else {
-        groups[key].ids.push(m.id);
-        if (classId && !groups[key].classIds.includes(classId)) {
-          groups[key].classIds.push(classId);
+        if (!groups[key].ids.includes(m.id)) {
+          groups[key].ids.push(m.id);
+        }
+        if (classId) {
+          if (!groups[key].classIds.includes(classId)) {
+            groups[key].classIds.push(classId);
+          }
+          groups[key].materialByClass[classId] = m;
+        }
+        if (!groups[key].description && m.description) {
+          groups[key].description = m.description;
         }
         if (new Date(m.created_at || m.createdAt || 0) > new Date(groups[key].created_at || 0)) {
           groups[key].created_at = m.created_at || m.createdAt;
@@ -598,14 +609,18 @@ export default function KelolaMateriTugas({ defaultTab = 'materials', fixedTab =
     const groups: { [key: string]: any } = {};
     assignments.forEach(a => {
       const classId = a.classId || (a as any).class_id;
-      const key = `${(a.title || '').trim()}_${(a.description || '').trim()}_${a.link || ''}_${a.target_type || a.targetType || ''}_${a.is_graded || a.isGraded || false}_${a.deadline || ''}`;
+      // Group identical assignments into 1 single card across classes
+      const key = (a.title || '').trim().toLowerCase();
+      if (!key) return;
+
       if (!groups[key]) {
         groups[key] = {
           id: a.id,
           ids: [a.id],
           classIds: classId ? [classId] : [],
+          assignmentByClass: classId ? { [classId]: a } : {},
           title: a.title,
-          description: a.description,
+          description: a.description || '',
           link: a.link,
           target_type: a.target_type || a.targetType,
           student_ids: a.student_ids || a.studentIds || [],
@@ -615,9 +630,20 @@ export default function KelolaMateriTugas({ defaultTab = 'materials', fixedTab =
           created_at: a.created_at || a.createdAt
         };
       } else {
-        groups[key].ids.push(a.id);
-        if (classId && !groups[key].classIds.includes(classId)) {
-          groups[key].classIds.push(classId);
+        if (!groups[key].ids.includes(a.id)) {
+          groups[key].ids.push(a.id);
+        }
+        if (classId) {
+          if (!groups[key].classIds.includes(classId)) {
+            groups[key].classIds.push(classId);
+          }
+          groups[key].assignmentByClass[classId] = a;
+        }
+        if (!groups[key].description && a.description) {
+          groups[key].description = a.description;
+        }
+        if (!groups[key].deadline && a.deadline) {
+          groups[key].deadline = a.deadline;
         }
         if (new Date(a.created_at || a.createdAt || 0) > new Date(groups[key].created_at || 0)) {
           groups[key].created_at = a.created_at || a.createdAt;
@@ -995,14 +1021,6 @@ export default function KelolaMateriTugas({ defaultTab = 'materials', fixedTab =
                         <div className="bg-indigo-50 p-1.5 rounded-xl text-indigo-600 border border-indigo-100">
                           <FileText className="w-4 h-4" />
                         </div>
-                        {(a.classIds || []).map((cid: string) => {
-                          const cls = classes.find(c => c.id === cid);
-                          return (
-                            <span key={cid} className="text-[11px] font-bold px-2.5 py-1 rounded-full border bg-slate-100 text-slate-700 border-slate-200">
-                              {cls?.name || 'Semua Kelas'}
-                            </span>
-                          );
-                        })}
                       </div>
                       <div className="flex gap-1 flex-wrap">
                         {a.isGraded !== false && a.is_graded !== false ? (
@@ -1043,6 +1061,36 @@ export default function KelolaMateriTugas({ defaultTab = 'materials', fixedTab =
                   </div>
 
                   <div className="space-y-3 mt-1">
+                    {/* Kelas Aktif Section (Like Daftar Ujian) */}
+                    <div className="p-2.5 rounded-2xl bg-indigo-50/50 border border-indigo-100/80 space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                          <Users className="w-3.5 h-3.5 text-[#1D4ED8]" />
+                          <span>Kelas Aktif</span>
+                        </div>
+                        <span className="text-[10px] font-bold text-[#1D4ED8]">
+                          {(a.classIds || []).length} Kelas
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {(a.classIds || []).length > 0 ? (
+                          (a.classIds || []).map((cid: string) => {
+                            const cls = classes.find(c => c.id === cid);
+                            return (
+                              <span key={cid} className="inline-flex items-center gap-1 px-2.5 py-1 bg-white border border-indigo-200 text-[#1D4ED8] rounded-lg text-xs font-bold shadow-2xs">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                                {cls?.name || 'Semua Kelas'}
+                              </span>
+                            );
+                          })
+                        ) : (
+                          <span className="text-xs text-slate-400 font-medium italic">
+                            Semua Kelas
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
                     {hasDeadline ? (
                       <div className="flex items-center gap-2 text-xs font-semibold bg-slate-50 p-2.5 rounded-xl border border-slate-200 text-slate-700">
                         <Calendar className="w-4 h-4 text-indigo-600" />
@@ -1071,21 +1119,26 @@ export default function KelolaMateriTugas({ defaultTab = 'materials', fixedTab =
 
                     {/* Submissions Progress & Review Button */}
                     {(() => {
-                      const subList = allSubmissions.filter(s => s.assignment_id === a.id);
+                      const assignmentIds: string[] = a.ids || [a.id];
+                      const classIds: string[] = a.classIds || [];
+                      const subList = allSubmissions.filter(s => assignmentIds.includes(s.assignment_id));
                       const subCount = subList.length;
                       const gradedCount = subList.filter(s => s.status === 'graded' && s.score !== null).length;
-                      const classStudents = students.filter(s => (s.class_id || (s as any).classId) === (a.class_id || (a as any).classId));
-                      const targetCount = a.target_type === 'students' && a.student_ids ? a.student_ids.length : classStudents.length;
+
+                      const targetStudents = a.target_type === 'students' && a.student_ids
+                        ? students.filter(s => a.student_ids.includes(s.id))
+                        : students.filter(s => classIds.includes(s.class_id || (s as any).classId));
+                      const targetCount = targetStudents.length;
 
                       return (
                         <div className="bg-slate-50/80 p-3 rounded-2xl border border-slate-200/80 flex items-center justify-between gap-3 mt-2">
                           <div>
                             <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-0.5">
-                              Pengumpulan Siswa
+                              Pengumpulan Murid
                             </span>
                             <p className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
                               <span className="text-indigo-600 font-extrabold text-sm">{subCount}</span>
-                              <span className="text-slate-400 font-medium">/ {targetCount} Siswa</span>
+                              <span className="text-slate-400 font-medium">/ {targetCount} Murid</span>
                               {gradedCount > 0 && (
                                 <span className="text-emerald-700 bg-emerald-50 text-[10px] font-extrabold px-2 py-0.5 rounded-full border border-emerald-200/60">
                                   {gradedCount} Dinilai
@@ -1100,7 +1153,7 @@ export default function KelolaMateriTugas({ defaultTab = 'materials', fixedTab =
                               setSelectedReviewAssignment(a);
                               setIsReviewModalOpen(true);
                             }}
-                            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-bold text-xs shadow-sm transition-all cursor-pointer shrink-0"
+                            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-bold text-xs shadow-sm transition-all cursor-pointer shrink-0"
                           >
                             <Eye className="w-3.5 h-3.5" />
                             <span>Periksa ({subCount})</span>
@@ -1409,13 +1462,8 @@ export default function KelolaMateriTugas({ defaultTab = 'materials', fixedTab =
           fetchData();
         }}
         assignment={selectedReviewAssignment}
-        studentsInClass={
-          selectedReviewAssignment
-            ? (selectedReviewAssignment.target_type === 'students' && selectedReviewAssignment.student_ids
-                ? students.filter(s => selectedReviewAssignment.student_ids?.includes(s.id))
-                : students.filter(s => (s.class_id || (s as any).classId) === (selectedReviewAssignment.class_id || (selectedReviewAssignment as any).classId)))
-            : []
-        }
+        classes={classes}
+        allStudents={students}
         onGradeSaved={fetchData}
       />
     </div>
