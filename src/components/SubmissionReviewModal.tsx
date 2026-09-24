@@ -72,7 +72,27 @@ export default function SubmissionReviewModal({
         .eq('assignment_id', assignment.id);
 
       if (error) throw error;
-      const subList = (data as AssignmentSubmission[]) || [];
+      let subList = (data as AssignmentSubmission[]) || [];
+
+      // Also merge local submissions if present in browser
+      try {
+        const rawLocal = localStorage.getItem('eduverse_local_submissions');
+        if (rawLocal) {
+          const localMap = JSON.parse(rawLocal);
+          const localItems = (Object.values(localMap) as AssignmentSubmission[]).filter(
+            s => s.assignment_id === assignment.id
+          );
+          const existingIds = new Set(subList.map(s => s.student_id));
+          localItems.forEach(l => {
+            if (!existingIds.has(l.student_id)) {
+              subList.push(l);
+            }
+          });
+        }
+      } catch {
+        // ignore
+      }
+
       setSubmissions(subList);
 
       // Select first student if none selected
@@ -394,56 +414,67 @@ export default function SubmissionReviewModal({
                 )}
 
                 {/* If Submitted: Show Content */}
-                {selectedSubmission && (
-                  <div className="space-y-6">
-                    {/* Text Answer */}
-                    {selectedSubmission.text_response ? (
-                      <div className="space-y-2">
-                        <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                          <FileText className="w-4 h-4 text-indigo-600" />
-                          <span>Jawaban Tertulis Siswa</span>
-                        </label>
-                        <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 text-slate-800 text-xs sm:text-sm leading-relaxed whitespace-pre-line font-medium select-text">
-                          {selectedSubmission.text_response}
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="p-3 bg-slate-50 rounded-xl text-xs text-slate-400 italic">
-                        Tidak ada catatan teks tertulis.
-                      </div>
-                    )}
+                {selectedSubmission && (() => {
+                  const resolvedLink = selectedSubmission.link || (() => {
+                    if (!selectedSubmission.text_response) return null;
+                    const match = selectedSubmission.text_response.match(/\[Tautan Tugas\]:\s*(\S+)/i);
+                    return match ? match[1] : null;
+                  })();
 
-                    {/* Attached External Link (Google Drive, Canva, Docs, Figma, etc.) */}
-                    {selectedSubmission.link && (
-                      <div className="space-y-2">
-                        <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                          <Link2 className="w-4 h-4 text-violet-600" />
-                          <span>Tautan Tugas Siswa (Link)</span>
-                        </label>
-                        <div className="p-4 bg-gradient-to-r from-violet-50/70 via-indigo-50/50 to-blue-50/70 rounded-2xl border border-violet-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
-                          <div className="flex items-center gap-3 overflow-hidden">
-                            <div className="w-10 h-10 rounded-xl bg-violet-600 text-white flex items-center justify-center shrink-0 shadow-xs">
-                              <Globe className="w-5 h-5" />
-                            </div>
-                            <div className="truncate">
-                              <p className="text-xs font-bold text-slate-800 truncate select-all">
-                                {selectedSubmission.link}
-                              </p>
-                              <p className="text-[11px] text-slate-500">Tautan Eksternal Tugas (Google Drive / Canva / Dokumen)</p>
-                            </div>
+                  const cleanTextResponse = selectedSubmission.text_response
+                    ? selectedSubmission.text_response.replace(/\[Tautan Tugas\]:\s*\S+/i, '').trim()
+                    : null;
+
+                  return (
+                    <div className="space-y-6">
+                      {/* Text Answer */}
+                      {cleanTextResponse ? (
+                        <div className="space-y-2">
+                          <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                            <FileText className="w-4 h-4 text-indigo-600" />
+                            <span>Jawaban Tertulis Siswa</span>
+                          </label>
+                          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 text-slate-800 text-xs sm:text-sm leading-relaxed whitespace-pre-line font-medium select-text">
+                            {cleanTextResponse}
                           </div>
-                          <a
-                            href={selectedSubmission.link.startsWith('http') ? selectedSubmission.link : `https://${selectedSubmission.link}`}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center justify-center gap-1.5 shrink-0 active:scale-95 cursor-pointer"
-                          >
-                            <span>Buka Tautan</span>
-                            <ExternalLink className="w-3.5 h-3.5" />
-                          </a>
                         </div>
-                      </div>
-                    )}
+                      ) : !resolvedLink && !selectedSubmission.file_url ? (
+                        <div className="p-3 bg-slate-50 rounded-xl text-xs text-slate-400 italic">
+                          Tidak ada catatan teks tertulis.
+                        </div>
+                      ) : null}
+
+                      {/* Attached External Link (Google Drive, Canva, Docs, Figma, etc.) */}
+                      {resolvedLink && (
+                        <div className="space-y-2">
+                          <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                            <Link2 className="w-4 h-4 text-violet-600" />
+                            <span>Tautan Tugas Siswa (Link)</span>
+                          </label>
+                          <div className="p-4 bg-gradient-to-r from-violet-50/70 via-indigo-50/50 to-blue-50/70 rounded-2xl border border-violet-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+                            <div className="flex items-center gap-3 overflow-hidden">
+                              <div className="w-10 h-10 rounded-xl bg-violet-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                                <Globe className="w-5 h-5" />
+                              </div>
+                              <div className="truncate">
+                                <p className="text-xs font-bold text-slate-800 truncate select-all">
+                                  {resolvedLink}
+                                </p>
+                                <p className="text-[11px] text-slate-500">Tautan Eksternal Tugas (Google Drive / Canva / Dokumen)</p>
+                              </div>
+                            </div>
+                            <a
+                              href={resolvedLink.startsWith('http') ? resolvedLink : `https://${resolvedLink}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center justify-center gap-1.5 shrink-0 active:scale-95 cursor-pointer"
+                            >
+                              <span>Buka Tautan</span>
+                              <ExternalLink className="w-3.5 h-3.5" />
+                            </a>
+                          </div>
+                        </div>
+                      )}
 
                     {/* Attached File (Image / PDF) */}
                     {selectedSubmission.file_url && (
@@ -600,8 +631,9 @@ export default function SubmissionReviewModal({
                         </button>
                       </div>
                     </form>
-                  </div>
-                )}
+                    </div>
+                  );
+                })()}
               </div>
             ) : (
               <div className="flex-1 flex flex-col items-center justify-center text-slate-400">

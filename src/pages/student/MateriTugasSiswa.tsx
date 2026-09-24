@@ -146,7 +146,44 @@ export default function MateriTugasSiswa() {
             const pendingSubs = Object.values(localMap).filter((s: any) => s.student_id === studentDb.id);
             if (pendingSubs.length > 0) {
               for (const pSub of pendingSubs) {
-                await supabase.from('assignment_submissions').upsert(pSub, { onConflict: 'assignment_id,student_id' });
+                const subObj = { ...(pSub as any) };
+                const { data: cloudRow } = await supabase
+                  .from('assignment_submissions')
+                  .select('id')
+                  .eq('assignment_id', subObj.assignment_id)
+                  .eq('student_id', subObj.student_id)
+                  .maybeSingle();
+
+                let syncErr = null;
+                if (cloudRow?.id) {
+                  const { error } = await supabase
+                    .from('assignment_submissions')
+                    .update(subObj)
+                    .eq('id', cloudRow.id);
+                  syncErr = error;
+                } else {
+                  const insObj = { ...subObj };
+                  delete insObj.id;
+                  const { error } = await supabase
+                    .from('assignment_submissions')
+                    .insert(insObj);
+                  syncErr = error;
+                }
+
+                // Fallback if 'link' column is missing in Supabase schema cache
+                if (syncErr && (syncErr.code === 'PGRST204' || syncErr.message?.toLowerCase().includes('link'))) {
+                  const fallbackSub = { ...subObj };
+                  if (fallbackSub.link) {
+                    fallbackSub.text_response = (fallbackSub.text_response ? fallbackSub.text_response + '\n\n' : '') + `[Tautan Tugas]: ${fallbackSub.link}`;
+                    delete fallbackSub.link;
+                  }
+                  if (cloudRow?.id) {
+                    await supabase.from('assignment_submissions').update(fallbackSub).eq('id', cloudRow.id);
+                  } else {
+                    delete fallbackSub.id;
+                    await supabase.from('assignment_submissions').insert(fallbackSub);
+                  }
+                }
               }
             }
           }

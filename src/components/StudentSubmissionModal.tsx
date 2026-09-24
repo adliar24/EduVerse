@@ -267,54 +267,112 @@ export default function StudentSubmissionModal({
       // 2. Dual client cloud upload (try supabaseAnon first for pure anon role, then supabase)
       let savedToCloud = false;
       let cloudError: any = null;
+      let cloudSavedId: string | null = null;
       const clients = [supabaseAnon, supabase];
 
-      for (const client of clients) {
-        if (savedToCloud) break;
+      const saveWithPayload = async (payloadToSave: any) => {
+        let lastErr = null;
+        for (const client of clients) {
+          try {
+            // First check if a record actually exists in Supabase cloud for this student + assignment
+            const { data: cloudRow, error: checkErr } = await client
+              .from('assignment_submissions')
+              .select('id')
+              .eq('assignment_id', assignment.id)
+              .eq('student_id', studentInfo.id)
+              .maybeSingle();
 
-        // Try update first if existing submission has an ID
-        if (existingSubmission?.id) {
-          const { error: updErr } = await client
-            .from('assignment_submissions')
-            .update(submissionPayload)
-            .eq('id', existingSubmission.id);
-          
-          if (!updErr) {
-            savedToCloud = true;
-            break;
+            if (checkErr) {
+              lastErr = checkErr;
+              continue;
+            }
+
+            if (cloudRow?.id) {
+              const { data: updData, error: updErr } = await client
+                .from('assignment_submissions')
+                .update(payloadToSave)
+                .eq('id', cloudRow.id)
+                .select();
+
+              if (!updErr && updData && updData.length > 0) {
+                return { success: true, id: cloudRow.id, error: null };
+              }
+              if (updErr) lastErr = updErr;
+            } else {
+              const insertPayload = { ...payloadToSave };
+              delete insertPayload.id;
+              const { data: insData, error: insErr } = await client
+                .from('assignment_submissions')
+                .insert(insertPayload)
+                .select();
+
+              if (!insErr && insData && insData.length > 0) {
+                return { success: true, id: insData[0].id, error: null };
+              }
+              if (insErr) lastErr = insErr;
+            }
+          } catch (e: any) {
+            lastErr = e;
           }
         }
+        return { success: false, id: null, error: lastErr };
+      };
 
-        // Try upsert with onConflict
-        const { error: upsertErr } = await client
-          .from('assignment_submissions')
-          .upsert(submissionPayload, { onConflict: 'assignment_id,student_id' });
+      // Attempt 1: Standard payload
+      const res1 = await saveWithPayload(submissionPayload);
+      if (res1.success) {
+        savedToCloud = true;
+        cloudSavedId = res1.id;
+      } else {
+        cloudError = res1.error;
+      }
 
-        if (!upsertErr) {
-          savedToCloud = true;
-          break;
-        } else {
-          cloudError = upsertErr;
+      // Attempt 2: Resilient Schema Fallback if 'link' column is missing in Supabase (PGRST204)
+      if (!savedToCloud && cloudError) {
+        const isMissingLinkCol = cloudError.code === 'PGRST204' || 
+          cloudError.message?.toLowerCase().includes("'link' column") ||
+          cloudError.message?.toLowerCase().includes("column \"link\"");
+
+        if (isMissingLinkCol) {
+          console.warn("Column 'link' not yet created in Supabase table. Auto-retrying with embedded text_response...");
+          const retryPayload = { ...submissionPayload };
+          if (retryPayload.link) {
+            retryPayload.text_response = (retryPayload.text_response ? retryPayload.text_response + '\n\n' : '') + `[Tautan Tugas]: ${retryPayload.link}`;
+          }
+          delete retryPayload.link;
+
+          const res2 = await saveWithPayload(retryPayload);
+          if (res2.success) {
+            savedToCloud = true;
+            cloudSavedId = res2.id;
+            cloudError = null;
+          } else {
+            cloudError = res2.error;
+          }
         }
+      }
 
-        // Try insert directly
-        const { error: insertErr } = await client
-          .from('assignment_submissions')
-          .insert(submissionPayload);
-
-        if (!insertErr) {
-          savedToCloud = true;
-          break;
-        } else {
-          cloudError = insertErr;
+      // Synchronize local storage entry with actual cloud ID
+      if (savedToCloud && cloudSavedId) {
+        try {
+          const rawLocal = localStorage.getItem(localKey);
+          if (rawLocal) {
+            const localMap = JSON.parse(rawLocal);
+            const compositeKey = `${assignment.id}_${studentInfo.id}`;
+            if (localMap[compositeKey]) {
+              localMap[compositeKey].id = cloudSavedId;
+              localStorage.setItem(localKey, JSON.stringify(localMap));
+            }
+          }
+        } catch {
+          // ignore
         }
       }
 
       if (!savedToCloud && cloudError) {
         console.warn('Cloud submission could not be completed:', cloudError);
         const isTableMissing = cloudError.code === 'PGRST205' || 
-          cloudError.message?.toLowerCase().includes('schema cache') ||
-          cloudError.message?.toLowerCase().includes('assignment_submissions');
+          (cloudError.message?.toLowerCase().includes('relation') && cloudError.message?.toLowerCase().includes('assignment_submissions'));
 
         if (isTableMissing) {
           setErrorMsg('Tugas Anda telah tersimpan secara lokal di perangkat ini. Namun, tabel database "assignment_submissions" belum dibuat di Supabase Cloud. Mohon minta Guru/Admin untuk menjalankan SQL migrasi "add_assignment_submissions.sql" di Supabase SQL Editor.');
