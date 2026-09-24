@@ -94,17 +94,60 @@ export default function SubmissionReviewModal({
       }
 
       setSubmissions(subList);
-
-      // Select first student if none selected
-      if (studentsInClass.length > 0 && !selectedStudentId) {
-        setSelectedStudentId(studentsInClass[0].id);
-      }
     } catch (err) {
       console.error('Error fetching submissions:', err);
     } finally {
       setLoading(false);
     }
   };
+
+  // Fallback cloud students for assignment class
+  const [cloudClassStudents, setCloudClassStudents] = useState<Student[]>([]);
+
+  useEffect(() => {
+    if (isOpen && assignment?.class_id) {
+      supabase
+        .from('students')
+        .select('*')
+        .eq('class_id', assignment.class_id)
+        .then(({ data }) => {
+          if (data && data.length > 0) {
+            setCloudClassStudents(data as Student[]);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [isOpen, assignment?.class_id]);
+
+  // Combine students: props + cloud class students + anyone who submitted
+  const combinedStudents = React.useMemo(() => {
+    const list: Student[] = [...studentsInClass];
+    const existingIds = new Set(list.map(s => s.id));
+
+    // 1. Add cloud class students
+    cloudClassStudents.forEach(cs => {
+      if (!existingIds.has(cs.id)) {
+        list.push(cs);
+        existingIds.add(cs.id);
+      }
+    });
+
+    // 2. Ensure EVERY student who submitted is in the student list!
+    submissions.forEach(sub => {
+      if (sub.student_id && !existingIds.has(sub.student_id)) {
+        list.push({
+          id: sub.student_id,
+          name: sub.student_name || 'Siswa',
+          student_code: sub.student_code || '-',
+          class_id: sub.class_id || assignment?.class_id || '',
+          school_id: sub.school_id || assignment?.school_id || ''
+        } as Student);
+        existingIds.add(sub.student_id);
+      }
+    });
+
+    return list;
+  }, [studentsInClass, cloudClassStudents, submissions, assignment]);
 
   // Build submission map
   const submissionMap = React.useMemo(() => {
@@ -114,6 +157,14 @@ export default function SubmissionReviewModal({
     });
     return map;
   }, [submissions]);
+
+  // Auto-select first student (preferring one who already submitted)
+  useEffect(() => {
+    if (combinedStudents.length > 0 && (!selectedStudentId || !combinedStudents.some(s => s.id === selectedStudentId))) {
+      const firstSubmitted = combinedStudents.find(s => submissionMap.has(s.id));
+      setSelectedStudentId(firstSubmitted ? firstSubmitted.id : combinedStudents[0].id);
+    }
+  }, [combinedStudents, selectedStudentId, submissionMap]);
 
   // Sync grading form when selected student changes
   useEffect(() => {
@@ -134,7 +185,7 @@ export default function SubmissionReviewModal({
   if (!isOpen || !assignment) return null;
 
   // Filter students
-  const filteredStudents = studentsInClass.filter(student => {
+  const filteredStudents = combinedStudents.filter(student => {
     const matchesSearch = student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (student.student_code && student.student_code.toLowerCase().includes(searchQuery.toLowerCase()));
 
@@ -147,10 +198,10 @@ export default function SubmissionReviewModal({
     return true;
   });
 
-  const selectedStudent = studentsInClass.find(s => s.id === selectedStudentId);
+  const selectedStudent = combinedStudents.find(s => s.id === selectedStudentId);
   const selectedSubmission = selectedStudentId ? submissionMap.get(selectedStudentId) : null;
 
-  const totalStudents = studentsInClass.length;
+  const totalStudents = combinedStudents.length;
   const submittedCount = submissions.length;
   const gradedCount = submissions.filter(s => s.status === 'graded' && s.score !== null).length;
 

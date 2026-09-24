@@ -19,7 +19,8 @@ import {
   AlertCircle,
   Eye,
   CheckCircle2,
-  Award
+  Award,
+  RefreshCw
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAlert } from '../context/AlertContext';
@@ -117,13 +118,50 @@ export default function KelolaMateriTugas() {
     };
   }, [showModal]);
 
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchSubmissionsOnly = async () => {
+    try {
+      const { data: subData } = await supabase
+        .from('assignment_submissions')
+        .select('*');
+      if (subData && isMountedRef.current) {
+        setIsSubmissionTableMissing(false);
+        setAllSubmissions(subData as AssignmentSubmission[]);
+      }
+    } catch {
+      // ignore
+    }
+  };
+
   useEffect(() => {
     isMountedRef.current = true;
     fetchData();
+
+    // Auto-refresh submissions every 10 seconds so teacher sees new student uploads in real-time
+    const interval = setInterval(() => {
+      fetchSubmissionsOnly();
+    }, 10000);
+
+    const onFocus = () => {
+      fetchSubmissionsOnly();
+    };
+    window.addEventListener('focus', onFocus);
+
     return () => {
       isMountedRef.current = false;
+      clearInterval(interval);
+      window.removeEventListener('focus', onFocus);
     };
   }, [activeSchool]);
+
+  const handleManualRefresh = async () => {
+    setRefreshing(true);
+    await fetchData();
+    setTimeout(() => {
+      if (isMountedRef.current) setRefreshing(false);
+    }, 600);
+  };
 
   const fetchData = async () => {
     try {
@@ -681,7 +719,15 @@ export default function KelolaMateriTugas() {
           <h2 className="text-3xl font-bold text-[#1D4ED8] tracking-tight">Materi & Tugas</h2>
           <p className="text-slate-500 mt-1 font-medium">Buat dan kelola materi pelajaran serta lembar tugas murid.</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <button 
+            onClick={handleManualRefresh}
+            disabled={refreshing || loading}
+            className="p-2.5 rounded-full border border-slate-200 bg-white hover:bg-slate-50 active:scale-95 text-slate-600 transition-all shadow-xs cursor-pointer disabled:opacity-50"
+            title="Segarkan data tugas & pengumpulan"
+          >
+            <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin text-indigo-600' : ''}`} />
+          </button>
           <button 
             onClick={() => handleOpenCreateModal('material')}
             className="bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white px-5 py-2.5 rounded-full font-bold text-sm flex items-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-[#3B66F5]/25 border border-white/10 cursor-pointer"
@@ -1335,6 +1381,7 @@ export default function KelolaMateriTugas() {
         onClose={() => {
           setIsReviewModalOpen(false);
           setSelectedReviewAssignment(null);
+          fetchData();
         }}
         assignment={selectedReviewAssignment}
         studentsInClass={
