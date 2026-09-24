@@ -345,9 +345,14 @@ export const GradingScreen: React.FC = () => {
         };
         return db.saveScore(payload);
       });
-      await Promise.all(savePromises);
+      const results = await Promise.all(savePromises);
+      const hasCloudError = results.some(r => r?.cloudError);
       
-      showToast("Semua nilai murid berhasil disimpan ke database!", "success");
+      if (hasCloudError) {
+        showToast("Nilai tersimpan di perangkat lokal. Catatan: Sinkronisasi Cloud Supabase memerlukan eksekusi SQL migrasi di Supabase Dashboard agar muncul di device lain.", "warning");
+      } else {
+        showToast("Semua nilai murid berhasil disimpan ke Cloud Supabase & tersinkronisasi!", "success");
+      }
     } catch (err: any) {
       console.error("Error saving scores:", err);
       showToast("Gagal menyimpan nilai: " + (err.message || "Terjadi kesalahan"), "error");

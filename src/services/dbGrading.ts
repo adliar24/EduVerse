@@ -594,7 +594,45 @@ export const deleteLearningObjective = async (id: string): Promise<void> => {
 // --- MEETINGS ---
 
 export const getMeetings = async (idKelas?: string, schoolId?: string): Promise<Meeting[]> => {
-  const all = await getAll<Meeting>('meetings');
+  let all = await getAll<Meeting>('meetings');
+  // If local is empty or we have connection, query Cloud to merge meetings from other devices
+  if (supabase && (!all || all.length === 0)) {
+    try {
+      let query = supabase.from('meetings').select('*');
+      if (idKelas) query = query.eq('id_kelas', idKelas);
+      const { data } = await query;
+      if (data && data.length > 0) {
+        const db = await getDB();
+        const tx = db.transaction('meetings', 'readwrite');
+        const store = tx.objectStore('meetings');
+        data.forEach((row: any) => {
+          store.put({
+            idPertemuan: row.id_pertemuan,
+            schoolId: row.school_id,
+            idKelas: row.id_kelas,
+            mapel: row.mapel,
+            semester: row.semester,
+            urutanKe: row.urutan_ke,
+            tanggal: row.tanggal,
+            materi: row.materi,
+            jenis: row.jenis,
+            activityType: row.activity_type,
+            activityName: row.activity_name,
+            assessmentCategory: row.assessment_category,
+            aspekPenilaian: row.aspek_penilaian || 'Pengetahuan',
+            idTP: row.id_tp
+          });
+        });
+        await new Promise<void>((resolve) => {
+          tx.oncomplete = () => resolve();
+          tx.onerror = () => resolve();
+        });
+        all = await getAll<Meeting>('meetings');
+      }
+    } catch (e) {
+      console.warn("Background fetch meetings from cloud error:", e);
+    }
+  }
   let filtered = all;
   if (schoolId) filtered = filtered.filter(m => m.schoolId === schoolId);
   if (idKelas) filtered = filtered.filter(m => m.idKelas === idKelas);
@@ -602,23 +640,72 @@ export const getMeetings = async (idKelas?: string, schoolId?: string): Promise<
 };
 
 export const getMeetingById = async (id: string): Promise<Meeting | undefined> => {
-  return getOne<Meeting>('meetings', id);
-};
-
-export const saveMeeting = async (meeting: Meeting): Promise<void> => {
-  await putOne('meetings', meeting);
-  if (supabase) {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session) {
-      supabase.from('meetings').upsert({
-        id_pertemuan: meeting.idPertemuan, user_id: session.user.id, school_id: meeting.schoolId, id_kelas: meeting.idKelas, 
-        mapel: meeting.mapel, semester: meeting.semester, urutan_ke: meeting.urutanKe, tanggal: meeting.tanggal,
-        materi: meeting.materi, jenis: meeting.jenis, activity_type: meeting.activityType, 
-        activity_name: meeting.activityName, assessment_category: meeting.assessmentCategory, 
-        aspek_penilaian: meeting.aspekPenilaian, id_tp: meeting.idTP
-      }).then(({ error }) => { if (error) console.warn("Background sync failed:", error); });
+  let m = await getOne<Meeting>('meetings', id);
+  if (!m && supabase) {
+    try {
+      const { data } = await supabase.from('meetings').select('*').eq('id_pertemuan', id).maybeSingle();
+      if (data) {
+        m = {
+          idPertemuan: data.id_pertemuan,
+          schoolId: data.school_id,
+          idKelas: data.id_kelas,
+          mapel: data.mapel,
+          semester: data.semester,
+          urutanKe: data.urutan_ke,
+          tanggal: data.tanggal,
+          materi: data.materi,
+          jenis: data.jenis,
+          activityType: data.activity_type,
+          activityName: data.activity_name,
+          assessmentCategory: data.assessment_category,
+          aspekPenilaian: data.aspek_penilaian || 'Pengetahuan',
+          idTP: data.id_tp
+        };
+        await putOne('meetings', m);
+      }
+    } catch (e) {
+      console.warn("Failed to fetch meeting by id from cloud:", e);
     }
   }
+  return m;
+};
+
+export const saveMeeting = async (meeting: Meeting): Promise<{ success: boolean; cloudError?: any }> => {
+  await putOne('meetings', meeting);
+  let cloudError = null;
+  if (supabase) {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const payload: any = {
+        id_pertemuan: meeting.idPertemuan,
+        school_id: meeting.schoolId,
+        id_kelas: meeting.idKelas, 
+        mapel: meeting.mapel,
+        semester: meeting.semester,
+        urutan_ke: meeting.urutanKe,
+        tanggal: meeting.tanggal,
+        materi: meeting.materi,
+        jenis: meeting.jenis,
+        activity_type: meeting.activityType, 
+        activity_name: meeting.activityName,
+        assessment_category: meeting.assessmentCategory, 
+        aspek_penilaian: meeting.aspekPenilaian,
+        id_tp: meeting.idTP
+      };
+      if (session?.user?.id) {
+        payload.user_id = session.user.id;
+      }
+      const { error } = await supabase.from('meetings').upsert(payload, { onConflict: 'id_pertemuan' });
+      if (error) {
+        console.warn("Save meeting to cloud failed:", error);
+        cloudError = error;
+      }
+    } catch (err) {
+      console.warn("Save meeting cloud exception:", err);
+      cloudError = err;
+    }
+  }
+  return { success: !cloudError, cloudError };
 };
 
 export const deleteMeeting = async (idPertemuan: string): Promise<void> => {
@@ -641,7 +728,44 @@ export const deleteMeeting = async (idPertemuan: string): Promise<void> => {
 // --- SCORES ---
 
 export const getScores = async (idPertemuan?: string, schoolId?: string): Promise<MeetingScore[]> => {
-  const all = await getAll<MeetingScore>('meetingScores');
+  let all = await getAll<MeetingScore>('meetingScores');
+
+  // If online and idPertemuan specified, pull latest scores directly from Supabase Cloud to sync multi-device
+  if (supabase && idPertemuan) {
+    try {
+      const { data, error } = await supabase
+        .from('meeting_scores')
+        .select('*')
+        .eq('id_pertemuan', idPertemuan);
+
+      if (!error && data && data.length > 0) {
+        const db = await getDB();
+        const tx = db.transaction('meetingScores', 'readwrite');
+        const store = tx.objectStore('meetingScores');
+        data.forEach((row: any) => {
+          const scoreItem: MeetingScore = {
+            id: row.id || `${row.id_pertemuan}_${row.id_siswa}`,
+            schoolId: row.school_id,
+            idPertemuan: row.id_pertemuan,
+            idSiswa: row.id_siswa,
+            nilaiAngka: row.nilai_angka,
+            bintang: row.bintang || 0,
+            catatan: row.catatan || '',
+            lastUpdated: row.last_updated ? new Date(row.last_updated).getTime() : Date.now()
+          };
+          store.put(scoreItem);
+        });
+        await new Promise<void>((resolve) => {
+          tx.oncomplete = () => resolve();
+          tx.onerror = () => resolve();
+        });
+        all = await getAll<MeetingScore>('meetingScores');
+      }
+    } catch (cloudErr) {
+      console.warn("Failed to pull scores from cloud:", cloudErr);
+    }
+  }
+
   let filtered = all;
   if (schoolId) filtered = filtered.filter(s => s.schoolId === schoolId);
   if (idPertemuan) filtered = filtered.filter(s => s.idPertemuan === idPertemuan);
@@ -654,17 +778,36 @@ export const getAllScores = async (schoolId?: string): Promise<MeetingScore[]> =
   return all;
 };
 
-export const saveScore = async (score: MeetingScore): Promise<void> => {
+export const saveScore = async (score: MeetingScore): Promise<{ success: boolean; cloudError?: any }> => {
   await putOne('meetingScores', score);
+  let cloudError = null;
   if (supabase) {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session) {
-      supabase.from('meeting_scores').upsert({
-        id: score.id, user_id: session.user.id, school_id: score.schoolId, id_pertemuan: score.idPertemuan, id_siswa: score.idSiswa,
-        nilai_angka: score.nilaiAngka, bintang: score.bintang, catatan: score.catatan, last_updated: new Date(score.lastUpdated).toISOString()
-      }).then(({ error }) => { if (error) console.warn("Background sync failed:", error); });
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const payload: any = {
+        id: score.id || `${score.idPertemuan}_${score.idSiswa}`,
+        school_id: score.schoolId,
+        id_pertemuan: score.idPertemuan,
+        id_siswa: score.idSiswa,
+        nilai_angka: score.nilaiAngka,
+        bintang: score.bintang || 0,
+        catatan: score.catatan || '',
+        last_updated: new Date(score.lastUpdated || Date.now()).toISOString()
+      };
+      if (session?.user?.id) {
+        payload.user_id = session.user.id;
+      }
+      const { error } = await supabase.from('meeting_scores').upsert(payload, { onConflict: 'id' });
+      if (error) {
+        console.warn("Save score to cloud failed:", error);
+        cloudError = error;
+      }
+    } catch (err) {
+      console.warn("Save score cloud exception:", err);
+      cloudError = err;
     }
   }
+  return { success: !cloudError, cloudError };
 };
 
 // --- FINAL GRADES & RECAP ---

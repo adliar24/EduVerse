@@ -330,14 +330,12 @@ export default function SubmissionReviewModal({
       setGradeSuccessMsg(null);
 
       const { data: { user } } = await supabase.auth.getUser();
-      const submissionId = selectedSubmission?.id || crypto.randomUUID();
 
       // Resolve the actual assignment id for this student's class
       const targetAssignmentId = assignment.assignmentByClass?.[selectedClassId]?.id 
         || assignment.id;
 
-      const submissionPayload: AssignmentSubmission = {
-        id: submissionId,
+      const submissionPayload: any = {
         assignment_id: targetAssignmentId,
         student_id: selectedStudent.id,
         student_name: selectedStudent.name,
@@ -359,48 +357,72 @@ export default function SubmissionReviewModal({
         updated_at: new Date().toISOString()
       };
 
-      // 1. Upsert to Supabase
-      const { error } = await supabase
+      // Only assign id if an existing submission record already has one
+      if (selectedSubmission?.id) {
+        submissionPayload.id = selectedSubmission.id;
+      }
+
+      // 1. Upsert to Supabase Cloud with onConflict resolution
+      const { data: upsertedRows, error } = await supabase
         .from('assignment_submissions')
-        .upsert(submissionPayload);
+        .upsert(submissionPayload, { onConflict: 'assignment_id,student_id' })
+        .select();
+
+      const finalSavedItem: AssignmentSubmission = (upsertedRows && upsertedRows[0]) 
+        ? (upsertedRows[0] as AssignmentSubmission) 
+        : { ...submissionPayload, id: selectedSubmission?.id || crypto.randomUUID() };
 
       if (error) {
-        console.warn('Supabase upsert error:', error);
+        console.error('Supabase upsert error:', error);
+        // Save to localStorage as offline safety net
+        try {
+          const localKey = 'eduverse_local_submissions';
+          const rawLocal = localStorage.getItem(localKey);
+          const localMap = rawLocal ? JSON.parse(rawLocal) : {};
+          const compositeKey = `${targetAssignmentId}_${selectedStudent.id}`;
+          localMap[compositeKey] = finalSavedItem;
+          localStorage.setItem(localKey, JSON.stringify(localMap));
+        } catch (locErr) {
+          console.warn('LocalStorage save error:', locErr);
+        }
+
+        setGradeErrorMsg(`Gagal menyimpan ke Cloud: ${error.message}. Tersimpan lokal.`);
+      } else {
+        // Also keep local storage cache up to date
+        try {
+          const localKey = 'eduverse_local_submissions';
+          const rawLocal = localStorage.getItem(localKey);
+          const localMap = rawLocal ? JSON.parse(rawLocal) : {};
+          const compositeKey = `${targetAssignmentId}_${selectedStudent.id}`;
+          localMap[compositeKey] = finalSavedItem;
+          localStorage.setItem(localKey, JSON.stringify(localMap));
+        } catch {
+          // ignore
+        }
+
+        setGradeSuccessMsg('Nilai & catatan murid berhasil disimpan ke Cloud Supabase!');
       }
 
-      // 2. Also save to localStorage for offline / fallback
-      try {
-        const localKey = 'eduverse_local_submissions';
-        const rawLocal = localStorage.getItem(localKey);
-        const localMap = rawLocal ? JSON.parse(rawLocal) : {};
-        const compositeKey = `${targetAssignmentId}_${selectedStudent.id}`;
-        localMap[compositeKey] = submissionPayload;
-        localStorage.setItem(localKey, JSON.stringify(localMap));
-      } catch (locErr) {
-        console.warn('LocalStorage save error:', locErr);
-      }
-
-      // 3. Immediately update in-memory state
+      // 2. Immediately update in-memory state
       setSubmissions(prev => {
         const idx = prev.findIndex(s => 
-          (submissionId && s.id === submissionId) || 
+          (finalSavedItem.id && s.id === finalSavedItem.id) || 
           (s.student_id === selectedStudent.id && allAssignmentIds.includes(s.assignment_id))
         );
         if (idx >= 0) {
           const next = [...prev];
-          next[idx] = { ...next[idx], ...submissionPayload };
+          next[idx] = { ...next[idx], ...finalSavedItem };
           return next;
         } else {
-          return [...prev, submissionPayload];
+          return [...prev, finalSavedItem];
         }
       });
 
-      setGradeSuccessMsg('Nilai & catatan murid berhasil disimpan!');
       if (onGradeSaved) onGradeSaved();
 
       setTimeout(() => {
         setGradeSuccessMsg(null);
-      }, 3000);
+      }, 3500);
     } catch (err: any) {
       console.error('Error saving grade:', err);
       setGradeErrorMsg(err.message || 'Gagal menyimpan nilai.');
