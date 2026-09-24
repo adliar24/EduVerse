@@ -396,6 +396,7 @@ export interface AssignmentSubmission {
   student_name?: string;
   student_code?: string;
   text_response?: string;
+  link?: string | null;
   file_url?: string | null;
   file_name?: string | null;
   file_type?: string | null;

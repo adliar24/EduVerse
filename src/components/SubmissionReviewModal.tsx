@@ -16,7 +16,9 @@ import {
   Users, 
   Filter,
   Check,
-  ChevronRight
+  ChevronRight,
+  Link2,
+  Globe
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Assignment, AssignmentSubmission, Student } from '../types';
@@ -411,6 +413,38 @@ export default function SubmissionReviewModal({
                       </div>
                     )}
 
+                    {/* Attached External Link (Google Drive, Canva, Docs, Figma, etc.) */}
+                    {selectedSubmission.link && (
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                          <Link2 className="w-4 h-4 text-violet-600" />
+                          <span>Tautan Tugas Siswa (Link)</span>
+                        </label>
+                        <div className="p-4 bg-gradient-to-r from-violet-50/70 via-indigo-50/50 to-blue-50/70 rounded-2xl border border-violet-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+                          <div className="flex items-center gap-3 overflow-hidden">
+                            <div className="w-10 h-10 rounded-xl bg-violet-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                              <Globe className="w-5 h-5" />
+                            </div>
+                            <div className="truncate">
+                              <p className="text-xs font-bold text-slate-800 truncate select-all">
+                                {selectedSubmission.link}
+                              </p>
+                              <p className="text-[11px] text-slate-500">Tautan Eksternal Tugas (Google Drive / Canva / Dokumen)</p>
+                            </div>
+                          </div>
+                          <a
+                            href={selectedSubmission.link.startsWith('http') ? selectedSubmission.link : `https://${selectedSubmission.link}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center justify-center gap-1.5 shrink-0 active:scale-95 cursor-pointer"
+                          >
+                            <span>Buka Tautan</span>
+                            <ExternalLink className="w-3.5 h-3.5" />
+                          </a>
+                        </div>
+                      </div>
+                    )}
+
                     {/* Attached File (Image / PDF) */}
                     {selectedSubmission.file_url && (
                       <div className="space-y-2">
@@ -430,6 +464,7 @@ export default function SubmissionReviewModal({
 
                         {/* Image Preview */}
                         {selectedSubmission.file_type?.startsWith('image/') || 
+                         selectedSubmission.file_url.startsWith('data:image/') ||
                          selectedSubmission.file_url.match(/\.(jpeg|jpg|png|webp)/i) ? (
                           <div className="bg-slate-900/5 p-4 rounded-2xl border border-slate-200 space-y-3">
                             <div className="relative group max-h-96 overflow-hidden rounded-xl bg-slate-100 flex items-center justify-center">
@@ -451,10 +486,11 @@ export default function SubmissionReviewModal({
                                   href={selectedSubmission.file_url}
                                   target="_blank"
                                   rel="noreferrer"
+                                  download={selectedSubmission.file_name || 'tugas-siswa.jpg'}
                                   className="px-3.5 py-2 bg-indigo-600 text-white rounded-xl font-bold text-xs shadow-lg flex items-center gap-1.5 hover:bg-indigo-700 transition-transform active:scale-95"
                                 >
                                   <ExternalLink className="w-4 h-4" />
-                                  Buka Tab Baru
+                                  Unduh / Buka
                                 </a>
                               </div>
                             </div>
@@ -481,9 +517,10 @@ export default function SubmissionReviewModal({
                               href={selectedSubmission.file_url}
                               target="_blank"
                               rel="noreferrer"
+                              download={selectedSubmission.file_name || 'dokumen-tugas.pdf'}
                               className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs flex items-center gap-2 shadow-xs transition-all active:scale-95"
                             >
-                              <span>Buka Dokumen PDF</span>
+                              <span>Buka / Unduh Dokumen PDF</span>
                               <ExternalLink className="w-3.5 h-3.5" />
                             </a>
                           </div>

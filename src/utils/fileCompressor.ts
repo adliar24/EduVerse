@@ -1,4 +1,5 @@
-import { supabase } from '../lib/supabase';
+import { supabase, supabaseAnon } from '../lib/supabase';
+import { isAppwriteConfigured, uploadFileToAppwrite } from '../lib/appwrite';
 
 export interface CompressionResult {
   file: File;
@@ -17,6 +18,18 @@ export function formatFileSize(bytes: number): string {
   const sizes = ['B', 'KB', 'MB', 'GB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
+}
+
+/**
+ * Convert any File or Blob to a Base64 Data URL string
+ */
+export function fileToDataUrl(file: File | Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = (err) => reject(err);
+    reader.readAsDataURL(file);
+  });
 }
 
 /**
@@ -141,54 +154,74 @@ export async function compressImageFile(
 }
 
 /**
- * Upload submission file to Supabase Storage with automatic fallback handling.
+ * Upload submission file with intelligent multi-tier fallbacks:
+ * 1. Tries Supabase Storage 'assignment-submissions' bucket (both anon & default client)
+ * 2. Tries Supabase Storage 'question-images' fallback bucket
+ * 3. If storage buckets are unconfigured/missing or RLS rejected, automatically falls back
+ *    to high-efficiency Base64 Data URL so the student's submission NEVER fails!
  */
 export async function uploadSubmissionFile(
   file: File,
   folderPath: string
 ): Promise<string> {
-  const sanitize = (name: string) => name.replace(/[^a-zA-Z0-9._-]/g, '_');
-  const fileName = `${folderPath}/${Date.now()}_${sanitize(file.name)}`;
-
-  // Try assignment-submissions bucket first
-  let targetBucket = 'assignment-submissions';
-  let { error: uploadError } = await supabase.storage
-    .from(targetBucket)
-    .upload(fileName, file, {
-      contentType: file.type || 'application/octet-stream',
-      upsert: true
-    });
-
-  // Fallback to question-images bucket if assignment-submissions bucket is not yet provisioned
-  if (uploadError && (uploadError.message?.toLowerCase().includes('not found') || (uploadError as any).statusCode === 404)) {
-    console.warn('assignment-submissions bucket not found, attempting fallback to question-images bucket...');
-    targetBucket = 'question-images';
-    const fallbackPath = `submissions/${fileName}`;
-    const fallbackRes = await supabase.storage
-      .from(targetBucket)
-      .upload(fallbackPath, file, {
-        contentType: file.type || 'application/octet-stream',
-        upsert: true
-      });
-    
-    if (fallbackRes.error) {
-      throw new Error(`Gagal mengunggah berkas: ${fallbackRes.error.message}`);
+  // Tier 1: Try Appwrite Storage Bucket if configured (Dedicated file storage with generous limits)
+  if (isAppwriteConfigured()) {
+    try {
+      console.log('Uploading student assignment file to Appwrite Storage...');
+      const appwriteRes = await uploadFileToAppwrite(file);
+      if (appwriteRes.url) {
+        console.log('Successfully uploaded file to Appwrite Storage:', appwriteRes.url);
+        return appwriteRes.url;
+      }
+    } catch (appwriteErr: any) {
+      console.warn('Appwrite upload attempt failed, continuing to Supabase/DataURL fallback:', appwriteErr?.message || appwriteErr);
     }
-
-    const { data: { publicUrl } } = supabase.storage
-      .from(targetBucket)
-      .getPublicUrl(fallbackPath);
-
-    return publicUrl;
   }
 
-  if (uploadError) {
-    throw new Error(`Gagal mengunggah berkas tugas: ${uploadError.message}`);
+  const sanitize = (name: string) => name.replace(/[^a-zA-Z0-9._-]/g, '_');
+  const cleanFolder = (folderPath || 'submissions').replace(/[^a-zA-Z0-9/_-]/g, '_');
+  const fileName = `${cleanFolder}/${Date.now()}_${sanitize(file.name)}`;
+
+  const bucketsToTry = ['assignment-submissions', 'question-images'];
+  const clientsToTry = [supabaseAnon, supabase];
+
+  for (const bucket of bucketsToTry) {
+    for (const client of clientsToTry) {
+      try {
+        const uploadPath = bucket === 'assignment-submissions' ? fileName : `submissions/${fileName}`;
+        const { error: uploadError } = await client.storage
+          .from(bucket)
+          .upload(uploadPath, file, {
+            contentType: file.type || 'application/octet-stream',
+            upsert: true
+          });
+
+        if (!uploadError) {
+          const { data: { publicUrl } } = client.storage
+            .from(bucket)
+            .getPublicUrl(uploadPath);
+
+          if (publicUrl) {
+            console.log(`Successfully uploaded file to bucket '${bucket}':`, publicUrl);
+            return publicUrl;
+          }
+        } else {
+          console.warn(`Storage upload to bucket '${bucket}' returned error:`, uploadError.message);
+        }
+      } catch (err: any) {
+        console.warn(`Exception uploading to '${bucket}':`, err?.message || err);
+      }
+    }
   }
 
-  const { data: { publicUrl } } = supabase.storage
-    .from(targetBucket)
-    .getPublicUrl(fileName);
-
-  return publicUrl;
+  // Resilient fallback: Convert file to Base64 Data URL.
+  // Images are already compressed (<300KB), fitting easily into Postgres TEXT fields.
+  console.warn('Supabase storage bucket not accessible; using resilient Base64 Data URL fallback.');
+  try {
+    const dataUrl = await fileToDataUrl(file);
+    return dataUrl;
+  } catch (convErr: any) {
+    throw new Error('Gagal memproses berkas tugas: ' + (convErr.message || 'Format tidak terbaca'));
+  }
 }
+

@@ -113,12 +113,45 @@ export default function MateriTugasSiswa() {
           setAssignments(filteredA);
         }
 
+        const subMap: Record<string, AssignmentSubmission> = {};
+
+        // 1. Load locally cached submissions
+        try {
+          const rawLocal = localStorage.getItem('eduverse_local_submissions');
+          if (rawLocal) {
+            const localMap = JSON.parse(rawLocal);
+            Object.values(localMap).forEach((sub: any) => {
+              if (sub.student_id === studentDb.id && sub.assignment_id) {
+                subMap[sub.assignment_id] = sub;
+              }
+            });
+          }
+        } catch (lErr) {
+          console.warn('Error reading local submissions:', lErr);
+        }
+
+        // 2. Cloud submissions take precedence
         if (submissionsRes.data) {
-          const subMap: Record<string, AssignmentSubmission> = {};
           (submissionsRes.data as AssignmentSubmission[]).forEach((sub) => {
             subMap[sub.assignment_id] = sub;
           });
-          setSubmissions(subMap);
+        }
+        setSubmissions(subMap);
+
+        // 3. Background attempt to sync pending local submissions to cloud
+        try {
+          const rawLocal = localStorage.getItem('eduverse_local_submissions');
+          if (rawLocal) {
+            const localMap = JSON.parse(rawLocal);
+            const pendingSubs = Object.values(localMap).filter((s: any) => s.student_id === studentDb.id);
+            if (pendingSubs.length > 0) {
+              for (const pSub of pendingSubs) {
+                await supabase.from('assignment_submissions').upsert(pSub, { onConflict: 'assignment_id,student_id' });
+              }
+            }
+          }
+        } catch {
+          // Ignore background sync errors
         }
       }
     } catch (err: any) {

@@ -4,19 +4,30 @@ import {
   Upload, 
   FileText, 
   Image as ImageIcon, 
+  Camera,
+  Link2,
+  Globe,
   CheckCircle2, 
   AlertCircle, 
   Loader2, 
   Trash2, 
   Clock, 
   ExternalLink,
-  Eye,
-  Award,
-  MessageSquare
+  Eye, 
+  Award, 
+  MessageSquare,
+  Send,
+  Sparkles,
+  Plus,
+  Paperclip,
+  Check,
+  ChevronRight,
+  Info
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Assignment, AssignmentSubmission } from '../types';
-import { supabase } from '../lib/supabase';
+import { supabase, supabaseAnon } from '../lib/supabase';
+import { deleteFileFromAppwrite } from '../lib/appwrite';
 import { compressImageFile, formatFileSize, uploadSubmissionFile, CompressionResult } from '../utils/fileCompressor';
 
 interface StudentSubmissionModalProps {
@@ -42,17 +53,54 @@ export default function StudentSubmissionModal({
   const [isCompressing, setIsCompressing] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [previewModalOpen, setPreviewModalOpen] = useState(false);
   
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  // Link state
+  const [linkUrl, setLinkUrl] = useState('');
+  const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
+  const [linkInputVal, setLinkInputVal] = useState('');
+
+  // Attachment menu state
+  const [isAttachMenuOpen, setIsAttachMenuOpen] = useState(false);
+  const [previewModalOpen, setPreviewModalOpen] = useState(false);
+  const [isExistingFileRemoved, setIsExistingFileRemoved] = useState(false);
+
+  // Hidden native inputs
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
+  const pdfInputRef = useRef<HTMLInputElement>(null);
+  const attachMenuRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Close attach menu on click outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (attachMenuRef.current && !attachMenuRef.current.contains(e.target as Node)) {
+        setIsAttachMenuOpen(false);
+      }
+    };
+    if (isAttachMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isAttachMenuOpen]);
 
   useEffect(() => {
     if (isOpen && assignment) {
       setErrorMsg(null);
+      setIsAttachMenuOpen(false);
+      setIsLinkModalOpen(false);
+      setIsExistingFileRemoved(false);
+
       if (existingSubmission) {
         setTextResponse(existingSubmission.text_response || '');
+        setLinkUrl(existingSubmission.link || '');
+        setLinkInputVal(existingSubmission.link || '');
       } else {
         setTextResponse('');
+        setLinkUrl('');
+        setLinkInputVal('');
       }
       setSelectedFile(null);
       setCompressionResult(null);
@@ -71,6 +119,7 @@ export default function StudentSubmissionModal({
     if (!file) return;
 
     setErrorMsg(null);
+    setIsAttachMenuOpen(false);
 
     // Limit maximum raw file size to 25MB
     if (file.size > 25 * 1024 * 1024) {
@@ -112,15 +161,44 @@ export default function StudentSubmissionModal({
   const handleRemoveSelectedFile = () => {
     setSelectedFile(null);
     setCompressionResult(null);
-    if (fileInputRef.current) fileInputRef.current.value = '';
+    if (cameraInputRef.current) cameraInputRef.current.value = '';
+    if (galleryInputRef.current) galleryInputRef.current.value = '';
+    if (pdfInputRef.current) pdfInputRef.current.value = '';
+  };
+
+  const handleSaveLink = (e: React.FormEvent) => {
+    e.preventDefault();
+    let cleaned = linkInputVal.trim();
+    if (!cleaned) {
+      setLinkUrl('');
+      setIsLinkModalOpen(false);
+      return;
+    }
+    // Auto prepend https:// if missing
+    if (!/^https?:\/\//i.test(cleaned)) {
+      cleaned = `https://${cleaned}`;
+    }
+    setLinkUrl(cleaned);
+    setIsLinkModalOpen(false);
+  };
+
+  const handleRemoveLink = () => {
+    setLinkUrl('');
+    setLinkInputVal('');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!studentInfo?.id || !assignment?.id) return;
 
-    if (!textResponse.trim() && !selectedFile && !existingSubmission?.file_url) {
-      setErrorMsg('Silakan tulis jawaban tugas atau lampirkan berkas (gambar/PDF).');
+    const hasText = textResponse.trim().length > 0;
+    const hasNewFile = !!selectedFile;
+    const hasNewLink = linkUrl.trim().length > 0;
+    const hasOldFile = !!existingSubmission?.file_url && !isExistingFileRemoved;
+    const hasOldLink = !!existingSubmission?.link;
+
+    if (!hasText && !hasNewFile && !hasNewLink && !hasOldFile && !hasOldLink) {
+      setErrorMsg('Silakan ketik jawaban, lampirkan foto/PDF, atau sertakan tautan link tugas.');
       return;
     }
 
@@ -128,28 +206,40 @@ export default function StudentSubmissionModal({
       setSubmitting(true);
       setErrorMsg(null);
 
-      let finalFileUrl = existingSubmission?.file_url || null;
-      let finalFileName = existingSubmission?.file_name || null;
-      let finalFileType = existingSubmission?.file_type || null;
-      let finalFileSize = existingSubmission?.file_size || null;
+      let finalFileUrl = (!isExistingFileRemoved ? existingSubmission?.file_url : null) || null;
+      let finalFileName = (!isExistingFileRemoved ? existingSubmission?.file_name : null) || null;
+      let finalFileType = (!isExistingFileRemoved ? existingSubmission?.file_type : null) || null;
+      let finalFileSize = (!isExistingFileRemoved ? existingSubmission?.file_size : null) || null;
 
-      // If student selected a new file, upload it
+      // If student selected a new file, upload it (with automatic Base64 Data URL fallback)
       if (selectedFile) {
-        const folderPath = `${studentInfo.school_id || 'school'}/${assignment.id}`;
+        // Automatically delete previous file from Appwrite to keep storage quota clean
+        if (existingSubmission?.file_url && existingSubmission.file_url.includes('appwrite')) {
+          deleteFileFromAppwrite(existingSubmission.file_url).catch(() => {});
+        }
+
+        const schoolFolder = studentInfo.school_id || assignment.school_id || 'school';
+        const folderPath = `${schoolFolder}/${assignment.id}`;
         finalFileUrl = await uploadSubmissionFile(selectedFile, folderPath);
         finalFileName = selectedFile.name;
         finalFileType = selectedFile.type;
         finalFileSize = selectedFile.size;
+      } else if (isExistingFileRemoved && existingSubmission?.file_url) {
+        // If student removed old file without choosing a new one, clean up from Appwrite
+        if (existingSubmission.file_url.includes('appwrite')) {
+          deleteFileFromAppwrite(existingSubmission.file_url).catch(() => {});
+        }
       }
 
       const submissionPayload: Partial<AssignmentSubmission> = {
         assignment_id: assignment.id,
         student_id: studentInfo.id,
-        school_id: studentInfo.school_id || null,
+        school_id: studentInfo.school_id || assignment.school_id || null,
         class_id: studentInfo.class_id || assignment.class_id || null,
-        student_name: studentInfo.name || 'Siswa',
-        student_code: studentInfo.student_code || '',
+        student_name: studentInfo.name || studentInfo.nama || 'Siswa',
+        student_code: studentInfo.student_code || studentInfo.nisn || '',
         text_response: textResponse.trim() || undefined,
+        link: linkUrl.trim() || null,
         file_url: finalFileUrl,
         file_name: finalFileName,
         file_type: finalFileType,
@@ -159,12 +249,80 @@ export default function StudentSubmissionModal({
         updated_at: new Date().toISOString()
       };
 
-      const { error: upsertErr } = await supabase
-        .from('assignment_submissions')
-        .upsert(submissionPayload, { onConflict: 'assignment_id,student_id' });
+      // 1. Immediate local storage backup so student work is NEVER lost
+      const localKey = 'eduverse_local_submissions';
+      try {
+        const rawLocal = localStorage.getItem(localKey);
+        const localMap = rawLocal ? JSON.parse(rawLocal) : {};
+        const compositeKey = `${assignment.id}_${studentInfo.id}`;
+        localMap[compositeKey] = {
+          ...submissionPayload,
+          id: existingSubmission?.id || localMap[compositeKey]?.id || `sub_${Date.now()}`
+        };
+        localStorage.setItem(localKey, JSON.stringify(localMap));
+      } catch (locErr) {
+        console.warn('Could not cache submission in local storage:', locErr);
+      }
 
-      if (upsertErr) {
-        throw upsertErr;
+      // 2. Dual client cloud upload (try supabaseAnon first for pure anon role, then supabase)
+      let savedToCloud = false;
+      let cloudError: any = null;
+      const clients = [supabaseAnon, supabase];
+
+      for (const client of clients) {
+        if (savedToCloud) break;
+
+        // Try update first if existing submission has an ID
+        if (existingSubmission?.id) {
+          const { error: updErr } = await client
+            .from('assignment_submissions')
+            .update(submissionPayload)
+            .eq('id', existingSubmission.id);
+          
+          if (!updErr) {
+            savedToCloud = true;
+            break;
+          }
+        }
+
+        // Try upsert with onConflict
+        const { error: upsertErr } = await client
+          .from('assignment_submissions')
+          .upsert(submissionPayload, { onConflict: 'assignment_id,student_id' });
+
+        if (!upsertErr) {
+          savedToCloud = true;
+          break;
+        } else {
+          cloudError = upsertErr;
+        }
+
+        // Try insert directly
+        const { error: insertErr } = await client
+          .from('assignment_submissions')
+          .insert(submissionPayload);
+
+        if (!insertErr) {
+          savedToCloud = true;
+          break;
+        } else {
+          cloudError = insertErr;
+        }
+      }
+
+      if (!savedToCloud && cloudError) {
+        console.warn('Cloud submission could not be completed:', cloudError);
+        const isTableMissing = cloudError.code === 'PGRST205' || 
+          cloudError.message?.toLowerCase().includes('schema cache') ||
+          cloudError.message?.toLowerCase().includes('assignment_submissions');
+
+        if (isTableMissing) {
+          setErrorMsg('Tugas Anda telah tersimpan secara lokal di perangkat ini. Namun, tabel database "assignment_submissions" belum dibuat di Supabase Cloud. Mohon minta Guru/Admin untuk menjalankan SQL migrasi "add_assignment_submissions.sql" di Supabase SQL Editor.');
+          onSuccess();
+          return;
+        }
+
+        throw new Error(cloudError.message || 'Gagal menyimpan ke server');
       }
 
       onSuccess();
@@ -177,8 +335,34 @@ export default function StudentSubmissionModal({
     }
   };
 
+  const hasAnyContent = textResponse.trim().length > 0 || !!selectedFile || linkUrl.trim().length > 0 || !!existingSubmission?.file_url || !!existingSubmission?.link;
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/60 backdrop-blur-sm overflow-y-auto">
+      {/* Hidden Native File Inputs */}
+      <input
+        type="file"
+        ref={cameraInputRef}
+        onChange={handleFileChange}
+        accept="image/*"
+        capture="environment"
+        className="hidden"
+      />
+      <input
+        type="file"
+        ref={galleryInputRef}
+        onChange={handleFileChange}
+        accept="image/*"
+        className="hidden"
+      />
+      <input
+        type="file"
+        ref={pdfInputRef}
+        onChange={handleFileChange}
+        accept="application/pdf"
+        className="hidden"
+      />
+
       <motion.div 
         initial={{ opacity: 0, scale: 0.96 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -186,11 +370,12 @@ export default function StudentSubmissionModal({
         className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl border border-slate-100 overflow-hidden my-auto flex flex-col max-h-[92vh]"
       >
         {/* Modal Header */}
-        <div className="px-6 py-5 border-b border-slate-100 flex items-start justify-between gap-3 bg-gradient-to-r from-indigo-50/70 via-white to-blue-50/70">
+        <div className="px-6 py-4 border-b border-slate-100 flex items-start justify-between gap-3 bg-gradient-to-r from-indigo-50/80 via-white to-blue-50/80">
           <div>
             <div className="flex items-center gap-2 flex-wrap mb-1">
-              <span className="bg-indigo-600 text-white text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full">
-                Lembar Pengumpulan
+              <span className="inline-flex items-center gap-1 bg-gradient-to-r from-indigo-600 to-blue-600 text-white text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full shadow-2xs">
+                <Sparkles className="w-3 h-3 text-amber-300" />
+                Lembar Tugas Siswa
               </span>
               {hasDeadline && (
                 <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 border ${
@@ -201,7 +386,7 @@ export default function StudentSubmissionModal({
                 </span>
               )}
             </div>
-            <h3 className="text-xl font-bold text-slate-900 leading-snug">
+            <h3 className="text-lg sm:text-xl font-bold text-slate-900 leading-snug">
               {assignment.title}
             </h3>
           </div>
@@ -214,7 +399,7 @@ export default function StudentSubmissionModal({
         </div>
 
         {/* Modal Body */}
-        <form onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-5 flex-1 custom-scrollbar">
+        <form onSubmit={handleSubmit} className="p-5 sm:p-6 overflow-y-auto space-y-4 flex-1 custom-scrollbar">
           {/* Error Banner */}
           {errorMsg && (
             <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-2xl flex items-center gap-2.5 text-rose-700 text-xs font-semibold">
@@ -225,7 +410,7 @@ export default function StudentSubmissionModal({
 
           {/* Graded Feedback Banner (If already graded by teacher) */}
           {isGraded && (
-            <div className="p-4 bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200/80 rounded-2xl">
+            <div className="p-4 bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200/80 rounded-2xl shadow-xs">
               <div className="flex items-center justify-between gap-2 mb-2">
                 <span className="inline-flex items-center gap-1.5 text-xs font-extrabold text-emerald-800 uppercase tracking-wider">
                   <Award className="w-4 h-4 text-emerald-600" />
@@ -247,17 +432,17 @@ export default function StudentSubmissionModal({
             </div>
           )}
 
-          {/* Assignment Instructions / Description */}
+          {/* Teacher Assignment Instructions & Material Reference */}
           {assignment.description && (
-            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200/70 space-y-1.5">
-              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+            <div className="bg-slate-50/80 p-3.5 sm:p-4 rounded-2xl border border-slate-200/80 space-y-1.5">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
                 Petunjuk Pengerjaan Guru:
               </span>
               <p className="text-slate-700 text-xs sm:text-sm leading-relaxed whitespace-pre-line">
                 {assignment.description}
               </p>
               {assignment.link && (
-                <div className="pt-2">
+                <div className="pt-1.5">
                   <a 
                     href={assignment.link.startsWith('http') ? assignment.link : `https://${assignment.link}`}
                     target="_blank"
@@ -272,149 +457,301 @@ export default function StudentSubmissionModal({
             </div>
           )}
 
-          {/* Text Response Input */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-bold text-slate-700 flex items-center justify-between">
-              <span>Jawaban Tertulis / Catatan Jawaban</span>
-              <span className="text-[10px] font-semibold text-slate-400">(Opsional jika sudah melampirkan berkas)</span>
-            </label>
-            <textarea
-              rows={4}
-              value={textResponse}
-              onChange={(e) => setTextResponse(e.target.value)}
-              placeholder="Tuliskan jawaban tugas Anda di sini, penjelasan jawaban, atau catatan pengerjaan..."
-              className="w-full px-4 py-3 rounded-2xl border border-slate-200 text-xs sm:text-sm font-medium text-slate-800 placeholder:text-slate-400 outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100 transition-all resize-y"
-            />
-          </div>
-
-          {/* File Upload Section */}
+          {/* ========================================================= */}
+          {/* AI CHAT-STYLE SUBMISSION WORKSPACE (Prompt Box ala ChatGPT) */}
+          {/* ========================================================= */}
           <div className="space-y-2">
-            <label className="text-xs font-bold text-slate-700 block">
-              Lampiran Berkas (Foto / Gambar / PDF)
-            </label>
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                <span>Jawaban & Lampiran Tugas</span>
+                <span className="text-[10px] font-normal text-slate-400">(Teks, Foto Kamera, PDF, atau Link)</span>
+              </label>
+              {existingSubmission && (
+                <span className="text-[10px] font-medium text-emerald-600 flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3" /> Pernah dikumpulkan
+                </span>
+              )}
+            </div>
 
-            {/* Hidden native input */}
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleFileChange}
-              accept="image/*,application/pdf"
-              className="hidden"
-            />
-
-            {/* If a new file is chosen */}
-            {selectedFile ? (
-              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3 overflow-hidden">
+            {/* The Floating AI Prompt Container */}
+            <div className="relative bg-slate-50/70 hover:bg-white focus-within:bg-white border-2 border-slate-200/90 hover:border-indigo-300 focus-within:border-indigo-600 focus-within:ring-4 focus-within:ring-indigo-100/60 rounded-3xl p-3 sm:p-4 transition-all shadow-xs flex flex-col">
+              
+              {/* Attachment Preview Chips Row (Inside Chat Input) */}
+              <div className="flex flex-wrap items-center gap-2 mb-2 empty:hidden">
+                {/* 1. Newly Selected File Chip */}
+                {selectedFile && (
+                  <div className="flex items-center gap-2 bg-indigo-50/90 text-indigo-900 border border-indigo-200/80 px-3 py-1.5 rounded-2xl text-xs max-w-full">
                     {selectedFile.type.startsWith('image/') ? (
-                      <div className="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0">
-                        <ImageIcon className="w-5 h-5" />
-                      </div>
+                      <ImageIcon className="w-4 h-4 text-indigo-600 shrink-0" />
                     ) : (
-                      <div className="w-10 h-10 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
-                        <FileText className="w-5 h-5" />
-                      </div>
+                      <FileText className="w-4 h-4 text-rose-600 shrink-0" />
                     )}
-                    <div className="truncate">
-                      <p className="text-xs font-bold text-slate-800 truncate">{selectedFile.name}</p>
-                      <p className="text-[11px] text-slate-500">{formatFileSize(selectedFile.size)}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-1.5 shrink-0">
+                    <span className="font-semibold truncate max-w-[160px] sm:max-w-[220px]">
+                      {selectedFile.name}
+                    </span>
+                    <span className="text-[10px] text-indigo-500 font-mono">
+                      ({formatFileSize(selectedFile.size)})
+                    </span>
                     {compressionResult?.previewUrl && (
                       <button
                         type="button"
                         onClick={() => setPreviewModalOpen(true)}
-                        className="p-2 text-slate-600 hover:text-indigo-600 hover:bg-white rounded-xl transition-colors cursor-pointer"
-                        title="Lihat Pratinjau"
+                        className="p-1 hover:bg-indigo-100 rounded-lg text-indigo-600 cursor-pointer"
+                        title="Lihat Pratinjau Foto"
                       >
-                        <Eye className="w-4 h-4" />
+                        <Eye className="w-3.5 h-3.5" />
                       </button>
                     )}
                     <button
                       type="button"
                       onClick={handleRemoveSelectedFile}
-                      className="p-2 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer"
+                      className="p-1 hover:bg-rose-100 text-rose-500 rounded-lg transition-colors cursor-pointer"
                       title="Hapus Berkas"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <X className="w-3.5 h-3.5" />
                     </button>
                   </div>
-                </div>
-              </div>
-            ) : existingSubmission?.file_url ? (
-              /* If there is an existing submitted file from previous submission */
-              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3 overflow-hidden">
-                  <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
-                    {existingSubmission.file_type?.startsWith('image/') ? <ImageIcon className="w-5 h-5" /> : <FileText className="w-5 h-5" />}
-                  </div>
-                  <div className="truncate">
-                    <p className="text-xs font-bold text-slate-800 truncate">
-                      {existingSubmission.file_name || 'Berkas Terlampir'}
-                    </p>
-                    <span className="text-[10px] font-semibold text-emerald-600 flex items-center gap-1 mt-0.5">
-                      <CheckCircle2 className="w-3 h-3" /> Berkas sudah tersimpan di server
-                    </span>
-                  </div>
-                </div>
+                )}
 
-                <div className="flex items-center gap-2 shrink-0">
-                  <a
-                    href={existingSubmission.file_url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="px-3 py-1.5 bg-white border border-slate-200 hover:border-indigo-300 text-indigo-700 text-xs font-bold rounded-xl shadow-2xs hover:bg-slate-50 transition-all inline-flex items-center gap-1"
-                  >
-                    <span>Buka</span>
-                    <ExternalLink className="w-3 h-3" />
-                  </a>
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold rounded-xl transition-all cursor-pointer"
-                  >
-                    Ganti Berkas
-                  </button>
-                </div>
-              </div>
-            ) : (
-              /* Dropzone button to trigger file select */
-              <div
-                onClick={() => fileInputRef.current?.click()}
-                className="border-2 border-dashed border-slate-200 hover:border-indigo-400 bg-slate-50/50 hover:bg-indigo-50/30 rounded-2xl p-6 text-center cursor-pointer transition-all group"
-              >
-                {isCompressing ? (
-                  <div className="flex flex-col items-center justify-center space-y-2">
-                    <Loader2 className="w-6 h-6 text-indigo-600 animate-spin" />
-                    <p className="text-xs font-bold text-indigo-900">Memproses berkas...</p>
-                    <p className="text-[11px] text-slate-400">Mohon tunggu sebentar</p>
+                {/* 2. Existing File from Cloud Chip (if not replaced and not removed) */}
+                {existingSubmission?.file_url && !selectedFile && !isExistingFileRemoved && (
+                  <div className="flex items-center gap-2 bg-slate-100 text-slate-800 border border-slate-300 px-3 py-1.5 rounded-2xl text-xs max-w-full">
+                    {existingSubmission.file_type?.startsWith('image/') ? (
+                      <ImageIcon className="w-4 h-4 text-indigo-600 shrink-0" />
+                    ) : (
+                      <FileText className="w-4 h-4 text-rose-600 shrink-0" />
+                    )}
+                    <span className="font-semibold truncate max-w-[160px] sm:max-w-[200px]">
+                      {existingSubmission.file_name || 'Berkas Terlampir'}
+                    </span>
+                    <a
+                      href={existingSubmission.file_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="p-1 hover:bg-slate-200 text-indigo-600 rounded-lg cursor-pointer"
+                      title="Buka Berkas"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => galleryInputRef.current?.click()}
+                      className="text-[10px] font-bold text-indigo-600 hover:underline cursor-pointer pl-1"
+                    >
+                      Ganti
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsExistingFileRemoved(true)}
+                      className="p-1 hover:bg-rose-100 text-rose-500 rounded-lg transition-colors cursor-pointer"
+                      title="Hapus Berkas Ini"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
                   </div>
-                ) : (
-                  <div className="space-y-1.5">
-                    <div className="w-10 h-10 mx-auto rounded-2xl bg-indigo-50 group-hover:bg-indigo-100 text-indigo-600 flex items-center justify-center transition-colors">
-                      <Upload className="w-5 h-5" />
-                    </div>
-                    <p className="text-xs font-bold text-slate-800">
-                      Klik untuk Ambil Foto / Pilih Dokumen
-                    </p>
-                    <p className="text-[11px] text-slate-400">
-                      Mendukung Foto Lembar Tugas (JPG/PNG) & Dokumen PDF (Maks 10 MB)
-                    </p>
+                )}
+
+                {/* 3. External Link Chip */}
+                {linkUrl && (
+                  <div className="flex items-center gap-2 bg-violet-50 text-violet-900 border border-violet-200 px-3 py-1.5 rounded-2xl text-xs max-w-full">
+                    <Globe className="w-4 h-4 text-violet-600 shrink-0" />
+                    <span className="font-semibold truncate max-w-[160px] sm:max-w-[220px]">
+                      {linkUrl}
+                    </span>
+                    <a
+                      href={linkUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="p-1 hover:bg-violet-100 text-violet-600 rounded-lg cursor-pointer"
+                      title="Tes Buka Tautan"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
+                    <button
+                      type="button"
+                      onClick={handleRemoveLink}
+                      className="p-1 hover:bg-rose-100 text-rose-500 rounded-lg transition-colors cursor-pointer"
+                      title="Hapus Tautan"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
                   </div>
                 )}
               </div>
-            )}
+
+              {/* Text Area (Spacious Chat Input) */}
+              <textarea
+                ref={textareaRef}
+                rows={4}
+                value={textResponse}
+                onChange={(e) => setTextResponse(e.target.value)}
+                placeholder="Tuliskan jawaban tugas Anda di sini, ketik penjelasan, atau klik tombol (+) di bawah untuk melampirkan foto kamera, gambar galeri, dokumen PDF, atau tautan (Google Drive / Canva)..."
+                className="w-full bg-transparent text-xs sm:text-sm font-medium text-slate-800 placeholder:text-slate-400 outline-none resize-none min-h-[90px] leading-relaxed"
+              />
+
+              {/* Bottom Action Bar inside Prompt Box */}
+              <div className="pt-3 mt-1 border-t border-slate-200/60 flex items-center justify-between gap-2">
+                {/* Left Side: Plus Button & Quick Shortcuts */}
+                <div className="flex items-center gap-2 relative" ref={attachMenuRef}>
+                  {/* The Plus (+) Button with Rotating Animation */}
+                  <button
+                    type="button"
+                    onClick={() => setIsAttachMenuOpen(!isAttachMenuOpen)}
+                    className={`w-9 h-9 rounded-full flex items-center justify-center transition-all cursor-pointer shadow-xs ${
+                      isAttachMenuOpen
+                        ? 'bg-indigo-600 text-white rotate-45 scale-105'
+                        : 'bg-white hover:bg-indigo-50 text-slate-600 hover:text-indigo-600 border border-slate-200 hover:border-indigo-300'
+                    }`}
+                    title="Tambah Lampiran (Kamera, Galeri, Dokumen, Link)"
+                  >
+                    <Plus className="w-5 h-5 transition-transform" />
+                  </button>
+
+                  {/* Popover Attachment Menu */}
+                  <AnimatePresence>
+                    {isAttachMenuOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                        transition={{ duration: 0.15 }}
+                        className="absolute bottom-12 left-0 w-64 bg-white/98 backdrop-blur-md rounded-2xl shadow-xl border border-slate-200/90 p-2 z-40 space-y-1"
+                      >
+                        <div className="px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-slate-400">
+                          Pilih Jenis Lampiran
+                        </div>
+
+                        {/* 1. Kamera Langsung */}
+                        <button
+                          type="button"
+                          onClick={() => cameraInputRef.current?.click()}
+                          className="w-full flex items-center gap-3 p-2.5 rounded-xl hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 transition-colors text-left cursor-pointer group"
+                        >
+                          <div className="w-8 h-8 rounded-lg bg-emerald-100 group-hover:bg-emerald-200 text-emerald-600 flex items-center justify-center shrink-0">
+                            <Camera className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <p className="text-xs font-bold leading-tight">Ambil Foto (Kamera)</p>
+                            <p className="text-[10px] text-slate-400">Jepret langsung lembar tugas</p>
+                          </div>
+                        </button>
+
+                        {/* 2. Galeri Foto */}
+                        <button
+                          type="button"
+                          onClick={() => galleryInputRef.current?.click()}
+                          className="w-full flex items-center gap-3 p-2.5 rounded-xl hover:bg-indigo-50 text-slate-700 hover:text-indigo-700 transition-colors text-left cursor-pointer group"
+                        >
+                          <div className="w-8 h-8 rounded-lg bg-indigo-100 group-hover:bg-indigo-200 text-indigo-600 flex items-center justify-center shrink-0">
+                            <ImageIcon className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <p className="text-xs font-bold leading-tight">Galeri Gambar</p>
+                            <p className="text-[10px] text-slate-400">Pilih berkas JPG, PNG, WebP</p>
+                          </div>
+                        </button>
+
+                        {/* 3. Dokumen PDF */}
+                        <button
+                          type="button"
+                          onClick={() => pdfInputRef.current?.click()}
+                          className="w-full flex items-center gap-3 p-2.5 rounded-xl hover:bg-rose-50 text-slate-700 hover:text-rose-700 transition-colors text-left cursor-pointer group"
+                        >
+                          <div className="w-8 h-8 rounded-lg bg-rose-100 group-hover:bg-rose-200 text-rose-600 flex items-center justify-center shrink-0">
+                            <FileText className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <p className="text-xs font-bold leading-tight">Dokumen PDF</p>
+                            <p className="text-[10px] text-slate-400">Unggah berkas lembar PDF</p>
+                          </div>
+                        </button>
+
+                        {/* 4. Tautan Link */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsAttachMenuOpen(false);
+                            setIsLinkModalOpen(true);
+                          }}
+                          className="w-full flex items-center gap-3 p-2.5 rounded-xl hover:bg-violet-50 text-slate-700 hover:text-violet-700 transition-colors text-left cursor-pointer group"
+                        >
+                          <div className="w-8 h-8 rounded-lg bg-violet-100 group-hover:bg-violet-200 text-violet-600 flex items-center justify-center shrink-0">
+                            <Link2 className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <p className="text-xs font-bold leading-tight">Tautan Link</p>
+                            <p className="text-[10px] text-slate-400">Google Drive, Canva, Docs, dll</p>
+                          </div>
+                        </button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  {/* Desktop Quick Badges (Optional fast shortcuts) */}
+                  <div className="hidden sm:flex items-center gap-1.5 pl-1 text-[11px] text-slate-400">
+                    <button
+                      type="button"
+                      onClick={() => cameraInputRef.current?.click()}
+                      className="p-1.5 hover:bg-slate-200/60 rounded-lg text-slate-500 hover:text-emerald-600 transition-colors"
+                      title="Ambil Kamera"
+                    >
+                      <Camera className="w-4 h-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => galleryInputRef.current?.click()}
+                      className="p-1.5 hover:bg-slate-200/60 rounded-lg text-slate-500 hover:text-indigo-600 transition-colors"
+                      title="Galeri Gambar"
+                    >
+                      <ImageIcon className="w-4 h-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => pdfInputRef.current?.click()}
+                      className="p-1.5 hover:bg-slate-200/60 rounded-lg text-slate-500 hover:text-rose-600 transition-colors"
+                      title="Dokumen PDF"
+                    >
+                      <FileText className="w-4 h-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsLinkModalOpen(true)}
+                      className="p-1.5 hover:bg-slate-200/60 rounded-lg text-slate-500 hover:text-violet-600 transition-colors"
+                      title="Sematkan Link"
+                    >
+                      <Link2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Right Side: Send / Submit Button (Ala AI Chat Send Icon) */}
+                <button
+                  type="submit"
+                  disabled={submitting || isCompressing || !hasAnyContent}
+                  className="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 active:scale-95 text-white font-bold text-xs shadow-md shadow-indigo-200/70 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
+                >
+                  {submitting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Mengirimkan...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>{existingSubmission ? 'Perbarui Tugas' : 'Kirim Tugas'}</span>
+                      <Send className="w-3.5 h-3.5" />
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
           </div>
 
           {/* Submission Timing Notes */}
           {existingSubmission && (
-            <div className="text-[11px] text-slate-400 flex items-center gap-1.5 pt-1">
-              <Clock className="w-3.5 h-3.5 text-slate-400" />
-              <span>
-                Terakhir dikumpulkan: {new Date(existingSubmission.submitted_at || '').toLocaleString('id-ID', {
+            <div className="text-[11px] text-slate-400 flex items-center justify-between pt-1 px-1">
+              <span className="flex items-center gap-1.5">
+                <Clock className="w-3.5 h-3.5 text-slate-400" />
+                Terakhir dikirim: {new Date(existingSubmission.submitted_at || '').toLocaleString('id-ID', {
                   day: 'numeric',
                   month: 'short',
                   year: 'numeric',
@@ -422,36 +759,88 @@ export default function StudentSubmissionModal({
                   minute: '2-digit'
                 })}
               </span>
+              <button
+                type="button"
+                onClick={onClose}
+                className="text-slate-400 hover:text-slate-700 text-xs font-semibold cursor-pointer"
+              >
+                Batal
+              </button>
             </div>
           )}
-
-          {/* Modal Footer Buttons */}
-          <div className="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={submitting}
-              className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 font-bold text-xs transition-colors cursor-pointer"
-            >
-              Tutup
-            </button>
-            <button
-              type="submit"
-              disabled={submitting || isCompressing}
-              className="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-bold text-xs shadow-md shadow-indigo-200 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
-            >
-              {submitting ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Mengirimkan Tugas...</span>
-                </>
-              ) : (
-                <span>{existingSubmission ? 'Perbarui Pengumpulan' : 'Kirim Tugas Sekarang'}</span>
-              )}
-            </button>
-          </div>
         </form>
       </motion.div>
+
+      {/* ========================================================= */}
+      {/* LINK INPUT MODAL / DIALOG */}
+      {/* ========================================================= */}
+      {isLinkModalOpen && (
+        <div className="fixed inset-0 z-60 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-3xl shadow-2xl border border-slate-100 max-w-md w-full p-6 space-y-4"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-violet-100 text-violet-600 flex items-center justify-center">
+                  <Link2 className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-slate-900">Sematkan Tautan Tugas</h4>
+                  <p className="text-[11px] text-slate-400">Google Drive, Canva, Docs, Figma, dll.</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsLinkModalOpen(false)}
+                className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveLink} className="space-y-4">
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1.5">
+                  URL / Alamat Link
+                </label>
+                <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl border border-slate-200 focus-within:border-indigo-600 focus-within:ring-2 focus-within:ring-indigo-100 bg-slate-50/50">
+                  <Globe className="w-4 h-4 text-slate-400 shrink-0" />
+                  <input
+                    type="text"
+                    value={linkInputVal}
+                    onChange={(e) => setLinkInputVal(e.target.value)}
+                    placeholder="https://drive.google.com/file/d/..."
+                    autoFocus
+                    className="w-full bg-transparent text-xs font-medium text-slate-800 placeholder:text-slate-400 outline-none"
+                  />
+                </div>
+                <p className="text-[11px] text-slate-400 mt-1.5 flex items-start gap-1">
+                  <Info className="w-3.5 h-3.5 shrink-0 text-slate-400 mt-0.5" />
+                  <span>Pastikan setelan link dapat diakses oleh siapa saja (publik/bukan privat) agar guru dapat melihatnya.</span>
+                </p>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsLinkModalOpen(false)}
+                  className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white text-xs font-bold shadow-xs transition-all cursor-pointer"
+                >
+                  Terapkan Tautan
+                </button>
+              </div>
+            </form>
+          </motion.div>
+        </div>
+      )}
 
       {/* Image Preview Sub-Modal */}
       {previewModalOpen && compressionResult?.previewUrl && (

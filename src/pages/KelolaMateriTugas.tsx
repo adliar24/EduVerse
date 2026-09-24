@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { supabase } from '../lib/supabase';
+import { deleteFileFromAppwrite } from '../lib/appwrite';
 import { 
   BookOpen, 
   FileText, 
@@ -65,6 +66,7 @@ export default function KelolaMateriTugas() {
   const [materials, setMaterials] = useState<Material[]>([]);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [allSubmissions, setAllSubmissions] = useState<AssignmentSubmission[]>([]);
+  const [isSubmissionTableMissing, setIsSubmissionTableMissing] = useState(false);
 
   // Review Modal State
   const [selectedReviewAssignment, setSelectedReviewAssignment] = useState<Assignment | null>(null);
@@ -160,14 +162,37 @@ export default function KelolaMateriTugas() {
 
       // Fetch submissions for statistics
       try {
-        const { data: subData } = await supabase
+        const { data: subData, error: subErr } = await supabase
           .from('assignment_submissions')
           .select('*');
-        if (subData && isMountedRef.current) {
+        if (subErr) {
+          if (subErr.code === 'PGRST205' || subErr.message?.toLowerCase().includes('schema cache')) {
+            setIsSubmissionTableMissing(true);
+          }
+        } else if (subData && isMountedRef.current) {
+          setIsSubmissionTableMissing(false);
           setAllSubmissions(subData as AssignmentSubmission[]);
         }
       } catch (subErr) {
         console.warn('Could not fetch assignment_submissions:', subErr);
+      }
+
+      // Check and merge local submissions if available
+      try {
+        const rawLocal = localStorage.getItem('eduverse_local_submissions');
+        if (rawLocal && isMountedRef.current) {
+          const localMap = JSON.parse(rawLocal);
+          const localList = Object.values(localMap) as AssignmentSubmission[];
+          if (localList.length > 0) {
+            setAllSubmissions(prev => {
+              const existingKeys = new Set(prev.map(p => `${p.assignment_id}_${p.student_id}`));
+              const toAdd = localList.filter(l => !existingKeys.has(`${l.assignment_id}_${l.student_id}`));
+              return [...prev, ...toAdd];
+            });
+          }
+        }
+      } catch (locErr) {
+        console.warn('Local submissions merge failed:', locErr);
       }
 
       // Background pull from Supabase Cloud to update local databases
@@ -627,6 +652,16 @@ export default function KelolaMateriTugas() {
             }
           }
 
+          // 3. Clean up any associated submission files from Appwrite Storage
+          if (activeTab === 'assignments') {
+            const subsToDelete = allSubmissions.filter(s => dbIdsToDelete.includes(s.assignment_id));
+            subsToDelete.forEach(s => {
+              if (s.file_url && s.file_url.includes('appwrite')) {
+                deleteFileFromAppwrite(s.file_url).catch(() => {});
+              }
+            });
+          }
+
           showAlert({ title: 'Terhapus', message: `${dbIdsToDelete.length} data berhasil dihapus dari cloud dan penyimpanan lokal.`, type: 'success' });
           setSelectedIds([]);
           fetchData();
@@ -662,6 +697,36 @@ export default function KelolaMateriTugas() {
           </button>
         </div>
       </div>
+
+      {/* Missing Cloud Table Warning */}
+      {isSubmissionTableMissing && (
+        <div className="p-4 bg-amber-50 border border-amber-200/80 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-3 text-amber-900 shadow-xs">
+          <div className="flex items-start md:items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-amber-100 flex items-center justify-center shrink-0 text-amber-700">
+              <AlertCircle className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="font-bold text-sm text-amber-900">Perhatian: Tabel Pengumpulan Tugas Belum Aktif di Supabase</p>
+              <p className="text-xs text-amber-700 mt-0.5">
+                Tabel <code>assignment_submissions</code> belum tersedia di cloud. Jalankan file <code>migrations/add_assignment_submissions.sql</code> di Supabase SQL Editor agar pengumpulan tugas murid tersimpan di cloud.
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              showAlert({
+                title: 'Langkah Migrasi SQL Supabase',
+                message: '1. Buka Supabase Dashboard > SQL Editor.\n2. Buka dan salin seluruh isi file migrations/add_assignment_submissions.sql.\n3. Tempel di SQL Editor dan klik tombol "Run".\n\nSetelah itu, tabel pengumpulan dan bucket storage akan aktif!',
+                type: 'info'
+              });
+            }}
+            className="px-4 py-2 bg-amber-600 hover:bg-amber-700 active:scale-95 text-white font-bold text-xs rounded-xl shadow-xs transition-all shrink-0 cursor-pointer text-center"
+          >
+            Petunjuk Migrasi
+          </button>
+        </div>
+      )}
 
       {/* Tabs & Class Filter */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-2">
