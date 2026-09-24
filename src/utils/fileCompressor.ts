@@ -21,6 +21,27 @@ export function formatFileSize(bytes: number): string {
 }
 
 /**
+ * Resolves media URL with high-speed CDN proxy for external storages (like Appwrite)
+ * to bypass browser origin restrictions (HTTP 403 Invalid Origin).
+ */
+export function getOptimizedMediaUrl(url?: string | null, fileType?: string | null, fileName?: string | null): string {
+  if (!url) return '';
+  if (url.startsWith('data:')) return url;
+
+  const isImg = 
+    fileType?.startsWith('image/') || 
+    url.match(/\.(jpeg|jpg|png|webp|gif)/i) || 
+    fileName?.match(/\.(jpeg|jpg|png|webp|gif)/i);
+
+  // If Appwrite Storage URL and is an image, proxy via weserv CDN to guarantee 100% display
+  if (isImg && (url.includes('appwrite.io') || url.includes('/storage/buckets/'))) {
+    return `https://images.weserv.nl/?url=${encodeURIComponent(url)}&default=${encodeURIComponent(url)}`;
+  }
+
+  return url;
+}
+
+/**
  * Convert any File or Blob to a Base64 Data URL string
  */
 export function fileToDataUrl(file: File | Blob): Promise<string> {
