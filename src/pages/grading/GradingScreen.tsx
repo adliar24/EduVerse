@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { 
   Mic, MicOff, FileText, Download, Upload, 
-  Camera, CheckSquare, Square, Loader2
+  Camera, CheckSquare, Square, Loader2, Save
 } from 'lucide-react';
 import { Student, Meeting, MeetingScore } from '../../types';
 import * as db from '../../services/dbGrading';
@@ -22,6 +22,7 @@ export const GradingScreen: React.FC = () => {
   const [scores, setScores] = useState<Record<string, MeetingScore>>({});
   const [loading, setLoading] = useState(true);
   const [isImporting, setIsImporting] = useState(false);
+  const [isSavingAll, setIsSavingAll] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Voice State
@@ -295,7 +296,7 @@ export const GradingScreen: React.FC = () => {
 
   const handleApplyBulkScore = async () => {
     if (selectedStudentIds.size === 0) {
-      showToast("Pilih siswa terlebih dahulu", "warning");
+      showToast("Pilih murid terlebih dahulu", "warning");
       return;
     }
     let val: number | null = null;
@@ -325,9 +326,34 @@ export const GradingScreen: React.FC = () => {
     
     await Promise.all(savePromises);
     setScores(newScores);
-    showToast(`Berhasil mengisi ${selectedStudentIds.size} siswa`);
+    showToast(`Berhasil mengisi ${selectedStudentIds.size} murid`);
     setBulkScore('');
     setSelectedStudentIds(new Set());
+  };
+
+  const handleSaveAllScores = async () => {
+    try {
+      setIsSavingAll(true);
+      const profile = await db.getTeacherProfile();
+      const schoolId = profile?.activeSchoolId || '';
+      
+      const savePromises = Object.values(scores).map(score => {
+        const payload = {
+          ...score,
+          schoolId: score.schoolId || schoolId,
+          lastUpdated: Date.now()
+        };
+        return db.saveScore(payload);
+      });
+      await Promise.all(savePromises);
+      
+      showToast("Semua nilai murid berhasil disimpan ke database!", "success");
+    } catch (err: any) {
+      console.error("Error saving scores:", err);
+      showToast("Gagal menyimpan nilai: " + (err.message || "Terjadi kesalahan"), "error");
+    } finally {
+      setIsSavingAll(false);
+    }
   };
 
   if (loading || !meeting) return <Layout><div className="p-20 text-center"><Loader2 className="animate-spin mx-auto"/></div></Layout>;
@@ -387,6 +413,15 @@ export const GradingScreen: React.FC = () => {
                 </div>
 
                 <div className="flex items-center gap-2 flex-wrap justify-center md:justify-end w-full md:w-auto">
+                   <button
+                      onClick={handleSaveAllScores}
+                      disabled={isSavingAll}
+                      className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black text-[10px] uppercase tracking-widest shadow-md shadow-emerald-500/20 transition-all cursor-pointer disabled:opacity-50"
+                      title="Simpan Semua Nilai Murid"
+                   >
+                      {isSavingAll ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                      <span>{isSavingAll ? 'Menyimpan...' : 'Simpan Nilai'}</span>
+                   </button>
                    <button 
                       onClick={toggleListening}
                       className={`flex items-center gap-2 px-3 py-2 rounded-full border-2 transition-all ${isListening ? 'bg-red-500 border-red-400 text-white' : 'bg-white border-slate-200 text-slate-600 hover:border-[#3B66F5]'}`}

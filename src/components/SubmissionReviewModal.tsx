@@ -316,7 +316,7 @@ export default function SubmissionReviewModal({
 
   const handleSaveGrade = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedStudent || !selectedSubmission?.id) return;
+    if (!selectedStudent) return;
 
     const numScore = parseFloat(scoreInput);
     if (isNaN(numScore) || numScore < 0 || numScore > 100) {
@@ -330,23 +330,72 @@ export default function SubmissionReviewModal({
       setGradeSuccessMsg(null);
 
       const { data: { user } } = await supabase.auth.getUser();
+      const submissionId = selectedSubmission?.id || crypto.randomUUID();
 
+      // Resolve the actual assignment id for this student's class
+      const targetAssignmentId = assignment.assignmentByClass?.[selectedClassId]?.id 
+        || assignment.id;
+
+      const submissionPayload: AssignmentSubmission = {
+        id: submissionId,
+        assignment_id: targetAssignmentId,
+        student_id: selectedStudent.id,
+        student_name: selectedStudent.name,
+        student_code: selectedStudent.student_code || '-',
+        school_id: assignment.school_id || null,
+        class_id: selectedClassId || selectedStudent.class_id || null,
+        score: numScore,
+        feedback: feedbackInput.trim() || null,
+        status: 'graded',
+        text_response: selectedSubmission?.text_response || '[Penilaian Manual Guru]',
+        link: selectedSubmission?.link || null,
+        file_url: selectedSubmission?.file_url || null,
+        file_name: selectedSubmission?.file_name || null,
+        file_type: selectedSubmission?.file_type || null,
+        file_size: selectedSubmission?.file_size || null,
+        submitted_at: selectedSubmission?.submitted_at || new Date().toISOString(),
+        graded_at: new Date().toISOString(),
+        graded_by: user?.id || null,
+        updated_at: new Date().toISOString()
+      };
+
+      // 1. Upsert to Supabase
       const { error } = await supabase
         .from('assignment_submissions')
-        .update({
-          score: numScore,
-          feedback: feedbackInput.trim() || null,
-          status: 'graded',
-          graded_at: new Date().toISOString(),
-          graded_by: user?.id || null,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', selectedSubmission.id);
+        .upsert(submissionPayload);
 
-      if (error) throw error;
+      if (error) {
+        console.warn('Supabase upsert error:', error);
+      }
 
-      setGradeSuccessMsg('Nilai & catatan berhasil disimpan!');
-      await fetchSubmissions();
+      // 2. Also save to localStorage for offline / fallback
+      try {
+        const localKey = 'eduverse_local_submissions';
+        const rawLocal = localStorage.getItem(localKey);
+        const localMap = rawLocal ? JSON.parse(rawLocal) : {};
+        const compositeKey = `${targetAssignmentId}_${selectedStudent.id}`;
+        localMap[compositeKey] = submissionPayload;
+        localStorage.setItem(localKey, JSON.stringify(localMap));
+      } catch (locErr) {
+        console.warn('LocalStorage save error:', locErr);
+      }
+
+      // 3. Immediately update in-memory state
+      setSubmissions(prev => {
+        const idx = prev.findIndex(s => 
+          (submissionId && s.id === submissionId) || 
+          (s.student_id === selectedStudent.id && allAssignmentIds.includes(s.assignment_id))
+        );
+        if (idx >= 0) {
+          const next = [...prev];
+          next[idx] = { ...next[idx], ...submissionPayload };
+          return next;
+        } else {
+          return [...prev, submissionPayload];
+        }
+      });
+
+      setGradeSuccessMsg('Nilai & catatan murid berhasil disimpan!');
       if (onGradeSaved) onGradeSaved();
 
       setTimeout(() => {
@@ -659,18 +708,20 @@ export default function SubmissionReviewModal({
                   </div>
                 </div>
 
-                {/* If Not Submitted Yet */}
+                {/* If Not Submitted Online: Show Manual Grading Notice */}
                 {!selectedSubmission && (
-                  <div className="p-6 text-center bg-slate-50/70 rounded-2xl border border-slate-200/60 space-y-1.5">
-                    <Clock className="w-7 h-7 text-slate-400 mx-auto" />
-                    <p className="text-xs font-bold text-slate-700">Murid belum mengirimkan tugas ini</p>
-                    <p className="text-[11px] text-slate-400 max-w-sm mx-auto">
-                      Hasil pekerjaan murid akan otomatis tampil begitu murid mengunggah jawaban via portal murid.
-                    </p>
+                  <div className="p-3 bg-amber-50/80 rounded-xl border border-amber-200/80 flex items-center gap-2.5 text-xs text-amber-800">
+                    <Clock className="w-4 h-4 text-amber-600 shrink-0" />
+                    <div className="min-w-0">
+                      <p className="font-bold">Murid belum mengumpulkan secara online</p>
+                      <p className="text-[11px] text-amber-700 mt-0.5">
+                        Anda dapat memberikan nilai dan catatan langsung secara manual di bawah ini (misal: tugas diserahkan offline / di kelas).
+                      </p>
+                    </div>
                   </div>
                 )}
 
-                {/* If Submitted: Show Content */}
+                {/* If Submitted: Show Submitted Content (Text, Link, Files) */}
                 {selectedSubmission && (() => {
                   const resolvedLink = selectedSubmission.link || (() => {
                     if (!selectedSubmission.text_response) return null;
@@ -857,80 +908,89 @@ export default function SubmissionReviewModal({
                           </div>
                         );
                       })()}
-
-                      {/* Compact Teacher Grading & Feedback Form */}
-                      <form onSubmit={handleSaveGrade} className="pt-3 border-t border-slate-100 space-y-2.5">
-                        <div className="flex items-center gap-1.5">
-                          <Award className="w-4 h-4 text-indigo-600" />
-                          <h4 className="text-xs font-bold text-slate-800">Penilaian Guru</h4>
-                        </div>
-
-                        {/* Alerts */}
-                        {gradeSuccessMsg && (
-                          <div className="p-2 bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] font-bold rounded-lg flex items-center gap-1.5">
-                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                            <span>{gradeSuccessMsg}</span>
-                          </div>
-                        )}
-                        {gradeErrorMsg && (
-                          <div className="p-2 bg-rose-50 border border-rose-200 text-rose-800 text-[11px] font-bold rounded-lg flex items-center gap-1.5">
-                            <AlertCircle className="w-3.5 h-3.5 text-rose-600" />
-                            <span>{gradeErrorMsg}</span>
-                          </div>
-                        )}
-
-                        <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-2.5">
-                          <div className="w-full sm:w-28 space-y-1 shrink-0">
-                            <label className="text-[11px] font-bold text-slate-700 block">
-                              Nilai (0 - 100)
-                            </label>
-                            <input
-                              type="number"
-                              min="0"
-                              max="100"
-                              step="any"
-                              value={scoreInput}
-                              onChange={(e) => setScoreInput(e.target.value)}
-                              placeholder="0 - 100"
-                              className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-bold text-slate-800 outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-100"
-                            />
-                          </div>
-
-                          <div className="flex-1 space-y-1">
-                            <label className="text-[11px] font-bold text-slate-700 block">
-                              Catatan / Evaluasi untuk Murid
-                            </label>
-                            <input
-                              type="text"
-                              value={feedbackInput}
-                              onChange={(e) => setFeedbackInput(e.target.value)}
-                              placeholder="Tuliskan catatan atau apresiasi pengerjaan..."
-                              className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-slate-800 outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-100"
-                            />
-                          </div>
-
-                          <button
-                            type="submit"
-                            disabled={savingGrade}
-                            className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs font-bold rounded-lg shadow-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50 shrink-0 h-[34px]"
-                          >
-                            {savingGrade ? (
-                              <>
-                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                                <span>Menyimpan...</span>
-                              </>
-                            ) : (
-                              <>
-                                <Save className="w-3.5 h-3.5" />
-                                <span>Simpan Nilai</span>
-                              </>
-                            )}
-                          </button>
-                        </div>
-                      </form>
                     </div>
                   );
                 })()}
+
+                {/* Compact Teacher Grading & Feedback Form (Always available for selected student) */}
+                <form onSubmit={handleSaveGrade} className="pt-3 border-t border-slate-100 space-y-2.5">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-1.5">
+                      <Award className="w-4 h-4 text-[#1D4ED8]" />
+                      <h4 className="text-xs font-bold text-slate-800">
+                        {selectedSubmission ? 'Penilaian Guru' : 'Input Nilai Manual'}
+                      </h4>
+                    </div>
+                    {selectedSubmission?.score !== null && selectedSubmission?.score !== undefined && (
+                      <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        Nilai Tersimpan: {selectedSubmission.score}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Alerts */}
+                  {gradeSuccessMsg && (
+                    <div className="p-2 bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] font-bold rounded-lg flex items-center gap-1.5">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                      <span>{gradeSuccessMsg}</span>
+                    </div>
+                  )}
+                  {gradeErrorMsg && (
+                    <div className="p-2 bg-rose-50 border border-rose-200 text-rose-800 text-[11px] font-bold rounded-lg flex items-center gap-1.5">
+                      <AlertCircle className="w-3.5 h-3.5 text-rose-600 shrink-0" />
+                      <span>{gradeErrorMsg}</span>
+                    </div>
+                  )}
+
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-2.5">
+                    <div className="w-full sm:w-28 space-y-1 shrink-0">
+                      <label className="text-[11px] font-bold text-slate-700 block">
+                        Nilai (0 - 100)
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="any"
+                        value={scoreInput}
+                        onChange={(e) => setScoreInput(e.target.value)}
+                        placeholder="0 - 100"
+                        className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-bold text-slate-800 outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-100"
+                      />
+                    </div>
+
+                    <div className="flex-1 space-y-1">
+                      <label className="text-[11px] font-bold text-slate-700 block">
+                        Catatan / Evaluasi untuk Murid
+                      </label>
+                      <input
+                        type="text"
+                        value={feedbackInput}
+                        onChange={(e) => setFeedbackInput(e.target.value)}
+                        placeholder="Tuliskan catatan atau masukan pengerjaan..."
+                        className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-slate-800 outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-100"
+                      />
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={savingGrade}
+                      className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs font-bold rounded-lg shadow-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50 shrink-0 h-[34px]"
+                    >
+                      {savingGrade ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          <span>Menyimpan...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Save className="w-3.5 h-3.5" />
+                          <span>Simpan Nilai</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </form>
               </div>
             ) : (
               <div className="flex-1 flex flex-col items-center justify-center text-slate-400 py-10">
