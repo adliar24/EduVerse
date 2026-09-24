@@ -586,6 +586,7 @@ export default function StudentSubmissionModal({
                       href={existingSubmission.file_url}
                       target="_blank"
                       rel="noreferrer"
+                      referrerPolicy="no-referrer"
                       className="p-1 hover:bg-slate-200 text-indigo-600 rounded-lg cursor-pointer"
                       title="Buka Berkas"
                     >

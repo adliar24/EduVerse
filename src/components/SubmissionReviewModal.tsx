@@ -55,6 +55,7 @@ export default function SubmissionReviewModal({
 
   // Full image preview
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
+  const [imgLoadError, setImgLoadError] = useState(false);
 
   useEffect(() => {
     if (isOpen && assignment?.id) {
@@ -179,6 +180,7 @@ export default function SubmissionReviewModal({
       }
       setGradeSuccessMsg(null);
       setGradeErrorMsg(null);
+      setImgLoadError(false);
     }
   }, [selectedStudentId, submissionMap]);
 
@@ -549,36 +551,61 @@ export default function SubmissionReviewModal({
                          selectedSubmission.file_url.startsWith('data:image/') ||
                          selectedSubmission.file_url.match(/\.(jpeg|jpg|png|webp)/i) ? (
                           <div className="bg-slate-900/5 p-4 rounded-2xl border border-slate-200 space-y-3">
-                            <div className="relative group max-h-96 overflow-hidden rounded-xl bg-slate-100 flex items-center justify-center">
-                              <img
-                                src={selectedSubmission.file_url}
-                                alt="Foto Tugas Siswa"
-                                className="max-h-80 w-auto object-contain rounded-lg shadow-sm"
-                              />
+                            <div className="relative group max-h-96 overflow-hidden rounded-xl bg-slate-100 flex items-center justify-center min-h-[160px]">
+                              {!imgLoadError ? (
+                                <img
+                                  src={selectedSubmission.file_url}
+                                  alt="Foto Tugas Siswa"
+                                  referrerPolicy="no-referrer"
+                                  onError={() => setImgLoadError(true)}
+                                  className="max-h-80 w-auto object-contain rounded-lg shadow-sm"
+                                />
+                              ) : (
+                                <div className="p-6 text-center space-y-2">
+                                  <ImageIcon className="w-10 h-10 text-slate-400 mx-auto" />
+                                  <p className="text-xs font-bold text-slate-700">Foto Tersimpan di Cloud Storage</p>
+                                  <p className="text-[11px] text-slate-500 max-w-sm">
+                                    Gunakan tombol di bawah untuk membuka atau mengunduh foto tugas murid secara langsung.
+                                  </p>
+                                </div>
+                              )}
                               <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
-                                <button
-                                  type="button"
-                                  onClick={() => setPreviewImageUrl(selectedSubmission.file_url || null)}
-                                  className="px-3.5 py-2 bg-white text-slate-800 rounded-xl font-bold text-xs shadow-lg flex items-center gap-1.5 hover:bg-slate-50 transition-transform active:scale-95 cursor-pointer"
-                                >
-                                  <Eye className="w-4 h-4" />
-                                  Perbesar Foto
-                                </button>
+                                {!imgLoadError && (
+                                  <button
+                                    type="button"
+                                    onClick={() => setPreviewImageUrl(selectedSubmission.file_url || null)}
+                                    className="px-3.5 py-2 bg-white text-slate-800 rounded-xl font-bold text-xs shadow-lg flex items-center gap-1.5 hover:bg-slate-50 transition-transform active:scale-95 cursor-pointer"
+                                  >
+                                    <Eye className="w-4 h-4" />
+                                    Perbesar Foto
+                                  </button>
+                                )}
                                 <a
                                   href={selectedSubmission.file_url}
                                   target="_blank"
                                   rel="noreferrer"
+                                  referrerPolicy="no-referrer"
                                   download={selectedSubmission.file_name || 'tugas-siswa.jpg'}
-                                  className="px-3.5 py-2 bg-indigo-600 text-white rounded-xl font-bold text-xs shadow-lg flex items-center gap-1.5 hover:bg-indigo-700 transition-transform active:scale-95"
+                                  className="px-3.5 py-2 bg-indigo-600 text-white rounded-xl font-bold text-xs shadow-lg flex items-center gap-1.5 hover:bg-indigo-700 transition-transform active:scale-95 cursor-pointer"
                                 >
                                   <ExternalLink className="w-4 h-4" />
-                                  Unduh / Buka
+                                  Unduh / Buka di Tab Baru
                                 </a>
                               </div>
                             </div>
-                            <p className="text-[11px] text-slate-500 text-center font-medium">
-                              Foto telah teroptimasi dengan resolusi tinggi. Klik perbesar untuk membaca tulisan tangan.
-                            </p>
+                            <div className="flex items-center justify-between text-[11px] text-slate-500 pt-1">
+                              <span>{selectedSubmission.file_name || 'Foto Tugas'}</span>
+                              <a
+                                href={selectedSubmission.file_url}
+                                target="_blank"
+                                rel="noreferrer"
+                                referrerPolicy="no-referrer"
+                                className="text-indigo-600 hover:underline font-bold flex items-center gap-1 cursor-pointer"
+                              >
+                                <span>Buka Berkas Asli</span>
+                                <ExternalLink className="w-3 h-3" />
+                              </a>
+                            </div>
                           </div>
                         ) : (
                           /* PDF Document Card */
@@ -599,8 +626,9 @@ export default function SubmissionReviewModal({
                               href={selectedSubmission.file_url}
                               target="_blank"
                               rel="noreferrer"
+                              referrerPolicy="no-referrer"
                               download={selectedSubmission.file_name || 'dokumen-tugas.pdf'}
-                              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs flex items-center gap-2 shadow-xs transition-all active:scale-95"
+                              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs flex items-center gap-2 shadow-xs transition-all active:scale-95 cursor-pointer"
                             >
                               <span>Buka / Unduh Dokumen PDF</span>
                               <ExternalLink className="w-3.5 h-3.5" />
@@ -709,6 +737,7 @@ export default function SubmissionReviewModal({
             <img 
               src={previewImageUrl} 
               alt="Foto Diperbesar" 
+              referrerPolicy="no-referrer"
               className="max-h-[85vh] w-auto mx-auto object-contain rounded-xl"
             />
           </div>
