@@ -22,11 +22,20 @@ import { Material, Assignment, AssignmentSubmission } from '../../types';
 import LinkPreviewCard from '../../components/LinkPreviewCard';
 import StudentSubmissionModal from '../../components/StudentSubmissionModal';
 
-export default function MateriTugasSiswa() {
+interface MateriTugasSiswaProps {
+  defaultTab?: 'materials' | 'assignments';
+  fixedTab?: boolean;
+}
+
+export default function MateriTugasSiswa({ defaultTab = 'materials', fixedTab = false }: MateriTugasSiswaProps = {}) {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'materials' | 'assignments'>('materials');
+  const [activeTab, setActiveTab] = useState<'materials' | 'assignments'>(defaultTab);
+
+  useEffect(() => {
+    setActiveTab(defaultTab);
+  }, [defaultTab]);
   const [studentInfo, setStudentInfo] = useState<any>(null);
   
   const [materials, setMaterials] = useState<Material[]>([]);
@@ -218,8 +227,18 @@ export default function MateriTugasSiswa() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-bold text-indigo-950 tracking-tight">Materi & Tugas Saya</h2>
-          <p className="text-slate-500 mt-1 font-medium">Akses materi belajar dan periksa daftar tugas Anda.</p>
+          <h2 className="text-3xl font-bold text-indigo-950 tracking-tight">
+            {fixedTab 
+              ? (activeTab === 'assignments' ? 'Tugas Murid' : 'Materi Pelajaran') 
+              : 'Materi & Tugas Saya'}
+          </h2>
+          <p className="text-slate-500 mt-1 font-medium">
+            {fixedTab
+              ? (activeTab === 'assignments' 
+                  ? 'Periksa daftar penugasan kelas, kumpulkan lembar jawaban, dan lihat evaluasi nilai Anda.' 
+                  : 'Akses bahan ajar, modul pembelajaran, dan tautan materi dari guru Anda.')
+              : 'Akses materi belajar dan periksa daftar tugas Anda.'}
+          </p>
         </div>
         <button
           onClick={() => fetchStudentData(true)}
@@ -263,39 +282,41 @@ export default function MateriTugasSiswa() {
       )}
 
       {/* Tabs & Search Filter */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-2">
-        <div className="flex gap-6">
-          <button 
-            onClick={() => setActiveTab('materials')}
-            className={`font-black text-lg pb-2.5 border-b-2 transition-all relative ${
-              activeTab === 'materials' 
-                ? 'text-indigo-950 border-indigo-950' 
-                : 'text-slate-400 border-transparent hover:text-indigo-950'
-            }`}
-          >
-            Materi Pelajaran
-            {materials.length > 0 && (
-              <span className="ml-2 bg-slate-100 text-slate-700 text-xs font-bold px-2 py-0.5 rounded-full">
-                {materials.length}
-              </span>
-            )}
-          </button>
-          <button 
-            onClick={() => setActiveTab('assignments')}
-            className={`font-black text-lg pb-2.5 border-b-2 transition-all relative ${
-              activeTab === 'assignments' 
-                ? 'text-indigo-950 border-indigo-950' 
-                : 'text-slate-400 border-transparent hover:text-indigo-950'
-            }`}
-          >
-            Tugas
-            {assignments.length > 0 && (
-              <span className="ml-2 bg-slate-100 text-slate-700 text-xs font-bold px-2 py-0.5 rounded-full">
-                {assignments.length}
-              </span>
-            )}
-          </button>
-        </div>
+      <div className={`flex flex-col md:flex-row md:items-center ${fixedTab ? 'justify-end' : 'justify-between'} gap-4 border-b border-slate-100 pb-2`}>
+        {!fixedTab && (
+          <div className="flex gap-6">
+            <button 
+              onClick={() => setActiveTab('materials')}
+              className={`font-black text-lg pb-2.5 border-b-2 transition-all relative ${
+                activeTab === 'materials' 
+                  ? 'text-indigo-950 border-indigo-950' 
+                  : 'text-slate-400 border-transparent hover:text-indigo-950'
+              }`}
+            >
+              Materi Pelajaran
+              {materials.length > 0 && (
+                <span className="ml-2 bg-slate-100 text-slate-700 text-xs font-bold px-2 py-0.5 rounded-full">
+                  {materials.length}
+                </span>
+              )}
+            </button>
+            <button 
+              onClick={() => setActiveTab('assignments')}
+              className={`font-black text-lg pb-2.5 border-b-2 transition-all relative ${
+                activeTab === 'assignments' 
+                  ? 'text-indigo-950 border-indigo-950' 
+                  : 'text-slate-400 border-transparent hover:text-indigo-950'
+              }`}
+            >
+              Tugas Murid
+              {assignments.length > 0 && (
+                <span className="ml-2 bg-slate-100 text-slate-700 text-xs font-bold px-2 py-0.5 rounded-full">
+                  {assignments.length}
+                </span>
+              )}
+            </button>
+          </div>
+        )}
         <div className="relative min-w-[240px]">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
           <input 

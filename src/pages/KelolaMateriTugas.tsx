@@ -52,13 +52,22 @@ const CARD_STYLES = [
   ELECTRIC_BLUE_GRADIENT
 ];
 
-export default function KelolaMateriTugas() {
+interface KelolaMateriTugasProps {
+  defaultTab?: 'materials' | 'assignments';
+  fixedTab?: boolean;
+}
+
+export default function KelolaMateriTugas({ defaultTab = 'materials', fixedTab = false }: KelolaMateriTugasProps = {}) {
   const { showAlert } = useAlert();
   const { activeSchool } = useSchool();
   const isMountedRef = useRef(true);
 
   // States
-  const [activeTab, setActiveTab] = useState<'materials' | 'assignments'>('materials');
+  const [activeTab, setActiveTab] = useState<'materials' | 'assignments'>(defaultTab);
+
+  useEffect(() => {
+    setActiveTab(defaultTab);
+  }, [defaultTab]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   
@@ -716,31 +725,45 @@ export default function KelolaMateriTugas() {
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-bold text-[#1D4ED8] tracking-tight">Materi & Tugas</h2>
-          <p className="text-slate-500 mt-1 font-medium">Buat dan kelola materi pelajaran serta lembar tugas murid.</p>
+          <h2 className="text-3xl font-bold text-[#1D4ED8] tracking-tight">
+            {fixedTab 
+              ? (activeTab === 'assignments' ? 'Tugas Murid' : 'Materi Pelajaran') 
+              : 'Materi & Tugas'}
+          </h2>
+          <p className="text-slate-500 mt-1 font-medium">
+            {fixedTab
+              ? (activeTab === 'assignments' 
+                  ? 'Buat tugas baru, pantau status pengumpulan, dan periksa lembar jawaban murid.' 
+                  : 'Unggah dan kelola bahan ajar, modul materi, serta link referensi untuk murid.')
+              : 'Buat dan kelola materi pelajaran serta lembar tugas murid.'}
+          </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <button 
             onClick={handleManualRefresh}
             disabled={refreshing || loading}
             className="p-2.5 rounded-full border border-slate-200 bg-white hover:bg-slate-50 active:scale-95 text-slate-600 transition-all shadow-xs cursor-pointer disabled:opacity-50"
-            title="Segarkan data tugas & pengumpulan"
+            title="Segarkan data"
           >
             <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin text-indigo-600' : ''}`} />
           </button>
-          <button 
-            onClick={() => handleOpenCreateModal('material')}
-            className="bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white px-5 py-2.5 rounded-full font-bold text-sm flex items-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-[#3B66F5]/25 border border-white/10 cursor-pointer"
-          >
-            <Plus className="w-4 h-4 text-white" /> Tambah Materi
-          </button>
-          <button 
-            onClick={() => handleOpenCreateModal('assignment')}
-            className="bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white px-5 py-2.5 rounded-full font-bold text-sm flex items-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-[#3B66F5]/25 border border-white/10 cursor-pointer"
-          >
-            <Plus className="w-4 h-4" />
-            Tugas Baru
-          </button>
+          {(!fixedTab || activeTab === 'materials') && (
+            <button 
+              onClick={() => handleOpenCreateModal('material')}
+              className="bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white px-5 py-2.5 rounded-full font-bold text-sm flex items-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-[#3B66F5]/25 border border-white/10 cursor-pointer"
+            >
+              <Plus className="w-4 h-4 text-white" /> Tambah Materi
+            </button>
+          )}
+          {(!fixedTab || activeTab === 'assignments') && (
+            <button 
+              onClick={() => handleOpenCreateModal('assignment')}
+              className="bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white px-5 py-2.5 rounded-full font-bold text-sm flex items-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-[#3B66F5]/25 border border-white/10 cursor-pointer"
+            >
+              <Plus className="w-4 h-4" />
+              Tugas Baru
+            </button>
+          )}
         </div>
       </div>
 
@@ -775,39 +798,41 @@ export default function KelolaMateriTugas() {
       )}
 
       {/* Tabs & Class Filter */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-2">
-        <div className="flex gap-4">
-          <button 
-            onClick={() => setActiveTab('materials')}
-            className={`font-black text-lg pb-2.5 border-b-2 transition-all relative ${
-              activeTab === 'materials' 
-                ? 'text-[#1D4ED8] border-[#3B66F5]' 
-                : 'text-slate-400 border-transparent hover:text-[#1D4ED8]'
-            }`}
-          >
-            Materi Pelajaran
-            {materials.length > 0 && (
-              <span className="ml-2 bg-slate-100 text-slate-700 text-xs font-bold px-2 py-0.5 rounded-full">
-                {materials.length}
-              </span>
-            )}
-          </button>
-          <button 
-            onClick={() => setActiveTab('assignments')}
-            className={`font-black text-lg pb-2.5 border-b-2 transition-all relative ${
-              activeTab === 'assignments' 
-                ? 'text-[#1D4ED8] border-[#3B66F5]' 
-                : 'text-slate-400 border-transparent hover:text-[#1D4ED8]'
-            }`}
-          >
-            Tugas Murid
-            {assignments.length > 0 && (
-              <span className="ml-2 bg-slate-100 text-slate-700 text-xs font-bold px-2 py-0.5 rounded-full">
-                {assignments.length}
-              </span>
-            )}
-          </button>
-        </div>
+      <div className={`flex flex-col sm:flex-row sm:items-center ${fixedTab ? 'justify-end' : 'justify-between'} gap-4 border-b border-slate-100 pb-2`}>
+        {!fixedTab && (
+          <div className="flex gap-4">
+            <button 
+              onClick={() => setActiveTab('materials')}
+              className={`font-black text-lg pb-2.5 border-b-2 transition-all relative ${
+                activeTab === 'materials' 
+                  ? 'text-[#1D4ED8] border-[#3B66F5]' 
+                  : 'text-slate-400 border-transparent hover:text-[#1D4ED8]'
+              }`}
+            >
+              Materi Pelajaran
+              {materials.length > 0 && (
+                <span className="ml-2 bg-slate-100 text-slate-700 text-xs font-bold px-2 py-0.5 rounded-full">
+                  {materials.length}
+                </span>
+              )}
+            </button>
+            <button 
+              onClick={() => setActiveTab('assignments')}
+              className={`font-black text-lg pb-2.5 border-b-2 transition-all relative ${
+                activeTab === 'assignments' 
+                  ? 'text-[#1D4ED8] border-[#3B66F5]' 
+                  : 'text-slate-400 border-transparent hover:text-[#1D4ED8]'
+              }`}
+            >
+              Tugas Murid
+              {assignments.length > 0 && (
+                <span className="ml-2 bg-slate-100 text-slate-700 text-xs font-bold px-2 py-0.5 rounded-full">
+                  {assignments.length}
+                </span>
+              )}
+            </button>
+          </div>
+        )}
         <div className="flex items-center gap-2">
           <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Filter Kelas:</span>
           <select 

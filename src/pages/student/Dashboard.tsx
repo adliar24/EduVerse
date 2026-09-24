@@ -580,7 +580,7 @@ export default function StudentDashboard() {
                 </h3>
                 <p className="text-[11px] text-slate-500 font-medium">Bahan ajar aktif dari guru</p>
               </div>
-              <Link to="/materi-tugas-siswa" className="text-xs font-bold text-blue-600 hover:underline">Lihat Semua →</Link>
+              <Link to="/materi-siswa" className="text-xs font-bold text-blue-600 hover:underline">Lihat Semua →</Link>
             </div>
 
             <div className="space-y-2.5">
@@ -611,11 +611,11 @@ export default function StudentDashboard() {
               <div>
                 <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
                   <FileText className="w-4 h-4 text-indigo-600" />
-                  Tugas Kelas
+                  Tugas Murid
                 </h3>
                 <p className="text-[11px] text-slate-500 font-medium">Lembar tugas yang perlu dikerjakan</p>
               </div>
-              <Link to="/materi-tugas-siswa" className="text-xs font-bold text-indigo-600 hover:underline">Lihat Semua →</Link>
+              <Link to="/tugas-siswa" className="text-xs font-bold text-indigo-600 hover:underline">Lihat Semua →</Link>
             </div>
 
             <div className="space-y-2.5">

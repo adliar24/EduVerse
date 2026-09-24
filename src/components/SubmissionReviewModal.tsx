@@ -295,17 +295,17 @@ export default function SubmissionReviewModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-5 bg-black/65 backdrop-blur-sm overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-5 bg-black/60 backdrop-blur-sm overflow-hidden">
       <motion.div 
         initial={{ opacity: 0, scale: 0.96 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.96 }}
-        className="bg-white w-full max-w-5xl rounded-3xl shadow-2xl border border-slate-100 flex flex-col h-[94vh] sm:h-[90vh] overflow-hidden"
+        className="bg-white w-full max-w-3xl lg:max-w-4xl rounded-3xl shadow-2xl border border-slate-100 flex flex-col h-[84vh] max-h-[720px] my-auto overflow-hidden"
       >
         {/* Header */}
-        <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-100 flex items-center justify-between gap-3 bg-slate-50/70 shrink-0">
+        <div className="px-4 sm:px-6 py-3.5 border-b border-slate-100 flex items-center justify-between gap-3 bg-gradient-to-r from-indigo-50/80 via-white to-blue-50/80 shrink-0">
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2 flex-wrap mb-0.5">
+            <div className="flex items-center gap-2 flex-wrap mb-1">
               {mobileView === 'detail' && (
                 <button
                   type="button"
@@ -316,14 +316,14 @@ export default function SubmissionReviewModal({
                   <ChevronLeft className="w-4 h-4" />
                 </button>
               )}
-              <span className="bg-indigo-600 text-white text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full">
-                Pemeriksaan Tugas
+              <span className="bg-gradient-to-r from-indigo-600 to-blue-600 text-white text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full shadow-2xs">
+                Pemeriksaan Tugas Murid
               </span>
               <span className="text-xs font-bold text-slate-500 truncate">
-                {submittedCount} dari {totalStudents} Siswa Mengumpulkan ({gradedCount} Dinilai)
+                {submittedCount} dari {totalStudents} Murid Mengumpulkan ({gradedCount} Dinilai)
               </span>
             </div>
-            <h3 className="text-lg sm:text-xl font-bold text-slate-900 truncate">
+            <h3 className="text-base sm:text-lg font-bold text-slate-900 truncate">
               {assignment.title}
             </h3>
           </div>
@@ -384,7 +384,7 @@ export default function SubmissionReviewModal({
         {/* Main Content: Two Columns with Mobile View Switching */}
         <div className="flex-1 flex overflow-hidden">
           {/* Left Column: Student List */}
-          <div className={`${mobileView === 'detail' ? 'hidden md:flex' : 'flex'} w-full md:w-80 border-r border-slate-100 flex-col shrink-0 bg-slate-50/30 overflow-hidden`}>
+          <div className={`${mobileView === 'detail' ? 'hidden md:flex' : 'flex'} w-full md:w-64 lg:w-72 border-r border-slate-100 flex-col shrink-0 bg-slate-50/30 overflow-hidden`}>
             {/* Search input */}
             <div className="p-3 border-b border-slate-100">
               <div className="relative">
@@ -536,7 +536,7 @@ export default function SubmissionReviewModal({
                     <Clock className="w-8 h-8 text-slate-400 mx-auto" />
                     <p className="text-sm font-bold text-slate-700">Murid belum mengirimkan tugas</p>
                     <p className="text-xs text-slate-400 max-w-sm mx-auto">
-                      Hasil pekerjaan murid akan otomatis muncul di halaman ini setelah mereka mengumpulkan via portal siswa.
+                      Hasil pekerjaan murid akan otomatis muncul di halaman ini setelah mereka mengumpulkan via portal murid.
                     </p>
                   </div>
                 )}
@@ -560,7 +560,7 @@ export default function SubmissionReviewModal({
                         <div className="space-y-2">
                           <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
                             <FileText className="w-4 h-4 text-indigo-600" />
-                            <span>Jawaban Tertulis Siswa</span>
+                            <span>Jawaban Tertulis Murid</span>
                           </label>
                           <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 text-slate-800 text-xs sm:text-sm leading-relaxed whitespace-pre-line font-medium select-text">
                             {cleanTextResponse}
@@ -577,7 +577,7 @@ export default function SubmissionReviewModal({
                         <div className="space-y-2">
                           <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
                             <Link2 className="w-4 h-4 text-violet-600" />
-                            <span>Tautan Tugas Siswa (Link)</span>
+                            <span>Tautan Tugas Murid (Link)</span>
                           </label>
                           <div className="p-4 bg-gradient-to-r from-violet-50/70 via-indigo-50/50 to-blue-50/70 rounded-2xl border border-violet-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
                             <div className="flex items-center gap-3 overflow-hidden">
@@ -641,7 +641,7 @@ export default function SubmissionReviewModal({
                                   {!imgLoadError ? (
                                     <img
                                       src={displayImageUrl}
-                                      alt={selectedSubmission.file_name || 'Foto Tugas Siswa'}
+                                      alt={selectedSubmission.file_name || 'Foto Tugas Murid'}
                                       referrerPolicy="no-referrer"
                                       onError={(e) => {
                                         const target = e.currentTarget;
@@ -769,7 +769,7 @@ export default function SubmissionReviewModal({
 
                           <div className="sm:col-span-3 space-y-1.5">
                             <label className="text-xs font-bold text-slate-700">
-                              Catatan / Evaluasi untuk Siswa
+                              Catatan / Evaluasi untuk Murid
                             </label>
                             <input
                               type="text"

@@ -17,7 +17,6 @@ import {
   Award, 
   MessageSquare,
   Send,
-  Sparkles,
   Plus,
   Paperclip,
   Check,
@@ -236,7 +235,7 @@ export default function StudentSubmissionModal({
         student_id: studentInfo.id,
         school_id: studentInfo.school_id || assignment.school_id || null,
         class_id: studentInfo.class_id || assignment.class_id || null,
-        student_name: studentInfo.name || studentInfo.nama || 'Siswa',
+        student_name: studentInfo.name || studentInfo.nama || 'Murid',
         student_code: studentInfo.student_code || studentInfo.nisn || '',
         text_response: textResponse.trim() || undefined,
         link: linkUrl.trim() || null,
@@ -432,8 +431,7 @@ export default function StudentSubmissionModal({
           <div>
             <div className="flex items-center gap-2 flex-wrap mb-1">
               <span className="inline-flex items-center gap-1 bg-gradient-to-r from-indigo-600 to-blue-600 text-white text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full shadow-2xs">
-                <Sparkles className="w-3 h-3 text-amber-300" />
-                Lembar Tugas Siswa
+                Lembar Tugas Murid
               </span>
               {hasDeadline && (
                 <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 border ${

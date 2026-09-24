@@ -242,7 +242,9 @@ function AnimatedRoutes({ session, studentSession, profileCompleted, userRole }:
         {/* Teacher Only Routes */}
         <Route path="/kelola-kelas" element={session && userRole === 'guru' ? <KelolaKelas /> : <Navigate to="/dashboard" />} />
         <Route path="/kelola-siswa" element={session && userRole === 'guru' ? <KelolaSiswa /> : <Navigate to="/dashboard" />} />
-        <Route path="/kelola-materi-tugas" element={session && userRole === 'guru' ? <KelolaMateriTugas /> : <Navigate to="/dashboard" />} />
+        <Route path="/kelola-materi" element={session && userRole === 'guru' ? <KelolaMateriTugas defaultTab="materials" fixedTab={true} /> : <Navigate to="/dashboard" />} />
+        <Route path="/kelola-tugas" element={session && userRole === 'guru' ? <KelolaMateriTugas defaultTab="assignments" fixedTab={true} /> : <Navigate to="/dashboard" />} />
+        <Route path="/kelola-materi-tugas" element={session && userRole === 'guru' ? <Navigate to="/kelola-materi" replace /> : <Navigate to="/dashboard" />} />
         <Route path="/bank-soal" element={session && userRole === 'guru' ? <BankSoal /> : <Navigate to="/dashboard" />} />
         <Route path="/buat-ujian" element={session && userRole === 'guru' ? <BuatUjian /> : <Navigate to="/dashboard" />} />
         <Route path="/daftar-ujian" element={session || studentSession ? <DaftarUjian /> : <Navigate to="/login" />} />
@@ -252,7 +254,9 @@ function AnimatedRoutes({ session, studentSession, profileCompleted, userRole }:
         <Route path="/analisis" element={session && userRole === 'guru' ? <Analisis /> : <Navigate to="/dashboard" />} />
         <Route path="/profil" element={session || studentSession ? <Profil /> : <Navigate to="/login" />} />
         <Route path="/daftar-ujian-siswa" element={studentSession ? <StudentJoin isDashboardView={true} /> : <Navigate to="/login" />} />
-        <Route path="/materi-tugas-siswa" element={studentSession ? <MateriTugasSiswa /> : <Navigate to="/login" />} />
+        <Route path="/materi-siswa" element={studentSession ? <MateriTugasSiswa defaultTab="materials" fixedTab={true} /> : <Navigate to="/login" />} />
+        <Route path="/tugas-siswa" element={studentSession ? <MateriTugasSiswa defaultTab="assignments" fixedTab={true} /> : <Navigate to="/login" />} />
+        <Route path="/materi-tugas-siswa" element={studentSession ? <Navigate to="/tugas-siswa" replace /> : <Navigate to="/login" />} />
         <Route path="/settings/sync" element={session && userRole === 'guru' ? <SystemSettings /> : <Navigate to="/dashboard" />} />
 
         {/* EduCheck (Attendance) Routes */}

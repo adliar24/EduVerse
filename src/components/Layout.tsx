@@ -45,6 +45,10 @@ const prefetchMap: Record<string, () => Promise<any>> = {
   '/analisis': () => import('../pages/Analisis'),
   '/kelola-kelas': () => import('../pages/KelolaKelas'),
   '/kelola-siswa': () => import('../pages/KelolaSiswa'),
+  '/kelola-materi': () => import('../pages/KelolaMateriTugas'),
+  '/kelola-tugas': () => import('../pages/KelolaMateriTugas'),
+  '/materi-siswa': () => import('../pages/student/MateriTugasSiswa'),
+  '/tugas-siswa': () => import('../pages/student/MateriTugasSiswa'),
   '/monitor-ujian': () => import('../pages/MonitorUjian'),
   '/scan-ujian': () => import('../pages/ScanUjian'),
   '/profil': () => import('../pages/Profil'),
@@ -183,7 +187,8 @@ export default function Layout({ session }: LayoutProps) {
         { label: 'Analisis Ujian', path: '/analisis' },
       ]
     },
-    { icon: FileText, label: 'Materi & Tugas', path: '/kelola-materi-tugas' },
+    { icon: BookOpen, label: 'Materi Pelajaran', path: '/kelola-materi' },
+    { icon: FileText, label: 'Tugas Murid', path: '/kelola-tugas' },
     {
       icon: ClipboardCheck,
       label: 'Absensi Kehadiran',
@@ -227,7 +232,8 @@ export default function Layout({ session }: LayoutProps) {
   const studentMenuItems: MenuItem[] = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
     { icon: ListTodo, label: 'Ujian Saya', path: '/daftar-ujian-siswa' },
-    { icon: FileText, label: 'Materi & Tugas', path: '/materi-tugas-siswa' },
+    { icon: BookOpen, label: 'Materi Pelajaran', path: '/materi-siswa' },
+    { icon: FileText, label: 'Tugas Murid', path: '/tugas-siswa' },
     { icon: User, label: 'Profil Saya', path: '/profil' },
   ];
 
