@@ -63,12 +63,15 @@ const ExamTimer = React.memo(({ endTime, onTimeUp }: { endTime: number, onTimeUp
   );
 });
 
+import { calculateExamScores } from '../../lib/examScoring';
+
 // Helper for portrait orientation locking
 const lockPortraitOrientation = async () => {
-  if (typeof screen !== 'undefined' && screen.orientation && typeof screen.orientation.lock === 'function') {
+  const orientation = (screen as any)?.orientation;
+  if (typeof screen !== 'undefined' && orientation && typeof orientation.lock === 'function') {
     try {
-      await (screen.orientation.lock('portrait-primary') as any).catch(() => {
-        return screen.orientation.lock('portrait').catch(() => {});
+      await orientation.lock('portrait-primary').catch(() => {
+        return orientation.lock('portrait').catch(() => {});
       });
     } catch (_) {}
   }
@@ -1166,10 +1169,6 @@ export default function StudentExam() {
       }
     });
     const answersString = answerTokens.join(',');
-    const finalScore = Math.round(score * 100) / 100;
-
-    // Helper UUID validator for option_id in PostgreSQL
-    const isUUID = (v: any) => typeof v === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
 
     // Prepare answer records for is_correct and answers table
     const finalAnswers = questions.map((q) => {
@@ -1213,6 +1212,24 @@ export default function StudentExam() {
       };
     });
 
+    // Kalkulasi skor cerdas memisahkan PG dan Essay dengan auto-scaling 100
+    const examScoring = calculateExamScores({
+      questions: questions,
+      answers: finalAnswers.map(fa => ({
+        question_id: fa.id,
+        is_correct: fa.isCorrect,
+        score: fa.question_type === 'essay' ? null : (fa.isCorrect ? 100 : 0)
+      }))
+    });
+
+    const finalScore = examScoring.finalScore;
+    const scorePg = examScoring.scorePg;
+    const hasEssay = examScoring.essayQuestionsCount > 0;
+    const isEssayGraded = !hasEssay;
+
+    // Helper UUID validator for option_id in PostgreSQL
+    const isUUID = (v: any) => typeof v === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
+
     const answersToInsert = finalAnswers.map(q => {
       const isMCQ = q.question_type === 'pilihan_ganda';
       const validOptionId = isMCQ && isUUID(q.userAnswer) ? q.userAnswer : null;
@@ -1229,7 +1246,8 @@ export default function StudentExam() {
         question_id: q.id,
         is_correct: q.isCorrect,
         answer_text: answerTextVal,
-        option_id: validOptionId
+        option_id: validOptionId,
+        score: q.question_type === 'essay' ? null : (q.isCorrect ? 100 : 0)
       };
     });
 
@@ -1253,6 +1271,9 @@ export default function StudentExam() {
             name: parsedStudentInfo.name || 'Siswa',
             class: parsedStudentInfo.class || '',
             score: finalScore,
+            score_pg: scorePg,
+            score_essay: null,
+            essay_graded: isEssayGraded,
             end_time: new Date().toISOString(),
             status: 'menunggu_scan',
             is_qr: true
@@ -1271,7 +1292,11 @@ export default function StudentExam() {
             .from('participants')
             .update({ 
               end_time: new Date().toISOString(),
-              status: 'menunggu_scan'
+              status: 'menunggu_scan',
+              score: finalScore,
+              score_pg: scorePg,
+              score_essay: null,
+              essay_graded: isEssayGraded
             })
             .eq('id', participantId);
         } catch (dbErr) {
@@ -1298,6 +1323,9 @@ export default function StudentExam() {
         const updatePayload = {
           end_time: new Date().toISOString(),
           score: finalScore,
+          score_pg: scorePg,
+          score_essay: null,
+          essay_graded: isEssayGraded,
           status: 'completed'
         };
 

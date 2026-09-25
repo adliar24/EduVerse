@@ -352,10 +352,10 @@ export const GradingScreen: React.FC = () => {
       }
 
       // 2. THEN save all student scores
-      const savePromises = Object.values(scores).map(score => {
+      const savePromises = Object.values(scores).map((score: any) => {
         const payload = {
           ...score,
-          schoolId: score.schoolId || schoolId,
+          schoolId: score?.schoolId || schoolId,
           lastUpdated: Date.now()
         };
         return db.saveScore(payload);

@@ -165,8 +165,7 @@ export default function SubmissionReviewModal({
           } else {
             setCloudClassStudents([]);
           }
-        })
-        .catch(() => {});
+        }, () => {});
     }
   }, [isOpen, selectedClassId]);
 

@@ -168,10 +168,13 @@ export default function DaftarUjian() {
       if (!data || data.length === 0) {
         const { data: allTeacherExams } = await supabase
           .from('exams')
-          .select('id, teacher_id, title, exam_code, duration, total_questions, random_question, random_answer, start_time, end_time, is_active, show_score, strict_mode, offline_mode, bypass_code, is_archived, created_at, participants(count), exam_sessions(id, class_id, class_name, is_active)')
+          .select('id, teacher_id, title, exam_code, duration, total_questions, random_question, random_answer, start_time, end_time, is_active, show_score, strict_mode, offline_mode, qr_submission, bypass_code, is_archived, created_at, participants(count), exam_sessions(id, class_id, class_name, is_active)')
           .eq('teacher_id', user.id)
           .order('created_at', { ascending: false });
-        data = allTeacherExams || [];
+        data = (allTeacherExams || []).map((e: any) => ({
+          ...e,
+          qr_submission: e.qr_submission ?? false
+        }));
       }
 
       const rawExams = data || [];

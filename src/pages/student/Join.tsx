@@ -8,10 +8,11 @@ import { cn } from '../../lib/utils';
 import { checkForAppUpdate } from '../../lib/versionManager';
 
 const lockPortrait = async () => {
-  if (typeof screen !== 'undefined' && screen.orientation && typeof screen.orientation.lock === 'function') {
+  const orientation = (screen as any)?.orientation;
+  if (typeof screen !== 'undefined' && orientation && typeof orientation.lock === 'function') {
     try {
-      await (screen.orientation.lock('portrait-primary') as any).catch(() => {
-        return screen.orientation.lock('portrait').catch(() => {});
+      await orientation.lock('portrait-primary').catch(() => {
+        return orientation.lock('portrait').catch(() => {});
       });
     } catch (_) {}
   }

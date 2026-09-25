@@ -134,8 +134,7 @@ export const QuestionModal: React.FC<QuestionModalProps> = ({
                   return { ...prev, options: updatedOptions };
                 });
               }
-            })
-            .catch(err => console.warn('Could not fetch options:', err));
+            }, err => console.warn('Could not fetch options:', err));
         }
       } else if (q.question_type === 'menjodohkan') {
         try {

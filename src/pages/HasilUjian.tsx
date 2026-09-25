@@ -20,7 +20,9 @@ import {
   XCircle as XCircleIcon,
   Loader2,
   ArrowUpDown,
-  RotateCcw
+  RotateCcw,
+  Sparkles,
+  Check
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import React from 'react';
@@ -28,6 +30,333 @@ import { cn, capitalizeEachWord } from '../lib/utils';
 import { useSchool } from '../context/SchoolContext';
 import { createPortal } from 'react-dom';
 import { useLocation } from 'react-router-dom';
+import { evaluateEssayAnswer, highlightTextSegments, EvaluationMode } from '../lib/essayEvaluator';
+import { calculateExamScores } from '../lib/examScoring';
+
+const EssayAnswerCard: React.FC<{
+  index: number;
+  answer: any;
+  onSaveScore: (questionId: string, score: number, feedback?: string) => Promise<void>;
+}> = ({ index, answer, onSaveScore }) => {
+  const [currentScore, setCurrentScore] = useState<number | ''>(
+    typeof answer.score === 'number' ? answer.score : ''
+  );
+  const [feedback, setFeedback] = useState<string>(answer.teacher_feedback || '');
+  const [gradingMode, setGradingMode] = useState<EvaluationMode>('balanced');
+  const [saving, setSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+
+  useEffect(() => {
+    if (typeof answer.score === 'number') {
+      setCurrentScore(answer.score);
+    }
+    setFeedback(answer.teacher_feedback || '');
+  }, [answer.score, answer.teacher_feedback]);
+
+  // Evaluasi heuristik kata kunci offline client-side dengan opsi mode
+  const evaluation = useMemo(() => {
+    return evaluateEssayAnswer(answer.answer_text, answer.questions?.correct_answer, {
+      mode: gradingMode,
+      minEffortScore: 20, // Apresiasi usaha siswa (Nilai 0 HANYA jika kosong!)
+      targetWordCount: 35 // Target panjang kata optimal
+    });
+  }, [answer.answer_text, answer.questions?.correct_answer, gradingMode]);
+
+  // Segmentasi teks untuk visual highlighting kata kunci yang cocok
+  const textSegments = useMemo(() => {
+    return highlightTextSegments(
+      answer.answer_text,
+      evaluation.keywords.map(k => k.keyword)
+    );
+  }, [answer.answer_text, evaluation.keywords]);
+
+  const handleApplyScore = async (scoreToApply: number) => {
+    setCurrentScore(scoreToApply);
+    setSaving(true);
+    try {
+      await onSaveScore(answer.question_id, scoreToApply, feedback);
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 2500);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleManualSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (currentScore === '') return;
+    const num = Math.max(0, Math.min(100, Number(currentScore)));
+    await handleApplyScore(num);
+  };
+
+  const hasScore = typeof answer.score === 'number';
+
+  return (
+    <div className={cn(
+      "p-5 sm:p-7 rounded-[2rem] border transition-all group",
+      hasScore 
+        ? "bg-white border-indigo-100 shadow-sm" 
+        : "bg-amber-50/40 border-amber-200/90 shadow-md shadow-amber-500/5"
+    )}>
+      {/* Header Soal */}
+      <div className="flex items-start gap-4 mb-5">
+        <div className="bg-purple-900 text-white w-8 h-8 rounded-xl flex items-center justify-center font-black text-sm shrink-0 shadow-lg shadow-purple-900/20">
+          {index + 1}
+        </div>
+        <div className="flex-1">
+          <p className="text-indigo-950 font-bold text-lg leading-snug">{answer.questions?.question_text || 'Soal tidak ditemukan'}</p>
+          {answer.questions?.image_url && (
+            <div className="mt-4 rounded-2xl overflow-hidden border border-slate-100 max-w-md bg-white shadow-sm">
+              <img src={answer.questions.image_url} alt="Question" className="w-full h-auto object-contain max-h-60" />
+            </div>
+          )}
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center px-3 py-1 rounded-full bg-purple-100 text-purple-800 text-[10px] font-black uppercase tracking-widest border border-purple-200">
+              ESSAY / URAIAN
+            </span>
+            {hasScore ? (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-black uppercase tracking-widest border border-emerald-200">
+                <CheckCircle2 className="w-3.5 h-3.5" /> Sudah Dinilai ({answer.score}/100)
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-800 text-[10px] font-black uppercase tracking-widest border border-amber-200 animate-pulse">
+                <AlertCircle className="w-3.5 h-3.5" /> Perlu Dinilai Guru
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Selector Mode Penilaian */}
+      <div className="mb-4 p-2.5 rounded-2xl bg-slate-100/80 border border-slate-200/90 flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700 pl-1">
+          <span>Fokus Penilaian:</span>
+        </div>
+        <div className="flex flex-wrap items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => setGradingMode('balanced')}
+            className={cn(
+              "px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer",
+              gradingMode === 'balanced'
+                ? "bg-white text-indigo-950 shadow-sm border border-slate-200"
+                : "text-slate-500 hover:text-slate-800"
+            )}
+            title="Seimbang: menggabungkan ketercakupan kata kunci dan panjang teks"
+          >
+            ⚖️ Seimbang (Konsep + Panjang)
+          </button>
+          <button
+            type="button"
+            onClick={() => setGradingMode('length_effort')}
+            className={cn(
+              "px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer",
+              gradingMode === 'length_effort'
+                ? "bg-white text-indigo-950 shadow-sm border border-slate-200"
+                : "text-slate-500 hover:text-slate-800"
+            )}
+            title="Panjang Teks: semakin banyak kalimat yang diketik murid semakin tinggi nilainya"
+          >
+            📝 Panjang Teks / Usaha Siswa
+          </button>
+          <button
+            type="button"
+            onClick={() => setGradingMode('keyword_only')}
+            className={cn(
+              "px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer",
+              gradingMode === 'keyword_only'
+                ? "bg-white text-indigo-950 shadow-sm border border-slate-200"
+                : "text-slate-500 hover:text-slate-800"
+            )}
+            title="Kata Kunci: murni berdasarkan konsep acuan guru"
+          >
+            🔑 Kata Kunci Saja
+          </button>
+        </div>
+      </div>
+
+      {/* Lembar Jawaban Siswa & Kunci Acuan */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Jawaban Siswa dengan Highlight */}
+        <div className="p-4 rounded-2xl border bg-slate-50/70 border-slate-200">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">
+              Jawaban Siswa ({evaluation.wordCount} Kata)
+            </p>
+            {evaluation.keywords.length > 0 && (
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                {evaluation.matchedCount}/{evaluation.totalKeywords} Konsep Cocok
+              </span>
+            )}
+          </div>
+          
+          <div className="text-sm font-medium text-slate-800 leading-relaxed min-h-[70px] whitespace-pre-wrap">
+            {!answer.answer_text || answer.answer_text.trim() === '' ? (
+              <span className="italic text-slate-400 font-normal">Siswa tidak menuliskan jawaban.</span>
+            ) : (
+              textSegments.map((seg, sIdx) => (
+                seg.isMatch ? (
+                  <mark 
+                    key={sIdx} 
+                    className="bg-emerald-200/90 text-emerald-950 font-bold px-1.5 py-0.5 rounded-md border border-emerald-300 mx-0.5"
+                    title={`Kata kunci terdeteksi: ${seg.matchedKeyword}`}
+                  >
+                    {seg.text}
+                  </mark>
+                ) : (
+                  <span key={sIdx}>{seg.text}</span>
+                )
+              ))
+            )}
+          </div>
+        </div>
+
+        {/* Kunci / Pedoman Guru */}
+        <div className="p-4 rounded-2xl bg-indigo-50/40 border border-indigo-100">
+          <p className="text-[10px] font-black text-indigo-500 uppercase tracking-widest mb-1.5">
+            Pedoman / Kunci Jawaban Guru
+          </p>
+          <p className="text-sm font-medium text-indigo-950 leading-relaxed whitespace-pre-wrap mb-3">
+            {answer.questions?.correct_answer || 'Tidak ada pedoman jawaban.'}
+          </p>
+
+          {/* Chips Kata Kunci */}
+          {evaluation.keywords.length > 0 && (
+            <div className="pt-2 border-t border-indigo-100/60">
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+                Indikator Kata Kunci:
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {evaluation.keywords.map((kw, kwIdx) => (
+                  <span
+                    key={kwIdx}
+                    className={cn(
+                      "text-[11px] font-bold px-2.5 py-1 rounded-lg border flex items-center gap-1",
+                      kw.matched
+                        ? "bg-emerald-100 text-emerald-800 border-emerald-300"
+                        : "bg-white text-slate-500 border-slate-200"
+                    )}
+                  >
+                    {kw.matched ? <CheckCircle2 className="w-3 h-3 text-emerald-600" /> : <XCircleIcon className="w-3 h-3 text-slate-400" />}
+                    {kw.keyword}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Kotak Asisten Cerdas (Offline Heuristic) */}
+      <div className="mt-4 p-4 rounded-2xl bg-gradient-to-r from-blue-50/90 via-indigo-50/70 to-purple-50/90 border border-blue-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-start sm:items-center gap-3">
+          <div className="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-md shadow-blue-600/20">
+            <Sparkles className="w-4 h-4" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-black text-blue-950 uppercase tracking-wider">Saran Nilai Otomatis:</span>
+              <span className="text-base font-black text-blue-600 bg-white px-2.5 py-0.5 rounded-lg border border-blue-200 shadow-xs">
+                {evaluation.suggestedScore} / 100
+              </span>
+            </div>
+            <p className="text-xs text-slate-600 font-medium mt-0.5">
+              {evaluation.feedbackSummary}
+            </p>
+            <div className="mt-1.5 inline-flex items-center gap-1 text-[11px] font-bold text-blue-900 bg-blue-100/80 px-2.5 py-0.5 rounded-lg border border-blue-200">
+              <span>🛡️ Proteksi Usaha: Siswa yang menjawab minimal mendapatkan 20 poin (Nilai 0 hanya jika dikosongkan).</span>
+            </div>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => handleApplyScore(evaluation.suggestedScore)}
+          disabled={saving}
+          className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-600/20 transition-all active:scale-95 cursor-pointer disabled:opacity-50"
+        >
+          <Sparkles className="w-3.5 h-3.5" />
+          <span>Gunakan Saran ({evaluation.suggestedScore})</span>
+        </button>
+      </div>
+
+      {/* Form Penilaian Cepat Guru */}
+      <div className="mt-4 pt-4 border-t border-slate-100 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        {/* Tombol Cepat Pilihan Skor */}
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="text-xs font-bold text-slate-500 mr-1">Skor Cepat:</span>
+          {[100, 75, 50, 25, 0].map(val => (
+            <button
+              key={val}
+              type="button"
+              onClick={() => handleApplyScore(val)}
+              disabled={saving}
+              className={cn(
+                "px-3 py-1.5 rounded-xl font-black text-xs transition-all active:scale-95 cursor-pointer border",
+                currentScore === val
+                  ? "bg-indigo-950 text-white border-indigo-950 shadow-sm"
+                  : val === 100 ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100"
+                  : val === 75 ? "bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100"
+                  : val === 50 ? "bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100"
+                  : val === 25 ? "bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-100"
+                  : "bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100"
+              )}
+            >
+              {val}
+            </button>
+          ))}
+        </div>
+
+        {/* Input Manual & Simpan */}
+        <form onSubmit={handleManualSave} className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-1.5">
+            <label className="text-xs font-bold text-slate-600">Nilai:</label>
+            <input
+              type="number"
+              min="0"
+              max="100"
+              step="1"
+              value={currentScore}
+              onChange={(e) => setCurrentScore(e.target.value === '' ? '' : Number(e.target.value))}
+              placeholder="0-100"
+              className="w-20 px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-center font-bold text-sm text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+            />
+          </div>
+
+          <div className="flex-1 min-w-[160px]">
+            <input
+              type="text"
+              value={feedback}
+              onChange={(e) => setFeedback(e.target.value)}
+              placeholder="Catatan guru (opsional)..."
+              className="w-full px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-xs font-medium text-slate-700 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={saving || currentScore === ''}
+            className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition-all flex items-center gap-1.5 shadow-sm active:scale-95 disabled:opacity-50 cursor-pointer"
+          >
+            {saving ? (
+              <>
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                <span>Menyimpan...</span>
+              </>
+            ) : saveSuccess ? (
+              <>
+                <Check className="w-3.5 h-3.5 text-emerald-400" />
+                <span className="text-emerald-300">Tersimpan!</span>
+              </>
+            ) : (
+              <span>Simpan Nilai</span>
+            )}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+};
 
 export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolean }) {
   const location = useLocation();
@@ -181,6 +510,9 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
           exam_id,
           session_id,
           score,
+          score_pg,
+          score_essay,
+          essay_graded,
           status,
           start_time,
           end_time,
@@ -212,7 +544,7 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
       if (error || !data || data.length === 0) {
         let fallbackQuery = supabaseAnon
           .from('participants')
-          .select('id, name, class, exam_id, session_id, score, status, start_time, end_time, created_at')
+          .select('id, name, class, exam_id, session_id, score, score_pg, score_essay, essay_graded, status, start_time, end_time, created_at')
           .in('exam_id', examIds)
           .order('created_at', { ascending: false });
 
@@ -392,6 +724,8 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
           option_id: ans?.option_id || null,
           answer_text: ans?.answer_text || null,
           is_correct: ans ? ans.is_correct : false,
+          score: typeof ans?.score === 'number' ? ans.score : (question.question_type === 'essay' ? null : (ans?.is_correct ? 100 : 0)),
+          teacher_feedback: ans?.teacher_feedback || '',
           selected_option: selectedOption || null,
           full_correct_answer_text: fullCorrectAnswerText,
           is_answered: !!ans
@@ -404,6 +738,94 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
       setParticipantAnswers([]);
     } finally {
       setLoadingDetail(false);
+    }
+  };
+
+  const handleSaveEssayScore = async (questionId: string, newScore: number, feedback?: string) => {
+    if (!selectedResult) return;
+
+    // 1. Update local participantAnswers
+    const updatedAnswers = participantAnswers.map(ans => {
+      if (ans.question_id === questionId) {
+        return {
+          ...ans,
+          score: newScore,
+          is_correct: newScore >= 60,
+          teacher_feedback: feedback !== undefined ? feedback : ans.teacher_feedback
+        };
+      }
+      return ans;
+    });
+    setParticipantAnswers(updatedAnswers);
+
+    // 2. Recalculate exam scores with smart auto-scaling
+    const scoringResult = calculateExamScores({
+      questions: updatedAnswers.map(a => ({
+        id: a.question_id,
+        question_type: a.questions?.question_type
+      })),
+      answers: updatedAnswers.map(a => ({
+        question_id: a.question_id,
+        is_correct: a.is_correct,
+        score: a.score
+      }))
+    });
+
+    // 3. Update participant state in real time
+    const updatedResult = {
+      ...selectedResult,
+      score: scoringResult.finalScore,
+      score_pg: scoringResult.scorePg,
+      score_essay: scoringResult.scoreEssay,
+      essay_graded: scoringResult.isEssayGraded
+    };
+    setSelectedResult(updatedResult);
+    setResults(prev => prev.map(r => r.id === selectedResult.id ? updatedResult : r));
+
+    // 4. Persist to DB
+    try {
+      const targetAnswer = updatedAnswers.find(a => a.question_id === questionId);
+      if (targetAnswer && targetAnswer.id && !targetAnswer.id.startsWith('unanswered-')) {
+        await supabase
+          .from('answers')
+          .update({
+            score: newScore,
+            is_correct: newScore >= 60,
+            teacher_feedback: feedback !== undefined ? feedback : targetAnswer.teacher_feedback
+          })
+          .eq('id', targetAnswer.id);
+      } else {
+        await supabase
+          .from('answers')
+          .upsert({
+            participant_id: selectedResult.id,
+            question_id: questionId,
+            score: newScore,
+            is_correct: newScore >= 60,
+            teacher_feedback: feedback || ''
+          }, { onConflict: 'participant_id,question_id' });
+      }
+
+      const participantPayload = {
+        score: scoringResult.finalScore,
+        score_pg: scoringResult.scorePg,
+        score_essay: scoringResult.scoreEssay,
+        essay_graded: scoringResult.isEssayGraded
+      };
+
+      const { error: pErr } = await supabase
+        .from('participants')
+        .update(participantPayload)
+        .eq('id', selectedResult.id);
+
+      if (pErr) {
+        await supabaseAnon
+          .from('participants')
+          .update(participantPayload)
+          .eq('id', selectedResult.id);
+      }
+    } catch (err) {
+      console.error('Error saving essay score:', err);
     }
   };
 
@@ -486,30 +908,30 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
 
   const exportToExcel = async () => {
     const { default: XLSXStyle } = await import('xlsx-js-style');
-    const headers = ['NAMA SISWA', 'KELAS', 'UJIAN', 'NILAI', 'WAKTU SELESAI'];
+    const headers = ['NAMA SISWA', 'KELAS', 'UJIAN', 'NILAI PG', 'NILAI ESSAY', 'TOTAL NILAI', 'STATUS ESSAY', 'WAKTU SELESAI'];
     const rows = filteredResults.map(r => [
       capitalizeEachWord(r.name),
       r.class,
       r.exams?.title || '-',
-      Math.round(r.score),
+      r.score_pg !== null && r.score_pg !== undefined ? r.score_pg : '-',
+      r.score_essay !== null && r.score_essay !== undefined ? r.score_essay : (r.essay_graded === false ? 'Belum Dinilai' : '-'),
+      Math.round(r.score || 0),
+      r.essay_graded === false ? 'Menunggu Penilaian' : 'Selesai',
       new Date(r.end_time || r.start_time).toLocaleString('id-ID')
     ]);
 
     const worksheet = XLSXStyle.utils.aoa_to_sheet([headers, ...rows]);
 
     // Auto-fit column widths
-    const maxNameLen = Math.max(headers[0].length, ...rows.map(r => String(r[0] || '').length));
-    const maxClassLen = Math.max(headers[1].length, ...rows.map(r => String(r[1] || '').length));
-    const maxExamLen = Math.max(headers[2].length, ...rows.map(r => String(r[2] || '').length));
-    const maxScoreLen = Math.max(headers[3].length, ...rows.map(r => String(r[3] || '').length));
-    const maxTimeLen = Math.max(headers[4].length, ...rows.map(r => String(r[4] || '').length));
-
     worksheet['!cols'] = [
-      { wch: Math.max(maxNameLen + 3, 18) },
-      { wch: Math.max(maxClassLen + 3, 12) },
-      { wch: Math.max(maxExamLen + 3, 20) },
-      { wch: Math.max(maxScoreLen + 3, 10) },
-      { wch: Math.max(maxTimeLen + 3, 20) }
+      { wch: 22 }, // Nama Siswa
+      { wch: 14 }, // Kelas
+      { wch: 24 }, // Ujian
+      { wch: 12 }, // Nilai PG
+      { wch: 14 }, // Nilai Essay
+      { wch: 14 }, // Total Nilai
+      { wch: 20 }, // Status Essay
+      { wch: 20 }  // Waktu Selesai
     ];
 
     // Set row heights
@@ -840,19 +1262,21 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50/50 border-b border-slate-100">
-                <th className="px-8 py-6 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Siswa & Kelas</th>
-                <th className="px-8 py-6 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Ujian</th>
-                <th className="px-8 py-6 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Skor Akhir</th>
-                <th className="px-8 py-6 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Status</th>
-                <th className="px-8 py-6 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Waktu Selesai</th>
-                <th className="px-8 py-6 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]"></th>
+                <th className="px-6 py-6 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Siswa & Kelas</th>
+                <th className="px-6 py-6 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Ujian</th>
+                <th className="px-5 py-6 text-[10px] font-bold text-blue-600 uppercase tracking-[0.2em]">Nilai PG</th>
+                <th className="px-5 py-6 text-[10px] font-bold text-purple-600 uppercase tracking-[0.2em]">Nilai Essay</th>
+                <th className="px-6 py-6 text-[10px] font-bold text-indigo-950 uppercase tracking-[0.2em]">Total Nilai</th>
+                <th className="px-6 py-6 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Status</th>
+                <th className="px-6 py-6 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Waktu Selesai</th>
+                <th className="px-6 py-6 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
               {loading ? (
                 [1,2,3,4,5,6].map(i => (
                   <tr key={i} className="animate-pulse">
-                    <td colSpan={6} className="px-8 py-6"><div className="h-10 bg-slate-100 rounded-xl w-full"></div></td>
+                    <td colSpan={8} className="px-8 py-6"><div className="h-10 bg-slate-100 rounded-xl w-full"></div></td>
                   </tr>
                 ))
               ) : filteredResults.length > 0 ? (
@@ -865,7 +1289,7 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
                     onClick={() => fetchDetail(result)}
                     className="hover:bg-slate-50/50 transition-colors group cursor-pointer"
                   >
-                    <td className="px-8 py-6">
+                    <td className="px-6 py-6">
                       <div className="flex items-center gap-4">
                         <div className="w-12 h-12 rounded-2xl bg-slate-100 text-indigo-950 flex items-center justify-center font-bold text-sm shadow-inner group-hover:bg-white transition-colors">
                           {result.name.charAt(0)}
@@ -876,25 +1300,49 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
                         </div>
                       </div>
                     </td>
-                    <td className="px-8 py-6">
+                    <td className="px-6 py-6">
                       <div className="flex items-center gap-2">
                         <div className="w-2 h-2 rounded-full bg-blue-400"></div>
                         <span className="text-sm font-bold text-slate-700 line-clamp-1">{result.exams?.title}</span>
                       </div>
                     </td>
-                    <td className="px-8 py-6">
+                    <td className="px-5 py-6">
+                      {result.status === 'menunggu_scan' ? (
+                        <span className="text-xs font-bold text-slate-400">-</span>
+                      ) : (
+                        <span className="text-base font-black text-blue-700">
+                          {result.score_pg !== null && result.score_pg !== undefined ? result.score_pg : Math.round(result.score || 0)}
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-5 py-6">
+                      {result.status === 'menunggu_scan' ? (
+                        <span className="text-xs font-bold text-slate-400">-</span>
+                      ) : result.essay_graded === false ? (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-black uppercase tracking-wider">
+                          <AlertCircle className="w-3 h-3 text-amber-500 animate-pulse" /> Perlu Dinilai
+                        </span>
+                      ) : result.score_essay !== null && result.score_essay !== undefined ? (
+                        <span className="text-base font-black text-purple-700">
+                          {result.score_essay}
+                        </span>
+                      ) : (
+                        <span className="text-xs font-bold text-slate-300">-</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-6">
                       <div className="flex items-center gap-2">
                         {result.status === 'menunggu_scan' ? (
                           <span className="text-sm font-bold text-amber-600">Belum Discan</span>
                         ) : (
                           <>
-                            <span className="text-2xl font-bold text-indigo-950">{Math.round(result.score || 0)}</span>
+                            <span className="text-2xl font-black text-indigo-950">{Math.round(result.score || 0)}</span>
                             <span className="text-[10px] font-bold text-slate-400 uppercase">Poin</span>
                           </>
                         )}
                       </div>
                     </td>
-                    <td className="px-8 py-6">
+                    <td className="px-6 py-6">
                       {result.status === 'menunggu_scan' ? (
                         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl font-bold text-[10px] uppercase tracking-widest bg-blue-50 text-blue-600 border border-blue-100">
                           <Clock className="w-3.5 h-3.5" />
@@ -914,13 +1362,13 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
                         </div>
                       )}
                     </td>
-                    <td className="px-8 py-6">
+                    <td className="px-6 py-6">
                       <div className="flex flex-col">
                         <span className="text-xs font-bold text-slate-700">{new Date(result.end_time || result.start_time).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
                         <span className="text-[10px] font-bold text-slate-400 mt-1">{new Date(result.end_time || result.start_time).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</span>
                       </div>
                     </td>
-                    <td className="px-8 py-6 text-right">
+                    <td className="px-6 py-6 text-right">
                       <div className="flex items-center justify-end gap-2">
                         <button 
                           onClick={(e) => {
@@ -941,7 +1389,7 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
                 ))
               ) : (
                 <tr>
-                  <td colSpan={6} className="px-8 py-32 text-center">
+                  <td colSpan={8} className="px-8 py-32 text-center">
                     <div className="bg-slate-50 w-20 h-20 rounded-[2rem] flex items-center justify-center mx-auto mb-6">
                       <Trophy className="w-10 h-10 text-slate-200" />
                     </div>
@@ -977,7 +1425,23 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
                 <div className="p-6 sm:p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
                   <div>
                     <h3 className="text-xl sm:text-2xl font-bold text-indigo-950">Detail Jawaban: {capitalizeEachWord(selectedResult.name)}</h3>
-                    <p className="text-sm text-slate-500 font-medium mt-1">Kelas: {selectedResult.class} | Skor: {selectedResult.score}</p>
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-2">
+                      <span className="text-xs sm:text-sm font-semibold text-slate-500">Kelas: <strong className="text-slate-700">{selectedResult.class}</strong></span>
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-100 text-xs font-bold">
+                        Nilai PG: {selectedResult.score_pg !== null && selectedResult.score_pg !== undefined ? selectedResult.score_pg : '-'}
+                      </span>
+                      <span className={cn(
+                        "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border",
+                        selectedResult.essay_graded === false 
+                          ? "bg-amber-50 text-amber-700 border-amber-200" 
+                          : "bg-purple-50 text-purple-700 border-purple-200"
+                      )}>
+                        Nilai Essay: {selectedResult.score_essay !== null && selectedResult.score_essay !== undefined ? selectedResult.score_essay : (selectedResult.essay_graded === false ? 'Menunggu Penilaian' : '-')}
+                      </span>
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-600 text-white text-xs font-extrabold shadow-sm">
+                        Total Nilai: {Math.round(selectedResult.score || 0)}
+                      </span>
+                    </div>
                   </div>
                   <div className="flex items-center gap-3">
                     <button
@@ -1006,6 +1470,14 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
                   ) : participantAnswers.length > 0 ? (
                     <div className="space-y-4">
                       {participantAnswers.map((answer, i) => (
+                        answer.questions?.question_type === 'essay' ? (
+                          <EssayAnswerCard
+                            key={answer.id}
+                            index={i}
+                            answer={answer}
+                            onSaveScore={handleSaveEssayScore}
+                          />
+                        ) : (
                         <div key={answer.id} className="p-5 sm:p-7 rounded-[2rem] border border-slate-100 bg-slate-50/50 hover:bg-white hover:shadow-xl hover:shadow-slate-200/50 transition-all group">
                           <div className="flex items-start gap-4 mb-5">
                             <div className="bg-indigo-950 text-white w-8 h-8 rounded-xl flex items-center justify-center font-black text-sm shrink-0 shadow-lg shadow-indigo-950/20">
@@ -1080,7 +1552,8 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
                             )}
                           </div>
                         </div>
-                      ))}
+                      )
+                    ))}
                     </div>
                   ) : (
                     <div className="text-center py-20 bg-slate-50 rounded-[2rem] border border-dashed border-slate-200">

@@ -242,6 +242,15 @@ BEGIN
   IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'participants' AND column_name = 'is_qr') THEN
     ALTER TABLE public.participants ADD COLUMN is_qr BOOLEAN DEFAULT false;
   END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'participants' AND column_name = 'score_pg') THEN
+    ALTER TABLE public.participants ADD COLUMN score_pg NUMERIC DEFAULT NULL;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'participants' AND column_name = 'score_essay') THEN
+    ALTER TABLE public.participants ADD COLUMN score_essay NUMERIC DEFAULT NULL;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'participants' AND column_name = 'essay_graded') THEN
+    ALTER TABLE public.participants ADD COLUMN essay_graded BOOLEAN DEFAULT true;
+  END IF;
 END $$;
 
 -- 8. Tabel Jawaban Peserta
@@ -252,8 +261,21 @@ CREATE TABLE IF NOT EXISTS public.answers (
   option_id UUID REFERENCES public.question_options(id) ON DELETE SET NULL, 
   answer_text TEXT,
   is_correct BOOLEAN,
+  score NUMERIC DEFAULT NULL,
+  teacher_feedback TEXT DEFAULT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
+
+-- Add score & teacher_feedback to answers if not exists
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'answers' AND column_name = 'score') THEN
+    ALTER TABLE public.answers ADD COLUMN score NUMERIC DEFAULT NULL;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'answers' AND column_name = 'teacher_feedback') THEN
+    ALTER TABLE public.answers ADD COLUMN teacher_feedback TEXT DEFAULT NULL;
+  END IF;
+END $$;
 
 -- ============================================
 -- ROW LEVEL SECURITY (RLS)
