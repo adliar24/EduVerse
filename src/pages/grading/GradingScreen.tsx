@@ -259,7 +259,7 @@ export const GradingScreen: React.FC = () => {
     if (!idPertemuan) return;
     const load = async () => {
        const profile = await db.getTeacherProfile();
-       const schoolId = profile?.activeSchoolId || '';
+       const schoolId = profile?.activeSchoolId || 'fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7';
        const m = await db.getMeetingById(idPertemuan);
        if (m) {
          setMeeting(m);
@@ -280,7 +280,7 @@ export const GradingScreen: React.FC = () => {
 
   const handleScoreChange = async (idSiswa: string, val: number | null) => {
     const profile = await db.getTeacherProfile();
-    const schoolId = profile?.activeSchoolId || '';
+    const schoolId = profile?.activeSchoolId || 'fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7';
     const existing = scores[idSiswa] || {
        id: `${idPertemuan}_${idSiswa}`, schoolId, idPertemuan: idPertemuan!, idSiswa, nilaiAngka: null, bintang: 0, lastUpdated: 0
     };
@@ -315,7 +315,7 @@ export const GradingScreen: React.FC = () => {
     
     const newScores = { ...scores };
     const profile = await db.getTeacherProfile();
-    const schoolId = profile?.activeSchoolId || '';
+    const schoolId = profile?.activeSchoolId || 'fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7';
     
     const savePromises = [];
     for (const idSiswa of selectedStudentIds) {

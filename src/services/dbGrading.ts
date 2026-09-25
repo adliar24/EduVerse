@@ -15,6 +15,21 @@ import {
 } from '../types';
 import { supabase } from './supabase';
 import { capitalizeEachWord } from '../lib/utils';
+export const DEFAULT_SCHOOL_UUID = 'fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7';
+
+export const cleanUUID = (val?: string | null): string | null => {
+  if (!val) return null;
+  const str = String(val).trim();
+  if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str)) {
+    return str;
+  }
+  return null;
+};
+
+export const cleanSchoolUUID = (val?: string | null): string => {
+  return cleanUUID(val) || DEFAULT_SCHOOL_UUID;
+};
+
 
 const DB_NAME = 'EduScoreDB';
 const DB_VERSION = 4; 
@@ -791,17 +806,23 @@ export const saveScore = async (score: MeetingScore): Promise<{ success: boolean
   if (supabase) {
     try {
       const { data: { session } } = await supabase.auth.getSession();
+      const schoolUuid = cleanSchoolUUID(score.schoolId);
+      const studentUuid = cleanUUID(score.idSiswa) || score.idSiswa;
+      const meetingUuid = cleanUUID(score.idPertemuan) || score.idPertemuan;
+
       const payload: any = {
-        id: score.id || `${score.idPertemuan}_${score.idSiswa}`,
-        school_id: score.schoolId,
-        id_pertemuan: score.idPertemuan,
-        id_siswa: score.idSiswa,
-        nilai_angka: score.nilaiAngka,
-        bintang: score.bintang || 0,
+        id: score.id || `${meetingUuid}_${studentUuid}`,
+        school_id: schoolUuid,
+        id_pertemuan: meetingUuid,
+        id_siswa: studentUuid,
+        nilai_angka: (score.nilaiAngka !== null && score.nilaiAngka !== undefined && !isNaN(Number(score.nilaiAngka))) 
+          ? Number(score.nilaiAngka) 
+          : null,
+        bintang: Number(score.bintang) || 0,
         catatan: score.catatan || '',
         last_updated: new Date(score.lastUpdated || Date.now()).toISOString()
       };
-      if (session?.user?.id) {
+      if (session?.user?.id && cleanUUID(session.user.id)) {
         payload.user_id = session.user.id;
       }
       const { error } = await supabase.from('meeting_scores').upsert(payload, { onConflict: 'id' });
