@@ -676,21 +676,25 @@ export const saveMeeting = async (meeting: Meeting): Promise<{ success: boolean;
   if (supabase) {
     try {
       const { data: { session } } = await supabase.auth.getSession();
+      const cleanDate = meeting.tanggal 
+        ? (meeting.tanggal.includes('T') ? meeting.tanggal.split('T')[0] : meeting.tanggal) 
+        : new Date().toISOString().split('T')[0];
+
       const payload: any = {
         id_pertemuan: meeting.idPertemuan,
-        school_id: meeting.schoolId,
+        school_id: meeting.schoolId || 'fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7',
         id_kelas: meeting.idKelas, 
-        mapel: meeting.mapel,
-        semester: meeting.semester,
-        urutan_ke: meeting.urutanKe,
-        tanggal: meeting.tanggal,
-        materi: meeting.materi,
-        jenis: meeting.jenis,
-        activity_type: meeting.activityType, 
-        activity_name: meeting.activityName,
-        assessment_category: meeting.assessmentCategory, 
-        aspek_penilaian: meeting.aspekPenilaian,
-        id_tp: meeting.idTP
+        mapel: meeting.mapel || 'Umum',
+        semester: meeting.semester || '1',
+        urutan_ke: Number(meeting.urutanKe) || 1,
+        tanggal: cleanDate,
+        materi: meeting.materi || 'Pertemuan',
+        jenis: meeting.jenis || 'Formatif',
+        activity_type: meeting.activityType || 'Tugas', 
+        activity_name: meeting.activityName || meeting.materi || 'Aktivitas',
+        assessment_category: meeting.assessmentCategory || 'Formatif', 
+        aspek_penilaian: meeting.aspekPenilaian || 'Pengetahuan',
+        id_tp: (meeting.idTP && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(meeting.idTP)) ? meeting.idTP : null
       };
       if (session?.user?.id) {
         payload.user_id = session.user.id;

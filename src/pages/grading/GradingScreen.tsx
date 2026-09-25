@@ -263,6 +263,9 @@ export const GradingScreen: React.FC = () => {
        const m = await db.getMeetingById(idPertemuan);
        if (m) {
          setMeeting(m);
+         // Proactively push parent meeting to Cloud so scores can always link to it
+         db.saveMeeting({ ...m, schoolId: m.schoolId || schoolId });
+
          const s = await db.getStudents(m.idKelas, schoolId || undefined);
          setStudents(s);
          const sc = await db.getScores(idPertemuan, schoolId || undefined);
@@ -337,6 +340,18 @@ export const GradingScreen: React.FC = () => {
       const profile = await db.getTeacherProfile();
       const schoolId = profile?.activeSchoolId || '';
       
+      // 1. FIRST ensure parent meeting is persisted to Supabase Cloud so meeting_scores foreign key constraint passes
+      if (meeting) {
+        const meetingRes = await db.saveMeeting({
+          ...meeting,
+          schoolId: meeting.schoolId || schoolId
+        });
+        if (meetingRes?.cloudError) {
+          console.warn("Meeting cloud upsert issue:", meetingRes.cloudError);
+        }
+      }
+
+      // 2. THEN save all student scores
       const savePromises = Object.values(scores).map(score => {
         const payload = {
           ...score,
@@ -346,10 +361,11 @@ export const GradingScreen: React.FC = () => {
         return db.saveScore(payload);
       });
       const results = await Promise.all(savePromises);
-      const hasCloudError = results.some(r => r?.cloudError);
+      const cloudErrorObj = results.find(r => r?.cloudError)?.cloudError;
       
-      if (hasCloudError) {
-        showToast("Nilai tersimpan di perangkat lokal. Catatan: Sinkronisasi Cloud Supabase memerlukan eksekusi SQL migrasi di Supabase Dashboard agar muncul di device lain.", "warning");
+      if (cloudErrorObj) {
+        console.error("Cloud score save error:", cloudErrorObj);
+        showToast(`Nilai tersimpan di perangkat lokal. Catatan Cloud: ${cloudErrorObj.message || 'Error simpan Cloud'}`, "warning");
       } else {
         showToast("Semua nilai murid berhasil disimpan ke Cloud Supabase & tersinkronisasi!", "success");
       }
