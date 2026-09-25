@@ -554,18 +554,10 @@ export default function MateriTugasSiswa({ defaultTab = 'materials', fixedTab = 
                       )}
                     </button>
 
-                    {/* Secondary Link button if teacher provided an external link */}
+                    {/* Papan Link Preview Card persis seperti di akun guru */}
                     {a.link && (
-                      <div className="pt-1">
-                        <a
-                          href={a.link.startsWith('http') ? a.link : `https://${a.link}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold text-xs border border-slate-200 transition-colors"
-                        >
-                          <span>Buka Dokumen / Link Lampiran Guru</span>
-                          <ArrowUpRight className="w-3.5 h-3.5 text-slate-400" />
-                        </a>
+                      <div className="pt-2 border-t border-slate-100">
+                        <LinkPreviewCard url={a.link} />
                       </div>
                     )}
                   </div>

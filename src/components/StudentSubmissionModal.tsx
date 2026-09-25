@@ -1,3 +1,4 @@
+import LinkPreviewCard from './LinkPreviewCard';
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   X, 
@@ -488,26 +489,25 @@ export default function StudentSubmissionModal({
             </div>
           )}
 
-          {/* Teacher Assignment Instructions & Material Reference */}
-          {assignment.description && (
-            <div className="bg-slate-50/80 p-3.5 sm:p-4 rounded-2xl border border-slate-200/80 space-y-1.5">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                Petunjuk Pengerjaan Guru:
-              </span>
-              <p className="text-slate-700 text-xs sm:text-sm leading-relaxed whitespace-pre-line">
-                {assignment.description}
-              </p>
+          {/* Petunjuk Pengerjaan & Papan Tautan/Lampiran Guru */}
+          {(assignment.description || assignment.link) && (
+            <div className="bg-slate-50/80 p-3.5 sm:p-4 rounded-2xl border border-slate-200/80 space-y-2.5">
+              {assignment.description && (
+                <div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+                    Petunjuk Pengerjaan Guru:
+                  </span>
+                  <p className="text-slate-700 text-xs sm:text-sm leading-relaxed whitespace-pre-line">
+                    {assignment.description}
+                  </p>
+                </div>
+              )}
               {assignment.link && (
-                <div className="pt-1.5">
-                  <a 
-                    href={assignment.link.startsWith('http') ? assignment.link : `https://${assignment.link}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-600 hover:text-indigo-800 hover:underline"
-                  >
-                    <span>Buka Tautan Materi / Lampiran Guru</span>
-                    <ExternalLink className="w-3.5 h-3.5" />
-                  </a>
+                <div className="pt-2 border-t border-slate-200/60">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">
+                    Lampiran / Tautan Tugas:
+                  </span>
+                  <LinkPreviewCard url={assignment.link} />
                 </div>
               )}
             </div>

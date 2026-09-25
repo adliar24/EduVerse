@@ -1388,7 +1388,7 @@ const switchCamera = async () => {
                         showFilter === 'present' ? 'bg-white text-[#3B66F5] shadow-sm' : 'text-gray-500'
                       }`}
                     >
-                      Sudah Absen ({presentCount})
+                      Sudah ({presentCount})
                     </button>
                     <button
                       onClick={() => setShowFilter('absent')}
@@ -1396,7 +1396,7 @@ const switchCamera = async () => {
                         showFilter === 'absent' ? 'bg-white text-red-600 shadow-sm' : 'text-gray-500'
                       }`}
                     >
-                      Belum Absen ({absentCount})
+                      Belum ({absentCount})
                     </button>
                   </div>
                 </div>
@@ -1414,76 +1414,59 @@ const switchCamera = async () => {
                 {filteredManualStudents.map(s => {
                   const record = sessionRecords.find(r => r.studentId === s.id);
                   const status = record?.status;
-
-                  const STATUS_STYLE: Record<string, { active: string; inactive: string }> = {
-                    Hadir: {
-                      active: 'bg-emerald-500 text-white shadow-md shadow-emerald-200',
-                      inactive: 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100',
-                    },
-                    Sakit: {
-                      active: 'bg-yellow-500 text-white shadow-md shadow-yellow-200',
-                      inactive: 'bg-yellow-50 text-yellow-800 hover:bg-yellow-100',
-                    },
-                    Izin: {
-                      active: 'bg-[#3B66F5]/50 text-white shadow-md shadow-blue-200',
-                      inactive: 'bg-[#3B66F5]/5 text-blue-700 hover:bg-[#3B66F5]/10',
-                    },
-                    Alpha: {
-                      active: 'bg-red-500 text-white shadow-md shadow-red-200',
-                      inactive: 'bg-red-50 text-red-700 hover:bg-red-100',
-                    },
-                    Terlambat: {
-                      active: 'bg-orange-500 text-white shadow-md shadow-orange-200',
-                      inactive: 'bg-orange-50 text-orange-700 hover:bg-orange-100',
-                    },
-                  };
-
                   const order: AttendanceStatus[] = ['Hadir', 'Sakit', 'Izin', 'Terlambat', 'Alpha'];
 
                   return (
                     <div
                       key={s.id}
-                      className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow"
+                      className="bg-white px-3.5 py-2.5 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl shadow-xs border border-gray-100 hover:border-blue-200 hover:shadow-sm transition-all flex flex-col md:flex-row md:items-center md:justify-between gap-2 sm:gap-3"
                     >
-                      <div className="flex items-start justify-between gap-3">
+                      {/* Info Murid */}
+                      <div className="min-w-0 flex-1 flex items-center justify-between md:justify-start gap-2">
                         <div className="min-w-0">
-                          <div className="font-extrabold text-gray-900 text-base md:text-lg truncate">
+                          <div className="font-bold text-gray-900 text-sm sm:text-base truncate leading-snug">
                             {s.name}
                           </div>
-                          <div className="text-xs text-gray-400 mt-1">
-                            {record ? `Absen: ${record.timeHHMMSS}` : 'Belum absen'}
+                          <div className="text-[11px] text-gray-400 flex items-center gap-2 mt-0.5">
+                            {s.student_code && (
+                              <span className="font-mono bg-slate-100 px-1.5 py-0.5 rounded text-slate-500 text-[10px]">
+                                {s.student_code}
+                              </span>
+                            )}
+                            <span>{record ? `Absen: ${record.timeHHMMSS}` : 'Belum absen'}</span>
                           </div>
                         </div>
 
-                        <div
-                          className={`shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold ${
-                            status === 'Hadir'
-                              ? 'bg-[#3B66F5]/10 text-blue-700'
-                              : status === 'Sakit'
-                                ? 'bg-yellow-100 text-yellow-800'
-                                : status === 'Izin'
-                                  ? 'bg-[#3B66F5]/10 text-blue-700'
-                                  : status === 'Terlambat'
-                                    ? 'bg-orange-100 text-orange-700'
-                                    : status === 'Alpha'
-                                      ? 'bg-red-100 text-red-700'
-                                      : 'bg-gray-100 text-gray-600'
-                          }`}
-                        >
-                          {status ?? '-'}
-                        </div>
+                        {/* Status Label Khusus Mobile */}
+                        {status && (
+                          <span className={`md:hidden shrink-0 px-2 py-0.5 rounded-md text-[10px] font-bold ${
+                            status === 'Hadir' ? 'bg-emerald-100 text-emerald-800' :
+                            status === 'Sakit' ? 'bg-amber-100 text-amber-800' :
+                            status === 'Izin' ? 'bg-blue-100 text-blue-800' :
+                            status === 'Terlambat' ? 'bg-orange-100 text-orange-800' :
+                            'bg-red-100 text-red-800'
+                          }`}>
+                            {status}
+                          </span>
+                        )}
                       </div>
 
-                      {/* tombol status */}
-                      <div className="mt-4 grid grid-cols-2 sm:grid-cols-5 gap-2">
+                      {/* Tombol Opsi Status yang Kompak */}
+                      <div className="flex items-center gap-1 sm:gap-1.5 shrink-0 overflow-x-auto pb-0.5 md:pb-0">
                         {order.map((opt) => {
                           const isActive = status === opt;
-                          const cls = isActive ? STATUS_STYLE[opt].active : STATUS_STYLE[opt].inactive;
+                          const cls = isActive 
+                            ? (opt === 'Hadir' ? 'bg-emerald-600 text-white shadow-xs font-black scale-[1.02]' :
+                               opt === 'Sakit' ? 'bg-amber-500 text-white shadow-xs font-black scale-[1.02]' :
+                               opt === 'Izin' ? 'bg-[#3B66F5] text-white shadow-xs font-black scale-[1.02]' :
+                               opt === 'Terlambat' ? 'bg-orange-500 text-white shadow-xs font-black scale-[1.02]' :
+                               'bg-red-600 text-white shadow-xs font-black scale-[1.02]')
+                            : 'bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold';
                           return (
                             <button
                               key={opt}
                               onClick={() => handleManualStatus(s.id, opt)}
-                              className={`w-full py-3 rounded-full font-extrabold text-sm border border-transparent transition ${cls}`}
+                              className={`px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-lg text-xs transition-all active:scale-95 shrink-0 ${cls}`}
                             >
                               {opt}
                             </button>
