@@ -504,19 +504,7 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
       let query = supabase
         .from('participants')
         .select(`
-          id,
-          name,
-          class,
-          exam_id,
-          session_id,
-          score,
-          score_pg,
-          score_essay,
-          essay_graded,
-          status,
-          start_time,
-          end_time,
-          created_at,
+          *,
           exams (
             title
           )
@@ -544,7 +532,7 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
       if (error || !data || data.length === 0) {
         let fallbackQuery = supabaseAnon
           .from('participants')
-          .select('id, name, class, exam_id, session_id, score, score_pg, score_essay, essay_graded, status, start_time, end_time, created_at')
+          .select('*')
           .in('exam_id', examIds)
           .order('created_at', { ascending: false });
 
@@ -786,7 +774,7 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
     try {
       const targetAnswer = updatedAnswers.find(a => a.question_id === questionId);
       if (targetAnswer && targetAnswer.id && !targetAnswer.id.startsWith('unanswered-')) {
-        await supabase
+        const { error: aErr } = await supabase
           .from('answers')
           .update({
             score: newScore,
@@ -794,8 +782,15 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
             teacher_feedback: feedback !== undefined ? feedback : targetAnswer.teacher_feedback
           })
           .eq('id', targetAnswer.id);
+
+        if (aErr) {
+          await supabase
+            .from('answers')
+            .update({ is_correct: newScore >= 60 })
+            .eq('id', targetAnswer.id);
+        }
       } else {
-        await supabase
+        const { error: upErr } = await supabase
           .from('answers')
           .upsert({
             participant_id: selectedResult.id,
@@ -804,25 +799,51 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
             is_correct: newScore >= 60,
             teacher_feedback: feedback || ''
           }, { onConflict: 'participant_id,question_id' });
+
+        if (upErr) {
+          await supabase
+            .from('answers')
+            .upsert({
+              participant_id: selectedResult.id,
+              question_id: questionId,
+              is_correct: newScore >= 60
+            }, { onConflict: 'participant_id,question_id' });
+        }
       }
 
-      const participantPayload = {
+      const fullParticipantPayload = {
         score: scoringResult.finalScore,
         score_pg: scoringResult.scorePg,
         score_essay: scoringResult.scoreEssay,
         essay_graded: scoringResult.isEssayGraded
       };
 
-      const { error: pErr } = await supabase
+      const fallbackParticipantPayload = {
+        score: scoringResult.finalScore
+      };
+
+      let { error: pErr } = await supabase
         .from('participants')
-        .update(participantPayload)
+        .update(fullParticipantPayload)
         .eq('id', selectedResult.id);
 
       if (pErr) {
-        await supabaseAnon
+        let { error: pAnonErr } = await supabaseAnon
           .from('participants')
-          .update(participantPayload)
+          .update(fullParticipantPayload)
           .eq('id', selectedResult.id);
+
+        if (pAnonErr) {
+          // Schema doesn't have score_pg yet; fallback to saving total score
+          await supabase
+            .from('participants')
+            .update(fallbackParticipantPayload)
+            .eq('id', selectedResult.id);
+          await supabaseAnon
+            .from('participants')
+            .update(fallbackParticipantPayload)
+            .eq('id', selectedResult.id);
+        }
       }
     } catch (err) {
       console.error('Error saving essay score:', err);

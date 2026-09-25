@@ -1288,17 +1288,28 @@ export default function StudentExam() {
         // Hanya tandai end_time & status menunggu_scan di DB agar murid tidak bisa masuk ulang ujian.
         // Guru/pengawas yang akan memindai QR code murid untuk memvalidasi dan mengirim nilai ke Supabase.
         try {
-          await supabaseAnon
+          const qrPayload = { 
+            end_time: new Date().toISOString(),
+            status: 'menunggu_scan',
+            score: finalScore,
+            score_pg: scorePg,
+            score_essay: null,
+            essay_graded: isEssayGraded
+          };
+          const { error: qrErr } = await supabaseAnon
             .from('participants')
-            .update({ 
-              end_time: new Date().toISOString(),
-              status: 'menunggu_scan',
-              score: finalScore,
-              score_pg: scorePg,
-              score_essay: null,
-              essay_graded: isEssayGraded
-            })
+            .update(qrPayload)
             .eq('id', participantId);
+          if (qrErr) {
+            await supabaseAnon
+              .from('participants')
+              .update({
+                end_time: new Date().toISOString(),
+                status: 'menunggu_scan',
+                score: finalScore
+              })
+              .eq('id', participantId);
+          }
         } catch (dbErr) {
           console.warn('Offline mode: unable to update end_time in DB:', dbErr);
         }
@@ -1320,7 +1331,7 @@ export default function StudentExam() {
     try {
       // Update Participant with dual client support (supabaseAnon ensures anon RLS policy match)
       const updateParticipant = async () => {
-        const updatePayload = {
+        const fullPayload = {
           end_time: new Date().toISOString(),
           score: finalScore,
           score_pg: scorePg,
@@ -1329,23 +1340,49 @@ export default function StudentExam() {
           status: 'completed'
         };
 
+        const basicPayload = {
+          end_time: new Date().toISOString(),
+          score: finalScore,
+          status: 'completed'
+        };
+
         // 1. Try supabaseAnon first
-        const { data: anonData, error: anonErr } = await supabaseAnon
+        let { data: anonData, error: anonErr } = await supabaseAnon
           .from('participants')
-          .update(updatePayload)
+          .update(fullPayload)
           .eq('id', participantId)
           .select();
+
+        if (anonErr?.code === 'PGRST204' || anonErr?.message?.includes('score_pg')) {
+          const res = await supabaseAnon
+            .from('participants')
+            .update(basicPayload)
+            .eq('id', participantId)
+            .select();
+          anonData = res.data;
+          anonErr = res.error;
+        }
 
         if (!anonErr && anonData && anonData.length > 0) {
           return null;
         }
 
         // 2. Fallback to supabase client
-        const { data: authData, error: authErr } = await supabase
+        let { data: authData, error: authErr } = await supabase
           .from('participants')
-          .update(updatePayload)
+          .update(fullPayload)
           .eq('id', participantId)
           .select();
+
+        if (authErr?.code === 'PGRST204' || authErr?.message?.includes('score_pg')) {
+          const res = await supabase
+            .from('participants')
+            .update(basicPayload)
+            .eq('id', participantId)
+            .select();
+          authData = res.data;
+          authErr = res.error;
+        }
 
         if (!authErr && authData && authData.length > 0) {
           return null;
@@ -1393,8 +1430,18 @@ export default function StudentExam() {
               .from('answers')
               .insert(validAnswers);
             
+            if (insertError?.code === 'PGRST204' || insertError?.message?.includes('score')) {
+              const basicAnswers = validAnswers.map(({ score, ...rest }) => rest);
+              const basicRes = await supabaseAnon.from('answers').insert(basicAnswers);
+              insertError = basicRes.error;
+            }
+
             if (insertError) {
-              const res = await supabase.from('answers').insert(validAnswers);
+              let res = await supabase.from('answers').insert(validAnswers);
+              if (res.error?.code === 'PGRST204' || res.error?.message?.includes('score')) {
+                const basicAnswers = validAnswers.map(({ score, ...rest }) => rest);
+                res = await supabase.from('answers').insert(basicAnswers);
+              }
               insertError = res.error;
             }
 
