@@ -504,7 +504,7 @@ const playTone = (freq: number, type: OscillatorType, duration: number, vol: num
   const getFeedbackStyle = (type: FeedbackType) => {
     switch (type) {
       case 'success':
-      case 'late': return 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white border-emerald-400 shadow-2xl shadow-emerald-500/40';
+      case 'late': return 'bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-600 text-white border-blue-300 shadow-2xl shadow-blue-500/50';
       case 'warning':
       case 'already': return 'bg-gradient-to-r from-blue-500 to-blue-600 text-white border-blue-300 shadow-2xl shadow-blue-500/40';
       case 'error': return 'bg-gradient-to-r from-red-500 to-red-600 text-white border-red-400 shadow-2xl shadow-red-500/40';
@@ -559,13 +559,16 @@ const playTone = (freq: number, type: OscillatorType, duration: number, vol: num
 
       <div className="absolute top-0 inset-x-0 z-30 bg-gradient-to-b from-black/90 via-black/60 to-transparent pt-6 pb-4 px-6 md:pt-8 md:px-12">
         <div className="flex items-center justify-between w-full">
-          <div className="flex items-center gap-4 md:gap-6">
-            <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl md:rounded-3xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-500/30">
-              <ScanFace className="w-7 h-7 md:w-8 md:h-8 text-white" />
+          <div className="flex items-center gap-3.5 px-4 py-2.5 md:px-5 md:py-3 bg-black/60 backdrop-blur-xl border-2 border-white/25 rounded-2xl md:rounded-3xl shadow-2xl shadow-black/50">
+            <div className="w-11 h-11 md:w-13 md:h-13 rounded-xl md:rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-md shadow-blue-500/40 shrink-0">
+              <ScanFace className="w-6 h-6 md:w-7 md:h-7 text-white" />
             </div>
-            <div className="text-white">
-              <h2 className="font-bold text-xl md:text-2xl tracking-tight">{className || 'Scan Wajah'}</h2>
-              <p className="text-white/50 text-sm md:text-base">{sessionTopic || 'Absensi Otomatis'}</p>
+            <div className="text-white min-w-0 pr-1">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-blue-500/30 text-blue-200 border border-blue-400/40">Kelas</span>
+                <h2 className="font-black text-lg md:text-2xl tracking-tight text-white truncate">{className || 'Scan Wajah'}</h2>
+              </div>
+              <p className="text-white/80 text-xs md:text-sm font-semibold truncate mt-0.5">{sessionTopic || 'Absensi Otomatis'}</p>
             </div>
           </div>
           <div className="flex items-center gap-2 md:gap-4">
@@ -682,14 +685,14 @@ const playTone = (freq: number, type: OscillatorType, duration: number, vol: num
               className={`w-full mx-auto md:w-3/4 lg:w-1/2 rounded-2xl md:rounded-3xl p-5 md:p-6 shadow-2xl border-t-4 backdrop-blur-xl ${getFeedbackStyle(feedback.type)}`}
             >
               <div className="flex items-center gap-4 md:gap-6">
-                <div className={`w-14 h-14 md:w-16 md:h-16 rounded-xl md:rounded-2xl flex items-center justify-center shrink-0 ${
-                  feedback.type === 'success' || feedback.type === 'late' ? 'bg-white/20' : 'bg-black/20'
+                <div className={`w-14 h-14 md:w-16 md:h-16 rounded-2xl flex items-center justify-center shrink-0 shadow-inner ${
+                  feedback.type === 'success' || feedback.type === 'late' ? 'bg-white/25 text-white' : 'bg-black/30 text-white'
                 }`}>
                   {getFeedbackIcon(feedback.type)}
                 </div>
-                <div>
-                  <h3 className="font-bold text-lg md:text-2xl leading-tight uppercase tracking-wide">{feedback.title}</h3>
-                  <p className="font-medium text-white/90 text-base md:text-xl md:mt-1 mt-0.5">{feedback.message}</p>
+                <div className="min-w-0 flex-1">
+                  <h3 className="font-black text-xl md:text-2xl text-white leading-tight uppercase tracking-wider drop-shadow-md">{feedback.title}</h3>
+                  <p className="font-bold text-white text-base md:text-xl md:mt-1 mt-0.5 leading-snug drop-shadow-sm">{feedback.message}</p>
                 </div>
               </div>
             </motion.div>

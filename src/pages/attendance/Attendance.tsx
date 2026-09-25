@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, Suspense, lazy, useMemo } from 'rea
 import { AppState, AttendanceSession, AttendanceRecord, AttendanceStatus, Student, ScheduleItem, ClassEntity } from '../types';
 import { Button, Input, Card } from '../../components/UI';
 import { upsertSession, upsertRecord, deleteRecord, setActiveClassId } from '../../services/dbAttendance';
-import { ScanLine, List, CheckCircle, Clock, BookOpen, ChevronRight, ArrowRightLeft, X, Zap, ZapOff, AlertTriangle, XCircle, LogOut, UserX, CalendarClock, ScanFace, Loader2, Play, QrCode, Plus } from 'lucide-react';
+import { Search, ScanLine, List, CheckCircle, Clock, BookOpen, ChevronRight, ArrowRightLeft, X, Zap, ZapOff, AlertTriangle, XCircle, LogOut, UserX, CalendarClock, ScanFace, Loader2, Play, QrCode, Plus } from 'lucide-react';
 import jsQR from 'jsqr';
 import { motion, AnimatePresence } from 'framer-motion';
 import { deterministicId } from '../../lib/utils';
@@ -149,6 +149,22 @@ export const Attendance: React.FC<Props> = ({ state, refresh, notify }) => {
   } | null>(null);
   
   const [lastDetectedText, setLastDetectedText] = useState<string>('');
+  const [manualSearch, setManualSearch] = useState<string>('');
+
+  const filteredManualStudents = useMemo(() => {
+    return students.filter(s => {
+      const hasRecord = sessionRecords.some(r => r.studentId === s.id);
+      if (showFilter === 'present') return hasRecord;
+      if (showFilter === 'absent') return !hasRecord;
+      return true;
+    }).filter(s => {
+      if (!manualSearch.trim()) return true;
+      const q = manualSearch.toLowerCase();
+      const sName = (s.name || '').toLowerCase();
+      const sCode = (s.studentCode || (s as any).student_code || (s as any).nisn || '').toLowerCase();
+      return sName.includes(q) || sCode.includes(q);
+    });
+  }, [students, sessionRecords, showFilter, manualSearch]);
 
   const isFrontCamera = useMemo(() => {
     if (!selectedDeviceId) return true;
@@ -901,7 +917,7 @@ const switchCamera = async () => {
                       </div>
                       <div>
                         <h3 className="font-bold text-gray-900 text-lg">{c.name}</h3>
-                        <p className="text-sm text-gray-500">{studentCount} Siswa</p>
+                        <p className="text-sm text-gray-500">{studentCount} Murid</p>
                       </div>
                     </div>
                     <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-[#3B66F5] transition-colors" />
@@ -941,13 +957,16 @@ const switchCamera = async () => {
 
         <div className="absolute top-0 inset-x-0 z-30 bg-gradient-to-b from-black/90 via-black/60 to-transparent pt-6 pb-4 px-6 md:pt-8 md:px-12">
           <div className="flex items-center justify-between w-full">
-            <div className="flex items-center gap-4 md:gap-6">
-              <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl md:rounded-3xl bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/30">
-                <QrCode className="w-7 h-7 md:w-8 md:h-8 text-white" />
+            <div className="flex items-center gap-3.5 px-4 py-2.5 md:px-5 md:py-3 bg-black/60 backdrop-blur-xl border-2 border-white/25 rounded-2xl md:rounded-3xl shadow-2xl shadow-black/50">
+              <div className="w-11 h-11 md:w-13 md:h-13 rounded-xl md:rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-md shadow-blue-500/40 shrink-0">
+                <QrCode className="w-6 h-6 md:w-7 md:h-7 text-white" />
               </div>
-              <div className="text-white">
-                <h2 className="font-bold text-xl md:text-2xl tracking-tight">{activeClass.name}</h2>
-                <p className="text-white/50 text-sm md:text-base">{currentSession?.topic || (topic || 'Absensi QR')}</p>
+              <div className="text-white min-w-0 pr-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-blue-500/30 text-blue-200 border border-blue-400/40">Kelas</span>
+                  <h2 className="font-black text-lg md:text-2xl tracking-tight text-white truncate">{activeClass.name}</h2>
+                </div>
+                <p className="text-white/80 text-xs md:text-sm font-semibold truncate mt-0.5">{currentSession?.topic || (topic || 'Absensi QR')}</p>
               </div>
             </div>
             <div className="flex items-center gap-2 md:gap-4">
@@ -1020,7 +1039,7 @@ const switchCamera = async () => {
                       <span className="text-sm font-semibold text-white truncate">{c.name}</span>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
-                      <span className="text-xs text-white/40">{count} siswa</span>
+                      <span className="text-xs text-white/40">{count} murid</span>
                       {isActive && <CheckCircle className="w-4 h-4 text-blue-400" />}
                     </div>
                   </button>
@@ -1076,17 +1095,17 @@ const switchCamera = async () => {
                   'bg-gradient-to-r from-red-500 to-red-600 text-white border-red-400 shadow-red-500/40'
                 }`}
               >
-                <div className="flex items-center gap-4">
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${
-                    scanFeedback.type === 'success' || scanFeedback.type === 'late' ? 'bg-white/20' : 'bg-black/20'
+                <div className="flex items-center gap-4 md:gap-5">
+                  <div className={`w-14 h-14 md:w-16 md:h-16 rounded-2xl flex items-center justify-center shrink-0 shadow-inner ${
+                    scanFeedback.type === 'success' || scanFeedback.type === 'late' ? 'bg-white/25 text-white' : 'bg-black/30 text-white'
                   }`}>
-                    {(scanFeedback.type === 'success' || scanFeedback.type === 'late') && <CheckCircle className="w-7 h-7" />}
-                    {scanFeedback.type === 'warning' && <AlertTriangle className="w-6 h-6" />}
-                    {scanFeedback.type === 'error' && <XCircle className="w-7 h-7" />}
+                    {(scanFeedback.type === 'success' || scanFeedback.type === 'late') && <CheckCircle className="w-8 h-8 md:w-9 md:h-9 text-white" />}
+                    {scanFeedback.type === 'warning' && <AlertTriangle className="w-8 h-8 md:w-9 md:h-9 text-white" />}
+                    {scanFeedback.type === 'error' && <XCircle className="w-8 h-8 md:w-9 md:h-9 text-white" />}
                   </div>
-                  <div>
-                    <h3 className="font-bold text-lg leading-tight uppercase tracking-wide">{scanFeedback.title}</h3>
-                    <p className="font-medium text-white/90 text-base mt-0.5">{scanFeedback.message}</p>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-black text-xl md:text-2xl text-white leading-tight uppercase tracking-wider drop-shadow-md">{scanFeedback.title}</h3>
+                    <p className="font-bold text-white text-base md:text-lg mt-1 leading-snug drop-shadow-sm">{scanFeedback.message}</p>
                   </div>
                 </div>
               </motion.div>
@@ -1240,7 +1259,7 @@ const switchCamera = async () => {
                     </div>
                     <div className="flex-1">
                       <h3 className="font-bold text-gray-900 mb-1">Scan QR Code</h3>
-                      <p className="text-sm text-gray-500">Absen dengan memindai QR Code siswa</p>
+                      <p className="text-sm text-gray-500">Absen dengan memindai QR Code murid</p>
                     </div>
                     <ChevronRight className="w-5 h-5 text-gray-400" />
                   </div>
@@ -1256,7 +1275,7 @@ const switchCamera = async () => {
                     </div>
                     <div className="flex-1">
                       <h3 className="font-bold text-gray-900 mb-1">Scan Wajah</h3>
-                      <p className="text-sm text-gray-500">Absen dengan mengenali wajah siswa</p>
+                      <p className="text-sm text-gray-500">Absen dengan mengenali wajah murid</p>
                     </div>
                     <ChevronRight className="w-5 h-5 text-gray-400" />
                   </div>
@@ -1317,40 +1336,67 @@ const switchCamera = async () => {
                 initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}
                 className="flex flex-col gap-4 pb-20 max-h-[70vh] overflow-y-auto pr-1"
               >
-                {/* Filter Tabs */}
-                <div className="flex bg-gray-100 rounded-xl p-1">
-                  <button
-                    onClick={() => setShowFilter('all')}
-                    className={`flex-1 py-2 rounded-full text-sm font-bold transition ${
-                      showFilter === 'all' ? 'bg-white text-[#3B66F5] shadow-sm' : 'text-gray-500'
-                    }`}
-                  >
-                    Semua ({students.length})
-                  </button>
-                  <button
-                    onClick={() => setShowFilter('present')}
-                    className={`flex-1 py-2 rounded-full text-sm font-bold transition ${
-                      showFilter === 'present' ? 'bg-white text-[#3B66F5] shadow-sm' : 'text-gray-500'
-                    }`}
-                  >
-                    Sudah Absen ({presentCount})
-                  </button>
-                  <button
-                    onClick={() => setShowFilter('absent')}
-                    className={`flex-1 py-2 rounded-full text-sm font-bold transition ${
-                      showFilter === 'absent' ? 'bg-white text-red-600 shadow-sm' : 'text-gray-500'
-                    }`}
-                  >
-                    Belum Absen ({absentCount})
-                  </button>
+                {/* Fitur Pencarian Nama Murid & Filter Tabs */}
+                <div className="flex flex-col gap-3">
+                  <div className="relative w-full">
+                    <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <input 
+                      type="text"
+                      placeholder="Cari nama murid atau NISN..."
+                      value={manualSearch}
+                      onChange={e => setManualSearch(e.target.value)}
+                      className="w-full bg-white border-2 border-slate-200 rounded-2xl pl-10 pr-10 py-3 text-sm font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#3B66F5] focus:ring-4 focus:ring-[#3B66F5]/10 transition-all shadow-sm"
+                    />
+                    {manualSearch && (
+                      <button 
+                        onClick={() => setManualSearch('')}
+                        className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 rounded-full hover:bg-slate-100"
+                        title="Hapus pencarian"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="flex bg-gray-100 rounded-xl p-1">
+                    <button
+                      onClick={() => setShowFilter('all')}
+                      className={`flex-1 py-2 rounded-full text-sm font-bold transition ${
+                        showFilter === 'all' ? 'bg-white text-[#3B66F5] shadow-sm' : 'text-gray-500'
+                      }`}
+                    >
+                      Semua ({students.length})
+                    </button>
+                    <button
+                      onClick={() => setShowFilter('present')}
+                      className={`flex-1 py-2 rounded-full text-sm font-bold transition ${
+                        showFilter === 'present' ? 'bg-white text-[#3B66F5] shadow-sm' : 'text-gray-500'
+                      }`}
+                    >
+                      Sudah Absen ({presentCount})
+                    </button>
+                    <button
+                      onClick={() => setShowFilter('absent')}
+                      className={`flex-1 py-2 rounded-full text-sm font-bold transition ${
+                        showFilter === 'absent' ? 'bg-white text-red-600 shadow-sm' : 'text-gray-500'
+                      }`}
+                    >
+                      Belum Absen ({absentCount})
+                    </button>
+                  </div>
                 </div>
 
-                 {students.filter(s => {
-                   const hasRecord = sessionRecords.some(r => r.studentId === s.id);
-                   if (showFilter === 'present') return hasRecord;
-                   if (showFilter === 'absent') return !hasRecord;
-                   return true;
-                 }).map(s => {
+                {filteredManualStudents.length === 0 && (
+                  <div className="bg-white p-8 rounded-2xl border border-slate-200 text-center shadow-sm">
+                    <Search className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                    <p className="text-sm font-bold text-slate-700">Tidak ada murid yang ditemukan</p>
+                    <p className="text-xs text-slate-400 mt-1">
+                      {manualSearch ? `Pencarian "${manualSearch}" tidak cocok dengan data murid manapun.` : 'Belum ada data murid pada kategori ini.'}
+                    </p>
+                  </div>
+                )}
+
+                {filteredManualStudents.map(s => {
                   const record = sessionRecords.find(r => r.studentId === s.id);
                   const status = record?.status;
 
