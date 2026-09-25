@@ -557,47 +557,51 @@ const playTone = (freq: number, type: OscillatorType, duration: number, vol: num
         className="absolute inset-0 w-full h-full object-cover pointer-events-none"
       />
 
-      <div className="absolute top-0 inset-x-0 z-30 bg-gradient-to-b from-black/90 via-black/60 to-transparent pt-6 pb-4 px-6 md:pt-8 md:px-12">
-        <div className="flex items-center justify-between w-full">
-          <div className="flex items-center gap-3.5 px-4 py-2.5 md:px-5 md:py-3 bg-black/60 backdrop-blur-xl border-2 border-white/25 rounded-2xl md:rounded-3xl shadow-2xl shadow-black/50">
-            <div className="w-11 h-11 md:w-13 md:h-13 rounded-xl md:rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-md shadow-blue-500/40 shrink-0">
-              <ScanFace className="w-6 h-6 md:w-7 md:h-7 text-white" />
+      <div className="absolute top-0 inset-x-0 z-30 bg-gradient-to-b from-black/90 via-black/60 to-transparent pt-3 sm:pt-5 pb-3 px-3 sm:px-6 md:px-10">
+        <div className="flex items-center justify-between gap-3 w-full max-w-7xl mx-auto">
+          {/* Papan Informasi Kelas - Ramping, proporsional & berjarak lega */}
+          <div className="flex items-center gap-2 sm:gap-3 px-3 py-1.5 sm:px-4 sm:py-2 bg-black/70 backdrop-blur-xl border border-white/20 rounded-xl sm:rounded-2xl shadow-xl shadow-black/50 min-w-0 max-w-[calc(100%-110px)] sm:max-w-md">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-md shadow-blue-500/40 shrink-0">
+              <ScanFace className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
             </div>
             <div className="text-white min-w-0 pr-1">
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-blue-500/30 text-blue-200 border border-blue-400/40">Kelas</span>
-                <h2 className="font-black text-lg md:text-2xl tracking-tight text-white truncate">{className || 'Scan Wajah'}</h2>
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-blue-500/30 text-blue-200 border border-blue-400/40 shrink-0">Kelas</span>
+                <h2 className="font-bold text-sm sm:text-base md:text-lg tracking-tight text-white truncate">{className || 'Scan Wajah'}</h2>
               </div>
-              <p className="text-white/80 text-xs md:text-sm font-semibold truncate mt-0.5">{sessionTopic || 'Absensi Otomatis'}</p>
+              <p className="text-white/80 text-[11px] sm:text-xs font-medium truncate mt-0.5">{sessionTopic || 'Absensi Otomatis'}</p>
             </div>
           </div>
-          <div className="flex items-center gap-2 md:gap-4">
+
+          {/* Tombol Aksi - shrink-0 agar tidak pernah terpotong atau terdorong */}
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             {cameras.length > 1 && (
               <motion.button 
                 whileTap={{ scale: 0.95 }}
                 onClick={handleSwitchCamera}
                 disabled={isSwitchingCamera}
-                className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center text-white hover:bg-white/20 transition-all border border-white/10"
+                className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white/10 hover:bg-white/20 backdrop-blur-md flex items-center justify-center text-white transition-all border border-white/15 shadow-md"
                 title="Pindah Kamera"
               >
                 {isSwitchingCamera ? (
-                  <Loader2 className="w-5 h-5 md:w-7 md:h-7 animate-spin" />
+                  <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
                 ) : (
-                  <ArrowRightLeft className="w-5 h-5 md:w-7 md:h-7" />
+                  <ArrowRightLeft className="w-4 h-4 sm:w-5 sm:h-5" />
                 )}
               </motion.button>
             )}
             <motion.button 
               whileTap={{ scale: 0.95 }}
               onClick={() => { cleanup(); onCancel(); }}
-              className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-red-500/80 backdrop-blur-md flex items-center justify-center text-white hover:bg-red-600 transition-all shadow-lg shadow-red-900/40 border border-red-400/30"
+              title="Tutup Scanner"
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-red-600/90 hover:bg-red-600 backdrop-blur-md flex items-center justify-center text-white transition-all shadow-lg shadow-red-950/50 border border-red-400/40"
             >
-              <X className="w-5 h-5 md:w-7 md:h-7" />
+              <X className="w-4 h-4 sm:w-5 sm:h-5" />
             </motion.button>
           </div>
         </div>
         
-        <div className="w-full mt-4 md:mt-6 flex items-center gap-2">
+        <div className="w-full mt-3 sm:mt-4 flex items-center gap-2">
           <div className={`w-2.5 h-2.5 md:w-3 md:h-3 rounded-full ${detectionStatus === 'ideal' ? 'bg-emerald-400 shadow-lg shadow-emerald-400 animate-pulse' : detectionStatus === 'no_face' ? 'bg-white/30' : 'bg-yellow-400 shadow-lg shadow-yellow-400 animate-pulse'}`} />
           <span className="text-white/70 text-sm md:text-base font-medium">
             {isInitializing ? 'Memuat sistem...' : isModelsReady ? (

@@ -955,60 +955,66 @@ const switchCamera = async () => {
         <video ref={videoRef} muted playsInline className="absolute inset-0 w-full h-full object-cover" />
         <canvas ref={canvasRef} className="hidden" />
 
-        <div className="absolute top-0 inset-x-0 z-30 bg-gradient-to-b from-black/90 via-black/60 to-transparent pt-6 pb-4 px-6 md:pt-8 md:px-12">
-          <div className="flex items-center justify-between w-full">
-            <div className="flex items-center gap-3.5 px-4 py-2.5 md:px-5 md:py-3 bg-black/60 backdrop-blur-xl border-2 border-white/25 rounded-2xl md:rounded-3xl shadow-2xl shadow-black/50">
-              <div className="w-11 h-11 md:w-13 md:h-13 rounded-xl md:rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-md shadow-blue-500/40 shrink-0">
-                <QrCode className="w-6 h-6 md:w-7 md:h-7 text-white" />
+        <div className="absolute top-0 inset-x-0 z-30 bg-gradient-to-b from-black/90 via-black/60 to-transparent pt-3 sm:pt-5 pb-3 px-3 sm:px-6 md:px-10">
+          <div className="flex items-center justify-between gap-3 w-full max-w-7xl mx-auto">
+            {/* Papan Informasi Kelas - Ramping, proporsional & berjarak lega */}
+            <div className="flex items-center gap-2 sm:gap-3 px-3 py-1.5 sm:px-4 sm:py-2 bg-black/70 backdrop-blur-xl border border-white/20 rounded-xl sm:rounded-2xl shadow-xl shadow-black/50 min-w-0 max-w-[calc(100%-145px)] sm:max-w-md">
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-md shadow-blue-500/40 shrink-0">
+                <QrCode className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
               <div className="text-white min-w-0 pr-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-blue-500/30 text-blue-200 border border-blue-400/40">Kelas</span>
-                  <h2 className="font-black text-lg md:text-2xl tracking-tight text-white truncate">{activeClass.name}</h2>
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-blue-500/30 text-blue-200 border border-blue-400/40 shrink-0">Kelas</span>
+                  <h2 className="font-bold text-sm sm:text-base md:text-lg tracking-tight text-white truncate">{activeClass.name}</h2>
                 </div>
-                <p className="text-white/80 text-xs md:text-sm font-semibold truncate mt-0.5">{currentSession?.topic || (topic || 'Absensi QR')}</p>
+                <p className="text-white/80 text-[11px] sm:text-xs font-medium truncate mt-0.5">{currentSession?.topic || (topic || 'Absensi QR')}</p>
               </div>
             </div>
-            <div className="flex items-center gap-2 md:gap-4">
+
+            {/* Tombol Aksi - shrink-0 agar tidak pernah terpotong atau terdorong */}
+            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
               {hasFlash && (
                 <motion.button 
                   whileTap={{ scale: 0.95 }}
                   onClick={toggleFlash}
-                  className="w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl bg-white/10 backdrop-blur-md flex items-center justify-center text-white hover:bg-white/20 transition-all border border-white/10"
+                  title="Flashlight"
+                  className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white/10 hover:bg-white/20 backdrop-blur-md flex items-center justify-center text-white transition-all border border-white/15 shadow-md"
                 >
-                   {flashOn ? <ZapOff className="w-5 h-5 md:w-7 md:h-7" /> : <Zap className="w-5 h-5 md:w-7 md:h-7" />}
+                   {flashOn ? <ZapOff className="w-4 h-4 sm:w-5 sm:h-5" /> : <Zap className="w-4 h-4 sm:w-5 sm:h-5" />}
                 </motion.button>
               )}
               {videoDevices.length > 1 && (
                 <motion.button 
                   whileTap={{ scale: 0.95 }}
                   onClick={switchCamera}
-                  className="w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl bg-white/10 backdrop-blur-md flex items-center justify-center text-white hover:bg-white/20 transition-all border border-white/10"
+                  title="Pindah Kamera"
+                  className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white/10 hover:bg-white/20 backdrop-blur-md flex items-center justify-center text-white transition-all border border-white/15 shadow-md"
                 >
-                  <ArrowRightLeft className="w-5 h-5 md:w-7 md:h-7" />
+                  <ArrowRightLeft className="w-4 h-4 sm:w-5 sm:h-5" />
                 </motion.button>
               )}
               <motion.button 
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setShowScanClassPicker(true)}
                 title="Ganti Kelas"
-                className="w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl bg-white/10 backdrop-blur-md flex items-center justify-center text-white hover:bg-white/20 transition-all border border-white/10"
+                className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white/10 hover:bg-white/20 backdrop-blur-md flex items-center justify-center text-white transition-all border border-white/15 shadow-md"
               >
-                <BookOpen className="w-5 h-5 md:w-7 md:h-7" />
+                <BookOpen className="w-4 h-4 sm:w-5 sm:h-5" />
               </motion.button>
               <motion.button 
                 whileTap={{ scale: 0.95 }}
                 onClick={stopScan}
-                className="w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl bg-red-500/80 backdrop-blur-md flex items-center justify-center text-white hover:bg-red-600 transition-all shadow-lg shadow-red-900/40 border border-red-400/30"
+                title="Tutup Scanner"
+                className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-red-600/90 hover:bg-red-600 backdrop-blur-md flex items-center justify-center text-white transition-all shadow-lg shadow-red-950/50 border border-red-400/40"
               >
-                <X className="w-5 h-5 md:w-7 md:h-7" />
+                <X className="w-4 h-4 sm:w-5 sm:h-5" />
               </motion.button>
             </div>
           </div>
           
           {activeSchedule && (
-            <div className="w-full mt-3">
-              <span className="inline-block bg-[#3B66F5]/50/80 text-white text-[10px] md:text-xs px-2 py-0.5 rounded font-bold">
+            <div className="w-full mt-2">
+              <span className="inline-block bg-blue-600/80 backdrop-blur-sm text-white text-[10px] sm:text-xs px-2.5 py-0.5 rounded-md font-bold border border-blue-400/30">
                 JADWAL: {activeSchedule.startTime} - {activeSchedule.endTime}
               </span>
             </div>
@@ -1192,18 +1198,27 @@ const switchCamera = async () => {
             </p>
           </Card>
 
-          <div className="bg-white p-1.5 rounded-2xl border border-gray-200 shadow-sm flex">
+          {/* Papan Tombol Pilihan Mode: Scan & Manual dengan Gradasi Biru Aplikasi */}
+          <div className="bg-slate-100/90 p-1.5 rounded-2xl border border-slate-200 shadow-inner flex gap-1.5">
             <button 
               onClick={() => { setMode('scan'); setScanType(null); }}
-              className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-full font-bold text-sm transition-all ${mode === 'scan' ? 'bg-[#3B66F5]/50 text-white shadow-md' : 'text-gray-500 hover:bg-gray-50'}`}
+              className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-sm transition-all duration-200 ${
+                mode === 'scan' 
+                  ? 'bg-gradient-to-r from-blue-600 via-[#3B66F5] to-indigo-600 text-white shadow-md shadow-blue-500/30 scale-[1.01]' 
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/80 font-semibold'
+              }`}
             >
-              <ScanLine className="w-4 h-4" /> Scan
+              <ScanLine className="w-4 h-4" /> Mode Scan
             </button>
             <button 
               onClick={() => { setMode('manual'); setScanType(null); }}
-              className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-full font-bold text-sm transition-all ${mode === 'manual' ? 'bg-[#3B66F5]/50 text-white shadow-md' : 'text-gray-500 hover:bg-gray-50'}`}
+              className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-sm transition-all duration-200 ${
+                mode === 'manual' 
+                  ? 'bg-gradient-to-r from-blue-600 via-[#3B66F5] to-indigo-600 text-white shadow-md shadow-blue-500/30 scale-[1.01]' 
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/80 font-semibold'
+              }`}
             >
-              <List className="w-4 h-4" /> Manual
+              <List className="w-4 h-4" /> Input Manual
             </button>
           </div>
           
@@ -1250,34 +1265,34 @@ const switchCamera = async () => {
                 className="flex flex-col gap-4"
               >
                 <Card 
-                  className="p-6 bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md hover:border-[#3B66F5]/30 transition-all cursor-pointer"
+                  className="p-5 sm:p-6 bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md hover:border-[#3B66F5] transition-all cursor-pointer group"
                   onClick={() => { setScanType('qr'); setIsScanning(true); }}
                 >
                   <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 rounded-2xl bg-[#3B66F5]/5 flex items-center justify-center">
-                      <QrCode className="w-7 h-7 text-[#3B66F5]" />
+                    <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-blue-500/25 group-hover:scale-105 transition-transform shrink-0">
+                      <QrCode className="w-6 h-6 sm:w-7 sm:h-7" />
                     </div>
-                    <div className="flex-1">
-                      <h3 className="font-bold text-gray-900 mb-1">Scan QR Code</h3>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-bold text-gray-900 mb-1 group-hover:text-[#3B66F5] transition-colors">Scan QR Code</h3>
                       <p className="text-sm text-gray-500">Absen dengan memindai QR Code murid</p>
                     </div>
-                    <ChevronRight className="w-5 h-5 text-gray-400" />
+                    <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-[#3B66F5] group-hover:translate-x-0.5 transition-all shrink-0" />
                   </div>
                 </Card>
                 
                 <Card 
-                  className="p-6 bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md hover:border-[#3B66F5]/30 transition-all cursor-pointer"
+                  className="p-5 sm:p-6 bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md hover:border-[#3B66F5] transition-all cursor-pointer group"
                   onClick={() => { setScanType('face'); setIsFaceScanning(true); }}
                 >
                   <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 rounded-2xl bg-[#3B66F5]/5 flex items-center justify-center">
-                      <ScanFace className="w-7 h-7 text-[#3B66F5]" />
+                    <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-blue-500/25 group-hover:scale-105 transition-transform shrink-0">
+                      <ScanFace className="w-6 h-6 sm:w-7 sm:h-7" />
                     </div>
-                    <div className="flex-1">
-                      <h3 className="font-bold text-gray-900 mb-1">Scan Wajah</h3>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-bold text-gray-900 mb-1 group-hover:text-[#3B66F5] transition-colors">Scan Wajah</h3>
                       <p className="text-sm text-gray-500">Absen dengan mengenali wajah murid</p>
                     </div>
-                    <ChevronRight className="w-5 h-5 text-gray-400" />
+                    <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-[#3B66F5] group-hover:translate-x-0.5 transition-all shrink-0" />
                   </div>
                 </Card>
 
