@@ -771,8 +771,11 @@ export const getScores = async (idPertemuan?: string, schoolId?: string): Promis
   }
 
   let filtered = all;
-  if (schoolId) filtered = filtered.filter(s => s.schoolId === schoolId);
-  if (idPertemuan) filtered = filtered.filter(s => s.idPertemuan === idPertemuan);
+  if (idPertemuan) {
+    filtered = filtered.filter(s => s.idPertemuan === idPertemuan);
+  } else if (schoolId) {
+    filtered = filtered.filter(s => s.schoolId === schoolId);
+  }
   return filtered;
 };
 

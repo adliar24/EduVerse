@@ -268,7 +268,7 @@ export const GradingScreen: React.FC = () => {
 
          const s = await db.getStudents(m.idKelas, schoolId || undefined);
          setStudents(s);
-         const sc = await db.getScores(idPertemuan, schoolId || undefined);
+         const sc = await db.getScores(idPertemuan);
          const scoreMap: Record<string, MeetingScore> = {};
          sc.forEach(x => scoreMap[x.idSiswa] = x);
          setScores(scoreMap);
