@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useDeferredValue } from 'react';
+import { useState, useEffect, useMemo, useDeferredValue, useRef } from 'react';
 import { supabase, supabaseAnon } from '../lib/supabase';
 import { 
   Search, 
@@ -434,6 +434,7 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [participantAnswers, setParticipantAnswers] = useState<any[]>([]);
   const [loadingDetail, setLoadingDetail] = useState(false);
+  const examQuestionsCacheRef = useRef<Record<string, any[]>>({});
 
   // Bobot Nilai (PG + Essay)
   const [examWeights, setExamWeights] = useState<ExamWeights>(() => getExamWeights(initialExamId !== 'all' ? initialExamId : undefined));
@@ -874,80 +875,83 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
     setShowDetailModal(true);
     setLoadingDetail(true);
     setParticipantAnswers([]); // Reset first
+
     try {
-      // Fetch all questions for this exam
-      const { data: examQuestions, error: eqError } = await supabase
-        .from('exam_questions')
-        .select(`
-          id,
-          question_id,
-          questions (
-            *,
-            question_options (*)
-          )
-        `)
-        .eq('exam_id', participant.exam_id || participant.exams?.id);
+      const examId = participant.exam_id || participant.exams?.id;
+      let examQuestions = examQuestionsCacheRef.current[examId];
 
-      if (eqError) throw eqError;
+      // 1. If not yet in cache, fetch questions once and store in memory
+      if (!examQuestions || examQuestions.length === 0) {
+        const { data: fetchedQuestions, error: eqError } = await supabase
+          .from('exam_questions')
+          .select(`
+            id,
+            question_id,
+            questions (
+              *,
+              question_options (*)
+            )
+          `)
+          .eq('exam_id', examId);
 
-      // Fetch the participant's answers with fallback
+        if (eqError) throw eqError;
+        examQuestions = fetchedQuestions || [];
+        examQuestionsCacheRef.current[examId] = examQuestions;
+      }
+
+      // 2. Fetch the participant's answers with LEAN query (NO duplicate joins on questions/options!)
       let { data: participantDbAnswers, error: ansError } = await supabase
         .from('answers')
-        .select(`
-          *,
-          questions(*),
-          question_options(*)
-        `)
+        .select('id, question_id, option_id, answer_text, is_correct, score, teacher_feedback')
         .eq('participant_id', participant.id);
 
       if (ansError || !participantDbAnswers || participantDbAnswers.length === 0) {
         const { data: anonDbAnswers } = await supabaseAnon
           .from('answers')
-          .select(`
-            *,
-            questions(*),
-            question_options(*)
-          `)
+          .select('id, question_id, option_id, answer_text, is_correct, score, teacher_feedback')
           .eq('participant_id', participant.id);
         if (anonDbAnswers && anonDbAnswers.length > 0) {
           participantDbAnswers = anonDbAnswers;
         }
       }
 
+      const answersMap = new Map((participantDbAnswers || []).map((a: any) => [a.question_id, a]));
+
       const fullAnswers = (examQuestions || []).map((eq: any) => {
         const question = eq.questions || {};
         if (!question.id) return null;
         
-        // Find answer
-        const ans = (participantDbAnswers || []).find((a: any) => a.question_id === question.id);
+        // Find answer in O(1) time
+        const ans = answersMap.get(question.id);
         
-        // selected option
+        // Selected option resolved directly from cached question.question_options
         let selectedOption = null;
         if (ans && question.question_type === 'pilihan_ganda' && ans.option_id) {
-           selectedOption = Array.isArray(ans.question_options) 
-             ? ans.question_options.find((opt: any) => opt.id === ans.option_id) 
-             : ans.question_options;
+          const options = Array.isArray(question.question_options) 
+            ? question.question_options 
+            : (question.question_options ? [question.question_options] : []);
+          selectedOption = options.find((opt: any) => opt.id === ans.option_id) || null;
         }
 
-        // full correct answer
+        // Full correct answer text
         let fullCorrectAnswerText = "-";
         if (question.question_type === 'pilihan_ganda') {
-           const options = Array.isArray(question.question_options) ? question.question_options : (question.question_options ? [question.question_options] : []);
-           const correctOpt = options.find((o: any) => o.option_label === question.correct_answer);
-           if (correctOpt) {
-             fullCorrectAnswerText = `${correctOpt.option_text}`;
-           } else {
-             fullCorrectAnswerText = question.correct_answer || '-';
-           }
+          const options = Array.isArray(question.question_options) ? question.question_options : (question.question_options ? [question.question_options] : []);
+          const correctOpt = options.find((o: any) => o.option_label === question.correct_answer);
+          if (correctOpt) {
+            fullCorrectAnswerText = `${correctOpt.option_text}`;
+          } else {
+            fullCorrectAnswerText = question.correct_answer || '-';
+          }
         } else if (question.question_type === 'menjodohkan') {
-           try {
-             const pairs = JSON.parse(question.correct_answer || '[]');
-             fullCorrectAnswerText = pairs.map((p: any) => `${p.left} ➔ ${p.right}`).join(', ');
-           } catch (e) {
-             fullCorrectAnswerText = question.correct_answer || '-';
-           }
+          try {
+            const pairs = JSON.parse(question.correct_answer || '[]');
+            fullCorrectAnswerText = pairs.map((p: any) => `${p.left} ➔ ${p.right}`).join(', ');
+          } catch (e) {
+            fullCorrectAnswerText = question.correct_answer || '-';
+          }
         } else {
-           fullCorrectAnswerText = question.correct_answer || '-';
+          fullCorrectAnswerText = question.correct_answer || '-';
         }
 
         return {
@@ -959,7 +963,7 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
           is_correct: ans ? ans.is_correct : false,
           score: typeof ans?.score === 'number' ? ans.score : (question.question_type === 'essay' ? null : (ans?.is_correct ? 100 : 0)),
           teacher_feedback: ans?.teacher_feedback || '',
-          selected_option: selectedOption || null,
+          selected_option: selectedOption,
           full_correct_answer_text: fullCorrectAnswerText,
           is_answered: !!ans
         };

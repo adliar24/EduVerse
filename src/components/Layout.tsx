@@ -703,14 +703,9 @@ export default function Layout({ session }: LayoutProps) {
               <Loader2 className="w-10 h-10 text-[#1D4ED8] animate-spin" />
             </div>
           }>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.15, ease: 'easeInOut' }}
-              className="w-full h-full"
-            >
+            <div className="w-full h-full">
               <Outlet />
-            </motion.div>
+            </div>
           </Suspense>
         </div>
       </main>

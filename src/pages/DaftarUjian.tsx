@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase, supabaseAnon } from '../lib/supabase';
 import { 
   FileText, 
@@ -102,11 +102,13 @@ export default function DaftarUjian() {
     }
   };
 
+  const realtimeTimeoutRef = useRef<any>(null);
+
   useEffect(() => {
     fetchExams();
   }, [activeSchool]);
 
-  // Realtime subscription to refresh participant counts whenever students submit or join
+  // Realtime subscription to refresh participant counts whenever students submit or join (debounced)
   useEffect(() => {
     const channel = supabase
       .channel('participants_realtime_daftar_ujian')
@@ -114,19 +116,25 @@ export default function DaftarUjian() {
         'postgres_changes',
         { event: '*', schema: 'public', table: 'participants' },
         () => {
-          fetchExams();
+          if (realtimeTimeoutRef.current) {
+            clearTimeout(realtimeTimeoutRef.current);
+          }
+          realtimeTimeoutRef.current = setTimeout(() => {
+            fetchExams(false); // background fetch without showing full page loader
+          }, 1500);
         }
       )
       .subscribe();
 
     return () => {
+      if (realtimeTimeoutRef.current) clearTimeout(realtimeTimeoutRef.current);
       supabase.removeChannel(channel);
     };
   }, [activeSchool]);
 
-  const fetchExams = async () => {
+  const fetchExams = async (showSpinner = true) => {
     try {
-      setLoading(true);
+      if (showSpinner) setLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
@@ -408,6 +416,10 @@ export default function DaftarUjian() {
       }
 
       const hasActive = selectedClasses.length > 0;
+      
+      // Optimistic update in UI
+      setExams(prev => prev.map(e => e.id === selectedExam.id ? { ...e, is_active: hasActive } : e));
+
       await supabase
         .from('exams')
         .update({ is_active: hasActive })
@@ -416,7 +428,7 @@ export default function DaftarUjian() {
       setShowActivateModal(false);
       setSelectedExam(null);
       setSelectedClasses([]);
-      fetchExams();
+      fetchExams(false);
       showAlert({ 
         title: 'Berhasil', 
         message: hasActive 
@@ -426,102 +438,150 @@ export default function DaftarUjian() {
       });
     } catch (error: any) {
       console.error(error);
+      fetchExams(false);
       showAlert({ title: 'Gagal', message: 'Gagal menyimpan target kelas: ' + (error?.message || ''), type: 'error' });
     } finally {
       setActivating(false);
     }
   };
 
+  const generateSessionStatsInBackground = async (examId: string) => {
+    try {
+      const { data: sessions } = await supabase
+        .from('exam_sessions')
+        .select('id')
+        .eq('exam_id', examId);
+
+      if (!sessions || sessions.length === 0) return;
+
+      const sessionIds = sessions.map(s => s.id);
+      const { data: participants } = await supabase
+        .from('participants')
+        .select('id, session_id, name, class, score, status')
+        .in('session_id', sessionIds)
+        .eq('status', 'completed');
+
+      if (!participants || participants.length === 0) return;
+
+      // 1 single batch query to get answers for all completed participants
+      const participantIds = participants.map(p => p.id);
+      const { data: allAnswers } = await supabase
+        .from('answers')
+        .select('id, participant_id, question_id, is_correct')
+        .in('participant_id', participantIds);
+
+      const answersByParticipant = new Map<string, any[]>();
+      for (const a of (allAnswers || [])) {
+        if (!answersByParticipant.has(a.participant_id)) {
+          answersByParticipant.set(a.participant_id, []);
+        }
+        answersByParticipant.get(a.participant_id)!.push(a);
+      }
+
+      const sessionStatsToUpsert: any[] = [];
+      const participantStatsToUpsert: any[] = [];
+
+      for (const session of sessions) {
+        const sessionParticipants = participants.filter(p => p.session_id === session.id);
+        const totalSiswa = sessionParticipants.length;
+        if (totalSiswa === 0) continue;
+
+        const totalNilai = sessionParticipants.reduce((acc, p) => acc + (p.score || 0), 0);
+        const avgScore = totalNilai / totalSiswa;
+        const highestScore = Math.max(...sessionParticipants.map(p => p.score || 0));
+        const lowestScore = Math.min(...sessionParticipants.map(p => p.score || 0));
+        const passedCount = sessionParticipants.filter(p => (p.score || 0) >= 75).length;
+        const remedialCount = sessionParticipants.filter(p => (p.score || 0) >= 50 && (p.score || 0) < 75).length;
+        const failedCount = sessionParticipants.filter(p => (p.score || 0) < 50).length;
+
+        sessionStatsToUpsert.push({
+          session_id: session.id,
+          exam_id: examId,
+          total_students: totalSiswa,
+          participants_count: totalSiswa,
+          avg_score: Math.round(avgScore * 100) / 100,
+          highest_score: highestScore,
+          lowest_score: lowestScore,
+          passed_count: passedCount,
+          failed_count: failedCount,
+          remedial_count: remedialCount,
+          generated_at: new Date().toISOString()
+        });
+
+        for (const p of sessionParticipants) {
+          const userAnswers = answersByParticipant.get(p.id) || [];
+          const correctCount = userAnswers.filter(a => a.is_correct === true).length;
+          const incorrectCount = userAnswers.filter(a => a.is_correct === false).length;
+          const unansweredCount = userAnswers.filter(a => a.is_correct === null).length;
+
+          participantStatsToUpsert.push({
+            session_id: session.id,
+            exam_id: examId,
+            participant_id: p.id,
+            participant_name: p.name,
+            participant_class: p.class,
+            score: p.score,
+            correct_count: correctCount,
+            incorrect_count: incorrectCount,
+            unanswered_count: unansweredCount,
+            generated_at: new Date().toISOString()
+          });
+        }
+      }
+
+      // Fast bulk upserts (only 2 queries total instead of 100+ serial queries)
+      if (sessionStatsToUpsert.length > 0) {
+        await supabase
+          .from('exam_session_stats')
+          .upsert(sessionStatsToUpsert, { onConflict: 'session_id' });
+      }
+      if (participantStatsToUpsert.length > 0) {
+        await supabase
+          .from('exam_session_participant_stats')
+          .upsert(participantStatsToUpsert, { onConflict: 'session_id,participant_id' });
+      }
+    } catch (err) {
+      console.warn('Background session stats sync completed with warning:', err);
+    }
+  };
+
   const toggleIsActive = async (id: string, currentStatus: boolean) => {
     if (currentStatus) {
-      try {
-        const { data: sessions } = await supabase
-          .from('exam_sessions')
-          .select('id')
-          .eq('exam_id', id)
-          .eq('is_active', true);
-
-        if (sessions && sessions.length > 0) {
-          for (const session of sessions) {
-            const { data: participants } = await supabase
-              .from('participants')
-              .select('id, name, class, score, status')
-              .eq('session_id', session.id)
-              .eq('status', 'completed');
-
-            const totalSiswa = participants?.length || 0;
-            const totalNilai = participants?.reduce((acc, p) => acc + (p.score || 0), 0) || 0;
-            const avgScore = totalSiswa > 0 ? totalNilai / totalSiswa : 0;
-            const highestScore = participants?.length > 0 ? Math.max(...participants.map(p => p.score || 0)) : 0;
-            const lowestScore = participants?.length > 0 ? Math.min(...participants.map(p => p.score || 0)) : 0;
-            const passedCount = participants?.filter(p => (p.score || 0) >= 75).length || 0;
-            const remedialCount = participants?.filter(p => (p.score || 0) >= 50 && (p.score || 0) < 75).length || 0;
-            const failedCount = participants?.filter(p => (p.score || 0) < 50).length || 0;
-
-            const { error: statsError } = await supabase
-              .from('exam_session_stats')
-              .upsert({
-                session_id: session.id,
-                exam_id: id,
-                total_students: totalSiswa,
-                participants_count: totalSiswa,
-                avg_score: Math.round(avgScore * 100) / 100,
-                highest_score: highestScore,
-                lowest_score: lowestScore,
-                passed_count: passedCount,
-                failed_count: failedCount,
-                remedial_count: remedialCount,
-                generated_at: new Date().toISOString()
-              }, { onConflict: 'session_id' });
-
-            if (statsError) {
-              console.error('Error creating session stats:', statsError);
-            }
-
-            if (participants && participants.length > 0) {
-              for (const participant of participants) {
-                const { data: answers } = await supabase
-                  .from('answers')
-                  .select('id, question_id, is_correct')
-                  .eq('participant_id', participant.id);
-
-                const correctCount = answers?.filter(a => a.is_correct === true).length || 0;
-                const incorrectCount = answers?.filter(a => a.is_correct === false).length || 0;
-                const unansweredCount = answers?.filter(a => a.is_correct === null).length || 0;
-
-                await supabase
-                  .from('exam_session_participant_stats')
-                  .upsert({
-                    session_id: session.id,
-                    exam_id: id,
-                    participant_id: participant.id,
-                    participant_name: participant.name,
-                    participant_class: participant.class,
-                    score: participant.score,
-                    correct_count: correctCount,
-                    incorrect_count: incorrectCount,
-                    unanswered_count: unansweredCount,
-                    generated_at: new Date().toISOString()
-                  }, { onConflict: 'session_id,participant_id' });
-              }
-            }
-          }
+      // 1. Instant 0ms Optimistic UI update
+      setExams(prev => prev.map(e => {
+        if (e.id === id) {
+          return {
+            ...e,
+            is_active: false,
+            exam_sessions: (e.exam_sessions || []).map((s: any) => ({ ...s, is_active: false }))
+          };
         }
-        
-        await supabase
-          .from('exam_sessions')
-          .update({ is_active: false, ended_at: new Date().toISOString() })
-          .eq('exam_id', id)
-          .eq('is_active', true);
-        
-        await supabase
-          .from('exams')
-          .update({ is_active: false })
-          .eq('id', id);
-        
-        fetchExams();
-        showAlert({ title: 'Berhasil', message: 'Ujian dinonaktifkan dan rekap sesi telah dibuat', type: 'success' });
+        return e;
+      }));
+
+      try {
+        const nowIso = new Date().toISOString();
+
+        // 2. Fast Parallel Database Update (~100ms)
+        await Promise.all([
+          supabase
+            .from('exam_sessions')
+            .update({ is_active: false, ended_at: nowIso })
+            .eq('exam_id', id)
+            .eq('is_active', true),
+          supabase
+            .from('exams')
+            .update({ is_active: false })
+            .eq('id', id)
+        ]);
+
+        showAlert({ title: 'Berhasil', message: 'Ujian dinonaktifkan.', type: 'success' });
+
+        // 3. Background non-blocking session stats consolidation
+        generateSessionStatsInBackground(id);
       } catch (error) {
+        // Rollback optimistic update on error
+        fetchExams(false);
         showAlert({ title: 'Gagal', message: 'Gagal menonaktifkan ujian', type: 'error' });
       }
     } else {

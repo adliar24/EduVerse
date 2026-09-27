@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode, useMemo, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 
 interface School {
@@ -24,13 +24,13 @@ export function SchoolProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [isSchoolInitialized, setIsSchoolInitialized] = useState(false);
 
-  const CANONICAL_SCHOOL: School = {
+  const CANONICAL_SCHOOL: School = useMemo(() => ({
     id: 'fe3939e2-1abd-4028-b7a3-1b49a8c3c9a7',
     name: 'SMAN 19 Bandung',
     address: 'Jl. Dago Spesial No. 1, Bandung'
-  };
+  }), []);
 
-  const refreshSchools = async () => {
+  const refreshSchools = useCallback(async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
@@ -99,7 +99,7 @@ export function SchoolProvider({ children }: { children: ReactNode }) {
       setLoading(false);
       setIsSchoolInitialized(true);
     }
-  };
+  }, [CANONICAL_SCHOOL]);
 
   useEffect(() => {
     refreshSchools();
@@ -116,19 +116,28 @@ export function SchoolProvider({ children }: { children: ReactNode }) {
       window.removeEventListener('auth_state_change', refreshSchools);
       window.removeEventListener('storage', refreshSchools);
     };
-  }, []);
+  }, [refreshSchools]);
 
-  const setActiveSchool = async (school: School | null) => {
+  const setActiveSchool = useCallback(async (school: School | null) => {
     setActiveSchoolState(school);
     if (school) {
       localStorage.setItem('active_school_id', school.id);
     } else {
       localStorage.removeItem('active_school_id');
     }
-  };
+  }, []);
+
+  const contextValue = useMemo(() => ({
+    schools,
+    activeSchool,
+    setActiveSchool,
+    loading,
+    isSchoolInitialized,
+    refreshSchools
+  }), [schools, activeSchool, setActiveSchool, loading, isSchoolInitialized, refreshSchools]);
 
   return (
-    <SchoolContext.Provider value={{ schools, activeSchool, setActiveSchool, loading, isSchoolInitialized, refreshSchools }}>
+    <SchoolContext.Provider value={contextValue}>
       {children}
     </SchoolContext.Provider>
   );
