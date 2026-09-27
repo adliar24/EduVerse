@@ -14,6 +14,7 @@ export interface EssayEvaluationRequest {
   correctAnswer?: string | null;
   studentAnswer: string;
   maxScore?: number; // default: 100
+  signal?: AbortSignal;
 }
 
 export interface EssayEvaluationResult {
@@ -81,6 +82,152 @@ function cleanJsonString(raw: string): string {
 }
 
 /**
+ * Helper fetch dengan timeout dan penggabungan AbortSignal
+ */
+async function fetchWithTimeout(
+  url: string,
+  options: RequestInit = {},
+  timeoutMs = 25000
+): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+  if (options.signal) {
+    if (options.signal.aborted) {
+      clearTimeout(timer);
+      throw new Error('Operasi dibatalkan.');
+    }
+    options.signal.addEventListener('abort', () => controller.abort());
+  }
+
+  try {
+    const res = await fetch(url, {
+      ...options,
+      signal: controller.signal
+    });
+    clearTimeout(timer);
+    return res;
+  } catch (err: any) {
+    clearTimeout(timer);
+    if (err.name === 'AbortError') {
+      if (options.signal?.aborted) {
+        throw new Error('Operasi dibatalkan.');
+      }
+      throw new Error(`Koneksi timeout (${Math.round(timeoutMs / 1000)} detik).`);
+    }
+    throw err;
+  }
+}
+
+/**
+ * Pemanggilan API Chat Completions yang tangguh dengan prioritas proxy /api/openkey
+ */
+async function callOpenKeyChatApi({
+  apiKey,
+  baseUrl,
+  model,
+  messages,
+  temperature = 0.1,
+  maxTokens = 80,
+  signal
+}: {
+  apiKey: string;
+  baseUrl: string;
+  model: string;
+  messages: Array<{ role: string; content: string }>;
+  temperature?: number;
+  maxTokens?: number;
+  signal?: AbortSignal;
+}): Promise<any> {
+  const cleanBaseUrl = baseUrl.replace(/\/+$/, '');
+  const directEndpoint = `${cleanBaseUrl}/chat/completions`;
+  const bodyPayload = JSON.stringify({
+    model: model || 'gpt-4o-mini',
+    messages,
+    temperature,
+    max_tokens: maxTokens
+  });
+
+  let lastError: any = null;
+
+  // 1. Prioritas Utama: Rewrite Proxy /api/openkey/chat/completions (Bebas CORS di Vite dev & Vercel prod)
+  try {
+    const proxyRes = await fetchWithTimeout('/api/openkey/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey.trim()}`
+      },
+      body: bodyPayload,
+      signal
+    }, 25000);
+
+    const contentType = proxyRes.headers.get('content-type') || '';
+    if (proxyRes.ok && contentType.includes('application/json')) {
+      return await proxyRes.json();
+    } else if (proxyRes.status !== 404) {
+      const errText = await proxyRes.text();
+      console.warn(`Proxy OpenKey response non-200 (${proxyRes.status}):`, errText);
+    }
+  } catch (proxyErr: any) {
+    if (signal?.aborted) throw proxyErr;
+    console.warn('Proxy OpenKey gagal, mencoba fallback:', proxyErr?.message);
+    lastError = proxyErr;
+  }
+
+  // 2. Prioritas Kedua: /api/evaluate-essay (Serverless Function jika tersedia)
+  try {
+    const serverlessRes = await fetchWithTimeout('/api/evaluate-essay', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        batchMode: true,
+        userContent: messages.find(m => m.role === 'user')?.content || '',
+        systemPrompt: messages.find(m => m.role === 'system')?.content || '',
+        maxTokens,
+        apiKey: apiKey.trim(),
+        model: model || 'gpt-4o-mini',
+        baseUrl: cleanBaseUrl
+      }),
+      signal
+    }, 15000);
+
+    const contentType = serverlessRes.headers.get('content-type') || '';
+    if (serverlessRes.ok && contentType.includes('application/json')) {
+      return await serverlessRes.json();
+    }
+  } catch (serverlessErr: any) {
+    if (signal?.aborted) throw serverlessErr;
+    lastError = serverlessErr;
+  }
+
+  // 3. Prioritas Ketiga: Direct endpoint (Di luar browser atau direct API access)
+  try {
+    const directRes = await fetchWithTimeout(directEndpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey.trim()}`
+      },
+      body: bodyPayload,
+      signal
+    }, 20000);
+
+    if (directRes.ok) {
+      return await directRes.json();
+    } else {
+      const errText = await directRes.text();
+      throw new Error(`OpenKey direct error (${directRes.status}): ${errText}`);
+    }
+  } catch (directErr: any) {
+    if (signal?.aborted) throw directErr;
+    lastError = directErr;
+  }
+
+  throw lastError || new Error('Gagal menghubungi AI OpenKey. Periksa koneksi internet atau API key Anda.');
+}
+
+/**
  * Mengevaluasi satu jawaban essay menggunakan AI OpenKey
  */
 export async function evaluateEssayWithAI(
@@ -111,107 +258,18 @@ export async function evaluateEssayWithAI(
 
   const userContent = `Soal: ${cleanQuestion}\nKunci: ${cleanAnswerKey || '-'}\nJawaban: ${cleanStudent}`;
 
-  const cleanBaseUrl = config.baseUrl.replace(/\/+$/, '');
-  const endpoint = `${cleanBaseUrl}/chat/completions`;
-
-  let data: any = null;
-  let lastError: any = null;
-
-  // 1. Coba lewat Vercel Serverless Function /api/evaluate-essay (Bypass CORS browser)
-  try {
-    const serverlessRes = await fetch('/api/evaluate-essay', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        questionText: cleanQuestion,
-        correctAnswer: cleanAnswerKey,
-        studentAnswer: cleanStudent,
-        apiKey: config.apiKey.trim(),
-        model: config.model.trim() || 'gpt-4o-mini',
-        baseUrl: cleanBaseUrl
-      })
-    });
-
-    if (serverlessRes.ok) {
-      data = await serverlessRes.json();
-    } else {
-      const errText = await serverlessRes.text();
-      console.warn('Serverless endpoint non-200, trying proxy fallback:', errText);
-    }
-  } catch (serverlessErr) {
-    // Di luar browser (misal Node) atau offline, lanjutkan ke proxy
-  }
-
-  // 2. Jika serverless belum mengembalikan data, coba lewat rewrite proxy /api/openkey/chat/completions
-  if (!data) {
-    try {
-      const proxyRes = await fetch('/api/openkey/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${config.apiKey.trim()}`
-        },
-        body: JSON.stringify({
-          model: config.model.trim() || 'gpt-4o-mini',
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userContent }
-          ],
-          temperature: 0.1,
-          max_tokens: 70
-        })
-      });
-
-      if (proxyRes.ok) {
-        data = await proxyRes.json();
-      } else {
-        const errText = await proxyRes.text();
-        lastError = new Error(`Proxy Error (${proxyRes.status}): ${errText}`);
-      }
-    } catch (proxyErr) {
-      lastError = proxyErr;
-    }
-  }
-
-  // 3. Fallback direct endpoint (jika di luar browser atau direct URL)
-  if (!data) {
-    try {
-      const directResponse = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${config.apiKey.trim()}`
-        },
-        body: JSON.stringify({
-          model: config.model.trim() || 'gpt-4o-mini',
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userContent }
-          ],
-          temperature: 0.1,
-          max_tokens: 70
-        })
-      });
-
-      if (directResponse.ok) {
-        data = await directResponse.json();
-      } else {
-        const errorBody = await directResponse.text();
-        let parsedMsg = errorBody;
-        try {
-          const errJson = JSON.parse(errorBody);
-          parsedMsg = errJson.error?.message || errJson.message || errorBody;
-        } catch {
-          // ignore
-        }
-        throw new Error(`OpenKey API Error (${directResponse.status}): ${parsedMsg}`);
-      }
-    } catch (directErr: any) {
-      throw lastError || directErr;
-    }
-  }
+  const data = await callOpenKeyChatApi({
+    apiKey: config.apiKey,
+    baseUrl: config.baseUrl,
+    model: config.model,
+    messages: [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userContent }
+    ],
+    temperature: 0.1,
+    maxTokens: 70,
+    signal: request.signal
+  });
 
   const rawText = data?.choices?.[0]?.message?.content || '';
 
@@ -254,6 +312,7 @@ export interface BatchQuestionEvaluationRequest {
   questionText: string;
   correctAnswer?: string | null;
   answers: BatchStudentAnswerItem[];
+  signal?: AbortSignal;
 }
 
 export interface BatchStudentResultItem {
@@ -318,71 +377,20 @@ export async function evaluateQuestionBatchWithAI(
     .join('\n');
 
   const userContent = `Soal: ${cleanQuestion}\nKunci: ${cleanAnswerKey || '-'}\nJawaban Siswa:\n${answersList}`;
+  const maxTokens = Math.min(800, Math.max(120, answersToEvaluate.length * 45));
 
-  const cleanBaseUrl = config.baseUrl.replace(/\/+$/, '');
-  const endpoint = `${cleanBaseUrl}/chat/completions`;
-  const maxTokens = Math.min(600, Math.max(100, answersToEvaluate.length * 40));
-
-  let data: any = null;
-  let lastError: any = null;
-
-  // 1. Coba via Vercel Serverless Function
-  try {
-    const serverlessRes = await fetch('/api/evaluate-essay', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        batchMode: true,
-        userContent,
-        systemPrompt,
-        maxTokens,
-        apiKey: config.apiKey.trim(),
-        model: config.model.trim() || 'gpt-4o-mini',
-        baseUrl: cleanBaseUrl
-      })
-    });
-
-    if (serverlessRes.ok) {
-      data = await serverlessRes.json();
-    }
-  } catch (err) {
-    // Fallback ke direct
-  }
-
-  // 2. Direct / Proxy Fallback
-  if (!data) {
-    try {
-      const directResponse = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${config.apiKey.trim()}`
-        },
-        body: JSON.stringify({
-          model: config.model.trim() || 'gpt-4o-mini',
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userContent }
-          ],
-          temperature: 0.1,
-          max_tokens: maxTokens
-        })
-      });
-
-      if (directResponse.ok) {
-        data = await directResponse.json();
-      } else {
-        const errorBody = await directResponse.text();
-        throw new Error(`OpenKey Batch Error (${directResponse.status}): ${errorBody}`);
-      }
-    } catch (err) {
-      lastError = err;
-    }
-  }
-
-  if (!data) {
-    throw lastError || new Error('Gagal menghubungi AI untuk evaluasi batch.');
-  }
+  const data = await callOpenKeyChatApi({
+    apiKey: config.apiKey,
+    baseUrl: config.baseUrl,
+    model: config.model,
+    messages: [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userContent }
+    ],
+    temperature: 0.1,
+    maxTokens,
+    signal: request.signal
+  });
 
   const rawText = data?.choices?.[0]?.message?.content || '';
   if (!rawText) {
@@ -396,9 +404,13 @@ export async function evaluateQuestionBatchWithAI(
     const cleaned = cleanJsonString(rawText);
     const parsed = JSON.parse(cleaned);
 
-    if (Array.isArray(parsed)) {
-      parsed.forEach(item => {
-        const returnedIndex = String(item.i ?? item.id ?? '');
+    const list = Array.isArray(parsed) 
+      ? parsed 
+      : (parsed?.results || parsed?.evaluasi || parsed?.answers || parsed?.data || null);
+
+    if (Array.isArray(list)) {
+      list.forEach(item => {
+        const returnedIndex = String(item.i ?? item.id ?? item.index ?? '');
         const realId = idMap.get(returnedIndex) || returnedIndex;
         let score = Number(item.s ?? item.score);
         if (isNaN(score)) score = 50;
@@ -419,9 +431,9 @@ export async function evaluateQuestionBatchWithAI(
       finalResults.push({ id: a.id, score: res.score, feedback: res.feedback });
     } else {
       // Fallback regex jika parsing JSON array parsial
-      const regex = new RegExp(`"\s*${a.indexKey}\s*".*?"(?:s|score)"\s*:\s*(\\d+)`, 'i');
+      const regex = new RegExp(`["\\[\\s]${a.indexKey}["\\]\\s].*?(?:s|score)["'\\s:]+(\\d+)`, 'i');
       const match = rawText.match(regex);
-      const score = match ? Math.max(0, Math.min(100, parseInt(match[1], 10))) : 0;
+      const score = match ? Math.max(0, Math.min(100, parseInt(match[1], 10))) : 50;
       finalResults.push({
         id: a.id,
         score,

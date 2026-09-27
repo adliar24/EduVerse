@@ -1570,12 +1570,14 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
                 answers: batchChunk.map(item => ({
                   id: item.id,
                   studentAnswer: item.answer_text || ''
-                }))
+                })),
+                signal
               });
 
               const resultMap = new Map(batchResults.map(r => [r.id, r]));
 
               for (const ans of batchChunk) {
+                if (signal.aborted) break;
                 const res = resultMap.get(ans.id) || {
                   score: !ans.answer_text || ans.answer_text.trim() === '' ? 0 : 50,
                   feedback: !ans.answer_text || ans.answer_text.trim() === '' ? 'Siswa tidak menuliskan jawaban.' : 'Dinilai oleh AI.'
@@ -1594,36 +1596,45 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
                 }
 
                 evaluatedCount++;
+                const curPart = targetParticipants.find(p => p.id === ans.participant_id);
+                setBatchProgress({
+                  current: evaluatedCount,
+                  total: totalAnswers,
+                  studentName: `${curPart?.name || firstParticipant?.name || 'Siswa'}`,
+                  percentage: Math.round((evaluatedCount / totalAnswers) * 100)
+                });
               }
-
-              setBatchProgress({
-                current: evaluatedCount,
-                total: totalAnswers,
-                studentName: `${firstParticipant?.name || 'Siswa'}`,
-                percentage: Math.round((evaluatedCount / totalAnswers) * 100)
-              });
             } catch (batchErr) {
+              if (signal.aborted) break;
               console.warn('Batch AI gagal, fallback ke evaluasi satuan:', batchErr);
               for (const ans of batchChunk) {
                 if (signal.aborted) break;
+                const curPart = targetParticipants.find(p => p.id === ans.participant_id);
                 try {
                   const singleRes = await evaluateEssayWithAI({
                     questionText: qObj?.question_text || '',
                     correctAnswer: qObj?.correct_answer || '',
-                    studentAnswer: ans.answer_text || ''
+                    studentAnswer: ans.answer_text || '',
+                    signal
                   });
                   ans.score = singleRes.score;
                   ans.is_correct = singleRes.score >= 60;
                   ans.teacher_feedback = singleRes.feedback;
                   await persistAnswerScore(ans.id, singleRes.score, singleRes.feedback);
                 } catch (sErr) {
+                  if (signal.aborted) break;
                   console.error('Fallback satuan gagal:', sErr);
+                  const isBlank = !ans.answer_text || ans.answer_text.trim() === '';
+                  ans.score = isBlank ? 0 : 50;
+                  ans.is_correct = ans.score >= 60;
+                  ans.teacher_feedback = isBlank ? 'Siswa tidak menuliskan jawaban.' : 'Perlu diperiksa manual.';
+                  await persistAnswerScore(ans.id, ans.score, ans.teacher_feedback);
                 }
                 evaluatedCount++;
                 setBatchProgress({
                   current: evaluatedCount,
                   total: totalAnswers,
-                  studentName: 'Evaluasi item',
+                  studentName: `${curPart?.name || 'Siswa'} (Satuan)`,
                   percentage: Math.round((evaluatedCount / totalAnswers) * 100)
                 });
               }
