@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useDeferredValue } from 'react';
 import { supabase, supabaseAnon } from '../lib/supabase';
 import { 
   Search, 
@@ -21,10 +21,11 @@ import {
   Loader2,
   ArrowUpDown,
   RotateCcw,
-  Sparkles,
   Check,
   SlidersHorizontal,
-  ChevronLeft
+  ChevronLeft,
+  FileCheck,
+  FileText
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import React from 'react';
@@ -178,7 +179,7 @@ const EssayAnswerCard: React.FC<{
             )}
             title="Seimbang: menggabungkan ketercakupan kata kunci dan panjang teks"
           >
-            ⚖️ Seimbang (Konsep + Panjang)
+            Seimbang (Konsep + Panjang)
           </button>
           <button
             type="button"
@@ -191,7 +192,7 @@ const EssayAnswerCard: React.FC<{
             )}
             title="Panjang Teks: semakin banyak kalimat yang diketik murid semakin tinggi nilainya"
           >
-            📝 Panjang Teks / Usaha Siswa
+            Panjang Teks / Usaha Siswa
           </button>
           <button
             type="button"
@@ -204,7 +205,7 @@ const EssayAnswerCard: React.FC<{
             )}
             title="Kata Kunci: murni berdasarkan konsep acuan guru"
           >
-            🔑 Kata Kunci Saja
+            Kata Kunci Saja
           </button>
         </div>
       </div>
@@ -281,99 +282,58 @@ const EssayAnswerCard: React.FC<{
         </div>
       </div>
 
-      {/* Kotak Pemeriksaan AI (OpenKey) - On Demand / Khusus Guru */}
-      <div className="mt-4 p-4 rounded-2xl bg-gradient-to-r from-purple-50 via-indigo-50/80 to-blue-50 border border-purple-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+      {/* Kotak Rekomendasi Evaluasi Otomatis (Profesional & Rapi) */}
+      <div className="mt-4 p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-start sm:items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-purple-700 text-white flex items-center justify-center shrink-0 shadow-md shadow-purple-700/20">
-            <Sparkles className="w-4 h-4" />
+          <div className="w-9 h-9 rounded-xl bg-indigo-900 text-white flex items-center justify-center shrink-0 shadow-xs">
+            <FileCheck className="w-4 h-4 text-indigo-200" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-xs font-black text-purple-950 uppercase tracking-wider">Pemeriksaan AI (OpenKey):</span>
-              {aiScore !== null ? (
-                <span className="text-sm font-black text-purple-700 bg-white px-2.5 py-0.5 rounded-lg border border-purple-200 shadow-xs">
-                  {aiScore} / 100
-                </span>
-              ) : (
-                <span className="text-[10px] font-bold text-slate-500 bg-white/70 px-2 py-0.5 rounded-lg border border-purple-100">
-                  Model: Gemini Flash
-                </span>
-              )}
+              <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                {aiScore !== null ? 'Hasil Evaluasi Sistem:' : 'Rekomendasi Skor:'}
+              </span>
+              <span className="text-sm font-black text-indigo-950 bg-white px-2.5 py-0.5 rounded-lg border border-slate-200 shadow-xs">
+                {aiScore !== null ? aiScore : evaluation.suggestedScore} / 100
+              </span>
             </div>
             <p className="text-xs text-slate-600 font-medium mt-0.5">
-              {aiReasoning || aiFeedback || 'Analisis pemahaman konsep & semantik konteks secara mendalam (on-demand).'}
+              {aiFeedback || aiReasoning || evaluation.feedbackSummary}
             </p>
             {aiError && (
-              <p className="text-xs text-rose-600 font-bold mt-1">⚠️ {aiError}</p>
+              <p className="text-xs text-rose-600 font-bold mt-1">Kendala: {aiError}</p>
             )}
           </div>
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
-          {aiScore !== null && (
-            <button
-              type="button"
-              onClick={() => handleApplyScore(aiScore)}
-              disabled={saving}
-              className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-purple-100 hover:bg-purple-200 text-purple-900 font-black text-xs border border-purple-300 transition-all active:scale-95 cursor-pointer disabled:opacity-50"
-              title="Terapkan dan simpan skor AI ini"
-            >
-              <Check className="w-3.5 h-3.5 text-purple-700" />
-              <span>Gunakan ({aiScore})</span>
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={() => handleApplyScore(aiScore !== null ? aiScore : evaluation.suggestedScore)}
+            disabled={saving}
+            className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-indigo-950 hover:bg-indigo-900 text-white font-bold text-xs shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-50"
+            title="Terapkan rekomendasi nilai ini"
+          >
+            <Check className="w-3.5 h-3.5" />
+            <span>Terapkan ({aiScore !== null ? aiScore : evaluation.suggestedScore})</span>
+          </button>
           <button
             type="button"
             onClick={handleAIEvaluate}
             disabled={aiLoading || saving}
-            className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-bold text-xs shadow-md shadow-purple-700/20 transition-all active:scale-95 cursor-pointer disabled:opacity-50"
+            className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-700 font-bold text-xs border border-slate-300 transition-all active:scale-95 cursor-pointer disabled:opacity-50"
+            title="Evaluasi ulang pemahaman konsep siswa"
           >
             {aiLoading ? (
               <>
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-600" />
                 <span>Menganalisis...</span>
               </>
             ) : (
-              <>
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>{aiScore !== null ? 'Periksa Ulang AI' : '✨ Periksa dengan AI'}</span>
-              </>
+              <span>{aiScore !== null ? 'Evaluasi Ulang' : 'Analisis Semantik'}</span>
             )}
           </button>
         </div>
-      </div>
-
-      {/* Kotak Asisten Cerdas (Offline Heuristic) */}
-      <div className="mt-4 p-4 rounded-2xl bg-gradient-to-r from-blue-50/90 via-indigo-50/70 to-purple-50/90 border border-blue-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex items-start sm:items-center gap-3">
-          <div className="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-md shadow-blue-600/20">
-            <Sparkles className="w-4 h-4" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-black text-blue-950 uppercase tracking-wider">Saran Nilai Otomatis:</span>
-              <span className="text-base font-black text-blue-600 bg-white px-2.5 py-0.5 rounded-lg border border-blue-200 shadow-xs">
-                {evaluation.suggestedScore} / 100
-              </span>
-            </div>
-            <p className="text-xs text-slate-600 font-medium mt-0.5">
-              {evaluation.feedbackSummary}
-            </p>
-            <div className="mt-1.5 inline-flex items-center gap-1 text-[11px] font-bold text-blue-900 bg-blue-100/80 px-2.5 py-0.5 rounded-lg border border-blue-200">
-              <span>🛡️ Proteksi Usaha: Siswa yang menjawab minimal mendapatkan 20 poin (Nilai 0 hanya jika dikosongkan).</span>
-            </div>
-          </div>
-        </div>
-
-        <button
-          type="button"
-          onClick={() => handleApplyScore(evaluation.suggestedScore)}
-          disabled={saving}
-          className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-600/20 transition-all active:scale-95 cursor-pointer disabled:opacity-50"
-        >
-          <Sparkles className="w-3.5 h-3.5" />
-          <span>Gunakan Saran ({evaluation.suggestedScore})</span>
-        </button>
       </div>
 
       {/* Form Penilaian Cepat Guru */}
@@ -466,6 +426,7 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
   const [selectedSession, setSelectedSession] = useState<string>('all');
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const deferredSearchTerm = useDeferredValue(searchTerm);
   const [sortBy, setSortBy] = useState<string>('terbaru');
   const [classes, setClasses] = useState<any[]>([]);
   const [selectedClass, setSelectedClass] = useState<string>('all');
@@ -482,9 +443,9 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
   const [tempBonusMax, setTempBonusMax] = useState(examWeights.bonusMaxPoints || 20);
   const [tempMode, setTempMode] = useState<ExamWeights['mode']>(examWeights.mode || 'pg_bonus_essay');
 
-  // Pagination & Display State
+  // Pagination & Display State (Default 25 item agar ringan & responsif)
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState<number>(50);
+  const [pageSize, setPageSize] = useState<number>(25);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
 
   // Status Nonaktif Bonus Essay per Individu Siswa (default: aktif untuk semua siswa)
@@ -1590,7 +1551,7 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
     });
 
     return temp;
-  }, [results, searchTerm, sortBy]);
+  }, [results, deferredSearchTerm, sortBy]);
 
   const totalPages = Math.ceil(filteredResults.length / (pageSize || filteredResults.length)) || 1;
   const paginatedResults = useMemo(() => {
@@ -1604,7 +1565,8 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
   }, [filteredResults]);
 
   const leaderboardResults = useMemo(() => {
-    const source = searchTerm.trim() ? filteredResults : results;
+    if (!showLeaderboard) return [];
+    const source = deferredSearchTerm.trim() ? filteredResults : results;
     const valid = source.filter(
       r => r.status !== 'menunggu_scan' && r.score !== null && r.score !== undefined
     );
@@ -1642,7 +1604,7 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
         // Tie breaker 3: Alphabetical
         return (a.name || '').localeCompare(b.name || '', 'id');
       });
-  }, [results, filteredResults, searchTerm]);
+  }, [results, filteredResults, deferredSearchTerm, showLeaderboard]);
 
   const exportToExcel = async () => {
     const { default: XLSXStyle } = await import('xlsx-js-style');
@@ -1842,10 +1804,10 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
                 setBatchSummary(null);
                 setShowBatchModal(true);
               }}
-              className="bg-gradient-to-r from-purple-700 via-indigo-600 to-blue-600 text-white px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 hover:brightness-110 transition-all shadow-md shadow-purple-600/20 active:scale-[0.98] cursor-pointer"
+              className="bg-indigo-950 hover:bg-indigo-900 text-white px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all shadow-sm active:scale-[0.98] cursor-pointer"
             >
-              <Sparkles className="w-4 h-4 text-purple-200" />
-              <span>✨ Koreksi Essay (AI)</span>
+              <FileCheck className="w-4 h-4 text-indigo-300" />
+              <span>Koreksi Otomatis Essay</span>
               {pendingEssayCount > 0 && (
                 <span className="bg-amber-400 text-amber-950 text-[10px] font-black px-2 py-0.5 rounded-full ml-0.5">
                   {pendingEssayCount} Belum
@@ -1940,14 +1902,14 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
       <div className="bg-white p-3 sm:p-4 rounded-2xl border border-slate-200/80 shadow-xs flex flex-wrap items-center justify-between gap-3">
         {/* Left: Active Bobot Scheme + Modal trigger + Mass Bonus Toggle */}
         <div className="flex flex-wrap items-center gap-2">
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 text-slate-800 text-xs font-bold border border-slate-200">
-            <span>{examWeights.mode === 'pg_bonus_essay' ? '🎁' : '⚖️'}</span>
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 text-slate-800 text-xs font-bold border border-slate-200">
+            <SlidersHorizontal className="w-3.5 h-3.5 text-indigo-700" />
             <span>
               {examWeights.mode === 'pg_bonus_essay'
-                ? `PG 100% + Bonus Essay (+${examWeights.bonusMaxPoints || 20})`
+                ? `Skema: PG 100% + Nilai Tambah (+${examWeights.bonusMaxPoints || 20})`
                 : examWeights.mode === 'custom'
-                ? `PG ${examWeights.pgWeight}% : Essay ${examWeights.essayWeight}%`
-                : 'Proporsional'}
+                ? `Bobot: PG ${examWeights.pgWeight}% : Essay ${examWeights.essayWeight}%`
+                : 'Skema: Proporsional Poin'}
             </span>
           </div>
 
@@ -1962,8 +1924,7 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
             }}
             className="px-3 py-1.5 rounded-xl text-xs font-bold bg-white text-indigo-950 border border-slate-200 hover:bg-slate-50 hover:border-slate-300 transition-all flex items-center gap-1.5 shadow-xs cursor-pointer active:scale-95"
           >
-            <SlidersHorizontal className="w-3.5 h-3.5 text-indigo-600" />
-            <span>Atur Bobot</span>
+            <span>Atur Skema</span>
           </button>
 
           {examWeights.mode === 'pg_bonus_essay' && (
@@ -1972,17 +1933,17 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
                 type="button"
                 onClick={handleApplyBonusToAll}
                 className="px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100 transition-all cursor-pointer"
-                title="Aktifkan bonus essay untuk seluruh siswa"
+                title="Aktifkan nilai tambah essay untuk seluruh siswa"
               >
-                🎁 Semua ON
+                Aktifkan Semua
               </button>
               <button
                 type="button"
                 onClick={handleDisableBonusForAll}
                 className="px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100 transition-all cursor-pointer"
-                title="Matikan bonus essay untuk seluruh siswa (murni PG)"
+                title="Matikan nilai tambah essay untuk seluruh siswa (murni PG)"
               >
-                ⚪ Semua OFF
+                Matikan Semua
               </button>
             </div>
           )}
@@ -1999,7 +1960,7 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
                 sortBy === 'a-z' || sortBy === 'z-a' ? "bg-white text-indigo-950 shadow-xs" : "text-slate-600 hover:text-slate-900"
               )}
             >
-              🔤 {sortBy === 'z-a' ? 'Z-A' : 'A-Z'}
+              Nama: {sortBy === 'z-a' ? 'Z-A' : 'A-Z'}
             </button>
             <button
               type="button"
@@ -2009,7 +1970,7 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
                 sortBy === 'nilai-tinggi' || sortBy === 'nilai-rendah' ? "bg-white text-indigo-950 shadow-xs" : "text-slate-600 hover:text-slate-900"
               )}
             >
-              🏆 {sortBy === 'nilai-rendah' ? 'Terendah' : 'Tertinggi'}
+              Nilai: {sortBy === 'nilai-rendah' ? 'Terendah' : 'Tertinggi'}
             </button>
             <button
               type="button"
@@ -2019,7 +1980,7 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
                 sortBy === 'terbaru' || sortBy === 'terlama' ? "bg-white text-indigo-950 shadow-xs" : "text-slate-600 hover:text-slate-900"
               )}
             >
-              ⏱️ Waktu
+              Waktu: {sortBy === 'terlama' ? 'Terlama' : 'Terbaru'}
             </button>
           </div>
 
@@ -2035,7 +1996,7 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
               )}
             >
               <Trophy className="w-3.5 h-3.5 text-amber-500" />
-              <span>{showLeaderboard ? 'Tutup Top 3' : 'Lihat Top 3'}</span>
+              <span>{showLeaderboard ? 'Tutup Peringkat' : 'Lihat Top 3'}</span>
             </button>
           )}
 
@@ -2049,22 +2010,16 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
       </div>
 
       {/* Quizzo 3D Leaderboard Podium (Collapsible) */}
-      <AnimatePresence>
-        {showLeaderboard && !loading && leaderboardResults.length >= 3 && (
-          <motion.div 
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="overflow-hidden"
-          >
-            <div className="bg-gradient-to-br from-[#0F172A] via-[#1E3A8A] to-[#1E40AF] p-6 sm:p-8 rounded-[2.5rem] text-white shadow-xl border border-white/10 relative overflow-hidden mb-2">
-              <div className="flex items-center justify-between mb-6 relative z-10">
-                <div className="flex items-center gap-3">
-                  <span className="text-[10px] uppercase font-extrabold tracking-widest px-3 py-1 bg-white/15 rounded-full text-amber-300 border border-white/20">
-                    ⭐ Scoreboard
-                  </span>
-                  <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight">Top 3 Peringkat Tertinggi</h3>
-                </div>
+      {showLeaderboard && !loading && leaderboardResults.length >= 3 && (
+        <div className="overflow-hidden mb-2">
+          <div className="bg-gradient-to-br from-[#0F172A] via-[#1E3A8A] to-[#1E40AF] p-6 sm:p-8 rounded-[2.5rem] text-white shadow-xl border border-white/10 relative overflow-hidden">
+            <div className="flex items-center justify-between mb-6 relative z-10">
+              <div className="flex items-center gap-3">
+                <span className="text-[10px] uppercase font-extrabold tracking-widest px-3 py-1 bg-white/15 rounded-full text-amber-300 border border-white/20">
+                  Peringkat Teratas
+                </span>
+                <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight">Top 3 Peringkat Tertinggi</h3>
+              </div>
                 <button
                   type="button"
                   onClick={() => setShowLeaderboard(false)}
@@ -2128,11 +2083,10 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
                     </div>
                   </div>
                 )}
-              </div>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </div>
+        </div>
+      )}
 
       {/* Tabel Hasil Siswa (Ringan & Cepat Tanpa Lag) */}
       <div className="bg-white rounded-2xl sm:rounded-[2rem] border border-slate-200/80 shadow-xs overflow-hidden">
@@ -2285,8 +2239,8 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
                         {result.status === 'menunggu_scan' || examWeights.mode !== 'pg_bonus_essay' ? (
                           <span className="text-xs text-slate-300">-</span>
                         ) : pgScore >= 100 ? (
-                          <span className="text-[11px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full" title="Nilai PG sudah 100 (maksimal)">
-                            ⭐ PG 100
+                          <span className="text-[11px] font-bold text-slate-600 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-full" title="Nilai PG sudah 100 (maksimal)">
+                            PG 100
                           </span>
                         ) : potentialBonus === 0 ? (
                           <span className="text-xs font-medium text-slate-400">+0 Poin</span>
@@ -2295,14 +2249,15 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
                             type="button"
                             onClick={(e) => handleToggleStudentBonus(result.id, e)}
                             className={cn(
-                              "px-2.5 py-1 rounded-full text-xs font-bold flex items-center gap-1 transition-all cursor-pointer border active:scale-95",
+                              "px-2.5 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer border active:scale-95",
                               isBonusActive
                                 ? "bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100"
-                                : "bg-slate-100 text-slate-400 border-slate-200 hover:bg-slate-200"
+                                : "bg-slate-100 text-slate-500 border-slate-200 hover:bg-slate-200"
                             )}
-                            title={isBonusActive ? "Bonus AKTIF. Klik untuk matikan bonus essay siswa ini" : "Bonus NONAKTIF. Klik untuk aktifkan bonus essay siswa ini"}
+                            title={isBonusActive ? "Nilai tambah aktif. Klik untuk matikan bagi siswa ini" : "Nilai tambah nonaktif. Klik untuk aktifkan bagi siswa ini"}
                           >
-                            <span>{isBonusActive ? `🎁 +${potentialBonus}` : '⚪ Bonus OFF'}</span>
+                            <span className={cn("w-1.5 h-1.5 rounded-full", isBonusActive ? "bg-emerald-500" : "bg-slate-400")} />
+                            <span>{isBonusActive ? `+${potentialBonus} Poin` : 'Nonaktif'}</span>
                           </button>
                         )}
                       </td>
@@ -2507,18 +2462,18 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
                       type="button"
                       onClick={handleGradeAllStudentEssays}
                       disabled={studentAiGrading}
-                      className="bg-purple-50 hover:bg-purple-100 text-purple-800 border border-purple-200 px-3.5 py-2 rounded-full text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-95 disabled:opacity-50"
-                      title="Periksa semua jawaban essay siswa ini secara otomatis dengan OpenKey AI"
+                      className="bg-indigo-50 hover:bg-indigo-100 text-indigo-950 border border-indigo-200 px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-95 disabled:opacity-50"
+                      title="Periksa semua jawaban essay siswa ini secara otomatis"
                     >
                       {studentAiGrading ? (
                         <>
-                          <Loader2 className="w-3.5 h-3.5 animate-spin text-purple-600" />
+                          <Loader2 className="w-3.5 h-3.5 animate-spin text-indigo-700" />
                           <span>Menganalisis...</span>
                         </>
                       ) : (
                         <>
-                          <Sparkles className="w-3.5 h-3.5 text-purple-600" />
-                          <span>✨ Nilai Semua Essay (AI)</span>
+                          <FileCheck className="w-3.5 h-3.5 text-indigo-700" />
+                          <span>Koreksi Otomatis Essay</span>
                         </>
                       )}
                     </button>
@@ -2539,20 +2494,20 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
                   </div>
                 </div>
 
-                {/* Banner Status Bonus Essay untuk Siswa Ini */}
+                {/* Banner Status Nilai Tambah Essay untuk Siswa Ini */}
                 {examWeights.mode === 'pg_bonus_essay' && selectedResult && (
-                  <div className="mx-6 sm:mx-8 mt-4 p-4 rounded-2xl bg-gradient-to-r from-emerald-50 via-teal-50 to-indigo-50 border border-emerald-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+                  <div className="mx-6 sm:mx-8 mt-4 p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-2xl bg-emerald-600 text-white flex items-center justify-center font-bold text-lg shadow-sm">
-                        🎁
+                      <div className="w-10 h-10 rounded-xl bg-emerald-100 border border-emerald-200 text-emerald-800 flex items-center justify-center shrink-0">
+                        <FileCheck className="w-5 h-5 text-emerald-700" />
                       </div>
                       <div>
-                        <h4 className="text-sm font-black text-emerald-950 flex items-center gap-2">
-                          <span>Skema Bonus Nilai Tambah Essay</span>
+                        <h4 className="text-sm font-black text-slate-900 flex items-center gap-2">
+                          <span>Skema Nilai Tambah Essay</span>
                           {!bonusDisabledStudents[selectedResult.id] ? (
                             <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-600 text-white">AKTIF</span>
                           ) : (
-                            <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-slate-300 text-slate-700">NONAKTIF (MURNI PG)</span>
+                            <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-slate-200 text-slate-700">NONAKTIF (MURNI PG)</span>
                           )}
                         </h4>
                         <p className="text-xs text-slate-600 font-medium mt-0.5">
@@ -2562,9 +2517,9 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
                             const bonus = Math.round(((essayScore / 100) * bonusMax) * 10) / 10;
                             const pg = selectedResult.score_pg ?? 0;
                             if (!bonusDisabledStudents[selectedResult.id]) {
-                              return `Nilai PG: ${pg} + Tambahan Bonus Essay: +${bonus} (Maks +${bonusMax}) ➔ Nilai Akhir: ${selectedResult.score} (Maks 100)`;
+                              return `Nilai PG: ${pg} + Tambahan Essay: +${bonus} (Maks +${bonusMax}) ➔ Nilai Akhir: ${selectedResult.score} (Maks 100)`;
                             } else {
-                              return `Bonus essay dinonaktifkan untuk siswa ini. Nilai Akhir menggunakan Nilai Murni PG (${pg}).`;
+                              return `Nilai tambah essay dinonaktifkan untuk siswa ini. Nilai Akhir menggunakan Nilai Murni PG (${pg}).`;
                             }
                           })()}
                         </p>
@@ -2574,13 +2529,13 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
                       type="button"
                       onClick={() => handleToggleStudentBonus(selectedResult.id)}
                       className={cn(
-                        "px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer shadow-xs border active:scale-95 shrink-0",
+                        "px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-xs border active:scale-95 shrink-0",
                         !bonusDisabledStudents[selectedResult.id]
-                          ? "bg-white text-emerald-800 border-emerald-300 hover:bg-emerald-100"
-                          : "bg-emerald-600 text-white border-emerald-600 hover:bg-emerald-700"
+                          ? "bg-white text-slate-700 border-slate-300 hover:bg-slate-100"
+                          : "bg-indigo-950 text-white border-indigo-950 hover:bg-indigo-900"
                       )}
                     >
-                      {!bonusDisabledStudents[selectedResult.id] ? 'Matikan Bonus Siswa Ini' : '✓ Aktifkan Bonus Siswa Ini'}
+                      {!bonusDisabledStudents[selectedResult.id] ? 'Nonaktifkan Tambahan' : 'Aktifkan Tambahan'}
                     </button>
                   </div>
                 )}
@@ -2717,15 +2672,15 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
               >
                 <div className="flex items-start justify-between mb-5">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-purple-700 to-indigo-600 text-white flex items-center justify-center shadow-lg shadow-purple-600/30">
-                      <Sparkles className="w-6 h-6" />
+                    <div className="w-11 h-11 rounded-xl bg-indigo-950 text-white flex items-center justify-center shadow-sm">
+                      <FileCheck className="w-5 h-5 text-indigo-200" />
                     </div>
                     <div>
-                      <h3 className="text-xl font-black text-indigo-950">
-                        Periksa Jawaban Essay (AI)
+                      <h3 className="text-lg font-black text-indigo-950">
+                        Koreksi Otomatis Jawaban Essay
                       </h3>
                       <p className="text-xs text-slate-500 font-medium mt-0.5">
-                        Koreksi otomatis dengan OpenKey AI (Gemini Flash)
+                        Evaluasi seluruh jawaban uraian siswa secara terstandar dan objektif
                       </p>
                     </div>
                   </div>
@@ -2741,32 +2696,32 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
 
                 {!batchRunning && !batchSummary && (
                   <div className="space-y-4">
-                    <div className="p-4 rounded-2xl bg-purple-50/70 border border-purple-200/80">
-                      <p className="text-xs text-purple-950 font-bold leading-relaxed">
-                        Sistem akan membaca jawaban essay setiap siswa pada ujian ini, menganalisisnya berdasarkan kunci acuan guru, serta menghasilkan nilai 0–100 dan catatan penilaian.
+                    <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200">
+                      <p className="text-xs text-slate-700 font-bold leading-relaxed">
+                        Sistem akan menganalisis jawaban essay setiap siswa pada ujian ini berdasarkan konsep acuan guru, serta menghasilkan nilai 0–100 dan catatan evaluasi.
                       </p>
                       <div className="mt-3 grid grid-cols-2 gap-2 text-center">
-                        <div className="p-2.5 rounded-xl bg-white border border-purple-100">
+                        <div className="p-2.5 rounded-xl bg-white border border-slate-200 shadow-xs">
                           <span className="text-[10px] font-bold text-slate-400 uppercase">Siswa Terpilih</span>
                           <p className="text-lg font-black text-indigo-950">{filteredResults.length}</p>
                         </div>
-                        <div className="p-2.5 rounded-xl bg-white border border-purple-100">
+                        <div className="p-2.5 rounded-xl bg-white border border-slate-200 shadow-xs">
                           <span className="text-[10px] font-bold text-slate-400 uppercase">Perlu Dinilai</span>
                           <p className="text-lg font-black text-amber-600">{pendingEssayCount}</p>
                         </div>
                       </div>
                     </div>
 
-                    <label className="flex items-center gap-3 p-3.5 rounded-2xl border border-slate-200 bg-slate-50 hover:bg-slate-100/70 transition-all cursor-pointer">
+                    <label className="flex items-center gap-3 p-3.5 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 transition-all cursor-pointer">
                       <input 
                         type="checkbox"
                         checked={batchOnlyUngraded}
                         onChange={(e) => setBatchOnlyUngraded(e.target.checked)}
-                        className="w-4 h-4 rounded text-purple-600 focus:ring-purple-500 border-slate-300"
+                        className="w-4 h-4 rounded text-indigo-950 focus:ring-indigo-950 border-slate-300"
                       />
                       <div className="text-xs">
-                        <span className="font-black text-slate-800">Hanya periksa yang belum dinilai</span>
-                        <p className="text-[11px] text-slate-500 font-medium">Nilai essay yang sudah pernah diisi manual tidak akan ditimpa.</p>
+                        <span className="font-bold text-slate-800">Hanya koreksi yang belum dinilai</span>
+                        <p className="text-[11px] text-slate-500 font-medium">Nilai essay yang telah diisi secara manual tidak akan tertimpa.</p>
                       </div>
                     </label>
 
@@ -2774,17 +2729,17 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
                       <button
                         type="button"
                         onClick={() => setShowBatchModal(false)}
-                        className="px-5 py-2.5 rounded-full font-bold text-xs text-slate-600 hover:bg-slate-100 transition-all cursor-pointer"
+                        className="px-4 py-2.5 rounded-xl font-bold text-xs text-slate-600 hover:bg-slate-100 transition-all cursor-pointer"
                       >
                         Batal
                       </button>
                       <button
                         type="button"
                         onClick={handleBatchAIGrade}
-                        className="px-6 py-2.5 rounded-full bg-gradient-to-r from-purple-700 via-indigo-600 to-blue-600 text-white font-black text-xs shadow-md shadow-purple-600/25 hover:brightness-110 active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
+                        className="px-5 py-2.5 rounded-xl bg-indigo-950 hover:bg-indigo-900 text-white font-bold text-xs shadow-sm active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
                       >
-                        <Sparkles className="w-3.5 h-3.5" />
-                        <span>Mulai Periksa Sekarang</span>
+                        <FileCheck className="w-4 h-4 text-indigo-300" />
+                        <span>Mulai Koreksi Sekarang</span>
                       </button>
                     </div>
                   </div>
@@ -2792,7 +2747,7 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
 
                 {batchRunning && (
                   <div className="py-6 space-y-5 text-center">
-                    <Loader2 className="w-10 h-10 text-purple-700 animate-spin mx-auto" />
+                    <Loader2 className="w-10 h-10 text-indigo-950 animate-spin mx-auto" />
                     <div>
                       <h4 className="font-black text-indigo-950 text-base">Sedang Memeriksa Jawaban...</h4>
                       <p className="text-xs text-slate-500 font-medium mt-1">
@@ -2803,7 +2758,7 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
                     <div className="space-y-1.5 max-w-sm mx-auto">
                       <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden border border-slate-200">
                         <div 
-                          className="bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 h-full transition-all duration-300"
+                          className="bg-indigo-950 h-full transition-all duration-300"
                           style={{ width: `${batchProgress.percentage}%` }}
                         />
                       </div>
@@ -2869,12 +2824,12 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
               >
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-2xl bg-indigo-950 text-white flex items-center justify-center font-bold text-sm shadow-md">
-                      ⚖️
+                    <div className="w-10 h-10 rounded-xl bg-indigo-950 text-white flex items-center justify-center font-bold text-sm shadow-md">
+                      <SlidersHorizontal className="w-5 h-5 text-indigo-200" />
                     </div>
                     <div>
                       <h3 className="text-lg font-black text-indigo-950">Atur Skema & Bobot Nilai</h3>
-                      <p className="text-xs text-slate-500 font-medium">Pilih metode perhitungan nilai akhir rapor</p>
+                      <p className="text-xs text-slate-500 font-medium">Pilih metode perhitungan nilai akhir ujian</p>
                     </div>
                   </div>
                   <button 
@@ -2897,7 +2852,7 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
                         : "text-slate-600 hover:text-slate-900"
                     )}
                   >
-                    🎁 PG + Bonus
+                    PG + Nilai Tambah
                   </button>
                   <button
                     type="button"
@@ -2909,7 +2864,7 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
                         : "text-slate-600 hover:text-slate-900"
                     )}
                   >
-                    ⚖️ Bobot (%)
+                    Bobot Persentase (%)
                   </button>
                   <button
                     type="button"
@@ -2921,22 +2876,22 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
                         : "text-slate-600 hover:text-slate-900"
                     )}
                   >
-                    📊 Proporsional
+                    Proporsional Poin
                   </button>
                 </div>
 
                 {/* Konten Tab 1: PG + Bonus Essay */}
                 {tempMode === 'pg_bonus_essay' && (
                   <div className="space-y-4">
-                    <div className="p-3.5 rounded-2xl bg-emerald-50/70 border border-emerald-200/80 text-xs">
-                      <p className="font-bold text-emerald-950 leading-relaxed">
-                        Nilai utama 100% diambil dari skor PG. Siswa yang menjawab essay dengan benar akan mendapatkan bonus poin tambahan (maksimal nilai akhir 100).
+                    <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-xs">
+                      <p className="font-bold text-slate-700 leading-relaxed">
+                        Nilai utama 100% diambil dari skor PG. Siswa yang menjawab essay dengan benar akan mendapatkan nilai tambah (maksimal nilai akhir 100).
                       </p>
                     </div>
 
                     <div>
                       <label className="text-xs font-bold text-slate-700 block mb-2">
-                        Batas Maksimal Bonus Essay:
+                        Batas Maksimal Nilai Tambah Essay:
                       </label>
                       <div className="grid grid-cols-4 gap-2">
                         {[15, 20, 25, 30].map(pts => (
@@ -2947,7 +2902,7 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
                             className={cn(
                               "py-2 rounded-xl text-xs font-bold transition-all border cursor-pointer",
                               tempBonusMax === pts
-                                ? "bg-emerald-600 text-white border-emerald-600 shadow-xs"
+                                ? "bg-indigo-950 text-white border-indigo-950 shadow-xs"
                                 : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
                             )}
                           >
@@ -2959,31 +2914,31 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
 
                     <div className="pt-2 border-t border-slate-100">
                       <label className="text-xs font-bold text-slate-700 block mb-2">
-                        Kontrol Cepat Status Bonus Siswa:
+                        Pengaturan Serentak Siswa:
                       </label>
                       <div className="grid grid-cols-2 gap-2">
                         <button
                           type="button"
                           onClick={() => {
                             handleApplyBonusToAll();
-                            alert('Bonus essay berhasil diaktifkan untuk seluruh siswa.');
+                            alert('Nilai tambah essay berhasil diaktifkan untuk seluruh siswa.');
                           }}
-                          className="py-2 px-3 rounded-xl text-xs font-bold bg-emerald-100 text-emerald-800 hover:bg-emerald-200 transition-all border border-emerald-200 cursor-pointer"
+                          className="py-2 px-3 rounded-xl text-xs font-bold bg-emerald-50 text-emerald-800 hover:bg-emerald-100 transition-all border border-emerald-200 cursor-pointer"
                         >
-                          🎁 Semua Siswa ON
+                          Aktifkan Semua Siswa
                         </button>
                         <button
                           type="button"
                           onClick={() => {
                             handleDisableBonusForAll();
-                            alert('Bonus essay dinonaktifkan untuk semua siswa (murni PG).');
+                            alert('Nilai tambah essay dinonaktifkan untuk semua siswa (murni PG).');
                           }}
                           className="py-2 px-3 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 transition-all border border-slate-200 cursor-pointer"
                         >
-                          ⚪ Semua Siswa OFF
+                          Matikan Semua Siswa
                         </button>
                       </div>
-                      <p className="text-[11px] text-slate-400 mt-1">Anda juga dapat mengklik tombol bonus pada baris siswa di tabel untuk mengatur per individu.</p>
+                      <p className="text-[11px] text-slate-400 mt-1">Anda juga dapat mengklik status nilai tambah pada baris tabel untuk mengatur per individu.</p>
                     </div>
                   </div>
                 )}
