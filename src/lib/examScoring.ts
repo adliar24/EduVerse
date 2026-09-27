@@ -1,14 +1,17 @@
 /**
  * examScoring.ts
- * Utility kalkulasi bobot cerdas (Smart Auto-Scaling to 100) & Fleksibel (PG % + Essay %)
- * Memisahkan nilai Pilihan Ganda (PG / Objektif) dan Essay secara transparan,
- * serta menghitung nilai akhir sesuai persentase bobot yang ditentukan guru.
+ * Utility kalkulasi bobot cerdas (Smart Auto-Scaling to 100) & Fleksibel
+ * Mendukung skema:
+ * 1. 'pg_bonus_essay' (Rekomendasi Guru): Nilai dasar full dari PG (0-100), essay sebagai nilai tambah/bonus (dongkrak nilai), maksimal total 100.
+ * 2. 'custom': Bobot persentase standar (misal 70% PG : 30% Essay).
+ * 3. 'proportional': Bobot rata proporsional sesuai jumlah butir soal.
  */
 
 export interface ExamWeights {
-  mode: 'proportional' | 'custom';
-  pgWeight: number;    // contoh: 70
-  essayWeight: number; // contoh: 30
+  mode: 'pg_bonus_essay' | 'custom' | 'proportional';
+  pgWeight: number;    // contoh: 100 (pada bonus mode) atau 70 (pada custom)
+  essayWeight: number; // contoh: 0 (pada bonus mode) atau 30 (pada custom)
+  bonusMaxPoints?: number; // Poin maksimal bonus essay (default: 20 poin)
 }
 
 export interface ExamScoringInput {
@@ -24,6 +27,7 @@ export interface ExamScoringInput {
     option_id?: string | null;
   }>;
   weights?: ExamWeights | null;
+  applyBonusEssay?: boolean; // Toggle per individu (default: true jika mode pg_bonus_essay)
 }
 
 export interface ExamScoringResult {
@@ -36,6 +40,11 @@ export interface ExamScoringResult {
   scorePg: number; // Nilai murni PG (0 - 100)
   scoreEssay: number | null; // Nilai rata-rata murni Essay (0 - 100), null jika belum dinilai
   
+  // Poin Tambahan Essay (Bonus)
+  bonusPoints: number; // Nilai bonus essay yang didapat (misal: 16)
+  bonusMax: number;    // Batas maksimal bonus (misal: 20)
+  bonusApplied: boolean; // Apakah bonus diaktifkan untuk siswa ini
+
   // Bobot yang diaplikasikan
   appliedWeights: ExamWeights;
 
@@ -53,7 +62,7 @@ export interface ExamScoringResult {
 const WEIGHTS_STORAGE_KEY_PREFIX = 'eduverse_exam_weights_';
 
 /**
- * Mendapatkan bobot ujian tersimpan (default: 70% PG & 30% Essay)
+ * Mendapatkan bobot ujian tersimpan (default: PG + Bonus Essay 20 Poin)
  */
 export function getExamWeights(examId?: string): ExamWeights {
   if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
@@ -62,8 +71,13 @@ export function getExamWeights(examId?: string): ExamWeights {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (typeof parsed.pgWeight === 'number' && typeof parsed.essayWeight === 'number') {
-          return parsed;
+        if (parsed.mode) {
+          return {
+            mode: parsed.mode,
+            pgWeight: typeof parsed.pgWeight === 'number' ? parsed.pgWeight : (parsed.mode === 'pg_bonus_essay' ? 100 : 70),
+            essayWeight: typeof parsed.essayWeight === 'number' ? parsed.essayWeight : (parsed.mode === 'pg_bonus_essay' ? 0 : 30),
+            bonusMaxPoints: typeof parsed.bonusMaxPoints === 'number' ? parsed.bonusMaxPoints : 20
+          };
         }
       } catch (e) {
         // ignore
@@ -71,9 +85,10 @@ export function getExamWeights(examId?: string): ExamWeights {
     }
   }
   return {
-    mode: 'custom',
-    pgWeight: 70,
-    essayWeight: 30
+    mode: 'pg_bonus_essay',
+    pgWeight: 100,
+    essayWeight: 0,
+    bonusMaxPoints: 20
   };
 }
 
@@ -88,16 +103,17 @@ export function saveExamWeights(weights: ExamWeights, examId?: string): void {
 }
 
 /**
- * Menghitung nilai ujian secara cerdas dan proporsional / berbobot custom.
+ * Menghitung nilai ujian secara cerdas (Skema PG + Bonus Essay atau Bobot Custom)
  */
 export function calculateExamScores(input: ExamScoringInput): ExamScoringResult {
-  const { questions = [], answers = [], weights } = input;
+  const { questions = [], answers = [], weights, applyBonusEssay = true } = input;
   const totalQuestions = questions.length;
 
   const defaultWeights: ExamWeights = weights || {
-    mode: 'custom',
-    pgWeight: 70,
-    essayWeight: 30
+    mode: 'pg_bonus_essay',
+    pgWeight: 100,
+    essayWeight: 0,
+    bonusMaxPoints: 20
   };
 
   if (totalQuestions === 0) {
@@ -108,6 +124,9 @@ export function calculateExamScores(input: ExamScoringInput): ExamScoringResult 
       pgCorrectCount: 0,
       scorePg: 0,
       scoreEssay: null,
+      bonusPoints: 0,
+      bonusMax: defaultWeights.bonusMaxPoints || 20,
+      bonusApplied: false,
       appliedWeights: defaultWeights,
       finalScore: 0,
       isEssayGraded: true,
@@ -163,18 +182,37 @@ export function calculateExamScores(input: ExamScoringInput): ExamScoringResult 
     }
   }
 
-  // 3. Hitung Nilai Akhir Gabungan (Skala 0 s.d. 100)
+  // 3. Hitung Nilai Akhir & Bonus Poin
   let finalScore = 0;
+  let bonusPoints = 0;
+  const bonusMax = defaultWeights.bonusMaxPoints ?? 20;
+  let bonusApplied = false;
 
   if (essayCount === 0) {
-    // 100% Pilihan Ganda
+    // 100% Pilihan Ganda (tidak ada essay)
     finalScore = scorePg;
   } else if (pgCount === 0) {
     // 100% Essay
     finalScore = scoreEssay !== null ? scoreEssay : 0;
   } else {
     // Ada PG dan Essay
-    if (defaultWeights.mode === 'proportional') {
+    if (defaultWeights.mode === 'pg_bonus_essay') {
+      // Skema Nilai Utama PG + Nilai Tambahan Essay
+      const essayAvg = scoreEssay !== null ? scoreEssay : 0;
+      // Rumus bonus: proporsional terhadap ketepatan essay
+      const potentialBonus = Math.round(((essayAvg / 100) * bonusMax) * 10) / 10;
+      bonusPoints = potentialBonus;
+
+      if (applyBonusEssay && potentialBonus > 0) {
+        bonusApplied = true;
+        // Tambahkan bonus ke PG, dibatasi maksimal 100
+        finalScore = Math.min(100, Math.round((scorePg + potentialBonus) * 10) / 10);
+      } else {
+        bonusApplied = false;
+        // Nilai murni PG
+        finalScore = scorePg;
+      }
+    } else if (defaultWeights.mode === 'proportional') {
       const pgContribution = (pgCorrect / totalQuestions) * 100;
       const essayContribution = totalEssayScoreAccumulator / totalQuestions;
       finalScore = Math.round((pgContribution + essayContribution) * 10) / 10;
@@ -194,10 +232,17 @@ export function calculateExamScores(input: ExamScoringInput): ExamScoringResult 
   // Susun rincian teks (breakdown)
   let breakdownText = '';
   if (essayCount > 0 && pgCount > 0) {
-    const weightLabel = defaultWeights.mode === 'custom' 
-      ? ` (${defaultWeights.pgWeight}% : ${defaultWeights.essayWeight}%)` 
-      : ' (Proporsional)';
-    breakdownText = `PG: ${scorePg} | Essay: ${scoreEssay !== null ? scoreEssay : 'Belum Dinilai'} | Nilai Akhir: ${finalScore}${weightLabel}`;
+    if (defaultWeights.mode === 'pg_bonus_essay') {
+      if (bonusApplied) {
+        breakdownText = `PG: ${scorePg} + Bonus Essay: +${bonusPoints} (Maks ${bonusMax}) = Nilai Akhir: ${finalScore} (Maks 100)`;
+      } else {
+        breakdownText = `Murni PG: ${scorePg} (Bonus Essay +${bonusPoints} dinonaktifkan)`;
+      }
+    } else if (defaultWeights.mode === 'custom') {
+      breakdownText = `PG: ${scorePg} (${defaultWeights.pgWeight}%) + Essay: ${scoreEssay ?? 0} (${defaultWeights.essayWeight}%) = Nilai Akhir: ${finalScore}`;
+    } else {
+      breakdownText = `Proporsional | PG: ${scorePg} | Essay: ${scoreEssay ?? 0} = Nilai Akhir: ${finalScore}`;
+    }
   } else if (essayCount > 0) {
     breakdownText = `Essay: ${scoreEssay !== null ? scoreEssay : 'Belum Dinilai'} (${gradedEssayCount}/${essayCount} soal)`;
   } else {
@@ -211,6 +256,9 @@ export function calculateExamScores(input: ExamScoringInput): ExamScoringResult 
     pgCorrectCount: pgCorrect,
     scorePg,
     scoreEssay,
+    bonusPoints,
+    bonusMax,
+    bonusApplied,
     appliedWeights: defaultWeights,
     finalScore,
     isEssayGraded,

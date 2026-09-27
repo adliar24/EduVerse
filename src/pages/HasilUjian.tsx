@@ -475,8 +475,20 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
   // Bobot Nilai (PG + Essay)
   const [examWeights, setExamWeights] = useState<ExamWeights>(() => getExamWeights(initialExamId !== 'all' ? initialExamId : undefined));
   const [showCustomWeightModal, setShowCustomWeightModal] = useState(false);
-  const [tempPgWeight, setTempPgWeight] = useState(examWeights.pgWeight || 70);
-  const [tempEssayWeight, setTempEssayWeight] = useState(examWeights.essayWeight || 30);
+  const [tempPgWeight, setTempPgWeight] = useState(examWeights.pgWeight || 100);
+  const [tempEssayWeight, setTempEssayWeight] = useState(examWeights.essayWeight || 0);
+
+  // Status Nonaktif Bonus Essay per Individu Siswa (default: aktif untuk semua siswa)
+  const [bonusDisabledStudents, setBonusDisabledStudents] = useState<Record<string, boolean>>(() => {
+    if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
+      try {
+        const key = `eduverse_bonus_disabled_${initialExamId !== 'all' ? initialExamId : 'default'}`;
+        const saved = localStorage.getItem(key);
+        if (saved) return JSON.parse(saved);
+      } catch (e) {}
+    }
+    return {};
+  });
 
   // Batch AI Grading State
   const [showBatchModal, setShowBatchModal] = useState(false);
@@ -495,27 +507,136 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
       setExamWeights(saved);
       setTempPgWeight(saved.pgWeight);
       setTempEssayWeight(saved.essayWeight);
+
+      try {
+        const key = `eduverse_bonus_disabled_${selectedExam}`;
+        const savedBonus = localStorage.getItem(key);
+        setBonusDisabledStudents(savedBonus ? JSON.parse(savedBonus) : {});
+      } catch (e) {}
     }
   }, [selectedExam]);
+
+  // Fungsi kalkulasi nilai akhir siswa sesuai skema bobot & bonus essay
+  const computeStudentFinalScore = (
+    p: any,
+    weights: ExamWeights = examWeights,
+    disabledMap: Record<string, boolean> = bonusDisabledStudents
+  ): number => {
+    const pg = p.score_pg !== null && p.score_pg !== undefined 
+      ? p.score_pg 
+      : (typeof p.score === 'number' ? p.score : 0);
+    const essay = p.score_essay !== null && p.score_essay !== undefined 
+      ? p.score_essay 
+      : null;
+
+    if (weights.mode === 'pg_bonus_essay') {
+      const bonusMax = weights.bonusMaxPoints ?? 20;
+      const isBonusActive = !disabledMap[p.id];
+      const potentialBonus = essay !== null ? Math.round(((essay / 100) * bonusMax) * 10) / 10 : 0;
+      const effectiveBonus = isBonusActive ? potentialBonus : 0;
+      return Math.min(100, Math.round((pg + effectiveBonus) * 10) / 10);
+    }
+
+    if (weights.mode === 'custom') {
+      if (essay === null) return pg;
+      const totalW = (weights.pgWeight + weights.essayWeight) || 100;
+      const normPg = (weights.pgWeight / totalW) * 100;
+      const normEssay = (weights.essayWeight / totalW) * 100;
+      return Math.round(((pg * normPg / 100) + (essay * normEssay / 100)) * 10) / 10;
+    }
+
+    return typeof p.score === 'number' ? p.score : pg;
+  };
 
   const handleUpdateWeights = (newWeights: ExamWeights) => {
     setExamWeights(newWeights);
     saveExamWeights(newWeights, selectedExam !== 'all' ? selectedExam : undefined);
     
     // Rekalkulasi skor real-time untuk seluruh peserta di tabel
-    setResults(prev => prev.map(p => {
-      if (p.score_pg !== null && p.score_pg !== undefined && p.score_essay !== null && p.score_essay !== undefined) {
-        if (newWeights.mode === 'proportional') {
-          return p;
-        }
-        const totalW = (newWeights.pgWeight + newWeights.essayWeight) || 100;
-        const normPg = (newWeights.pgWeight / totalW) * 100;
-        const normEssay = (newWeights.essayWeight / totalW) * 100;
-        const newFinal = Math.round(((p.score_pg * normPg / 100) + (p.score_essay * normEssay / 100)) * 10) / 10;
-        return { ...p, score: newFinal };
+    setResults(prev => prev.map(p => ({
+      ...p,
+      score: computeStudentFinalScore(p, newWeights, bonusDisabledStudents)
+    })));
+  };
+
+  // Toggle bonus essay per individu siswa
+  const handleToggleStudentBonus = async (studentId: string, e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    const isCurrentlyDisabled = !!bonusDisabledStudents[studentId];
+    const newDisabled = !isCurrentlyDisabled;
+    const updatedDisabled = { ...bonusDisabledStudents, [studentId]: newDisabled };
+    setBonusDisabledStudents(updatedDisabled);
+    
+    const storageKey = `eduverse_bonus_disabled_${selectedExam !== 'all' ? selectedExam : 'default'}`;
+    localStorage.setItem(storageKey, JSON.stringify(updatedDisabled));
+
+    let updatedTarget: any = null;
+    const updated = results.map(p => {
+      if (p.id === studentId) {
+        const newScore = computeStudentFinalScore(p, examWeights, updatedDisabled);
+        updatedTarget = { ...p, score: newScore };
+        return updatedTarget;
       }
       return p;
+    });
+
+    setResults(updated);
+    if (selectedResult?.id === studentId && updatedTarget) {
+      setSelectedResult(updatedTarget);
+    }
+
+    if (updatedTarget) {
+      try {
+        await supabase.from('participants').update({ score: updatedTarget.score }).eq('id', studentId);
+        await supabaseAnon.from('participants').update({ score: updatedTarget.score }).eq('id', studentId);
+      } catch (err) {
+        console.error('Error saving toggled bonus:', err);
+      }
+    }
+  };
+
+  // Terapkan bonus ke seluruh siswa
+  const handleApplyBonusToAll = async () => {
+    setBonusDisabledStudents({});
+    const storageKey = `eduverse_bonus_disabled_${selectedExam !== 'all' ? selectedExam : 'default'}`;
+    localStorage.removeItem(storageKey);
+    
+    const updated = results.map(p => ({
+      ...p,
+      score: computeStudentFinalScore(p, examWeights, {})
     }));
+    setResults(updated);
+
+    for (const p of updated) {
+      try {
+        await supabase.from('participants').update({ score: p.score }).eq('id', p.id);
+        await supabaseAnon.from('participants').update({ score: p.score }).eq('id', p.id);
+      } catch (e) {}
+    }
+  };
+
+  // Nonaktifkan bonus untuk seluruh siswa (murni nilai PG)
+  const handleDisableBonusForAll = async () => {
+    const newDisabled: Record<string, boolean> = {};
+    results.forEach(p => {
+      newDisabled[p.id] = true;
+    });
+    setBonusDisabledStudents(newDisabled);
+    const storageKey = `eduverse_bonus_disabled_${selectedExam !== 'all' ? selectedExam : 'default'}`;
+    localStorage.setItem(storageKey, JSON.stringify(newDisabled));
+
+    const updated = results.map(p => ({
+      ...p,
+      score: computeStudentFinalScore(p, examWeights, newDisabled)
+    }));
+    setResults(updated);
+
+    for (const p of updated) {
+      try {
+        await supabase.from('participants').update({ score: p.score }).eq('id', p.id);
+        await supabaseAnon.from('participants').update({ score: p.score }).eq('id', p.id);
+      } catch (e) {}
+    }
   };
 
   useEffect(() => {
@@ -696,7 +817,12 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
         }
       }
 
-      setResults(finalData || []);
+      const computedData = (finalData || []).map(p => ({
+        ...p,
+        score: computeStudentFinalScore(p, examWeights, bonusDisabledStudents)
+      }));
+
+      setResults(computedData);
     } catch (error) {
       console.error(error);
     } finally {
@@ -897,7 +1023,8 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
         is_correct: a.is_correct,
         score: a.score
       })),
-      weights: examWeights
+      weights: examWeights,
+      applyBonusEssay: !bonusDisabledStudents[selectedResult.id]
     });
 
     // 3. Update participant state in real time
@@ -1056,7 +1183,8 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
           is_correct: a.is_correct,
           score: a.score
         })),
-        weights: examWeights
+        weights: examWeights,
+        applyBonusEssay: !bonusDisabledStudents[selectedResult.id]
       });
 
       const updatedResult = {
@@ -1310,7 +1438,8 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
             is_correct: a.is_correct,
             score: a.score
           })),
-          weights: examWeights
+          weights: examWeights,
+          applyBonusEssay: !bonusDisabledStudents[participant.id]
         });
 
         const updatePayload = {
@@ -1464,17 +1593,37 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
 
   const exportToExcel = async () => {
     const { default: XLSXStyle } = await import('xlsx-js-style');
-    const headers = ['NAMA SISWA', 'KELAS', 'UJIAN', 'NILAI PG', 'NILAI ESSAY', 'TOTAL NILAI', 'STATUS ESSAY', 'WAKTU SELESAI'];
-    const rows = filteredResults.map(r => [
-      capitalizeEachWord(r.name),
-      r.class,
-      r.exams?.title || '-',
-      r.score_pg !== null && r.score_pg !== undefined ? r.score_pg : '-',
-      r.score_essay !== null && r.score_essay !== undefined ? r.score_essay : (r.essay_graded === false ? 'Belum Dinilai' : '-'),
-      Math.round(r.score || 0),
-      r.essay_graded === false ? 'Menunggu Penilaian' : 'Selesai',
-      new Date(r.end_time || r.start_time).toLocaleString('id-ID')
-    ]);
+    const headers = ['NAMA SISWA', 'KELAS', 'UJIAN', 'NILAI PG', 'NILAI ESSAY', 'BONUS ESSAY', 'TOTAL NILAI', 'STATUS ESSAY', 'WAKTU SELESAI'];
+    const rows = filteredResults.map(r => {
+      const bonusMax = examWeights.bonusMaxPoints ?? 20;
+      const isBonusActive = !bonusDisabledStudents[r.id];
+      const essayAvg = r.score_essay !== null && r.score_essay !== undefined ? r.score_essay : 0;
+      const potentialBonus = Math.round(((essayAvg / 100) * bonusMax) * 10) / 10;
+      let bonusText = '-';
+      if (examWeights.mode === 'pg_bonus_essay') {
+        if ((r.score_pg ?? 0) >= 100) {
+          bonusText = 'PG 100';
+        } else if (isBonusActive && potentialBonus > 0) {
+          bonusText = `+${potentialBonus}`;
+        } else if (!isBonusActive) {
+          bonusText = 'Nonaktif';
+        } else {
+          bonusText = '+0';
+        }
+      }
+
+      return [
+        capitalizeEachWord(r.name),
+        r.class,
+        r.exams?.title || '-',
+        r.score_pg !== null && r.score_pg !== undefined ? r.score_pg : '-',
+        r.score_essay !== null && r.score_essay !== undefined ? r.score_essay : (r.essay_graded === false ? 'Belum Dinilai' : '-'),
+        bonusText,
+        Math.round(r.score || 0),
+        r.essay_graded === false ? 'Menunggu Penilaian' : 'Selesai',
+        new Date(r.end_time || r.start_time).toLocaleString('id-ID')
+      ];
+    });
 
     const worksheet = XLSXStyle.utils.aoa_to_sheet([headers, ...rows]);
 
@@ -1485,6 +1634,7 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
       { wch: 24 }, // Ujian
       { wch: 12 }, // Nilai PG
       { wch: 14 }, // Nilai Essay
+      { wch: 14 }, // Bonus Essay
       { wch: 14 }, // Total Nilai
       { wch: 20 }, // Status Essay
       { wch: 20 }  // Waktu Selesai
@@ -1754,76 +1904,158 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
       {/* Panel Pembobotan Nilai & Quick Sorting Toolbar */}
       <div className="space-y-3">
         {/* Bobot Nilai Panel */}
-        <div className="bg-gradient-to-r from-blue-50/70 via-indigo-50/60 to-purple-50/70 p-4 sm:p-5 rounded-2xl border border-indigo-100/90 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xs">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-indigo-950 text-white flex items-center justify-center shrink-0 shadow-md shadow-indigo-950/20 font-black text-sm">
-              ⚖️
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h4 className="text-sm font-black text-indigo-950 uppercase tracking-wide">
-                  Bobot Nilai Rapor
-                </h4>
-                <span className="text-[11px] font-black px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-900 border border-indigo-200">
-                  {examWeights.mode === 'custom' ? `PG ${examWeights.pgWeight}% + Essay ${examWeights.essayWeight}%` : 'Proporsional (Sesuai Butir Soal)'}
-                </span>
+        <div className="bg-gradient-to-r from-blue-50/70 via-indigo-50/60 to-purple-50/70 p-4 sm:p-5 rounded-2xl border border-indigo-100/90 flex flex-col gap-3 shadow-xs">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-indigo-950 text-white flex items-center justify-center shrink-0 shadow-md shadow-indigo-950/20 font-black text-sm">
+                {examWeights.mode === 'pg_bonus_essay' ? '🎁' : '⚖️'}
               </div>
-              <p className="text-xs text-slate-500 font-medium mt-0.5">
-                {examWeights.mode === 'custom'
-                  ? `Nilai Akhir Rapor = (Nilai PG × ${examWeights.pgWeight}%) + (Nilai Essay × ${examWeights.essayWeight}%)`
-                  : 'Nilai dihitung merata sesuai proporsi jumlah butir soal (skala 100).'}
-              </p>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h4 className="text-sm font-black text-indigo-950 uppercase tracking-wide">
+                    Bobot Nilai Rapor
+                  </h4>
+                  <span className={cn(
+                    "text-[11px] font-black px-2.5 py-0.5 rounded-full border",
+                    examWeights.mode === 'pg_bonus_essay' 
+                      ? "bg-emerald-100 text-emerald-900 border-emerald-300"
+                      : "bg-indigo-100 text-indigo-900 border-indigo-200"
+                  )}>
+                    {examWeights.mode === 'pg_bonus_essay' 
+                      ? `PG (Full 100%) + Bonus Essay (Maks +${examWeights.bonusMaxPoints || 20} Poin)` 
+                      : examWeights.mode === 'custom' 
+                      ? `PG ${examWeights.pgWeight}% + Essay ${examWeights.essayWeight}%` 
+                      : 'Proporsional (Sesuai Butir Soal)'}
+                  </span>
+                </div>
+                <p className="text-xs text-slate-500 font-medium mt-0.5">
+                  {examWeights.mode === 'pg_bonus_essay'
+                    ? 'Nilai utama 100% dari PG. Nilai essay menjadi bonus poin tambahan untuk mendongkrak nilai siswa (Maksimal total 100).'
+                    : examWeights.mode === 'custom'
+                    ? `Nilai Akhir Rapor = (Nilai PG × ${examWeights.pgWeight}%) + (Nilai Essay × ${examWeights.essayWeight}%)`
+                    : 'Nilai dihitung merata sesuai proporsi jumlah butir soal (skala 100).'}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => handleUpdateWeights({
+                  mode: 'pg_bonus_essay',
+                  pgWeight: 100,
+                  essayWeight: 0,
+                  bonusMaxPoints: examWeights.bonusMaxPoints || 20
+                })}
+                className={cn(
+                  "px-3.5 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer border active:scale-95 flex items-center gap-1.5",
+                  examWeights.mode === 'pg_bonus_essay'
+                    ? "bg-emerald-700 text-white border-emerald-700 shadow-sm ring-2 ring-emerald-600/20"
+                    : "bg-white text-slate-700 border-slate-200 hover:bg-emerald-50 hover:text-emerald-900"
+                )}
+              >
+                <span>🎁 PG + Bonus Essay (Rekomendasi)</span>
+              </button>
+
+              {[
+                { label: '70% : 30%', pg: 70, essay: 30 },
+                { label: '60% : 40%', pg: 60, essay: 40 },
+                { label: '50% : 50%', pg: 50, essay: 50 },
+              ].map(preset => {
+                const isActive = examWeights.mode === 'custom' && examWeights.pgWeight === preset.pg && examWeights.essayWeight === preset.essay;
+                return (
+                  <button
+                    key={preset.label}
+                    type="button"
+                    onClick={() => handleUpdateWeights({ mode: 'custom', pgWeight: preset.pg, essayWeight: preset.essay })}
+                    className={cn(
+                      "px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer border active:scale-95",
+                      isActive
+                        ? "bg-indigo-950 text-white border-indigo-950 shadow-sm"
+                        : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:text-slate-900"
+                    )}
+                  >
+                    {preset.label}
+                  </button>
+                );
+              })}
+              <button
+                type="button"
+                onClick={() => handleUpdateWeights({ mode: 'proportional', pgWeight: 50, essayWeight: 50 })}
+                className={cn(
+                  "px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border active:scale-95",
+                  examWeights.mode === 'proportional'
+                    ? "bg-indigo-950 text-white border-indigo-950 shadow-sm"
+                    : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                )}
+                title="Bagi rata sesuai jumlah butir soal"
+              >
+                Proporsional
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setTempPgWeight(examWeights.pgWeight);
+                  setTempEssayWeight(examWeights.essayWeight);
+                  setShowCustomWeightModal(true);
+                }}
+                className="px-3 py-1.5 rounded-xl text-xs font-bold bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 transition-all cursor-pointer shadow-xs active:scale-95"
+              >
+                ⚙️ Kustom
+              </button>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
-            {[
-              { label: '70% : 30%', pg: 70, essay: 30 },
-              { label: '60% : 40%', pg: 60, essay: 40 },
-              { label: '50% : 50%', pg: 50, essay: 50 },
-            ].map(preset => {
-              const isActive = examWeights.mode === 'custom' && examWeights.pgWeight === preset.pg && examWeights.essayWeight === preset.essay;
-              return (
+          {/* Sub-bar opsi bonus essay & kontrol massal */}
+          {examWeights.mode === 'pg_bonus_essay' && (
+            <div className="pt-2.5 border-t border-indigo-100 flex flex-wrap items-center justify-between gap-3 text-xs">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="font-extrabold text-slate-600 flex items-center gap-1">
+                  Maksimal Bonus:
+                </span>
+                {[15, 20, 25, 30].map(pts => {
+                  const isCurrent = (examWeights.bonusMaxPoints || 20) === pts;
+                  return (
+                    <button
+                      key={pts}
+                      type="button"
+                      onClick={() => handleUpdateWeights({
+                        ...examWeights,
+                        bonusMaxPoints: pts
+                      })}
+                      className={cn(
+                        "px-2.5 py-1 rounded-lg text-xs font-black transition-all cursor-pointer border",
+                        isCurrent
+                          ? "bg-emerald-600 text-white border-emerald-600 shadow-xs"
+                          : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
+                      )}
+                    >
+                      +{pts} Poin {pts === 20 ? '(Standar)' : ''}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="flex items-center gap-2">
                 <button
-                  key={preset.label}
                   type="button"
-                  onClick={() => handleUpdateWeights({ mode: 'custom', pgWeight: preset.pg, essayWeight: preset.essay })}
-                  className={cn(
-                    "px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer border active:scale-95",
-                    isActive
-                      ? "bg-indigo-950 text-white border-indigo-950 shadow-sm"
-                      : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:text-slate-900"
-                  )}
+                  onClick={handleApplyBonusToAll}
+                  className="px-3 py-1 rounded-lg font-black text-xs bg-emerald-100 text-emerald-800 hover:bg-emerald-200 border border-emerald-300 transition-all cursor-pointer active:scale-95"
+                  title="Terapkan bonus essay ke semua siswa yang nilainya belum maksimal"
                 >
-                  {preset.label}
+                  🎁 Terapkan Bonus ke Semua Siswa
                 </button>
-              );
-            })}
-            <button
-              type="button"
-              onClick={() => handleUpdateWeights({ mode: 'proportional', pgWeight: 50, essayWeight: 50 })}
-              className={cn(
-                "px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border active:scale-95",
-                examWeights.mode === 'proportional'
-                  ? "bg-indigo-950 text-white border-indigo-950 shadow-sm"
-                  : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
-              )}
-              title="Bagi rata sesuai jumlah butir soal"
-            >
-              Proporsional
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setTempPgWeight(examWeights.pgWeight);
-                setTempEssayWeight(examWeights.essayWeight);
-                setShowCustomWeightModal(true);
-              }}
-              className="px-3 py-1.5 rounded-xl text-xs font-bold bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 transition-all cursor-pointer shadow-xs active:scale-95"
-            >
-              ⚙️ Kustom
-            </button>
-          </div>
+                <button
+                  type="button"
+                  onClick={handleDisableBonusForAll}
+                  className="px-3 py-1 rounded-lg font-black text-xs bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 transition-all cursor-pointer active:scale-95"
+                  title="Gunakan nilai murni PG untuk semua siswa"
+                >
+                  ⚪ Matikan Semua (Murni PG)
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Quick Sorting Chips Bar */}
@@ -1999,6 +2231,14 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
                     {sortBy === 'nilai-essay-rendah' && <span className="text-purple-700 font-black">▲</span>}
                   </div>
                 </th>
+                <th className="px-5 py-6 text-[10px] font-bold text-emerald-800 uppercase tracking-[0.2em]">
+                  <div className="flex items-center gap-1.5">
+                    <span>🎁 Bonus Essay</span>
+                    <span className="text-[9px] font-black px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 border border-emerald-200">
+                      Maks +{examWeights.bonusMaxPoints || 20}
+                    </span>
+                  </div>
+                </th>
                 <th 
                   onClick={() => setSortBy(sortBy === 'nilai-tinggi' ? 'nilai-rendah' : 'nilai-tinggi')}
                   className="px-6 py-6 text-[10px] font-bold text-indigo-950 hover:text-blue-700 uppercase tracking-[0.2em] cursor-pointer transition-colors"
@@ -2027,7 +2267,7 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
               {loading ? (
                 [1,2,3,4,5,6].map(i => (
                   <tr key={i} className="animate-pulse">
-                    <td colSpan={9} className="px-8 py-6"><div className="h-10 bg-slate-100 rounded-xl w-full"></div></td>
+                    <td colSpan={10} className="px-8 py-6"><div className="h-10 bg-slate-100 rounded-xl w-full"></div></td>
                   </tr>
                 ))
               ) : filteredResults.length > 0 ? (
@@ -2084,6 +2324,49 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
                         <span className="text-xs font-bold text-slate-300">-</span>
                       )}
                     </td>
+                    {/* Kolom Bonus Essay dengan Saklar Interaktif per Individu */}
+                    <td className="px-5 py-6" onClick={(e) => e.stopPropagation()}>
+                      {result.status === 'menunggu_scan' ? (
+                        <span className="text-xs font-bold text-slate-400">-</span>
+                      ) : examWeights.mode !== 'pg_bonus_essay' ? (
+                        <span className="text-xs font-medium text-slate-300">-</span>
+                      ) : (result.score_pg ?? 0) >= 100 ? (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-black uppercase tracking-wider" title="Nilai PG sudah 100 (maksimal)">
+                          ⭐ PG 100
+                        </span>
+                      ) : (
+                        (() => {
+                          const bonusMax = examWeights.bonusMaxPoints ?? 20;
+                          const essayAvg = result.score_essay !== null && result.score_essay !== undefined ? result.score_essay : 0;
+                          const potentialBonus = Math.round(((essayAvg / 100) * bonusMax) * 10) / 10;
+                          const isBonusActive = !bonusDisabledStudents[result.id];
+
+                          if (potentialBonus === 0) {
+                            return (
+                              <span className="text-xs font-bold text-slate-300" title="Belum ada poin essay">
+                                +0 Poin
+                              </span>
+                            );
+                          }
+
+                          return (
+                            <button
+                              type="button"
+                              onClick={(e) => handleToggleStudentBonus(result.id, e)}
+                              className={cn(
+                                "px-2.5 py-1 rounded-full text-xs font-black flex items-center gap-1.5 transition-all cursor-pointer shadow-xs border active:scale-95",
+                                isBonusActive
+                                  ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100"
+                                  : "bg-slate-100 text-slate-400 border-slate-200 hover:bg-slate-200"
+                              )}
+                              title={isBonusActive ? "Bonus AKTIF. Klik untuk matikan bonus essay siswa ini" : "Bonus NONAKTIF. Klik untuk aktifkan bonus essay siswa ini"}
+                            >
+                              <span>{isBonusActive ? `🎁 +${potentialBonus} (ON)` : '⚪ Bonus OFF'}</span>
+                            </button>
+                          );
+                        })()
+                      )}
+                    </td>
                     <td className="px-6 py-6">
                       <div className="flex flex-col">
                         {result.status === 'menunggu_scan' ? (
@@ -2094,9 +2377,40 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
                               <span className="text-2xl font-black text-indigo-950">{Math.round(result.score || 0)}</span>
                               <span className="text-[10px] font-bold text-slate-400 uppercase">Poin</span>
                             </div>
-                            {examWeights.mode === 'custom' && (
+                            {examWeights.mode === 'pg_bonus_essay' ? (
+                              (() => {
+                                const bonusMax = examWeights.bonusMaxPoints ?? 20;
+                                const isBonusActive = !bonusDisabledStudents[result.id];
+                                const essayAvg = result.score_essay !== null && result.score_essay !== undefined ? result.score_essay : 0;
+                                const potentialBonus = Math.round(((essayAvg / 100) * bonusMax) * 10) / 10;
+                                const pg = result.score_pg ?? 0;
+                                if (isBonusActive && potentialBonus > 0 && pg < 100) {
+                                  return (
+                                    <span className="text-[10px] font-extrabold text-emerald-600 mt-0.5">
+                                      PG {pg} + Bonus {potentialBonus}
+                                    </span>
+                                  );
+                                }
+                                if (pg >= 100) {
+                                  return (
+                                    <span className="text-[10px] font-extrabold text-amber-600 mt-0.5">
+                                      Nilai Sempurna 100
+                                    </span>
+                                  );
+                                }
+                                return (
+                                  <span className="text-[10px] font-bold text-slate-400 mt-0.5">
+                                    Murni PG ({pg})
+                                  </span>
+                                );
+                              })()
+                            ) : examWeights.mode === 'custom' ? (
                               <span className="text-[10px] font-extrabold text-indigo-500 mt-0.5">
                                 ({examWeights.pgWeight}% PG + {examWeights.essayWeight}% Essay)
+                              </span>
+                            ) : (
+                              <span className="text-[10px] font-extrabold text-slate-400 mt-0.5">
+                                Proporsional
                               </span>
                             )}
                           </>
@@ -2240,6 +2554,52 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
                     </button>
                   </div>
                 </div>
+
+                {/* Banner Status Bonus Essay untuk Siswa Ini */}
+                {examWeights.mode === 'pg_bonus_essay' && selectedResult && (
+                  <div className="mx-6 sm:mx-8 mt-4 p-4 rounded-2xl bg-gradient-to-r from-emerald-50 via-teal-50 to-indigo-50 border border-emerald-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-2xl bg-emerald-600 text-white flex items-center justify-center font-bold text-lg shadow-sm">
+                        🎁
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-black text-emerald-950 flex items-center gap-2">
+                          <span>Skema Bonus Nilai Tambah Essay</span>
+                          {!bonusDisabledStudents[selectedResult.id] ? (
+                            <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-600 text-white">AKTIF</span>
+                          ) : (
+                            <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-slate-300 text-slate-700">NONAKTIF (MURNI PG)</span>
+                          )}
+                        </h4>
+                        <p className="text-xs text-slate-600 font-medium mt-0.5">
+                          {(() => {
+                            const bonusMax = examWeights.bonusMaxPoints ?? 20;
+                            const essayScore = selectedResult.score_essay ?? 0;
+                            const bonus = Math.round(((essayScore / 100) * bonusMax) * 10) / 10;
+                            const pg = selectedResult.score_pg ?? 0;
+                            if (!bonusDisabledStudents[selectedResult.id]) {
+                              return `Nilai PG: ${pg} + Tambahan Bonus Essay: +${bonus} (Maks +${bonusMax}) ➔ Nilai Akhir: ${selectedResult.score} (Maks 100)`;
+                            } else {
+                              return `Bonus essay dinonaktifkan untuk siswa ini. Nilai Akhir menggunakan Nilai Murni PG (${pg}).`;
+                            }
+                          })()}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleToggleStudentBonus(selectedResult.id)}
+                      className={cn(
+                        "px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer shadow-xs border active:scale-95 shrink-0",
+                        !bonusDisabledStudents[selectedResult.id]
+                          ? "bg-white text-emerald-800 border-emerald-300 hover:bg-emerald-100"
+                          : "bg-emerald-600 text-white border-emerald-600 hover:bg-emerald-700"
+                      )}
+                    >
+                      {!bonusDisabledStudents[selectedResult.id] ? 'Matikan Bonus Siswa Ini' : '✓ Aktifkan Bonus Siswa Ini'}
+                    </button>
+                  </div>
+                )}
 
                 <div className="p-4 sm:p-8 overflow-y-auto space-y-6 custom-scrollbar flex-1 bg-white">
                   {loadingDetail ? (
