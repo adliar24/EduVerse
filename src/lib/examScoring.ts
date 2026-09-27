@@ -1,9 +1,15 @@
 /**
  * examScoring.ts
- * Utility kalkulasi bobot cerdas (Smart Auto-Scaling to 100)
+ * Utility kalkulasi bobot cerdas (Smart Auto-Scaling to 100) & Fleksibel (PG % + Essay %)
  * Memisahkan nilai Pilihan Ganda (PG / Objektif) dan Essay secara transparan,
- * serta menggabungkan nilai akhir secara proporsional sesuai jumlah butir soal.
+ * serta menghitung nilai akhir sesuai persentase bobot yang ditentukan guru.
  */
+
+export interface ExamWeights {
+  mode: 'proportional' | 'custom';
+  pgWeight: number;    // contoh: 70
+  essayWeight: number; // contoh: 30
+}
 
 export interface ExamScoringInput {
   questions: Array<{
@@ -17,6 +23,7 @@ export interface ExamScoringInput {
     answer_text?: string | null;
     option_id?: string | null;
   }>;
+  weights?: ExamWeights | null;
 }
 
 export interface ExamScoringResult {
@@ -29,6 +36,9 @@ export interface ExamScoringResult {
   scorePg: number; // Nilai murni PG (0 - 100)
   scoreEssay: number | null; // Nilai rata-rata murni Essay (0 - 100), null jika belum dinilai
   
+  // Bobot yang diaplikasikan
+  appliedWeights: ExamWeights;
+
   // Nilai Akhir Gabungan (Skala 0 - 100)
   finalScore: number;
   
@@ -40,14 +50,55 @@ export interface ExamScoringResult {
   breakdownText: string;
 }
 
+const WEIGHTS_STORAGE_KEY_PREFIX = 'eduverse_exam_weights_';
+
 /**
- * Menghitung nilai ujian secara cerdas dan proporsional.
- * - Berapapun jumlah soal (misal 3 soal: 2 PG + 1 Essay), total nilai akhir selalu berskala 100.
- * - Nilai PG dan Essay dipisahkan dengan jelas.
+ * Mendapatkan bobot ujian tersimpan (default: 70% PG & 30% Essay)
+ */
+export function getExamWeights(examId?: string): ExamWeights {
+  if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
+    const key = examId ? `${WEIGHTS_STORAGE_KEY_PREFIX}${examId}` : `${WEIGHTS_STORAGE_KEY_PREFIX}default`;
+    const saved = localStorage.getItem(key);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (typeof parsed.pgWeight === 'number' && typeof parsed.essayWeight === 'number') {
+          return parsed;
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+  }
+  return {
+    mode: 'custom',
+    pgWeight: 70,
+    essayWeight: 30
+  };
+}
+
+/**
+ * Menyimpan konfigurasi bobot ke Local Storage
+ */
+export function saveExamWeights(weights: ExamWeights, examId?: string): void {
+  if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
+    const key = examId ? `${WEIGHTS_STORAGE_KEY_PREFIX}${examId}` : `${WEIGHTS_STORAGE_KEY_PREFIX}default`;
+    localStorage.setItem(key, JSON.stringify(weights));
+  }
+}
+
+/**
+ * Menghitung nilai ujian secara cerdas dan proporsional / berbobot custom.
  */
 export function calculateExamScores(input: ExamScoringInput): ExamScoringResult {
-  const { questions = [], answers = [] } = input;
+  const { questions = [], answers = [], weights } = input;
   const totalQuestions = questions.length;
+
+  const defaultWeights: ExamWeights = weights || {
+    mode: 'custom',
+    pgWeight: 70,
+    essayWeight: 30
+  };
 
   if (totalQuestions === 0) {
     return {
@@ -57,6 +108,7 @@ export function calculateExamScores(input: ExamScoringInput): ExamScoringResult 
       pgCorrectCount: 0,
       scorePg: 0,
       scoreEssay: null,
+      appliedWeights: defaultWeights,
       finalScore: 0,
       isEssayGraded: true,
       gradedEssayCount: 0,
@@ -112,10 +164,6 @@ export function calculateExamScores(input: ExamScoringInput): ExamScoringResult 
   }
 
   // 3. Hitung Nilai Akhir Gabungan (Skala 0 s.d. 100)
-  // Setiap butir soal memiliki bobot: (100 / totalQuestions)
-  // Kontribusi PG: (pgCorrect / totalQuestions) * 100
-  // Kontribusi Essay: (totalEssayScoreAccumulator / (essayCount * 100)) * (essayCount / totalQuestions) * 100
-  //                  = (totalEssayScoreAccumulator / totalQuestions)
   let finalScore = 0;
 
   if (essayCount === 0) {
@@ -125,16 +173,31 @@ export function calculateExamScores(input: ExamScoringInput): ExamScoringResult 
     // 100% Essay
     finalScore = scoreEssay !== null ? scoreEssay : 0;
   } else {
-    // Gabungan PG dan Essay (Proporsional per butir soal)
-    const pgContribution = (pgCorrect / totalQuestions) * 100;
-    const essayContribution = totalEssayScoreAccumulator / totalQuestions;
-    finalScore = Math.round((pgContribution + essayContribution) * 10) / 10;
+    // Ada PG dan Essay
+    if (defaultWeights.mode === 'proportional') {
+      const pgContribution = (pgCorrect / totalQuestions) * 100;
+      const essayContribution = totalEssayScoreAccumulator / totalQuestions;
+      finalScore = Math.round((pgContribution + essayContribution) * 10) / 10;
+    } else {
+      // Custom weight percentage (misal 70% PG : 30% Essay)
+      const totalWeight = (defaultWeights.pgWeight + defaultWeights.essayWeight) || 100;
+      const normPgWeight = (defaultWeights.pgWeight / totalWeight) * 100;
+      const normEssayWeight = (defaultWeights.essayWeight / totalWeight) * 100;
+
+      const essayScoreToUse = scoreEssay !== null ? scoreEssay : 0;
+      const weightedPg = (scorePg * normPgWeight) / 100;
+      const weightedEssay = (essayScoreToUse * normEssayWeight) / 100;
+      finalScore = Math.round((weightedPg + weightedEssay) * 10) / 10;
+    }
   }
 
   // Susun rincian teks (breakdown)
   let breakdownText = '';
   if (essayCount > 0 && pgCount > 0) {
-    breakdownText = `PG: ${pgCorrect}/${pgCount} (${scorePg}) | Essay: ${scoreEssay !== null ? scoreEssay : 'Belum Dinilai'} | Total: ${finalScore}`;
+    const weightLabel = defaultWeights.mode === 'custom' 
+      ? ` (${defaultWeights.pgWeight}% : ${defaultWeights.essayWeight}%)` 
+      : ' (Proporsional)';
+    breakdownText = `PG: ${scorePg} | Essay: ${scoreEssay !== null ? scoreEssay : 'Belum Dinilai'} | Nilai Akhir: ${finalScore}${weightLabel}`;
   } else if (essayCount > 0) {
     breakdownText = `Essay: ${scoreEssay !== null ? scoreEssay : 'Belum Dinilai'} (${gradedEssayCount}/${essayCount} soal)`;
   } else {
@@ -148,6 +211,7 @@ export function calculateExamScores(input: ExamScoringInput): ExamScoringResult 
     pgCorrectCount: pgCorrect,
     scorePg,
     scoreEssay,
+    appliedWeights: defaultWeights,
     finalScore,
     isEssayGraded,
     gradedEssayCount,
