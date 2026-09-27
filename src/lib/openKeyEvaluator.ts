@@ -279,21 +279,49 @@ export async function evaluateQuestionBatchWithAI(
     throw new Error('API Key OpenKey belum dikonfigurasi.');
   }
 
-  const systemPrompt = `Penilai esai sekolah objektif & efisien. Kunci guru adalah acuan esensi konsep, BUKAN patokan panjang tulisan. Siswa TIDAK dituntut menulis sepanjang kunci. Jika siswa menangkap konsep pokok secara tepat meski singkat dg bahasa sendiri, berikan nilai tinggi (85-100). Balas HANYA JSON array tanpa markdown: [{"i":"id_jawaban","s":number,"f":"feedback ringkas maks 8 kata"}]`;
+  // 1. Pisahkan langsung jawaban yang kosong tanpa memanggil AI (Skor 0 Mutlak)
+  const finalResults: BatchStudentResultItem[] = [];
+  const answersToEvaluate: { id: string; studentAnswer: string; indexKey: string }[] = [];
+  const idMap = new Map<string, string>(); // indexKey -> realId
+
+  request.answers.forEach((a, idx) => {
+    const trimmed = (a.studentAnswer || '').trim();
+    if (!trimmed) {
+      finalResults.push({
+        id: a.id,
+        score: 0,
+        feedback: 'Siswa tidak menuliskan jawaban.'
+      });
+    } else {
+      const indexKey = String(idx + 1);
+      idMap.set(indexKey, a.id);
+      answersToEvaluate.push({
+        id: a.id,
+        studentAnswer: trimmed.slice(0, 250),
+        indexKey
+      });
+    }
+  });
+
+  if (answersToEvaluate.length === 0) {
+    return finalResults;
+  }
+
+  const systemPrompt = `Penilai esai sekolah objektif & efisien. Kunci guru adalah acuan esensi konsep, BUKAN patokan panjang tulisan. Siswa TIDAK dituntut menulis sepanjang kunci. Jika siswa menangkap konsep pokok secara tepat meski singkat dg bahasa sendiri, berikan nilai tinggi (85-100). Balas HANYA JSON array tanpa markdown: [{"i":nomor_indeks,"s":number,"f":"feedback ringkas maks 8 kata"}]`;
 
   const cleanQuestion = (request.questionText || '').trim().slice(0, 300);
   const cleanAnswerKey = (request.correctAnswer || '').trim().slice(0, 300);
   
-  // Format jawaban terkompresi: [id]: jawaban_murid (dipotong max 250 karakter)
-  const answersList = request.answers
-    .map(a => `[${a.id}]: ${(a.studentAnswer || '').trim().slice(0, 250)}`)
+  // Format jawaban menggunakan indeks 1, 2, 3 agar AI tidak salah ketik UUID
+  const answersList = answersToEvaluate
+    .map(a => `[${a.indexKey}]: ${a.studentAnswer}`)
     .join('\n');
 
   const userContent = `Soal: ${cleanQuestion}\nKunci: ${cleanAnswerKey || '-'}\nJawaban Siswa:\n${answersList}`;
 
   const cleanBaseUrl = config.baseUrl.replace(/\/+$/, '');
   const endpoint = `${cleanBaseUrl}/chat/completions`;
-  const maxTokens = Math.min(600, Math.max(100, request.answers.length * 40));
+  const maxTokens = Math.min(600, Math.max(100, answersToEvaluate.length * 40));
 
   let data: any = null;
   let lastError: any = null;
@@ -361,40 +389,48 @@ export async function evaluateQuestionBatchWithAI(
     throw new Error('Tidak ada respon teks yang diterima dari AI.');
   }
 
-  // Parsing JSON array dari respons
+  // Parsing JSON array dari respons dan petakan kembali ke ID asli
+  const evaluatedMap = new Map<string, { score: number; feedback: string }>();
+
   try {
     const cleaned = cleanJsonString(rawText);
     const parsed = JSON.parse(cleaned);
 
     if (Array.isArray(parsed)) {
-      return parsed.map(item => {
-        const id = String(item.i || item.id || '');
+      parsed.forEach(item => {
+        const returnedIndex = String(item.i ?? item.id ?? '');
+        const realId = idMap.get(returnedIndex) || returnedIndex;
         let score = Number(item.s ?? item.score);
         if (isNaN(score)) score = 50;
         score = Math.max(0, Math.min(100, Math.round(score)));
         const feedback = String(item.f || item.feedback || 'Evaluasi AI selesai.');
 
-        return { id, score, feedback };
+        evaluatedMap.set(realId, { score, feedback });
       });
     }
   } catch (parseErr) {
-    console.warn('Gagal parse JSON array, mencoba fallback regex:', parseErr);
+    console.warn('Gagal parse JSON array batch, mencoba fallback regex:', parseErr);
   }
 
-  // Fallback jika JSON array tidak terparse sempurna
-  const fallbackResults: BatchStudentResultItem[] = [];
-  request.answers.forEach(a => {
-    const regex = new RegExp(`"\s*${a.id}\s*".*?"(?:s|score)"\s*:\s*(\\d+)`, 'i');
-    const match = rawText.match(regex);
-    const score = match ? Math.max(0, Math.min(100, parseInt(match[1], 10))) : 60;
-    fallbackResults.push({
-      id: a.id,
-      score,
-      feedback: 'Dinilai oleh AI (format disesuaikan).'
-    });
+  // Masukkan hasil evaluasi untuk setiap item yang dikirim
+  answersToEvaluate.forEach(a => {
+    if (evaluatedMap.has(a.id)) {
+      const res = evaluatedMap.get(a.id)!;
+      finalResults.push({ id: a.id, score: res.score, feedback: res.feedback });
+    } else {
+      // Fallback regex jika parsing JSON array parsial
+      const regex = new RegExp(`"\s*${a.indexKey}\s*".*?"(?:s|score)"\s*:\s*(\\d+)`, 'i');
+      const match = rawText.match(regex);
+      const score = match ? Math.max(0, Math.min(100, parseInt(match[1], 10))) : 0;
+      finalResults.push({
+        id: a.id,
+        score,
+        feedback: score > 0 ? 'Dinilai oleh AI (format disesuaikan).' : 'Perlu diperiksa manual.'
+      });
+    }
   });
 
-  return fallbackResults;
+  return finalResults;
 }
 
 /**

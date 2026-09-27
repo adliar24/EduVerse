@@ -68,7 +68,17 @@ const EssayAnswerCard: React.FC<{
     setAiLoading(true);
     setAiError(null);
     try {
-      // 1. Saring lokal terlebih dahulu (0 Token: Kosong, Menyerah, atau 100% Cocok)
+      // 1. Jika jawaban kosong, mutlak bernilai 0 tanpa panggil AI
+      if (!answer.answer_text || answer.answer_text.trim() === '') {
+        setAiScore(0);
+        setAiFeedback('Siswa tidak menuliskan jawaban.');
+        setAiReasoning('Jawaban siswa kosong');
+        setCurrentScore(0);
+        setFeedback('Siswa tidak menuliskan jawaban.');
+        return;
+      }
+
+      // 2. Saring lokal (0 Token: Menyerah, atau 100% Cocok)
       const localCheck = fastLocalHeuristicCheck(answer.answer_text, answer.questions?.correct_answer);
       if (localCheck.handledLocally) {
         setAiScore(localCheck.score);
@@ -1128,19 +1138,25 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
         let score = 0;
         let feedback = '';
 
-        // Saring lokal terlebih dahulu (0 Token: Kosong, Menyerah, atau 100% Cocok)
-        const localCheck = fastLocalHeuristicCheck(ans.answer_text, ans.questions?.correct_answer);
-        if (localCheck.handledLocally) {
-          score = localCheck.score;
-          feedback = localCheck.feedback;
+        // 1. Jika jawaban kosong, mutlak bernilai 0
+        if (!ans.answer_text || ans.answer_text.trim() === '') {
+          score = 0;
+          feedback = 'Siswa tidak menuliskan jawaban.';
         } else {
-          const aiRes = await evaluateEssayWithAI({
-            questionText: ans.questions?.question_text || '',
-            correctAnswer: ans.questions?.correct_answer || '',
-            studentAnswer: ans.answer_text || ''
-          });
-          score = aiRes.score;
-          feedback = aiRes.feedback;
+          // 2. Saring lokal (Menyerah atau 100% Cocok)
+          const localCheck = fastLocalHeuristicCheck(ans.answer_text, ans.questions?.correct_answer);
+          if (localCheck.handledLocally) {
+            score = localCheck.score;
+            feedback = localCheck.feedback;
+          } else {
+            const aiRes = await evaluateEssayWithAI({
+              questionText: ans.questions?.question_text || '',
+              correctAnswer: ans.questions?.correct_answer || '',
+              studentAnswer: ans.answer_text || ''
+            });
+            score = aiRes.score;
+            feedback = aiRes.feedback;
+          }
         }
 
         if (ans.id && !ans.id.startsWith('unanswered-')) {
@@ -1423,6 +1439,22 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
         const participant = targetParticipants.find(p => p.id === ans.participant_id);
         const studentName = participant?.name || 'Siswa';
 
+        // Jika jawaban kosong/spasi, langsung beri nilai 0 tanpa token & tanpa AI
+        if (!ans.answer_text || ans.answer_text.trim() === '') {
+          ans.score = 0;
+          ans.is_correct = false;
+          ans.teacher_feedback = 'Siswa tidak menuliskan jawaban.';
+          await persistAnswerScore(ans.id, 0, 'Siswa tidak menuliskan jawaban.');
+          evaluatedCount++;
+          setBatchProgress({
+            current: evaluatedCount,
+            total: totalAnswers,
+            studentName: `${studentName} (Kosong: 0)`,
+            percentage: Math.round((evaluatedCount / totalAnswers) * 100)
+          });
+          continue;
+        }
+
         const localCheck = fastLocalHeuristicCheck(ans.answer_text, qObj?.correct_answer);
         if (localCheck.handledLocally) {
           ans.score = localCheck.score;
@@ -1508,7 +1540,10 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
               const resultMap = new Map(batchResults.map(r => [r.id, r]));
 
               for (const ans of batchChunk) {
-                const res = resultMap.get(ans.id) || { score: 60, feedback: 'Dinilai oleh AI.' };
+                const res = resultMap.get(ans.id) || {
+                  score: !ans.answer_text || ans.answer_text.trim() === '' ? 0 : 50,
+                  feedback: !ans.answer_text || ans.answer_text.trim() === '' ? 'Siswa tidak menuliskan jawaban.' : 'Dinilai oleh AI.'
+                };
                 ans.score = res.score;
                 ans.is_correct = res.score >= 60;
                 ans.teacher_feedback = res.feedback;
@@ -1947,7 +1982,7 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
               className="bg-indigo-950 hover:bg-indigo-900 text-white px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all shadow-sm active:scale-[0.98] cursor-pointer"
             >
               <FileCheck className="w-4 h-4 text-indigo-300" />
-              <span>Koreksi Otomatis Essay</span>
+              <span>Periksa Otomatis Essay</span>
               {pendingEssayCount > 0 && (
                 <span className="bg-amber-400 text-amber-950 text-[10px] font-black px-2 py-0.5 rounded-full ml-0.5">
                   {pendingEssayCount} Belum
@@ -2613,7 +2648,7 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
                       ) : (
                         <>
                           <FileCheck className="w-3.5 h-3.5 text-indigo-700" />
-                          <span>Koreksi Otomatis Essay</span>
+                          <span>Periksa Otomatis Essay</span>
                         </>
                       )}
                     </button>
@@ -2817,7 +2852,7 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
                     </div>
                     <div>
                       <h3 className="text-lg font-black text-indigo-950">
-                        Koreksi Otomatis Jawaban Essay
+                        Periksa Otomatis Jawaban Essay
                       </h3>
                       <p className="text-xs text-slate-500 font-medium mt-0.5">
                         Evaluasi seluruh jawaban uraian siswa secara terstandar dan objektif
@@ -2860,7 +2895,7 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
                         className="w-4 h-4 rounded text-indigo-950 focus:ring-indigo-950 border-slate-300"
                       />
                       <div className="text-xs">
-                        <span className="font-bold text-slate-800">Hanya koreksi yang belum dinilai</span>
+                        <span className="font-bold text-slate-800">Hanya periksa yang belum dinilai</span>
                         <p className="text-[11px] text-slate-500 font-medium">Nilai essay yang telah diisi secara manual tidak akan tertimpa.</p>
                       </div>
                     </label>
@@ -2879,7 +2914,7 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
                         className="px-5 py-2.5 rounded-xl bg-indigo-950 hover:bg-indigo-900 text-white font-bold text-xs shadow-sm active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
                       >
                         <FileCheck className="w-4 h-4 text-indigo-300" />
-                        <span>Mulai Koreksi Sekarang</span>
+                        <span>Mulai Periksa Sekarang</span>
                       </button>
                     </div>
                   </div>
