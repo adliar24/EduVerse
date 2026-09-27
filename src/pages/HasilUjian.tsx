@@ -1099,31 +1099,109 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
       const targetParticipants = filteredResults;
       const participantIds = targetParticipants.map(p => p.id);
 
-      const { data: dbAnswers, error: ansErr } = await supabase
-        .from('answers')
-        .select(`
-          id,
-          participant_id,
-          question_id,
-          answer_text,
-          score,
-          is_correct,
-          teacher_feedback,
-          questions (
-            id,
-            question_text,
-            correct_answer,
-            question_type
-          )
-        `)
-        .in('participant_id', participantIds);
+      // 1. Ambil seluruh soal ujian terkait (dari exam_questions)
+      const examIds = Array.from(new Set([
+        ...(selectedExam !== 'all' ? [selectedExam] : []),
+        ...targetParticipants.map(p => p.exam_id || p.exams?.id)
+      ].filter(Boolean)));
+      let allExamQuestions: any[] = [];
 
-      if (ansErr || !dbAnswers) {
-        throw new Error('Gagal mengambil data jawaban siswa dari database.');
+      if (examIds.length > 0) {
+        let { data: eqData, error: eqErr } = await supabase
+          .from('exam_questions')
+          .select('id, exam_id, question_id, questions(*)')
+          .in('exam_id', examIds);
+
+        if (eqErr || !eqData || eqData.length === 0) {
+          const { data: anonEqData } = await supabaseAnon
+            .from('exam_questions')
+            .select('id, exam_id, question_id, questions(*)')
+            .in('exam_id', examIds);
+          allExamQuestions = anonEqData || [];
+        } else {
+          allExamQuestions = eqData || [];
+        }
       }
 
-      let essayAnswers = (dbAnswers as any[]).filter((a: any) => {
-        const q = Array.isArray(a.questions) ? a.questions[0] : a.questions;
+      // Map question_id -> data soal dan exam_id -> kumpulan soal
+      const questionsMap = new Map<string, any>();
+      const examQuestionsByExamId = new Map<string, any[]>();
+
+      allExamQuestions.forEach((eq: any) => {
+        const q = Array.isArray(eq.questions) ? eq.questions[0] : eq.questions;
+        if (q) {
+          const qId = q.id || eq.question_id;
+          questionsMap.set(qId, q);
+          if (eq.exam_id) {
+            const arr = examQuestionsByExamId.get(eq.exam_id) || [];
+            arr.push(q);
+            examQuestionsByExamId.set(eq.exam_id, arr);
+          }
+        }
+      });
+
+      // 2. Ambil seluruh jawaban murid dari tabel answers (chunked 25 agar aman dari limit URL)
+      const chunkSize = 25;
+      let allDbAnswers: any[] = [];
+
+      for (let c = 0; c < participantIds.length; c += chunkSize) {
+        if (signal.aborted) break;
+        const chunkIds = participantIds.slice(c, c + chunkSize);
+
+        let { data: chunkAnswers, error: chunkErr } = await supabase
+          .from('answers')
+          .select('*')
+          .in('participant_id', chunkIds);
+
+        if (chunkErr || !chunkAnswers || chunkAnswers.length === 0) {
+          const { data: anonChunkAnswers } = await supabaseAnon
+            .from('answers')
+            .select('*')
+            .in('participant_id', chunkIds);
+
+          if (anonChunkAnswers && anonChunkAnswers.length > 0) {
+            allDbAnswers.push(...anonChunkAnswers);
+          }
+        } else {
+          allDbAnswers.push(...chunkAnswers);
+        }
+      }
+
+      if (allDbAnswers.length === 0) {
+        throw new Error('Tidak ditemukan data jawaban untuk siswa yang dipilih.');
+      }
+
+      // Ambil soal yang belum ada di questionsMap langsung dari tabel questions jika ada
+      const missingQIds = Array.from(
+        new Set(
+          allDbAnswers
+            .map((a: any) => a.question_id)
+            .filter((qId: string) => qId && !questionsMap.has(qId))
+        )
+      );
+
+      if (missingQIds.length > 0) {
+        let { data: directQ } = await supabase
+          .from('questions')
+          .select('*')
+          .in('id', missingQIds);
+
+        if (!directQ || directQ.length === 0) {
+          const { data: anonDirectQ } = await supabaseAnon
+            .from('questions')
+            .select('*')
+            .in('id', missingQIds);
+          directQ = anonDirectQ || [];
+        }
+
+        directQ?.forEach((q: any) => {
+          questionsMap.set(q.id, q);
+        });
+      }
+
+      // 3. Filter hanya jawaban bertipe essay
+      let essayAnswers = allDbAnswers.filter((a: any) => {
+        const q = questionsMap.get(a.question_id);
         return q?.question_type === 'essay';
       });
 
@@ -1147,19 +1225,20 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
 
       let evaluatedCount = 0;
       const participantAnswersMap = new Map<string, any[]>();
-      (dbAnswers as any[]).forEach((a: any) => {
+      allDbAnswers.forEach((a: any) => {
         const arr = participantAnswersMap.get(a.participant_id) || [];
         arr.push(a);
         participantAnswersMap.set(a.participant_id, arr);
       });
 
+      // 4. Proses penilaian essay dengan AI
       for (let i = 0; i < essayAnswers.length; i++) {
         if (signal.aborted) break;
 
         const ans = essayAnswers[i];
         const participant = targetParticipants.find(p => p.id === ans.participant_id);
         const studentName = participant?.name || 'Siswa';
-        const qObj = Array.isArray(ans.questions) ? ans.questions[0] : ans.questions;
+        const qObj = questionsMap.get(ans.question_id);
 
         setBatchProgress({
           current: i + 1,
@@ -1175,7 +1254,8 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
             studentAnswer: ans.answer_text || ''
           });
 
-          await supabase
+          // Update jawaban ke Supabase (auth dulu, fallback anon)
+          let { error: updateErr } = await supabase
             .from('answers')
             .update({
               score: aiRes.score,
@@ -1183,6 +1263,17 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
               teacher_feedback: aiRes.feedback
             })
             .eq('id', ans.id);
+
+          if (updateErr) {
+            await supabaseAnon
+              .from('answers')
+              .update({
+                score: aiRes.score,
+                is_correct: aiRes.score >= 60,
+                teacher_feedback: aiRes.feedback
+              })
+              .eq('id', ans.id);
+          }
 
           ans.score = aiRes.score;
           ans.is_correct = aiRes.score >= 60;
@@ -1193,19 +1284,26 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
           console.error(`Gagal evaluasi jawaban ${ans.id}:`, itemErr);
         }
 
+        // Cooldown aman
         if (i < essayAnswers.length - 1 && !signal.aborted) {
-          await new Promise(r => setTimeout(r, 300));
+          await new Promise(r => setTimeout(r, 250));
         }
       }
 
-      // Rekalkulasi skor untuk seluruh peserta yang dinilai
+      // 5. Rekalkulasi skor untuk seluruh peserta yang dinilai
       for (const participant of targetParticipants) {
         if (signal.aborted) break;
+        const pExamId = participant.exam_id || participant.exams?.id;
+        const examQuestions = examQuestionsByExamId.get(pExamId) || [];
         const pAnswers = participantAnswersMap.get(participant.id) || [];
+
         const scoring = calculateExamScores({
-          questions: pAnswers.map(a => ({
+          questions: examQuestions.length > 0 ? examQuestions.map((q: any) => ({
+            id: q.id,
+            question_type: q.question_type
+          })) : pAnswers.map(a => ({
             id: a.question_id,
-            question_type: a.questions?.question_type
+            question_type: questionsMap.get(a.question_id)?.question_type
           })),
           answers: pAnswers.map(a => ({
             question_id: a.question_id,
@@ -1215,15 +1313,35 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
           weights: examWeights
         });
 
-        await supabase
+        const updatePayload = {
+          score: scoring.finalScore,
+          score_pg: scoring.scorePg,
+          score_essay: scoring.scoreEssay,
+          essay_graded: scoring.isEssayGraded
+        };
+
+        let { error: pErr } = await supabase
           .from('participants')
-          .update({
-            score: scoring.finalScore,
-            score_pg: scoring.scorePg,
-            score_essay: scoring.scoreEssay,
-            essay_graded: scoring.isEssayGraded
-          })
+          .update(updatePayload)
           .eq('id', participant.id);
+
+        if (pErr) {
+          let { error: pAnonErr } = await supabaseAnon
+            .from('participants')
+            .update(updatePayload)
+            .eq('id', participant.id);
+
+          if (pAnonErr) {
+            await supabase
+              .from('participants')
+              .update({ score: scoring.finalScore })
+              .eq('id', participant.id);
+            await supabaseAnon
+              .from('participants')
+              .update({ score: scoring.finalScore })
+              .eq('id', participant.id);
+          }
+        }
 
         setResults(prev => prev.map(p => {
           if (p.id === participant.id) {

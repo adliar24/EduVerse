@@ -47,7 +47,7 @@ export function getOpenKeyConfig(): OpenKeyConfig {
   }
 
   return {
-    apiKey: (import.meta as any).env?.VITE_OPENKEY_API_KEY || '',
+    apiKey: (import.meta as any).env?.VITE_OPENKEY_API_KEY || 'ok_live_356483a4d926ac446d00f84313df98716fbf6af23127722e',
     baseUrl: (import.meta as any).env?.VITE_OPENKEY_BASE_URL || 'https://my.openkey.id/v1',
     model: (import.meta as any).env?.VITE_OPENKEY_MODEL || 'gemini-3.8-flash'
   };
