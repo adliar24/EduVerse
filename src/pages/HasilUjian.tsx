@@ -37,6 +37,25 @@ import { evaluateEssayAnswer, highlightTextSegments, EvaluationMode, fastLocalHe
 import { calculateExamScores, getExamWeights, saveExamWeights, ExamWeights } from '../lib/examScoring';
 import { evaluateEssayWithAI, evaluateQuestionBatchWithAI } from '../lib/openKeyEvaluator';
 
+export const getCachedEssayScores = (participantId: string): Record<string, { score: number; feedback: string }> => {
+  try {
+    const raw = localStorage.getItem(`eduverse_essay_scores_${participantId}`);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+};
+
+export const setCachedEssayScore = (participantId: string, questionId: string, score: number, feedback: string) => {
+  try {
+    const current = getCachedEssayScores(participantId);
+    current[questionId] = { score, feedback };
+    localStorage.setItem(`eduverse_essay_scores_${participantId}`, JSON.stringify(current));
+  } catch (e) {
+    console.warn('Gagal simpan essay score cache ke localStorage:', e);
+  }
+};
+
 const EssayAnswerCard: React.FC<{
   index: number;
   answer: any;
@@ -931,16 +950,16 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
         examQuestionsCacheRef.current[examId] = examQuestions;
       }
 
-      // 2. Fetch the participant's answers with LEAN query (NO duplicate joins on questions/options!)
+      // 2. Fetch the participant's answers with robust select (prevents 400 error if score/teacher_feedback columns not yet in DB)
       let { data: participantDbAnswers, error: ansError } = await supabase
         .from('answers')
-        .select('id, question_id, option_id, answer_text, is_correct, score, teacher_feedback')
+        .select('*')
         .eq('participant_id', participant.id);
 
       if (ansError || !participantDbAnswers || participantDbAnswers.length === 0) {
         const { data: anonDbAnswers } = await supabaseAnon
           .from('answers')
-          .select('id, question_id, option_id, answer_text, is_correct, score, teacher_feedback')
+          .select('*')
           .eq('participant_id', participant.id);
         if (anonDbAnswers && anonDbAnswers.length > 0) {
           participantDbAnswers = anonDbAnswers;
@@ -948,6 +967,7 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
       }
 
       const answersMap = new Map((participantDbAnswers || []).map((a: any) => [a.question_id, a]));
+      const cachedScores = getCachedEssayScores(participant.id);
 
       const fullAnswers = (examQuestions || []).map((eq: any) => {
         const question = eq.questions || {};
@@ -955,6 +975,7 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
         
         // Find answer in O(1) time
         const ans = answersMap.get(question.id);
+        const cachedItem = cachedScores[question.id];
         
         // Selected option resolved directly from cached question.question_options
         let selectedOption = null;
@@ -986,6 +1007,14 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
           fullCorrectAnswerText = question.correct_answer || '-';
         }
 
+        const finalScore = typeof ans?.score === 'number'
+          ? ans.score
+          : (typeof cachedItem?.score === 'number'
+              ? cachedItem.score
+              : (question.question_type === 'essay' ? null : (ans?.is_correct ? 100 : 0)));
+
+        const finalFeedback = ans?.teacher_feedback || cachedItem?.feedback || '';
+
         return {
           id: ans?.id || `unanswered-${question.id}`,
           question_id: question.id,
@@ -993,8 +1022,8 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
           option_id: ans?.option_id || null,
           answer_text: ans?.answer_text || null,
           is_correct: ans ? ans.is_correct : false,
-          score: typeof ans?.score === 'number' ? ans.score : (question.question_type === 'essay' ? null : (ans?.is_correct ? 100 : 0)),
-          teacher_feedback: ans?.teacher_feedback || '',
+          score: finalScore,
+          teacher_feedback: finalFeedback,
           selected_option: selectedOption,
           full_correct_answer_text: fullCorrectAnswerText,
           is_answered: !!ans
@@ -1012,6 +1041,9 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
 
   const handleSaveEssayScore = async (questionId: string, newScore: number, feedback?: string) => {
     if (!selectedResult) return;
+
+    // Simpan ke local cache untuk kehandalan bila kolom DB score belum tersedia
+    setCachedEssayScore(selectedResult.id, questionId, newScore, feedback !== undefined ? feedback : '');
 
     // 1. Update local participantAnswers
     const updatedAnswers = participantAnswers.map(ans => {
@@ -1187,6 +1219,8 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
             feedback = aiRes.feedback;
           }
         }
+
+        setCachedEssayScore(selectedResult.id, ans.question_id, score, feedback);
 
         if (ans.id && !ans.id.startsWith('unanswered-')) {
           const { error: ansErr } = await supabase
@@ -1430,8 +1464,17 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
         participantAnswersMap.set(a.participant_id, arr);
       });
 
-      // Helper untuk simpan penilaian ke Supabase
-      const persistAnswerScore = async (ansId: string, score: number, feedback: string) => {
+      // Helper untuk simpan penilaian ke Supabase & local cache
+      const persistAnswerScore = async (
+        ansId: string, 
+        score: number, 
+        feedback: string, 
+        participantId?: string, 
+        questionId?: string
+      ) => {
+        if (participantId && questionId) {
+          setCachedEssayScore(participantId, questionId, score, feedback);
+        }
         const fullPayload = {
           score,
           is_correct: score >= 60,
@@ -1480,7 +1523,7 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
           ans.score = 0;
           ans.is_correct = false;
           ans.teacher_feedback = 'Siswa tidak menuliskan jawaban.';
-          await persistAnswerScore(ans.id, 0, 'Siswa tidak menuliskan jawaban.');
+          await persistAnswerScore(ans.id, 0, 'Siswa tidak menuliskan jawaban.', ans.participant_id, ans.question_id);
           evaluatedCount++;
           setBatchProgress({
             current: evaluatedCount,
@@ -1496,7 +1539,7 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
           ans.score = localCheck.score;
           ans.is_correct = localCheck.score >= 60;
           ans.teacher_feedback = localCheck.feedback;
-          await persistAnswerScore(ans.id, localCheck.score, localCheck.feedback);
+          await persistAnswerScore(ans.id, localCheck.score, localCheck.feedback, ans.participant_id, ans.question_id);
           evaluatedCount++;
           setBatchProgress({
             current: evaluatedCount,
@@ -1535,7 +1578,7 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
               ans.score = similar.score;
               ans.is_correct = similar.score >= 60;
               ans.teacher_feedback = similar.feedback;
-              await persistAnswerScore(ans.id, similar.score, similar.feedback);
+              await persistAnswerScore(ans.id, similar.score, similar.feedback, ans.participant_id, ans.question_id);
               evaluatedCount++;
               const participant = targetParticipants.find(p => p.id === ans.participant_id);
               setBatchProgress({
@@ -1585,7 +1628,7 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
                 ans.score = res.score;
                 ans.is_correct = res.score >= 60;
                 ans.teacher_feedback = res.feedback;
-                await persistAnswerScore(ans.id, res.score, res.feedback);
+                await persistAnswerScore(ans.id, res.score, res.feedback, ans.participant_id, ans.question_id);
 
                 if (ans.answer_text && ans.answer_text.trim().length >= 10) {
                   evaluatedCache.push({
@@ -1620,7 +1663,7 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
                   ans.score = singleRes.score;
                   ans.is_correct = singleRes.score >= 60;
                   ans.teacher_feedback = singleRes.feedback;
-                  await persistAnswerScore(ans.id, singleRes.score, singleRes.feedback);
+                  await persistAnswerScore(ans.id, singleRes.score, singleRes.feedback, ans.participant_id, ans.question_id);
                 } catch (sErr) {
                   if (signal.aborted) break;
                   console.error('Fallback satuan gagal:', sErr);
@@ -1628,7 +1671,7 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
                   ans.score = isBlank ? 0 : 50;
                   ans.is_correct = ans.score >= 60;
                   ans.teacher_feedback = isBlank ? 'Siswa tidak menuliskan jawaban.' : 'Perlu diperiksa manual.';
-                  await persistAnswerScore(ans.id, ans.score, ans.teacher_feedback);
+                  await persistAnswerScore(ans.id, ans.score, ans.teacher_feedback, ans.participant_id, ans.question_id);
                 }
                 evaluatedCount++;
                 setBatchProgress({
