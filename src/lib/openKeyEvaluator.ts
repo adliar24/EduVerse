@@ -150,29 +150,33 @@ async function callOpenKeyChatApi({
 
   let lastError: any = null;
 
-  // 1. Prioritas Utama: Rewrite Proxy /api/openkey/chat/completions (Bebas CORS di Vite dev & Vercel prod)
-  try {
-    const proxyRes = await fetchWithTimeout('/api/openkey/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey.trim()}`
-      },
-      body: bodyPayload,
-      signal
-    }, 25000);
+  // 1. Prioritas Utama: Rewrite / Serverless Proxy /api/openkey (Bebas CORS di Vite dev & Vercel prod)
+  const proxyEndpoints = ['/api/openkey/chat/completions', '/api/openkey'];
+  for (const proxyUrl of proxyEndpoints) {
+    try {
+      const proxyRes = await fetchWithTimeout(proxyUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey.trim()}`
+        },
+        body: bodyPayload,
+        signal
+      }, 25000);
 
-    const contentType = proxyRes.headers.get('content-type') || '';
-    if (proxyRes.ok && contentType.includes('application/json')) {
-      return await proxyRes.json();
-    } else if (proxyRes.status !== 404) {
-      const errText = await proxyRes.text();
-      console.warn(`Proxy OpenKey response non-200 (${proxyRes.status}):`, errText);
+      const contentType = proxyRes.headers.get('content-type') || '';
+      if (proxyRes.ok && contentType.includes('application/json')) {
+        return await proxyRes.json();
+      } else {
+        const errText = await proxyRes.text();
+        console.warn(`Proxy OpenKey (${proxyUrl}) response non-200 (${proxyRes.status}):`, errText);
+        lastError = new Error(`Proxy error (${proxyRes.status}): ${errText}`);
+      }
+    } catch (proxyErr: any) {
+      if (signal?.aborted) throw proxyErr;
+      console.warn(`Proxy OpenKey (${proxyUrl}) gagal, mencoba fallback:`, proxyErr?.message);
+      lastError = proxyErr;
     }
-  } catch (proxyErr: any) {
-    if (signal?.aborted) throw proxyErr;
-    console.warn('Proxy OpenKey gagal, mencoba fallback:', proxyErr?.message);
-    lastError = proxyErr;
   }
 
   // 2. Prioritas Kedua: /api/evaluate-essay (Serverless Function jika tersedia)
@@ -190,7 +194,7 @@ async function callOpenKeyChatApi({
         baseUrl: cleanBaseUrl
       }),
       signal
-    }, 15000);
+    }, 20000);
 
     const contentType = serverlessRes.headers.get('content-type') || '';
     if (serverlessRes.ok && contentType.includes('application/json')) {

@@ -56,6 +56,24 @@ export const setCachedEssayScore = (participantId: string, questionId: string, s
   }
 };
 
+export const getCachedParticipantScores = (participantId: string): { score_pg?: number | null; score_essay?: number | null; essay_graded?: boolean } => {
+  try {
+    const raw = localStorage.getItem(`eduverse_part_scores_${participantId}`);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+};
+
+export const setCachedParticipantScores = (participantId: string, data: { score_pg?: number | null; score_essay?: number | null; essay_graded?: boolean }) => {
+  try {
+    const current = getCachedParticipantScores(participantId);
+    localStorage.setItem(`eduverse_part_scores_${participantId}`, JSON.stringify({ ...current, ...data }));
+  } catch (e) {
+    console.warn('Gagal simpan participant score cache:', e);
+  }
+};
+
 const EssayAnswerCard: React.FC<{
   index: number;
   answer: any;
@@ -848,10 +866,22 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
         }
       }
 
-      const computedData = (finalData || []).map(p => ({
-        ...p,
-        score: computeStudentFinalScore(p, examWeights, bonusDisabledStudents)
-      }));
+      const computedData = (finalData || []).map(p => {
+        const cached = getCachedParticipantScores(p.id);
+        const scorePg = p.score_pg !== undefined && p.score_pg !== null ? p.score_pg : (cached.score_pg !== undefined ? cached.score_pg : null);
+        const scoreEssay = p.score_essay !== undefined && p.score_essay !== null ? p.score_essay : (cached.score_essay !== undefined ? cached.score_essay : null);
+        const isEssayGraded = p.essay_graded !== undefined && p.essay_graded !== null ? p.essay_graded : (cached.essay_graded !== undefined ? cached.essay_graded : (scoreEssay !== null));
+        const pWithScores = {
+          ...p,
+          score_pg: scorePg,
+          score_essay: scoreEssay,
+          essay_graded: isEssayGraded
+        };
+        return {
+          ...pWithScores,
+          score: computeStudentFinalScore(pWithScores, examWeights, bonusDisabledStudents)
+        };
+      });
 
       setResults(computedData);
     } catch (error) {
@@ -968,6 +998,14 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
 
       const answersMap = new Map((participantDbAnswers || []).map((a: any) => [a.question_id, a]));
       const cachedScores = getCachedEssayScores(participant.id);
+      const cachedPart = getCachedParticipantScores(participant.id);
+
+      setSelectedResult((prev: any) => ({
+        ...prev,
+        score_pg: prev?.score_pg !== undefined && prev?.score_pg !== null ? prev.score_pg : (cachedPart.score_pg ?? null),
+        score_essay: prev?.score_essay !== undefined && prev?.score_essay !== null ? prev.score_essay : (cachedPart.score_essay ?? null),
+        essay_graded: prev?.essay_graded !== undefined && prev?.essay_graded !== null ? prev.essay_graded : (cachedPart.essay_graded ?? true)
+      }));
 
       const fullAnswers = (examQuestions || []).map((eq: any) => {
         const question = eq.questions || {};
@@ -1011,7 +1049,9 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
           ? ans.score
           : (typeof cachedItem?.score === 'number'
               ? cachedItem.score
-              : (question.question_type === 'essay' ? null : (ans?.is_correct ? 100 : 0)));
+              : (question.question_type === 'essay' 
+                  ? (ans?.is_correct ? 80 : null) 
+                  : (ans?.is_correct ? 100 : 0)));
 
         const finalFeedback = ans?.teacher_feedback || cachedItem?.feedback || '';
 
@@ -1084,6 +1124,11 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
     };
     setSelectedResult(updatedResult);
     setResults(prev => prev.map(r => r.id === selectedResult.id ? updatedResult : r));
+    setCachedParticipantScores(selectedResult.id, {
+      score_pg: scoringResult.scorePg,
+      score_essay: scoringResult.scoreEssay,
+      essay_graded: scoringResult.isEssayGraded
+    });
 
     // 4. Persist to DB
     try {
@@ -1303,16 +1348,41 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
 
       setSelectedResult(updatedResult);
       setResults(prev => prev.map(r => r.id === selectedResult.id ? updatedResult : r));
+      setCachedParticipantScores(selectedResult.id, {
+        score_pg: scoringResult.scorePg,
+        score_essay: scoringResult.scoreEssay,
+        essay_graded: scoringResult.isEssayGraded
+      });
 
-      await supabase
+      const fullParticipantPayload = {
+        score: scoringResult.finalScore,
+        score_pg: scoringResult.scorePg,
+        score_essay: scoringResult.scoreEssay,
+        essay_graded: scoringResult.isEssayGraded
+      };
+
+      let { error: pErr } = await supabase
         .from('participants')
-        .update({
-          score: scoringResult.finalScore,
-          score_pg: scoringResult.scorePg,
-          score_essay: scoringResult.scoreEssay,
-          essay_graded: scoringResult.isEssayGraded
-        })
+        .update(fullParticipantPayload)
         .eq('id', selectedResult.id);
+
+      if (pErr) {
+        let { error: pAnonErr } = await supabaseAnon
+          .from('participants')
+          .update(fullParticipantPayload)
+          .eq('id', selectedResult.id);
+
+        if (pAnonErr) {
+          await supabase
+            .from('participants')
+            .update({ score: scoringResult.finalScore })
+            .eq('id', selectedResult.id);
+          await supabaseAnon
+            .from('participants')
+            .update({ score: scoringResult.finalScore })
+            .eq('id', selectedResult.id);
+        }
+      }
 
     } catch (err: any) {
       console.error('Error grading all student essays:', err);
@@ -1440,7 +1510,11 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
       });
 
       if (batchOnlyUngraded) {
-        essayAnswers = essayAnswers.filter((a: any) => a.score === null || a.score === undefined);
+        essayAnswers = essayAnswers.filter((a: any) => {
+          const cached = getCachedEssayScores(a.participant_id);
+          const hasScore = typeof a.score === 'number' || typeof cached[a.question_id]?.score === 'number';
+          return !hasScore;
+        });
       }
 
       if (essayAnswers.length === 0) {
@@ -1459,6 +1533,12 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
 
       const participantAnswersMap = new Map<string, any[]>();
       allDbAnswers.forEach((a: any) => {
+        const cached = getCachedEssayScores(a.participant_id);
+        if (cached[a.question_id]?.score !== undefined && (a.score === undefined || a.score === null)) {
+          a.score = cached[a.question_id].score;
+          a.is_correct = cached[a.question_id].score >= 60;
+          a.teacher_feedback = cached[a.question_id].feedback;
+        }
         const arr = participantAnswersMap.get(a.participant_id) || [];
         arr.push(a);
         participantAnswersMap.set(a.participant_id, arr);
@@ -1481,27 +1561,47 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
           teacher_feedback: feedback
         };
 
-        let { error: updateErr } = await supabase
-          .from('answers')
-          .update(fullPayload)
-          .eq('id', ansId);
-
-        if (updateErr) {
-          let { error: anonErr } = await supabaseAnon
+        if (ansId && !ansId.startsWith('unanswered-')) {
+          let { error: updateErr } = await supabase
             .from('answers')
             .update(fullPayload)
             .eq('id', ansId);
 
-          if (anonErr) {
-            await supabase
+          if (updateErr) {
+            let { error: anonErr } = await supabaseAnon
               .from('answers')
-              .update({ is_correct: score >= 60 })
+              .update(fullPayload)
               .eq('id', ansId);
 
-            await supabaseAnon
+            if (anonErr) {
+              await supabase
+                .from('answers')
+                .update({ is_correct: score >= 60 })
+                .eq('id', ansId);
+
+              await supabaseAnon
+                .from('answers')
+                .update({ is_correct: score >= 60 })
+                .eq('id', ansId);
+            }
+          }
+        } else if (participantId && questionId) {
+          const { error: upErr } = await supabase
+            .from('answers')
+            .upsert({
+              participant_id: participantId,
+              question_id: questionId,
+              ...fullPayload
+            }, { onConflict: 'participant_id,question_id' });
+
+          if (upErr) {
+            await supabase
               .from('answers')
-              .update({ is_correct: score >= 60 })
-              .eq('id', ansId);
+              .upsert({
+                participant_id: participantId,
+                question_id: questionId,
+                is_correct: score >= 60
+              }, { onConflict: 'participant_id,question_id' });
           }
         }
       };
@@ -1712,6 +1812,12 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
           })),
           weights: examWeights,
           applyBonusEssay: !bonusDisabledStudents[participant.id]
+        });
+
+        setCachedParticipantScores(participant.id, {
+          score_pg: scoring.scorePg,
+          score_essay: scoring.scoreEssay,
+          essay_graded: scoring.isEssayGraded
         });
 
         const updatePayload = {
