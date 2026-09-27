@@ -37,7 +37,7 @@ export function getOpenKeyConfig(): OpenKeyConfig {
           return {
             apiKey: parsed.apiKey,
             baseUrl: parsed.baseUrl || (import.meta as any).env?.VITE_OPENKEY_BASE_URL || 'https://my.openkey.id/v1',
-            model: parsed.model || (import.meta as any).env?.VITE_OPENKEY_MODEL || 'gemini-3.8-flash'
+            model: parsed.model || (import.meta as any).env?.VITE_OPENKEY_MODEL || 'gpt-4o-mini'
           };
         }
       }
@@ -49,7 +49,7 @@ export function getOpenKeyConfig(): OpenKeyConfig {
   return {
     apiKey: (import.meta as any).env?.VITE_OPENKEY_API_KEY || 'ok_live_356483a4d926ac446d00f84313df98716fbf6af23127722e',
     baseUrl: (import.meta as any).env?.VITE_OPENKEY_BASE_URL || 'https://my.openkey.id/v1',
-    model: (import.meta as any).env?.VITE_OPENKEY_MODEL || 'gemini-3.8-flash'
+    model: (import.meta as any).env?.VITE_OPENKEY_MODEL || 'gpt-4o-mini'
   };
 }
 
@@ -102,13 +102,12 @@ export async function evaluateEssayWithAI(
     };
   }
 
-  // Prompt ringkas & padat agar token seminimal mungkin namun tetap akurat
-  const systemPrompt = `Penilai essay sekolah. Analisis kesesuaian makna/konsep jawaban siswa thd soal & acuan guru (skala 0-100).
-Balas HANYA JSON tanpa markdown: {"score":number,"feedback":"1 kalimat singkat"}`;
+  // Prompt ringkas & esensial (tidak menuntut panjang tulisan sama dengan kunci guru)
+  const systemPrompt = `Penilai esai sekolah objektif. Kunci guru adalah acuan esensi konsep, BUKAN patokan panjang tulisan. Siswa TIDAK dituntut menulis sepanjang kunci. Jika siswa menangkap konsep pokok dg benar meski singkat, beri nilai tinggi (85-100). Balas HANYA JSON tanpa markdown: {"score":number,"feedback":"1 kalimat singkat (maks 8 kata)"}`;
 
-  const cleanQuestion = (request.questionText || '').trim().slice(0, 400);
-  const cleanAnswerKey = (request.correctAnswer || '').trim().slice(0, 400);
-  const cleanStudent = request.studentAnswer.trim().slice(0, 600);
+  const cleanQuestion = (request.questionText || '').trim().slice(0, 300);
+  const cleanAnswerKey = (request.correctAnswer || '').trim().slice(0, 300);
+  const cleanStudent = request.studentAnswer.trim().slice(0, 300);
 
   const userContent = `Soal: ${cleanQuestion}\nKunci: ${cleanAnswerKey || '-'}\nJawaban: ${cleanStudent}`;
 
@@ -130,7 +129,7 @@ Balas HANYA JSON tanpa markdown: {"score":number,"feedback":"1 kalimat singkat"}
         correctAnswer: cleanAnswerKey,
         studentAnswer: cleanStudent,
         apiKey: config.apiKey.trim(),
-        model: config.model.trim(),
+        model: config.model.trim() || 'gpt-4o-mini',
         baseUrl: cleanBaseUrl
       })
     });
@@ -155,13 +154,13 @@ Balas HANYA JSON tanpa markdown: {"score":number,"feedback":"1 kalimat singkat"}
           'Authorization': `Bearer ${config.apiKey.trim()}`
         },
         body: JSON.stringify({
-          model: config.model.trim() || 'gemini-3.8-flash',
+          model: config.model.trim() || 'gpt-4o-mini',
           messages: [
             { role: 'system', content: systemPrompt },
             { role: 'user', content: userContent }
           ],
           temperature: 0.1,
-          max_tokens: 80
+          max_tokens: 70
         })
       });
 
@@ -186,13 +185,13 @@ Balas HANYA JSON tanpa markdown: {"score":number,"feedback":"1 kalimat singkat"}
           'Authorization': `Bearer ${config.apiKey.trim()}`
         },
         body: JSON.stringify({
-          model: config.model.trim() || 'gemini-3.8-flash',
+          model: config.model.trim() || 'gpt-4o-mini',
           messages: [
             { role: 'system', content: systemPrompt },
             { role: 'user', content: userContent }
           ],
           temperature: 0.1,
-          max_tokens: 80
+          max_tokens: 70
         })
       });
 
@@ -224,18 +223,18 @@ Balas HANYA JSON tanpa markdown: {"score":number,"feedback":"1 kalimat singkat"}
     const cleaned = cleanJsonString(rawText);
     const parsed = JSON.parse(cleaned);
 
-    let score = Number(parsed.score);
+    let score = Number(parsed.score ?? parsed.s);
     if (isNaN(score)) score = 50;
     score = Math.max(0, Math.min(100, Math.round(score)));
 
     return {
       score,
-      feedback: parsed.feedback || 'Evaluasi AI selesai.',
+      feedback: parsed.feedback || parsed.f || 'Evaluasi AI selesai.',
       reasoning: parsed.reasoning || ''
     };
   } catch (parseError) {
     // Fallback regex jika JSON tidak valid
-    const scoreMatch = rawText.match(/"score"\s*:\s*(\d+)/i) || rawText.match(/skor\s*:\s*(\d+)/i);
+    const scoreMatch = rawText.match(/"score"\s*:\s*(\d+)/i) || rawText.match(/"s"\s*:\s*(\d+)/i) || rawText.match(/skor\s*:\s*(\d+)/i);
     const score = scoreMatch ? Math.max(0, Math.min(100, parseInt(scoreMatch[1], 10))) : 50;
     
     return {
@@ -244,6 +243,158 @@ Balas HANYA JSON tanpa markdown: {"score":number,"feedback":"1 kalimat singkat"}
       reasoning: rawText.substring(0, 150)
     };
   }
+}
+
+export interface BatchStudentAnswerItem {
+  id: string; // Answer ID
+  studentAnswer: string;
+}
+
+export interface BatchQuestionEvaluationRequest {
+  questionText: string;
+  correctAnswer?: string | null;
+  answers: BatchStudentAnswerItem[];
+}
+
+export interface BatchStudentResultItem {
+  id: string;
+  score: number;
+  feedback: string;
+}
+
+/**
+ * Mengevaluasi sekelompok jawaban murid untuk 1 soal yang sama dalam 1 request API
+ * (Sangat menghemat token & kuota panggilan API hingga 85%)
+ */
+export async function evaluateQuestionBatchWithAI(
+  request: BatchQuestionEvaluationRequest,
+  customConfig?: Partial<OpenKeyConfig>
+): Promise<BatchStudentResultItem[]> {
+  if (!request.answers || request.answers.length === 0) {
+    return [];
+  }
+
+  const config = { ...getOpenKeyConfig(), ...customConfig };
+  if (!config.apiKey) {
+    throw new Error('API Key OpenKey belum dikonfigurasi.');
+  }
+
+  const systemPrompt = `Penilai esai sekolah objektif & efisien. Kunci guru adalah acuan esensi konsep, BUKAN patokan panjang tulisan. Siswa TIDAK dituntut menulis sepanjang kunci. Jika siswa menangkap konsep pokok secara tepat meski singkat dg bahasa sendiri, berikan nilai tinggi (85-100). Balas HANYA JSON array tanpa markdown: [{"i":"id_jawaban","s":number,"f":"feedback ringkas maks 8 kata"}]`;
+
+  const cleanQuestion = (request.questionText || '').trim().slice(0, 300);
+  const cleanAnswerKey = (request.correctAnswer || '').trim().slice(0, 300);
+  
+  // Format jawaban terkompresi: [id]: jawaban_murid (dipotong max 250 karakter)
+  const answersList = request.answers
+    .map(a => `[${a.id}]: ${(a.studentAnswer || '').trim().slice(0, 250)}`)
+    .join('\n');
+
+  const userContent = `Soal: ${cleanQuestion}\nKunci: ${cleanAnswerKey || '-'}\nJawaban Siswa:\n${answersList}`;
+
+  const cleanBaseUrl = config.baseUrl.replace(/\/+$/, '');
+  const endpoint = `${cleanBaseUrl}/chat/completions`;
+  const maxTokens = Math.min(600, Math.max(100, request.answers.length * 40));
+
+  let data: any = null;
+  let lastError: any = null;
+
+  // 1. Coba via Vercel Serverless Function
+  try {
+    const serverlessRes = await fetch('/api/evaluate-essay', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        batchMode: true,
+        userContent,
+        systemPrompt,
+        maxTokens,
+        apiKey: config.apiKey.trim(),
+        model: config.model.trim() || 'gpt-4o-mini',
+        baseUrl: cleanBaseUrl
+      })
+    });
+
+    if (serverlessRes.ok) {
+      data = await serverlessRes.json();
+    }
+  } catch (err) {
+    // Fallback ke direct
+  }
+
+  // 2. Direct / Proxy Fallback
+  if (!data) {
+    try {
+      const directResponse = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${config.apiKey.trim()}`
+        },
+        body: JSON.stringify({
+          model: config.model.trim() || 'gpt-4o-mini',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userContent }
+          ],
+          temperature: 0.1,
+          max_tokens: maxTokens
+        })
+      });
+
+      if (directResponse.ok) {
+        data = await directResponse.json();
+      } else {
+        const errorBody = await directResponse.text();
+        throw new Error(`OpenKey Batch Error (${directResponse.status}): ${errorBody}`);
+      }
+    } catch (err) {
+      lastError = err;
+    }
+  }
+
+  if (!data) {
+    throw lastError || new Error('Gagal menghubungi AI untuk evaluasi batch.');
+  }
+
+  const rawText = data?.choices?.[0]?.message?.content || '';
+  if (!rawText) {
+    throw new Error('Tidak ada respon teks yang diterima dari AI.');
+  }
+
+  // Parsing JSON array dari respons
+  try {
+    const cleaned = cleanJsonString(rawText);
+    const parsed = JSON.parse(cleaned);
+
+    if (Array.isArray(parsed)) {
+      return parsed.map(item => {
+        const id = String(item.i || item.id || '');
+        let score = Number(item.s ?? item.score);
+        if (isNaN(score)) score = 50;
+        score = Math.max(0, Math.min(100, Math.round(score)));
+        const feedback = String(item.f || item.feedback || 'Evaluasi AI selesai.');
+
+        return { id, score, feedback };
+      });
+    }
+  } catch (parseErr) {
+    console.warn('Gagal parse JSON array, mencoba fallback regex:', parseErr);
+  }
+
+  // Fallback jika JSON array tidak terparse sempurna
+  const fallbackResults: BatchStudentResultItem[] = [];
+  request.answers.forEach(a => {
+    const regex = new RegExp(`"\s*${a.id}\s*".*?"(?:s|score)"\s*:\s*(\\d+)`, 'i');
+    const match = rawText.match(regex);
+    const score = match ? Math.max(0, Math.min(100, parseInt(match[1], 10))) : 60;
+    fallbackResults.push({
+      id: a.id,
+      score,
+      feedback: 'Dinilai oleh AI (format disesuaikan).'
+    });
+  });
+
+  return fallbackResults;
 }
 
 /**

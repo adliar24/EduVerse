@@ -263,3 +263,119 @@ export function highlightTextSegments(
 
   return segments;
 }
+
+/**
+ * Deteksi pola menyerah / tidak tahu / asal ketik (0 Token Cost)
+ */
+const GIVING_UP_PATTERNS = [
+  /^(tidak|nggak|gak|ga|ndak|kurang)\s*(tahu|tau|paham|mengerti|bisa|ingat)$/i,
+  /^(lupa|gatau|tidaktahu|ndatau|skip|pass|kosong|belum\s*belajar|asdf+|qwerty+|none|null|nil)$/i,
+  /^(\.|\-|\?|\!|\,|\/|x|0)+$/i
+];
+
+export interface LocalHeuristicResult {
+  handledLocally: boolean;
+  score: number;
+  feedback: string;
+  reason?: string;
+}
+
+/**
+ * Evaluasi kilat lokal gratis sebelum memanggil AI (Tier 1 Heuristic Filter)
+ * Menyaring jawaban kosong, menyerah, atau jawaban yang 100% cocok.
+ */
+export function fastLocalHeuristicCheck(
+  studentAnswer: string | null | undefined,
+  correctAnswer?: string | null
+): LocalHeuristicResult {
+  const cleanStudent = (studentAnswer || '').trim();
+  const cleanKey = (correctAnswer || '').trim();
+
+  // 1. Jawaban Kosong
+  if (!cleanStudent) {
+    return {
+      handledLocally: true,
+      score: 0,
+      feedback: 'Siswa tidak menuliskan jawaban.',
+      reason: 'Jawaban kosong'
+    };
+  }
+
+  // 2. Jawaban terlalu pendek atau karakter acak / tanda baca doang
+  if (cleanStudent.length <= 2) {
+    return {
+      handledLocally: true,
+      score: 0,
+      feedback: 'Jawaban terlalu singkat atau belum menjawab soal.',
+      reason: 'Kurang dari 3 karakter'
+    };
+  }
+
+  // 3. Jawaban menyerah / asal ketik
+  const isGivingUp = GIVING_UP_PATTERNS.some(pattern => pattern.test(cleanStudent));
+  if (isGivingUp) {
+    return {
+      handledLocally: true,
+      score: 0,
+      feedback: 'Jawaban belum menjawab esensi pertanyaan.',
+      reason: 'Pola menyerah/tidak tahu'
+    };
+  }
+
+  // 4. Exact Match dengan Kunci Jawaban
+  const normStudent = cleanStudent.toLowerCase().replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').trim();
+  const normKey = cleanKey.toLowerCase().replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').trim();
+
+  if (normKey && normStudent === normKey) {
+    return {
+      handledLocally: true,
+      score: 100,
+      feedback: 'Jawaban tepat dan sangat sesuai dengan konsep.',
+      reason: 'Kecocokan penuh (Exact Match)'
+    };
+  }
+
+  // 5. Cek coverage kata kunci jika kunci jawaban tersedia
+  if (cleanKey) {
+    const evalRes = evaluateEssayAnswer(cleanStudent, cleanKey, { mode: 'balanced' });
+    if (evalRes.totalKeywords >= 2 && evalRes.coverageRatio >= 0.95 && evalRes.wordCount >= 4) {
+      return {
+        handledLocally: true,
+        score: 95,
+        feedback: 'Konsep utama dijawab dengan sangat baik.',
+        reason: 'Keyword coverage >= 95%'
+      };
+    }
+  }
+
+  return {
+    handledLocally: false,
+    score: 0,
+    feedback: ''
+  };
+}
+
+/**
+ * Menghitung kemiripan teks antar jawaban siswa (Jaccard Similarity)
+ * Digunakan untuk deduplikasi / mewarisi nilai jawaban serupa (0 Token)
+ */
+export function calculateTextSimilarity(textA: string, textB: string): number {
+  if (!textA || !textB) return 0;
+  const cleanA = textA.toLowerCase().replace(/[^\w\s]/g, ' ').trim();
+  const cleanB = textB.toLowerCase().replace(/[^\w\s]/g, ' ').trim();
+  if (cleanA === cleanB) return 1.0;
+
+  const wordsA = new Set(cleanA.split(/\s+/).filter(w => w.length >= 2 && !INDONESIAN_STOPWORDS.has(w)));
+  const wordsB = new Set(cleanB.split(/\s+/).filter(w => w.length >= 2 && !INDONESIAN_STOPWORDS.has(w)));
+
+  if (wordsA.size === 0 || wordsB.size === 0) return 0;
+
+  let intersection = 0;
+  wordsA.forEach(w => {
+    if (wordsB.has(w)) intersection++;
+  });
+
+  const union = new Set([...wordsA, ...wordsB]).size;
+  return union === 0 ? 0 : intersection / union;
+}
+

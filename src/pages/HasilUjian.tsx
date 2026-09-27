@@ -33,9 +33,9 @@ import { cn, capitalizeEachWord } from '../lib/utils';
 import { useSchool } from '../context/SchoolContext';
 import { createPortal } from 'react-dom';
 import { useLocation } from 'react-router-dom';
-import { evaluateEssayAnswer, highlightTextSegments, EvaluationMode } from '../lib/essayEvaluator';
+import { evaluateEssayAnswer, highlightTextSegments, EvaluationMode, fastLocalHeuristicCheck, calculateTextSimilarity } from '../lib/essayEvaluator';
 import { calculateExamScores, getExamWeights, saveExamWeights, ExamWeights } from '../lib/examScoring';
-import { evaluateEssayWithAI } from '../lib/openKeyEvaluator';
+import { evaluateEssayWithAI, evaluateQuestionBatchWithAI } from '../lib/openKeyEvaluator';
 
 const EssayAnswerCard: React.FC<{
   index: number;
@@ -68,6 +68,17 @@ const EssayAnswerCard: React.FC<{
     setAiLoading(true);
     setAiError(null);
     try {
+      // 1. Saring lokal terlebih dahulu (0 Token: Kosong, Menyerah, atau 100% Cocok)
+      const localCheck = fastLocalHeuristicCheck(answer.answer_text, answer.questions?.correct_answer);
+      if (localCheck.handledLocally) {
+        setAiScore(localCheck.score);
+        setAiFeedback(localCheck.feedback);
+        setAiReasoning(localCheck.reason || 'Dideteksi otomatis secara lokal');
+        setCurrentScore(localCheck.score);
+        setFeedback(localCheck.feedback);
+        return;
+      }
+
       const res = await evaluateEssayWithAI({
         questionText: answer.questions?.question_text || '',
         correctAnswer: answer.questions?.correct_answer || '',
@@ -1114,30 +1125,42 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
       let updatedAnswers = [...participantAnswers];
 
       for (const ans of essayAnswers) {
-        const aiRes = await evaluateEssayWithAI({
-          questionText: ans.questions?.question_text || '',
-          correctAnswer: ans.questions?.correct_answer || '',
-          studentAnswer: ans.answer_text || ''
-        });
+        let score = 0;
+        let feedback = '';
+
+        // Saring lokal terlebih dahulu (0 Token: Kosong, Menyerah, atau 100% Cocok)
+        const localCheck = fastLocalHeuristicCheck(ans.answer_text, ans.questions?.correct_answer);
+        if (localCheck.handledLocally) {
+          score = localCheck.score;
+          feedback = localCheck.feedback;
+        } else {
+          const aiRes = await evaluateEssayWithAI({
+            questionText: ans.questions?.question_text || '',
+            correctAnswer: ans.questions?.correct_answer || '',
+            studentAnswer: ans.answer_text || ''
+          });
+          score = aiRes.score;
+          feedback = aiRes.feedback;
+        }
 
         if (ans.id && !ans.id.startsWith('unanswered-')) {
           const { error: ansErr } = await supabase
             .from('answers')
             .update({
-              score: aiRes.score,
-              is_correct: aiRes.score >= 60,
-              teacher_feedback: aiRes.feedback
+              score,
+              is_correct: score >= 60,
+              teacher_feedback: feedback
             })
             .eq('id', ans.id);
 
           if (ansErr) {
             await supabase
               .from('answers')
-              .update({ is_correct: aiRes.score >= 60 })
+              .update({ is_correct: score >= 60 })
               .eq('id', ans.id);
             await supabaseAnon
               .from('answers')
-              .update({ is_correct: aiRes.score >= 60 })
+              .update({ is_correct: score >= 60 })
               .eq('id', ans.id);
           }
         } else {
@@ -1146,9 +1169,9 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
             .upsert({
               participant_id: selectedResult.id,
               question_id: ans.question_id,
-              score: aiRes.score,
-              is_correct: aiRes.score >= 60,
-              teacher_feedback: aiRes.feedback
+              score,
+              is_correct: score >= 60,
+              teacher_feedback: feedback
             }, { onConflict: 'participant_id,question_id' });
 
           if (upErr) {
@@ -1157,7 +1180,7 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
               .upsert({
                 participant_id: selectedResult.id,
                 question_id: ans.question_id,
-                is_correct: aiRes.score >= 60
+                is_correct: score >= 60
               }, { onConflict: 'participant_id,question_id' });
           }
         }
@@ -1166,9 +1189,9 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
           if (a.question_id === ans.question_id) {
             return {
               ...a,
-              score: aiRes.score,
-              is_correct: aiRes.score >= 60,
-              teacher_feedback: aiRes.feedback
+              score,
+              is_correct: score >= 60,
+              teacher_feedback: feedback
             };
           }
           return a;
@@ -1355,7 +1378,6 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
         percentage: 0
       });
 
-      let evaluatedCount = 0;
       const participantAnswersMap = new Map<string, any[]>();
       allDbAnswers.forEach((a: any) => {
         const arr = participantAnswersMap.get(a.participant_id) || [];
@@ -1363,69 +1385,183 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
         participantAnswersMap.set(a.participant_id, arr);
       });
 
-      // 4. Proses penilaian essay dengan AI
-      for (let i = 0; i < essayAnswers.length; i++) {
-        if (signal.aborted) break;
+      // Helper untuk simpan penilaian ke Supabase
+      const persistAnswerScore = async (ansId: string, score: number, feedback: string) => {
+        let { error: updateErr } = await supabase
+          .from('answers')
+          .update({
+            score,
+            is_correct: score >= 60,
+            teacher_feedback: feedback
+          })
+          .eq('id', ansId);
 
-        const ans = essayAnswers[i];
+        if (updateErr) {
+          const { error: cErr } = await supabase
+            .from('answers')
+            .update({ is_correct: score >= 60 })
+            .eq('id', ansId);
+
+          if (cErr) {
+            await supabaseAnon
+              .from('answers')
+              .update({ is_correct: score >= 60 })
+              .eq('id', ansId);
+          }
+        }
+      };
+
+      // 4. Proses penilaian essay dengan arsitektur Two-Tier Hybrid (Ultra-Hemat Token)
+      let evaluatedCount = 0;
+      const totalAnswers = essayAnswers.length;
+
+      // Tier 1: Penyaringan Lokal 0 Token (Kosong, Menyerah, Exact Match)
+      const pendingAnswers: any[] = [];
+      for (const ans of essayAnswers) {
+        if (signal.aborted) break;
+        const qObj = questionsMap.get(ans.question_id);
         const participant = targetParticipants.find(p => p.id === ans.participant_id);
         const studentName = participant?.name || 'Siswa';
-        const qObj = questionsMap.get(ans.question_id);
 
-        setBatchProgress({
-          current: i + 1,
-          total: essayAnswers.length,
-          studentName,
-          percentage: Math.round(((i + 1) / essayAnswers.length) * 100)
+        const localCheck = fastLocalHeuristicCheck(ans.answer_text, qObj?.correct_answer);
+        if (localCheck.handledLocally) {
+          ans.score = localCheck.score;
+          ans.is_correct = localCheck.score >= 60;
+          ans.teacher_feedback = localCheck.feedback;
+          await persistAnswerScore(ans.id, localCheck.score, localCheck.feedback);
+          evaluatedCount++;
+          setBatchProgress({
+            current: evaluatedCount,
+            total: totalAnswers,
+            studentName: `${studentName} (Filter Lokal)`,
+            percentage: Math.round((evaluatedCount / totalAnswers) * 100)
+          });
+        } else {
+          pendingAnswers.push(ans);
+        }
+      }
+
+      // Tier 2: Kelompokkan jawaban yang belum dinilai per question_id
+      if (!signal.aborted && pendingAnswers.length > 0) {
+        const answersByQuestion = new Map<string, any[]>();
+        pendingAnswers.forEach(ans => {
+          const arr = answersByQuestion.get(ans.question_id) || [];
+          arr.push(ans);
+          answersByQuestion.set(ans.question_id, arr);
         });
 
-        try {
-          const aiRes = await evaluateEssayWithAI({
-            questionText: qObj?.question_text || '',
-            correctAnswer: qObj?.correct_answer || '',
-            studentAnswer: ans.answer_text || ''
-          });
+        for (const [questionId, qAnswers] of answersByQuestion.entries()) {
+          if (signal.aborted) break;
+          const qObj = questionsMap.get(questionId);
 
-          // Update jawaban ke Supabase (auth dulu, fallback anon & fallback kolom standar)
-          let { error: updateErr } = await supabase
-            .from('answers')
-            .update({
-              score: aiRes.score,
-              is_correct: aiRes.score >= 60,
-              teacher_feedback: aiRes.feedback
-            })
-            .eq('id', ans.id);
+          // Cache per soal untuk mewarisi nilai jawaban serupa (Fuzzy Deduplication)
+          const evaluatedCache: { text: string; score: number; feedback: string }[] = [];
 
-          if (updateErr) {
-            const { error: cErr } = await supabase
-              .from('answers')
-              .update({ is_correct: aiRes.score >= 60 })
-              .eq('id', ans.id);
-
-            if (cErr) {
-              await supabaseAnon
-                .from('answers')
-                .update({ is_correct: aiRes.score >= 60 })
-                .eq('id', ans.id);
+          // Saring jawaban yang mirip dengan yang sudah dinilai
+          const needsAiList: any[] = [];
+          for (const ans of qAnswers) {
+            const similar = evaluatedCache.find(
+              c => calculateTextSimilarity(ans.answer_text || '', c.text) >= 0.85
+            );
+            if (similar) {
+              ans.score = similar.score;
+              ans.is_correct = similar.score >= 60;
+              ans.teacher_feedback = similar.feedback;
+              await persistAnswerScore(ans.id, similar.score, similar.feedback);
+              evaluatedCount++;
+              const participant = targetParticipants.find(p => p.id === ans.participant_id);
+              setBatchProgress({
+                current: evaluatedCount,
+                total: totalAnswers,
+                studentName: `${participant?.name || 'Siswa'} (Serupa)`,
+                percentage: Math.round((evaluatedCount / totalAnswers) * 100)
+              });
+            } else {
+              needsAiList.push(ans);
             }
           }
 
-          ans.score = aiRes.score;
-          ans.is_correct = aiRes.score >= 60;
-          ans.teacher_feedback = aiRes.feedback;
+          // Batching AI per 8 jawaban untuk soal yang sama
+          const BATCH_SIZE = 8;
+          for (let b = 0; b < needsAiList.length; b += BATCH_SIZE) {
+            if (signal.aborted) break;
+            const batchChunk = needsAiList.slice(b, b + BATCH_SIZE);
+            const firstParticipant = targetParticipants.find(p => p.id === batchChunk[0].participant_id);
 
-          evaluatedCount++;
-        } catch (itemErr: any) {
-          console.error(`Gagal evaluasi jawaban ${ans.id}:`, itemErr);
-          // Jika item pertama gagal total, lemparkan error agar terdeteksi
-          if (i === 0 && essayAnswers.length > 1) {
-            throw new Error(`Evaluasi pertama gagal: ${itemErr?.message || 'Koneksi ke AI bermasalah'}`);
+            setBatchProgress({
+              current: evaluatedCount,
+              total: totalAnswers,
+              studentName: `${firstParticipant?.name || 'Siswa'} dkk. (Batch AI)`,
+              percentage: Math.round((evaluatedCount / totalAnswers) * 100)
+            });
+
+            try {
+              const batchResults = await evaluateQuestionBatchWithAI({
+                questionText: qObj?.question_text || '',
+                correctAnswer: qObj?.correct_answer || '',
+                answers: batchChunk.map(item => ({
+                  id: item.id,
+                  studentAnswer: item.answer_text || ''
+                }))
+              });
+
+              const resultMap = new Map(batchResults.map(r => [r.id, r]));
+
+              for (const ans of batchChunk) {
+                const res = resultMap.get(ans.id) || { score: 60, feedback: 'Dinilai oleh AI.' };
+                ans.score = res.score;
+                ans.is_correct = res.score >= 60;
+                ans.teacher_feedback = res.feedback;
+                await persistAnswerScore(ans.id, res.score, res.feedback);
+
+                if (ans.answer_text && ans.answer_text.trim().length >= 10) {
+                  evaluatedCache.push({
+                    text: ans.answer_text,
+                    score: res.score,
+                    feedback: res.feedback
+                  });
+                }
+
+                evaluatedCount++;
+              }
+
+              setBatchProgress({
+                current: evaluatedCount,
+                total: totalAnswers,
+                studentName: `${firstParticipant?.name || 'Siswa'}`,
+                percentage: Math.round((evaluatedCount / totalAnswers) * 100)
+              });
+            } catch (batchErr) {
+              console.warn('Batch AI gagal, fallback ke evaluasi satuan:', batchErr);
+              for (const ans of batchChunk) {
+                if (signal.aborted) break;
+                try {
+                  const singleRes = await evaluateEssayWithAI({
+                    questionText: qObj?.question_text || '',
+                    correctAnswer: qObj?.correct_answer || '',
+                    studentAnswer: ans.answer_text || ''
+                  });
+                  ans.score = singleRes.score;
+                  ans.is_correct = singleRes.score >= 60;
+                  ans.teacher_feedback = singleRes.feedback;
+                  await persistAnswerScore(ans.id, singleRes.score, singleRes.feedback);
+                } catch (sErr) {
+                  console.error('Fallback satuan gagal:', sErr);
+                }
+                evaluatedCount++;
+                setBatchProgress({
+                  current: evaluatedCount,
+                  total: totalAnswers,
+                  studentName: 'Evaluasi item',
+                  percentage: Math.round((evaluatedCount / totalAnswers) * 100)
+                });
+              }
+            }
+
+            if (b + BATCH_SIZE < needsAiList.length && !signal.aborted) {
+              await new Promise(r => setTimeout(r, 200));
+            }
           }
-        }
-
-        // Cooldown aman
-        if (i < essayAnswers.length - 1 && !signal.aborted) {
-          await new Promise(r => setTimeout(r, 250));
         }
       }
 
