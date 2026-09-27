@@ -22,7 +22,9 @@ import {
   ArrowUpDown,
   RotateCcw,
   Sparkles,
-  Check
+  Check,
+  SlidersHorizontal,
+  ChevronLeft
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import React from 'react';
@@ -477,6 +479,13 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
   const [showCustomWeightModal, setShowCustomWeightModal] = useState(false);
   const [tempPgWeight, setTempPgWeight] = useState(examWeights.pgWeight || 100);
   const [tempEssayWeight, setTempEssayWeight] = useState(examWeights.essayWeight || 0);
+  const [tempBonusMax, setTempBonusMax] = useState(examWeights.bonusMaxPoints || 20);
+  const [tempMode, setTempMode] = useState<ExamWeights['mode']>(examWeights.mode || 'pg_bonus_essay');
+
+  // Pagination & Display State
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState<number>(50);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
 
   // Status Nonaktif Bonus Essay per Individu Siswa (default: aktif untuk semua siswa)
   const [bonusDisabledStudents, setBonusDisabledStudents] = useState<Record<string, boolean>>(() => {
@@ -507,6 +516,8 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
       setExamWeights(saved);
       setTempPgWeight(saved.pgWeight);
       setTempEssayWeight(saved.essayWeight);
+      setTempBonusMax(saved.bonusMaxPoints || 20);
+      setTempMode(saved.mode || 'pg_bonus_essay');
 
       try {
         const key = `eduverse_bonus_disabled_${selectedExam}`;
@@ -515,6 +526,11 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
       } catch (e) {}
     }
   }, [selectedExam]);
+
+  // Reset pagination saat pencarian atau filter berubah
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedExam, selectedClass, selectedSession, sortBy]);
 
   // Fungsi kalkulasi nilai akhir siswa sesuai skema bobot & bonus essay
   const computeStudentFinalScore = (
@@ -607,12 +623,13 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
     }));
     setResults(updated);
 
-    for (const p of updated) {
-      try {
-        await supabase.from('participants').update({ score: p.score }).eq('id', p.id);
-        await supabaseAnon.from('participants').update({ score: p.score }).eq('id', p.id);
-      } catch (e) {}
-    }
+    // Jalankan update database di background tanpa menghambat responsivitas UI
+    Promise.allSettled(
+      updated.map(p => Promise.allSettled([
+        supabase.from('participants').update({ score: p.score }).eq('id', p.id),
+        supabaseAnon.from('participants').update({ score: p.score }).eq('id', p.id)
+      ]))
+    ).catch(e => console.warn('Bulk apply bonus sync error:', e));
   };
 
   // Nonaktifkan bonus untuk seluruh siswa (murni nilai PG)
@@ -631,12 +648,13 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
     }));
     setResults(updated);
 
-    for (const p of updated) {
-      try {
-        await supabase.from('participants').update({ score: p.score }).eq('id', p.id);
-        await supabaseAnon.from('participants').update({ score: p.score }).eq('id', p.id);
-      } catch (e) {}
-    }
+    // Jalankan update database di background tanpa menghambat responsivitas UI
+    Promise.allSettled(
+      updated.map(p => Promise.allSettled([
+        supabase.from('participants').update({ score: p.score }).eq('id', p.id),
+        supabaseAnon.from('participants').update({ score: p.score }).eq('id', p.id)
+      ]))
+    ).catch(e => console.warn('Bulk disable bonus sync error:', e));
   };
 
   useEffect(() => {
@@ -1574,6 +1592,13 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
     return temp;
   }, [results, searchTerm, sortBy]);
 
+  const totalPages = Math.ceil(filteredResults.length / (pageSize || filteredResults.length)) || 1;
+  const paginatedResults = useMemo(() => {
+    if (pageSize === 0) return filteredResults;
+    const start = (currentPage - 1) * pageSize;
+    return filteredResults.slice(start, start + pageSize);
+  }, [filteredResults, currentPage, pageSize]);
+
   const pendingEssayCount = useMemo(() => {
     return filteredResults.filter(r => r.essay_graded === false).length;
   }, [filteredResults]);
@@ -1804,23 +1829,23 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
   };
 
   return (
-    <div className={cn(isEmbedded ? "space-y-6" : "space-y-10 pb-20")}>
+    <div className={cn(isEmbedded ? "space-y-4" : "space-y-6 pb-20")}>
       {!isEmbedded && (
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h2 className="text-3xl font-bold text-indigo-950 tracking-tight">Hasil Ujian</h2>
-            <p className="text-slate-500 font-medium mt-1">Laporan lengkap performa siswa pada setiap sesi ujian.</p>
+            <h2 className="text-2xl sm:text-3xl font-bold text-indigo-950 tracking-tight">Hasil Ujian</h2>
+            <p className="text-slate-500 font-medium text-xs sm:text-sm mt-0.5">Laporan nilai dan evaluasi pengerjaan siswa.</p>
           </div>
-          <div className="flex flex-col sm:flex-row items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2">
             <button 
               onClick={() => {
                 setBatchSummary(null);
                 setShowBatchModal(true);
               }}
-              className="w-full sm:w-auto bg-gradient-to-r from-purple-700 via-indigo-600 to-blue-600 text-white px-5 py-2.5 sm:px-6 sm:py-3 rounded-full font-bold flex items-center justify-center gap-2 hover:brightness-110 border border-white/20 transition-all shadow-lg shadow-purple-600/20 active:scale-[0.98] cursor-pointer"
+              className="bg-gradient-to-r from-purple-700 via-indigo-600 to-blue-600 text-white px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 hover:brightness-110 transition-all shadow-md shadow-purple-600/20 active:scale-[0.98] cursor-pointer"
             >
               <Sparkles className="w-4 h-4 text-purple-200" />
-              <span>✨ Periksa Semua Essay (AI)</span>
+              <span>✨ Koreksi Essay (AI)</span>
               {pendingEssayCount > 0 && (
                 <span className="bg-amber-400 text-amber-950 text-[10px] font-black px-2 py-0.5 rounded-full ml-0.5">
                   {pendingEssayCount} Belum
@@ -1829,14 +1854,14 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
             </button>
             <button 
               onClick={generatePDF}
-              className="w-full sm:w-auto bg-white border border-slate-200 text-slate-700 px-6 py-2.5 sm:px-7 sm:py-3 rounded-full font-bold flex items-center justify-center gap-2.5 hover:bg-slate-50 transition-all shadow-sm active:scale-[0.98] cursor-pointer"
+              className="bg-white border border-slate-200 text-slate-700 px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 hover:bg-slate-50 transition-all shadow-xs active:scale-[0.98] cursor-pointer"
             >
               <Download className="w-4 h-4 text-[#2563EB]" />
               PDF
             </button>
             <button 
               onClick={exportToExcel}
-              className="w-full sm:w-auto bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white px-6 py-2.5 sm:px-7 sm:py-3 rounded-full font-bold flex items-center justify-center gap-2.5 hover:brightness-110 border border-white/10 transition-all shadow-lg shadow-blue-500/20 active:scale-[0.98] cursor-pointer"
+              className="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-all shadow-xs active:scale-[0.98] cursor-pointer"
             >
               <FileSpreadsheet className="w-4 h-4" />
               Excel
@@ -1853,22 +1878,22 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
         />
       )}
 
-      {/* Filters */}
-      <div className="flex flex-col lg:flex-row gap-4">
-        <div className="relative flex-1 group">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 group-focus-within:text-indigo-950 transition-colors" />
+      {/* Filter Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="relative group sm:col-span-2 lg:col-span-1">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4 group-focus-within:text-indigo-950 transition-colors" />
           <input 
             type="text" 
-            placeholder="Cari berdasarkan nama siswa atau kelas..."
-            className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-200 bg-white outline-none focus:ring-4 focus:ring-indigo-950/5 focus:border-indigo-950 transition-all font-medium"
+            placeholder="Cari siswa atau kelas..."
+            className="w-full pl-10 pr-3 py-2.5 rounded-xl border border-slate-200 bg-white outline-none focus:ring-2 focus:ring-indigo-950/10 focus:border-indigo-950 transition-all text-xs sm:text-sm font-medium"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <div className="relative min-w-[280px] group">
-          <Filter className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 group-focus-within:text-indigo-950 transition-colors" />
+        <div className="relative group">
+          <Filter className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4 group-focus-within:text-indigo-950 transition-colors" />
           <select 
-            className="w-full pl-12 pr-10 py-4 rounded-2xl border border-slate-200 outline-none focus:ring-4 focus:ring-indigo-950/5 focus:border-indigo-950 appearance-none bg-white font-bold text-slate-700 transition-all cursor-pointer"
+            className="w-full pl-10 pr-8 py-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-indigo-950/10 focus:border-indigo-950 appearance-none bg-white font-bold text-slate-700 text-xs sm:text-sm transition-all cursor-pointer"
             value={selectedExam}
             onChange={(e) => handleExamChange(e.target.value)}
           >
@@ -1877,13 +1902,13 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
               <option key={e.id} value={e.id}>{e.title}</option>
             ))}
           </select>
-          <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 pointer-events-none" />
+          <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4 pointer-events-none" />
         </div>
         {selectedExam !== 'all' && sessions.length > 0 && (
-          <div className="relative min-w-[200px] group">
-            <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 group-focus-within:text-indigo-950 transition-colors" />
+          <div className="relative group">
+            <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4 group-focus-within:text-indigo-950 transition-colors" />
             <select 
-              className="w-full pl-12 pr-10 py-4 rounded-2xl border border-slate-200 outline-none focus:ring-4 focus:ring-indigo-950/5 focus:border-indigo-950 appearance-none bg-white font-bold text-slate-700 transition-all cursor-pointer"
+              className="w-full pl-10 pr-8 py-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-indigo-950/10 focus:border-indigo-950 appearance-none bg-white font-bold text-slate-700 text-xs sm:text-sm transition-all cursor-pointer"
               value={selectedSession}
               onChange={(e) => setSelectedSession(e.target.value)}
             >
@@ -1892,13 +1917,13 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
                 <option key={s.id} value={s.id}>{s.class_name} - {new Date(s.started_at).toLocaleDateString('id-ID')}</option>
               ))}
             </select>
-            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 pointer-events-none" />
+            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4 pointer-events-none" />
           </div>
         )}
-        <div className="relative min-w-[200px] group">
-          <GraduationCap className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 group-focus-within:text-indigo-950 transition-colors" />
+        <div className="relative group">
+          <GraduationCap className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4 group-focus-within:text-indigo-950 transition-colors" />
           <select 
-            className="w-full pl-12 pr-10 py-4 rounded-2xl border border-slate-200 outline-none focus:ring-4 focus:ring-indigo-950/5 focus:border-indigo-950 appearance-none bg-white font-bold text-slate-700 transition-all cursor-pointer"
+            className="w-full pl-10 pr-8 py-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-indigo-950/10 focus:border-indigo-950 appearance-none bg-white font-bold text-slate-700 text-xs sm:text-sm transition-all cursor-pointer"
             value={selectedClass}
             onChange={(e) => setSelectedClass(e.target.value)}
           >
@@ -1907,597 +1932,459 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
               <option key={c.id} value={c.name}>{c.name}</option>
             ))}
           </select>
-          <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 pointer-events-none" />
-        </div>
-        <div className="relative min-w-[200px] group">
-          <ArrowUpDown className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 group-focus-within:text-indigo-950 transition-colors" />
-          <select 
-            className="w-full pl-12 pr-10 py-4 rounded-2xl border border-slate-200 outline-none focus:ring-4 focus:ring-indigo-950/5 focus:border-indigo-950 appearance-none bg-white font-bold text-slate-700 transition-all cursor-pointer"
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-          >
-            <option value="a-z">🔤 Nama (A - Z)</option>
-            <option value="z-a">🔤 Nama (Z - A)</option>
-            <option value="nilai-tinggi">🏆 Nilai Tertinggi</option>
-            <option value="nilai-rendah">📉 Nilai Terendah</option>
-            <option value="nilai-pg-tinggi">Nilai PG Tertinggi</option>
-            <option value="nilai-essay-tinggi">Nilai Essay Tertinggi</option>
-            <option value="terbaru">⏱️ Waktu Selesai (Terbaru)</option>
-            <option value="terlama">⏱️ Waktu Selesai (Terlama)</option>
-          </select>
-          <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 pointer-events-none" />
+          <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4 pointer-events-none" />
         </div>
       </div>
 
-      {/* Panel Pembobotan Nilai & Quick Sorting Toolbar */}
-      <div className="space-y-3">
-        {/* Bobot Nilai Panel */}
-        <div className="bg-gradient-to-r from-blue-50/70 via-indigo-50/60 to-purple-50/70 p-4 sm:p-5 rounded-2xl border border-indigo-100/90 flex flex-col gap-3 shadow-xs">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-indigo-950 text-white flex items-center justify-center shrink-0 shadow-md shadow-indigo-950/20 font-black text-sm">
-                {examWeights.mode === 'pg_bonus_essay' ? '🎁' : '⚖️'}
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h4 className="text-sm font-black text-indigo-950 uppercase tracking-wide">
-                    Bobot Nilai Rapor
-                  </h4>
-                  <span className={cn(
-                    "text-[11px] font-black px-2.5 py-0.5 rounded-full border",
-                    examWeights.mode === 'pg_bonus_essay' 
-                      ? "bg-emerald-100 text-emerald-900 border-emerald-300"
-                      : "bg-indigo-100 text-indigo-900 border-indigo-200"
-                  )}>
-                    {examWeights.mode === 'pg_bonus_essay' 
-                      ? `PG (Full 100%) + Bonus Essay (Maks +${examWeights.bonusMaxPoints || 20} Poin)` 
-                      : examWeights.mode === 'custom' 
-                      ? `PG ${examWeights.pgWeight}% + Essay ${examWeights.essayWeight}%` 
-                      : 'Proporsional (Sesuai Butir Soal)'}
-                  </span>
-                </div>
-                <p className="text-xs text-slate-500 font-medium mt-0.5">
-                  {examWeights.mode === 'pg_bonus_essay'
-                    ? 'Nilai utama 100% dari PG. Nilai essay menjadi bonus poin tambahan untuk mendongkrak nilai siswa (Maksimal total 100).'
-                    : examWeights.mode === 'custom'
-                    ? `Nilai Akhir Rapor = (Nilai PG × ${examWeights.pgWeight}%) + (Nilai Essay × ${examWeights.essayWeight}%)`
-                    : 'Nilai dihitung merata sesuai proporsi jumlah butir soal (skala 100).'}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2">
-              <button
-                type="button"
-                onClick={() => handleUpdateWeights({
-                  mode: 'pg_bonus_essay',
-                  pgWeight: 100,
-                  essayWeight: 0,
-                  bonusMaxPoints: examWeights.bonusMaxPoints || 20
-                })}
-                className={cn(
-                  "px-3.5 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer border active:scale-95 flex items-center gap-1.5",
-                  examWeights.mode === 'pg_bonus_essay'
-                    ? "bg-emerald-700 text-white border-emerald-700 shadow-sm ring-2 ring-emerald-600/20"
-                    : "bg-white text-slate-700 border-slate-200 hover:bg-emerald-50 hover:text-emerald-900"
-                )}
-              >
-                <span>🎁 PG + Bonus Essay (Rekomendasi)</span>
-              </button>
-
-              {[
-                { label: '70% : 30%', pg: 70, essay: 30 },
-                { label: '60% : 40%', pg: 60, essay: 40 },
-                { label: '50% : 50%', pg: 50, essay: 50 },
-              ].map(preset => {
-                const isActive = examWeights.mode === 'custom' && examWeights.pgWeight === preset.pg && examWeights.essayWeight === preset.essay;
-                return (
-                  <button
-                    key={preset.label}
-                    type="button"
-                    onClick={() => handleUpdateWeights({ mode: 'custom', pgWeight: preset.pg, essayWeight: preset.essay })}
-                    className={cn(
-                      "px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer border active:scale-95",
-                      isActive
-                        ? "bg-indigo-950 text-white border-indigo-950 shadow-sm"
-                        : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:text-slate-900"
-                    )}
-                  >
-                    {preset.label}
-                  </button>
-                );
-              })}
-              <button
-                type="button"
-                onClick={() => handleUpdateWeights({ mode: 'proportional', pgWeight: 50, essayWeight: 50 })}
-                className={cn(
-                  "px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border active:scale-95",
-                  examWeights.mode === 'proportional'
-                    ? "bg-indigo-950 text-white border-indigo-950 shadow-sm"
-                    : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
-                )}
-                title="Bagi rata sesuai jumlah butir soal"
-              >
-                Proporsional
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setTempPgWeight(examWeights.pgWeight);
-                  setTempEssayWeight(examWeights.essayWeight);
-                  setShowCustomWeightModal(true);
-                }}
-                className="px-3 py-1.5 rounded-xl text-xs font-bold bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 transition-all cursor-pointer shadow-xs active:scale-95"
-              >
-                ⚙️ Kustom
-              </button>
-            </div>
+      {/* Sleek Toolbar: Skema Bobot, Sort Cepat, Toggle Top 3 & Counter */}
+      <div className="bg-white p-3 sm:p-4 rounded-2xl border border-slate-200/80 shadow-xs flex flex-wrap items-center justify-between gap-3">
+        {/* Left: Active Bobot Scheme + Modal trigger + Mass Bonus Toggle */}
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 text-slate-800 text-xs font-bold border border-slate-200">
+            <span>{examWeights.mode === 'pg_bonus_essay' ? '🎁' : '⚖️'}</span>
+            <span>
+              {examWeights.mode === 'pg_bonus_essay'
+                ? `PG 100% + Bonus Essay (+${examWeights.bonusMaxPoints || 20})`
+                : examWeights.mode === 'custom'
+                ? `PG ${examWeights.pgWeight}% : Essay ${examWeights.essayWeight}%`
+                : 'Proporsional'}
+            </span>
           </div>
 
-          {/* Sub-bar opsi bonus essay & kontrol massal */}
-          {examWeights.mode === 'pg_bonus_essay' && (
-            <div className="pt-2.5 border-t border-indigo-100 flex flex-wrap items-center justify-between gap-3 text-xs">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="font-extrabold text-slate-600 flex items-center gap-1">
-                  Maksimal Bonus:
-                </span>
-                {[15, 20, 25, 30].map(pts => {
-                  const isCurrent = (examWeights.bonusMaxPoints || 20) === pts;
-                  return (
-                    <button
-                      key={pts}
-                      type="button"
-                      onClick={() => handleUpdateWeights({
-                        ...examWeights,
-                        bonusMaxPoints: pts
-                      })}
-                      className={cn(
-                        "px-2.5 py-1 rounded-lg text-xs font-black transition-all cursor-pointer border",
-                        isCurrent
-                          ? "bg-emerald-600 text-white border-emerald-600 shadow-xs"
-                          : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
-                      )}
-                    >
-                      +{pts} Poin {pts === 20 ? '(Standar)' : ''}
-                    </button>
-                  );
-                })}
-              </div>
+          <button
+            type="button"
+            onClick={() => {
+              setTempPgWeight(examWeights.pgWeight);
+              setTempEssayWeight(examWeights.essayWeight);
+              setTempBonusMax(examWeights.bonusMaxPoints || 20);
+              setTempMode(examWeights.mode);
+              setShowCustomWeightModal(true);
+            }}
+            className="px-3 py-1.5 rounded-xl text-xs font-bold bg-white text-indigo-950 border border-slate-200 hover:bg-slate-50 hover:border-slate-300 transition-all flex items-center gap-1.5 shadow-xs cursor-pointer active:scale-95"
+          >
+            <SlidersHorizontal className="w-3.5 h-3.5 text-indigo-600" />
+            <span>Atur Bobot</span>
+          </button>
 
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={handleApplyBonusToAll}
-                  className="px-3 py-1 rounded-lg font-black text-xs bg-emerald-100 text-emerald-800 hover:bg-emerald-200 border border-emerald-300 transition-all cursor-pointer active:scale-95"
-                  title="Terapkan bonus essay ke semua siswa yang nilainya belum maksimal"
-                >
-                  🎁 Terapkan Bonus ke Semua Siswa
-                </button>
-                <button
-                  type="button"
-                  onClick={handleDisableBonusForAll}
-                  className="px-3 py-1 rounded-lg font-black text-xs bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 transition-all cursor-pointer active:scale-95"
-                  title="Gunakan nilai murni PG untuk semua siswa"
-                >
-                  ⚪ Matikan Semua (Murni PG)
-                </button>
-              </div>
+          {examWeights.mode === 'pg_bonus_essay' && (
+            <div className="flex items-center gap-1 pl-2 border-l border-slate-200">
+              <button
+                type="button"
+                onClick={handleApplyBonusToAll}
+                className="px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100 transition-all cursor-pointer"
+                title="Aktifkan bonus essay untuk seluruh siswa"
+              >
+                🎁 Semua ON
+              </button>
+              <button
+                type="button"
+                onClick={handleDisableBonusForAll}
+                className="px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100 transition-all cursor-pointer"
+                title="Matikan bonus essay untuk seluruh siswa (murni PG)"
+              >
+                ⚪ Semua OFF
+              </button>
             </div>
           )}
         </div>
 
-        {/* Quick Sorting Chips Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs font-bold text-slate-500 mr-1 flex items-center gap-1">
-              <ArrowUpDown className="w-3.5 h-3.5 text-indigo-950" /> Urut Cepat:
-            </span>
+        {/* Right: Quick Sort + Podium Toggle + Total count */}
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center bg-slate-100 p-0.5 rounded-xl border border-slate-200 text-xs font-bold">
             <button
               type="button"
               onClick={() => setSortBy(sortBy === 'a-z' ? 'z-a' : 'a-z')}
               className={cn(
-                "px-3.5 py-1.5 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer border shadow-xs active:scale-95",
-                sortBy === 'a-z' || sortBy === 'z-a'
-                  ? "bg-indigo-950 text-white border-indigo-950 ring-2 ring-indigo-950/20"
-                  : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
+                "px-2.5 py-1 rounded-lg transition-all",
+                sortBy === 'a-z' || sortBy === 'z-a' ? "bg-white text-indigo-950 shadow-xs" : "text-slate-600 hover:text-slate-900"
               )}
             >
-              <span>🔤 Abjad ({sortBy === 'z-a' ? 'Z ➔ A' : 'A ➔ Z'})</span>
+              🔤 {sortBy === 'z-a' ? 'Z-A' : 'A-Z'}
             </button>
             <button
               type="button"
               onClick={() => setSortBy(sortBy === 'nilai-tinggi' ? 'nilai-rendah' : 'nilai-tinggi')}
               className={cn(
-                "px-3.5 py-1.5 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer border shadow-xs active:scale-95",
-                sortBy === 'nilai-tinggi' || sortBy === 'nilai-rendah'
-                  ? "bg-indigo-950 text-white border-indigo-950 ring-2 ring-indigo-950/20"
-                  : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
+                "px-2.5 py-1 rounded-lg transition-all",
+                sortBy === 'nilai-tinggi' || sortBy === 'nilai-rendah' ? "bg-white text-indigo-950 shadow-xs" : "text-slate-600 hover:text-slate-900"
               )}
             >
-              <span>🏆 Nilai ({sortBy === 'nilai-rendah' ? 'Terendah' : 'Tertinggi'})</span>
+              🏆 {sortBy === 'nilai-rendah' ? 'Terendah' : 'Tertinggi'}
             </button>
             <button
               type="button"
               onClick={() => setSortBy(sortBy === 'terbaru' ? 'terlama' : 'terbaru')}
               className={cn(
-                "px-3.5 py-1.5 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer border shadow-xs active:scale-95",
-                sortBy === 'terbaru' || sortBy === 'terlama'
-                  ? "bg-indigo-950 text-white border-indigo-950 ring-2 ring-indigo-950/20"
-                  : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
+                "px-2.5 py-1 rounded-lg transition-all",
+                sortBy === 'terbaru' || sortBy === 'terlama' ? "bg-white text-indigo-950 shadow-xs" : "text-slate-600 hover:text-slate-900"
               )}
             >
-              <span>⏱️ Waktu ({sortBy === 'terlama' ? 'Terlama' : 'Terbaru'})</span>
+              ⏱️ Waktu
             </button>
           </div>
 
-          <div className="text-xs font-bold text-slate-500">
-            Total: <span className="text-indigo-950 font-black">{filteredResults.length} Siswa</span>
+          {leaderboardResults.length >= 3 && (
+            <button
+              type="button"
+              onClick={() => setShowLeaderboard(!showLeaderboard)}
+              className={cn(
+                "px-3 py-1.5 rounded-xl text-xs font-bold border transition-all flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95",
+                showLeaderboard 
+                  ? "bg-amber-100 text-amber-900 border-amber-300"
+                  : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
+              )}
+            >
+              <Trophy className="w-3.5 h-3.5 text-amber-500" />
+              <span>{showLeaderboard ? 'Tutup Top 3' : 'Lihat Top 3'}</span>
+            </button>
+          )}
+
+          <span className="text-xs font-bold text-slate-500 pl-1">
+            {filteredResults.length} Siswa
             {pendingEssayCount > 0 && (
-              <span className="ml-2 text-amber-600 font-bold">({pendingEssayCount} belum dinilai)</span>
+              <span className="text-amber-600 ml-1">({pendingEssayCount} belum dinilai)</span>
             )}
-          </div>
+          </span>
         </div>
       </div>
 
-      {/* Quizzo 3D Leaderboard Podium */}
-      {!loading && leaderboardResults.length >= 3 && (
-        <div className="bg-gradient-to-br from-[#0F172A] via-[#1E3A8A] to-[#1E40AF] p-8 rounded-[2.5rem] text-white shadow-xl border border-white/10 mb-6 relative overflow-hidden">
-          <div className="flex items-center justify-between mb-8 relative z-10">
-            <div>
-              <span className="text-[10px] uppercase font-extrabold tracking-widest px-3 py-1 bg-white/15 rounded-full text-amber-300 border border-white/20">
-                ⭐ Final Scoreboard
-              </span>
-              <h3 className="text-2xl font-black text-white tracking-tight mt-2">Papan Peringkat Tertinggi</h3>
+      {/* Quizzo 3D Leaderboard Podium (Collapsible) */}
+      <AnimatePresence>
+        {showLeaderboard && !loading && leaderboardResults.length >= 3 && (
+          <motion.div 
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="overflow-hidden"
+          >
+            <div className="bg-gradient-to-br from-[#0F172A] via-[#1E3A8A] to-[#1E40AF] p-6 sm:p-8 rounded-[2.5rem] text-white shadow-xl border border-white/10 relative overflow-hidden mb-2">
+              <div className="flex items-center justify-between mb-6 relative z-10">
+                <div className="flex items-center gap-3">
+                  <span className="text-[10px] uppercase font-extrabold tracking-widest px-3 py-1 bg-white/15 rounded-full text-amber-300 border border-white/20">
+                    ⭐ Scoreboard
+                  </span>
+                  <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight">Top 3 Peringkat Tertinggi</h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowLeaderboard(false)}
+                  className="px-3 py-1 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition-all"
+                >
+                  ✕ Tutup
+                </button>
+              </div>
+
+              <div className="grid grid-cols-3 gap-3 sm:gap-6 items-end max-w-xl mx-auto pt-2 pb-2 relative z-10">
+                {/* Rank 2 - Silver */}
+                {leaderboardResults[1] && (
+                  <div 
+                    className="flex flex-col items-center text-center cursor-pointer group"
+                    onClick={() => fetchDetail(leaderboardResults[1])}
+                  >
+                    <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-slate-200 text-slate-800 font-black text-lg sm:text-xl flex items-center justify-center border-4 border-slate-300 shadow-xl mb-2 relative group-hover:scale-105 transition-transform">
+                      {leaderboardResults[1].name.charAt(0)}
+                      <span className="absolute -bottom-2 bg-slate-400 text-white text-[10px] font-black px-2 py-0.5 rounded-full border border-white">2</span>
+                    </div>
+                    <p className="font-extrabold text-xs sm:text-sm text-white truncate max-w-[85px] sm:max-w-[120px]">{capitalizeEachWord(leaderboardResults[1].name)}</p>
+                    <span className="text-[10px] sm:text-[11px] font-bold text-slate-200 bg-white/20 px-2.5 py-0.5 rounded-full mt-1">{Math.round(leaderboardResults[1].score)} Poin</span>
+                    <div className="w-full h-20 sm:h-26 bg-gradient-to-t from-slate-400/40 to-slate-300/20 rounded-t-2xl mt-3 flex items-center justify-center border-t border-white/30 group-hover:from-slate-400/50 transition-colors">
+                      <span className="text-xl sm:text-2xl font-black text-white/50">🥈 2</span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Rank 1 - Gold */}
+                {leaderboardResults[0] && (
+                  <div 
+                    className="flex flex-col items-center text-center -mt-4 cursor-pointer group"
+                    onClick={() => fetchDetail(leaderboardResults[0])}
+                  >
+                    <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-tr from-amber-300 to-amber-500 text-amber-950 font-black text-xl sm:text-2xl flex items-center justify-center border-4 border-amber-300 shadow-2xl shadow-amber-500/50 mb-2 relative group-hover:scale-105 transition-transform">
+                      {leaderboardResults[0].name.charAt(0)}
+                      <span className="absolute -bottom-2 bg-amber-500 text-amber-950 text-xs font-black px-2.5 py-0.5 rounded-full border border-white">1</span>
+                    </div>
+                    <p className="font-extrabold text-xs sm:text-base text-amber-200 truncate max-w-[95px] sm:max-w-[140px]">{capitalizeEachWord(leaderboardResults[0].name)}</p>
+                    <span className="text-xs font-black text-amber-950 bg-amber-400 px-3 py-1 rounded-full mt-1 shadow-md">{Math.round(leaderboardResults[0].score)} Poin</span>
+                    <div className="w-full h-28 sm:h-34 bg-gradient-to-t from-amber-500/50 to-amber-400/25 rounded-t-3xl mt-3 flex items-center justify-center border-t border-amber-300/50 group-hover:from-amber-500/60 transition-colors">
+                      <span className="text-2xl sm:text-3xl font-black text-amber-300">🥇 1</span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Rank 3 - Bronze */}
+                {leaderboardResults[2] && (
+                  <div 
+                    className="flex flex-col items-center text-center cursor-pointer group"
+                    onClick={() => fetchDetail(leaderboardResults[2])}
+                  >
+                    <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-amber-700/80 text-amber-100 font-black text-lg sm:text-xl flex items-center justify-center border-4 border-amber-600 shadow-xl mb-2 relative group-hover:scale-105 transition-transform">
+                      {leaderboardResults[2].name.charAt(0)}
+                      <span className="absolute -bottom-2 bg-amber-700 text-white text-[10px] font-black px-2 py-0.5 rounded-full border border-white">3</span>
+                    </div>
+                    <p className="font-extrabold text-xs sm:text-sm text-white truncate max-w-[85px] sm:max-w-[120px]">{capitalizeEachWord(leaderboardResults[2].name)}</p>
+                    <span className="text-[10px] sm:text-[11px] font-bold text-amber-100 bg-white/20 px-2.5 py-0.5 rounded-full mt-1">{Math.round(leaderboardResults[2].score)} Poin</span>
+                    <div className="w-full h-16 sm:h-22 bg-gradient-to-t from-amber-700/40 to-amber-600/20 rounded-t-2xl mt-3 flex items-center justify-center border-t border-white/30 group-hover:from-amber-700/50 transition-colors">
+                      <span className="text-xl sm:text-2xl font-black text-white/50">🥉 3</span>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
-            <Trophy className="w-8 h-8 text-amber-300 animate-bounce" />
-          </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-          <div className="grid grid-cols-3 gap-3 sm:gap-6 items-end max-w-xl mx-auto pt-4 pb-2 relative z-10">
-            {/* Rank 2 - Silver */}
-            {leaderboardResults[1] && (
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }} 
-                animate={{ opacity: 1, y: 0 }} 
-                transition={{ delay: 0.1 }} 
-                className="flex flex-col items-center text-center cursor-pointer group"
-                onClick={() => fetchDetail(leaderboardResults[1])}
-              >
-                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-slate-200 text-slate-800 font-black text-xl flex items-center justify-center border-4 border-slate-300 shadow-xl mb-2 relative group-hover:scale-105 transition-transform">
-                  {leaderboardResults[1].name.charAt(0)}
-                  <span className="absolute -bottom-2 bg-slate-400 text-white text-[10px] font-black px-2 py-0.5 rounded-full border border-white">2</span>
-                </div>
-                <p className="font-extrabold text-xs sm:text-sm text-white truncate max-w-[90px] sm:max-w-[120px]">{capitalizeEachWord(leaderboardResults[1].name)}</p>
-                <span className="text-[11px] font-bold text-slate-200 bg-white/20 px-3 py-1 rounded-full mt-1">{Math.round(leaderboardResults[1].score)} Poin</span>
-                <div className="w-full h-24 sm:h-28 bg-gradient-to-t from-slate-400/40 to-slate-300/20 rounded-t-2xl mt-3 flex items-center justify-center border-t border-white/30 group-hover:from-slate-400/50 transition-colors">
-                  <span className="text-2xl font-black text-white/50">🥈 2</span>
-                </div>
-              </motion.div>
-            )}
-
-            {/* Rank 1 - Gold */}
-            {leaderboardResults[0] && (
-              <motion.div 
-                initial={{ opacity: 0, y: 30 }} 
-                animate={{ opacity: 1, y: 0 }} 
-                className="flex flex-col items-center text-center -mt-6 cursor-pointer group"
-                onClick={() => fetchDetail(leaderboardResults[0])}
-              >
-                <div className="w-18 h-18 sm:w-20 sm:h-20 rounded-full bg-gradient-to-tr from-amber-300 to-amber-500 text-amber-950 font-black text-2xl flex items-center justify-center border-4 border-amber-300 shadow-2xl shadow-amber-500/50 mb-2 relative group-hover:scale-105 transition-transform">
-                  {leaderboardResults[0].name.charAt(0)}
-                  <span className="absolute -bottom-2 bg-amber-500 text-amber-950 text-xs font-black px-2.5 py-0.5 rounded-full border border-white">1</span>
-                </div>
-                <p className="font-extrabold text-sm sm:text-base text-amber-200 truncate max-w-[100px] sm:max-w-[140px]">{capitalizeEachWord(leaderboardResults[0].name)}</p>
-                <span className="text-xs font-black text-amber-950 bg-amber-400 px-3.5 py-1 rounded-full mt-1 shadow-md">{Math.round(leaderboardResults[0].score)} Poin</span>
-                <div className="w-full h-32 sm:h-36 bg-gradient-to-t from-amber-500/50 to-amber-400/25 rounded-t-3xl mt-3 flex items-center justify-center border-t border-amber-300/50 group-hover:from-amber-500/60 transition-colors">
-                  <span className="text-3xl font-black text-amber-300">🥇 1</span>
-                </div>
-              </motion.div>
-            )}
-
-            {/* Rank 3 - Bronze */}
-            {leaderboardResults[2] && (
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }} 
-                animate={{ opacity: 1, y: 0 }} 
-                transition={{ delay: 0.2 }} 
-                className="flex flex-col items-center text-center cursor-pointer group"
-                onClick={() => fetchDetail(leaderboardResults[2])}
-              >
-                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-amber-700/80 text-amber-100 font-black text-xl flex items-center justify-center border-4 border-amber-600 shadow-xl mb-2 relative group-hover:scale-105 transition-transform">
-                  {leaderboardResults[2].name.charAt(0)}
-                  <span className="absolute -bottom-2 bg-amber-700 text-white text-[10px] font-black px-2 py-0.5 rounded-full border border-white">3</span>
-                </div>
-                <p className="font-extrabold text-xs sm:text-sm text-white truncate max-w-[90px] sm:max-w-[120px]">{capitalizeEachWord(leaderboardResults[2].name)}</p>
-                <span className="text-[11px] font-bold text-amber-100 bg-white/20 px-3 py-1 rounded-full mt-1">{Math.round(leaderboardResults[2].score)} Poin</span>
-                <div className="w-full h-20 sm:h-24 bg-gradient-to-t from-amber-700/40 to-amber-600/20 rounded-t-2xl mt-3 flex items-center justify-center border-t border-white/30 group-hover:from-amber-700/50 transition-colors">
-                  <span className="text-2xl font-black text-white/50">🥉 3</span>
-                </div>
-              </motion.div>
-            )}
-          </div>
-        </div>
-      )}
-
-      <div className="bg-white rounded-[2.5rem] border border-slate-200/80 shadow-sm overflow-hidden">
+      {/* Tabel Hasil Siswa (Ringan & Cepat Tanpa Lag) */}
+      <div className="bg-white rounded-2xl sm:rounded-[2rem] border border-slate-200/80 shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-slate-50/50 border-b border-slate-100 select-none">
-                <th className="w-14 px-4 py-6 text-center text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                  No
-                </th>
+              <tr className="bg-slate-50 border-b border-slate-200/80 select-none text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                <th className="w-12 px-3 py-3.5 text-center text-slate-400">#</th>
                 <th 
                   onClick={() => setSortBy(sortBy === 'a-z' ? 'z-a' : 'a-z')}
-                  className="px-6 py-6 text-[10px] font-bold text-slate-500 hover:text-indigo-950 uppercase tracking-[0.2em] cursor-pointer transition-colors"
+                  className="px-4 py-3.5 hover:text-indigo-950 cursor-pointer transition-colors"
                 >
-                  <div className="flex items-center gap-1.5">
-                    <span>Siswa & Kelas</span>
-                    {sortBy === 'a-z' && <span className="text-indigo-600 font-black">▲ A-Z</span>}
-                    {sortBy === 'z-a' && <span className="text-indigo-600 font-black">▼ Z-A</span>}
+                  <div className="flex items-center gap-1">
+                    <span>Siswa</span>
+                    {sortBy === 'a-z' && <span className="text-indigo-600 font-black">▲</span>}
+                    {sortBy === 'z-a' && <span className="text-indigo-600 font-black">▼</span>}
                   </div>
-                </th>
-                <th className="px-6 py-6 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">
-                  Ujian
                 </th>
                 <th 
                   onClick={() => setSortBy(sortBy === 'nilai-pg-tinggi' ? 'nilai-pg-rendah' : 'nilai-pg-tinggi')}
-                  className="px-5 py-6 text-[10px] font-bold text-blue-600 hover:text-blue-800 uppercase tracking-[0.2em] cursor-pointer transition-colors"
+                  className="px-3 py-3.5 text-blue-700 hover:text-blue-900 cursor-pointer transition-colors"
                 >
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1">
                     <span>Nilai PG</span>
-                    {sortBy === 'nilai-pg-tinggi' && <span className="text-blue-700 font-black">▼</span>}
-                    {sortBy === 'nilai-pg-rendah' && <span className="text-blue-700 font-black">▲</span>}
+                    {sortBy === 'nilai-pg-tinggi' && <span>▼</span>}
+                    {sortBy === 'nilai-pg-rendah' && <span>▲</span>}
                   </div>
                 </th>
                 <th 
                   onClick={() => setSortBy(sortBy === 'nilai-essay-tinggi' ? 'nilai-essay-rendah' : 'nilai-essay-tinggi')}
-                  className="px-5 py-6 text-[10px] font-bold text-purple-600 hover:text-purple-800 uppercase tracking-[0.2em] cursor-pointer transition-colors"
+                  className="px-3 py-3.5 text-purple-700 hover:text-purple-900 cursor-pointer transition-colors"
                 >
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1">
                     <span>Nilai Essay</span>
-                    {sortBy === 'nilai-essay-tinggi' && <span className="text-purple-700 font-black">▼</span>}
-                    {sortBy === 'nilai-essay-rendah' && <span className="text-purple-700 font-black">▲</span>}
+                    {sortBy === 'nilai-essay-tinggi' && <span>▼</span>}
+                    {sortBy === 'nilai-essay-rendah' && <span>▲</span>}
                   </div>
                 </th>
-                <th className="px-5 py-6 text-[10px] font-bold text-emerald-800 uppercase tracking-[0.2em]">
-                  <div className="flex items-center gap-1.5">
-                    <span>🎁 Bonus Essay</span>
-                    <span className="text-[9px] font-black px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 border border-emerald-200">
+                <th className="px-3 py-3.5 text-emerald-800">
+                  <div className="flex items-center gap-1">
+                    <span>Bonus Essay</span>
+                    <span className="text-[9px] font-black px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800">
                       Maks +{examWeights.bonusMaxPoints || 20}
                     </span>
                   </div>
                 </th>
                 <th 
                   onClick={() => setSortBy(sortBy === 'nilai-tinggi' ? 'nilai-rendah' : 'nilai-tinggi')}
-                  className="px-6 py-6 text-[10px] font-bold text-indigo-950 hover:text-blue-700 uppercase tracking-[0.2em] cursor-pointer transition-colors"
+                  className="px-4 py-3.5 text-indigo-950 hover:text-blue-700 cursor-pointer transition-colors"
                 >
-                  <div className="flex items-center gap-1.5">
-                    <span>Nilai Akhir Rapor</span>
-                    {sortBy === 'nilai-tinggi' && <span className="text-indigo-600 font-black">▼</span>}
-                    {sortBy === 'nilai-rendah' && <span className="text-indigo-600 font-black">▲</span>}
+                  <div className="flex items-center gap-1">
+                    <span>Nilai Akhir</span>
+                    {sortBy === 'nilai-tinggi' && <span className="text-indigo-600">▼</span>}
+                    {sortBy === 'nilai-rendah' && <span className="text-indigo-600">▲</span>}
                   </div>
                 </th>
-                <th className="px-6 py-6 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Status</th>
+                <th className="px-3 py-3.5">Status</th>
                 <th 
                   onClick={() => setSortBy(sortBy === 'terbaru' ? 'terlama' : 'terbaru')}
-                  className="px-6 py-6 text-[10px] font-bold text-slate-400 hover:text-indigo-950 uppercase tracking-[0.2em] cursor-pointer transition-colors"
+                  className="px-3 py-3.5 hover:text-indigo-950 cursor-pointer transition-colors"
                 >
-                  <div className="flex items-center gap-1.5">
-                    <span>Waktu Selesai</span>
-                    {sortBy === 'terbaru' && <span className="text-indigo-600 font-black">▼</span>}
-                    {sortBy === 'terlama' && <span className="text-indigo-600 font-black">▲</span>}
+                  <div className="flex items-center gap-1">
+                    <span>Waktu</span>
+                    {sortBy === 'terbaru' && <span className="text-indigo-600">▼</span>}
+                    {sortBy === 'terlama' && <span className="text-indigo-600">▲</span>}
                   </div>
                 </th>
-                <th className="px-6 py-6 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]"></th>
+                <th className="w-16 px-3 py-3.5 text-right"></th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-50">
+            <tbody className="divide-y divide-slate-100 text-slate-700">
               {loading ? (
-                [1,2,3,4,5,6].map(i => (
+                [1,2,3,4,5].map(i => (
                   <tr key={i} className="animate-pulse">
-                    <td colSpan={10} className="px-8 py-6"><div className="h-10 bg-slate-100 rounded-xl w-full"></div></td>
+                    <td colSpan={9} className="px-4 py-4"><div className="h-8 bg-slate-100 rounded-lg w-full"></div></td>
                   </tr>
                 ))
-              ) : filteredResults.length > 0 ? (
-                filteredResults.map((result, index) => (
-                  <motion.tr 
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.02 }}
-                    key={result.id} 
-                    onClick={() => fetchDetail(result)}
-                    className="hover:bg-slate-50/70 transition-colors group cursor-pointer"
-                  >
-                    <td className="w-14 px-4 py-6 text-center font-black text-xs text-slate-400">
-                      {index + 1}
-                    </td>
-                    <td className="px-6 py-6">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-2xl bg-slate-100 text-indigo-950 flex items-center justify-center font-bold text-sm shadow-inner group-hover:bg-white transition-colors">
-                          {result.name.charAt(0)}
-                        </div>
-                        <div>
-                          <p className="font-bold text-indigo-950 leading-none">{capitalizeEachWord(result.name)}</p>
-                          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1.5">{result.class}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-6">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-blue-400"></div>
-                        <span className="text-sm font-bold text-slate-700 line-clamp-1">{result.exams?.title}</span>
-                      </div>
-                    </td>
-                    <td className="px-5 py-6">
-                      {result.status === 'menunggu_scan' ? (
-                        <span className="text-xs font-bold text-slate-400">-</span>
-                      ) : (
-                        <span className="text-base font-black text-blue-700">
-                          {result.score_pg !== null && result.score_pg !== undefined ? result.score_pg : Math.round(result.score || 0)}
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-5 py-6">
-                      {result.status === 'menunggu_scan' ? (
-                        <span className="text-xs font-bold text-slate-400">-</span>
-                      ) : result.essay_graded === false ? (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-black uppercase tracking-wider">
-                          <AlertCircle className="w-3 h-3 text-amber-500 animate-pulse" /> Perlu Dinilai
-                        </span>
-                      ) : result.score_essay !== null && result.score_essay !== undefined ? (
-                        <span className="text-base font-black text-purple-700">
-                          {result.score_essay}
-                        </span>
-                      ) : (
-                        <span className="text-xs font-bold text-slate-300">-</span>
-                      )}
-                    </td>
-                    {/* Kolom Bonus Essay dengan Saklar Interaktif per Individu */}
-                    <td className="px-5 py-6" onClick={(e) => e.stopPropagation()}>
-                      {result.status === 'menunggu_scan' ? (
-                        <span className="text-xs font-bold text-slate-400">-</span>
-                      ) : examWeights.mode !== 'pg_bonus_essay' ? (
-                        <span className="text-xs font-medium text-slate-300">-</span>
-                      ) : (result.score_pg ?? 0) >= 100 ? (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-black uppercase tracking-wider" title="Nilai PG sudah 100 (maksimal)">
-                          ⭐ PG 100
-                        </span>
-                      ) : (
-                        (() => {
-                          const bonusMax = examWeights.bonusMaxPoints ?? 20;
-                          const essayAvg = result.score_essay !== null && result.score_essay !== undefined ? result.score_essay : 0;
-                          const potentialBonus = Math.round(((essayAvg / 100) * bonusMax) * 10) / 10;
-                          const isBonusActive = !bonusDisabledStudents[result.id];
+              ) : paginatedResults.length > 0 ? (
+                paginatedResults.map((result, idx) => {
+                  const rowIndex = pageSize === 0 ? idx + 1 : (currentPage - 1) * pageSize + idx + 1;
+                  const pgScore = result.score_pg !== null && result.score_pg !== undefined ? result.score_pg : (typeof result.score === 'number' ? result.score : 0);
+                  const essayScore = result.score_essay !== null && result.score_essay !== undefined ? result.score_essay : null;
+                  const bonusMax = examWeights.bonusMaxPoints ?? 20;
+                  const potentialBonus = essayScore !== null ? Math.round(((essayScore / 100) * bonusMax) * 10) / 10 : 0;
+                  const isBonusActive = !bonusDisabledStudents[result.id];
+                  const finalScore = Math.round(result.score || 0);
 
-                          if (potentialBonus === 0) {
-                            return (
-                              <span className="text-xs font-bold text-slate-300" title="Belum ada poin essay">
-                                +0 Poin
-                              </span>
-                            );
-                          }
+                  return (
+                    <tr 
+                      key={result.id} 
+                      onClick={() => fetchDetail(result)}
+                      className="hover:bg-slate-50/80 transition-colors group cursor-pointer"
+                    >
+                      {/* No */}
+                      <td className="w-12 px-3 py-3 text-center font-bold text-xs text-slate-400">
+                        {rowIndex}
+                      </td>
 
-                          return (
-                            <button
-                              type="button"
-                              onClick={(e) => handleToggleStudentBonus(result.id, e)}
-                              className={cn(
-                                "px-2.5 py-1 rounded-full text-xs font-black flex items-center gap-1.5 transition-all cursor-pointer shadow-xs border active:scale-95",
-                                isBonusActive
-                                  ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100"
-                                  : "bg-slate-100 text-slate-400 border-slate-200 hover:bg-slate-200"
+                      {/* Siswa & Kelas */}
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-xl bg-slate-100 text-indigo-950 flex items-center justify-center font-black text-xs shrink-0 group-hover:bg-white shadow-xs">
+                            {result.name ? result.name.charAt(0).toUpperCase() : '?'}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="font-bold text-indigo-950 text-sm leading-tight truncate">{capitalizeEachWord(result.name)}</p>
+                            <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-400">
+                              <span className="font-semibold text-slate-500">{result.class}</span>
+                              {selectedExam === 'all' && result.exams?.title && (
+                                <>
+                                  <span>•</span>
+                                  <span className="truncate max-w-[150px]">{result.exams.title}</span>
+                                </>
                               )}
-                              title={isBonusActive ? "Bonus AKTIF. Klik untuk matikan bonus essay siswa ini" : "Bonus NONAKTIF. Klik untuk aktifkan bonus essay siswa ini"}
-                            >
-                              <span>{isBonusActive ? `🎁 +${potentialBonus} (ON)` : '⚪ Bonus OFF'}</span>
-                            </button>
-                          );
-                        })()
-                      )}
-                    </td>
-                    <td className="px-6 py-6">
-                      <div className="flex flex-col">
-                        {result.status === 'menunggu_scan' ? (
-                          <span className="text-sm font-bold text-amber-600">Belum Discan</span>
-                        ) : (
-                          <>
-                            <div className="flex items-baseline gap-1.5">
-                              <span className="text-2xl font-black text-indigo-950">{Math.round(result.score || 0)}</span>
-                              <span className="text-[10px] font-bold text-slate-400 uppercase">Poin</span>
                             </div>
-                            {examWeights.mode === 'pg_bonus_essay' ? (
-                              (() => {
-                                const bonusMax = examWeights.bonusMaxPoints ?? 20;
-                                const isBonusActive = !bonusDisabledStudents[result.id];
-                                const essayAvg = result.score_essay !== null && result.score_essay !== undefined ? result.score_essay : 0;
-                                const potentialBonus = Math.round(((essayAvg / 100) * bonusMax) * 10) / 10;
-                                const pg = result.score_pg ?? 0;
-                                if (isBonusActive && potentialBonus > 0 && pg < 100) {
-                                  return (
-                                    <span className="text-[10px] font-extrabold text-emerald-600 mt-0.5">
-                                      PG {pg} + Bonus {potentialBonus}
-                                    </span>
-                                  );
-                                }
-                                if (pg >= 100) {
-                                  return (
-                                    <span className="text-[10px] font-extrabold text-amber-600 mt-0.5">
-                                      Nilai Sempurna 100
-                                    </span>
-                                  );
-                                }
-                                return (
-                                  <span className="text-[10px] font-bold text-slate-400 mt-0.5">
-                                    Murni PG ({pg})
-                                  </span>
-                                );
-                              })()
-                            ) : examWeights.mode === 'custom' ? (
-                              <span className="text-[10px] font-extrabold text-indigo-500 mt-0.5">
-                                ({examWeights.pgWeight}% PG + {examWeights.essayWeight}% Essay)
-                              </span>
-                            ) : (
-                              <span className="text-[10px] font-extrabold text-slate-400 mt-0.5">
-                                Proporsional
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* Nilai PG */}
+                      <td className="px-3 py-3">
+                        {result.status === 'menunggu_scan' ? (
+                          <span className="text-xs font-bold text-slate-400">-</span>
+                        ) : (
+                          <span className="text-sm font-black text-blue-700">
+                            {pgScore}
+                          </span>
+                        )}
+                      </td>
+
+                      {/* Nilai Essay */}
+                      <td className="px-3 py-3">
+                        {result.status === 'menunggu_scan' ? (
+                          <span className="text-xs font-bold text-slate-400">-</span>
+                        ) : result.essay_graded === false ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-black uppercase">
+                            Perlu Dinilai
+                          </span>
+                        ) : essayScore !== null ? (
+                          <span className="text-sm font-black text-purple-700">
+                            {essayScore}
+                          </span>
+                        ) : (
+                          <span className="text-xs font-bold text-slate-300">-</span>
+                        )}
+                      </td>
+
+                      {/* Bonus Essay Pill */}
+                      <td className="px-3 py-3" onClick={(e) => e.stopPropagation()}>
+                        {result.status === 'menunggu_scan' || examWeights.mode !== 'pg_bonus_essay' ? (
+                          <span className="text-xs text-slate-300">-</span>
+                        ) : pgScore >= 100 ? (
+                          <span className="text-[11px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full" title="Nilai PG sudah 100 (maksimal)">
+                            ⭐ PG 100
+                          </span>
+                        ) : potentialBonus === 0 ? (
+                          <span className="text-xs font-medium text-slate-400">+0 Poin</span>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={(e) => handleToggleStudentBonus(result.id, e)}
+                            className={cn(
+                              "px-2.5 py-1 rounded-full text-xs font-bold flex items-center gap-1 transition-all cursor-pointer border active:scale-95",
+                              isBonusActive
+                                ? "bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100"
+                                : "bg-slate-100 text-slate-400 border-slate-200 hover:bg-slate-200"
+                            )}
+                            title={isBonusActive ? "Bonus AKTIF. Klik untuk matikan bonus essay siswa ini" : "Bonus NONAKTIF. Klik untuk aktifkan bonus essay siswa ini"}
+                          >
+                            <span>{isBonusActive ? `🎁 +${potentialBonus}` : '⚪ Bonus OFF'}</span>
+                          </button>
+                        )}
+                      </td>
+
+                      {/* Nilai Akhir */}
+                      <td className="px-4 py-3">
+                        {result.status === 'menunggu_scan' ? (
+                          <span className="text-xs font-bold text-amber-600">Menunggu Scan</span>
+                        ) : (
+                          <div className="flex items-baseline gap-1.5">
+                            <span className="text-lg font-black text-indigo-950">{finalScore}</span>
+                            {examWeights.mode === 'pg_bonus_essay' && isBonusActive && potentialBonus > 0 && pgScore < 100 && (
+                              <span className="text-[10px] font-bold text-emerald-600">
+                                ({pgScore}+{potentialBonus})
                               </span>
                             )}
-                          </>
+                          </div>
                         )}
-                      </div>
-                    </td>
-                    <td className="px-6 py-6">
-                      {result.status === 'menunggu_scan' ? (
-                        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl font-bold text-[10px] uppercase tracking-widest bg-blue-50 text-blue-600 border border-blue-100">
-                          <Clock className="w-3.5 h-3.5" />
-                          Menunggu Pindai QR
+                      </td>
+
+                      {/* Status */}
+                      <td className="px-3 py-3">
+                        {result.status === 'menunggu_scan' ? (
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-blue-50 text-blue-600 border border-blue-100">
+                            Scan QR
+                          </span>
+                        ) : (
+                          <span className={cn(
+                            "inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-bold text-[10px] uppercase",
+                            finalScore >= 75 ? "bg-emerald-50 text-emerald-700 border border-emerald-200" :
+                            finalScore >= 50 ? "bg-amber-50 text-amber-700 border border-amber-200" :
+                            "bg-rose-50 text-rose-700 border border-rose-200"
+                          )}>
+                            {finalScore >= 75 ? <CheckCircle2 className="w-3 h-3 text-emerald-600" /> : 
+                             finalScore >= 50 ? <AlertCircle className="w-3 h-3 text-amber-600" /> : 
+                             <XCircle className="w-3 h-3 text-rose-600" />}
+                            {finalScore >= 75 ? 'Lulus' : finalScore >= 50 ? 'Remedial' : 'Gagal'}
+                          </span>
+                        )}
+                      </td>
+
+                      {/* Waktu Selesai */}
+                      <td className="px-3 py-3 text-xs text-slate-500">
+                        <div className="leading-tight">
+                          <p className="font-semibold text-slate-700">{new Date(result.end_time || result.start_time).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}</p>
+                          <p className="text-[10px] text-slate-400">{new Date(result.end_time || result.start_time).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</p>
                         </div>
-                      ) : (
-                        <div className={cn(
-                          "inline-flex items-center gap-2 px-3 py-1.5 rounded-xl font-bold text-[10px] uppercase tracking-widest",
-                          (result.score ?? 0) >= 75 ? "bg-emerald-50 text-emerald-600 border border-emerald-100" :
-                          (result.score ?? 0) >= 50 ? "bg-amber-50 text-amber-600 border border-amber-100" :
-                          "bg-rose-50 text-rose-600 border border-rose-100"
-                        )}>
-                          {(result.score ?? 0) >= 75 ? <CheckCircle2 className="w-3.5 h-3.5" /> : 
-                           (result.score ?? 0) >= 50 ? <AlertCircle className="w-3.5 h-3.5" /> : 
-                           <XCircle className="w-3.5 h-3.5" />}
-                          {(result.score ?? 0) >= 75 ? 'Lulus' : (result.score ?? 0) >= 50 ? 'Remedial' : 'Gagal'}
+                      </td>
+
+                      {/* Aksi */}
+                      <td className="w-16 px-3 py-3 text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          <button 
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleResetParticipant(result.id, result.name);
+                            }}
+                            className="p-1.5 text-slate-400 hover:text-amber-700 hover:bg-amber-50 rounded-lg transition-all cursor-pointer"
+                            title="Reset Ujian Siswa (Hapus jawaban & mulai ulang)"
+                          >
+                            <RotateCcw className="w-3.5 h-3.5" />
+                          </button>
+                          <button 
+                            type="button"
+                            className="p-1.5 text-slate-400 hover:text-indigo-950 group-hover:text-indigo-600 rounded-lg transition-all"
+                          >
+                            <ChevronRight className="w-4 h-4" />
+                          </button>
                         </div>
-                      )}
-                    </td>
-                    <td className="px-6 py-6">
-                      <div className="flex flex-col">
-                        <span className="text-xs font-bold text-slate-700">{new Date(result.end_time || result.start_time).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
-                        <span className="text-[10px] font-bold text-slate-400 mt-1">{new Date(result.end_time || result.start_time).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-6 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <button 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleResetParticipant(result.id, result.name);
-                          }}
-                          className="p-2 text-slate-400 hover:text-amber-700 hover:bg-amber-50 rounded-xl transition-all border border-transparent hover:border-amber-200 shadow-xs cursor-pointer"
-                          title="Reset Ujian Siswa (Hapus jawaban & mulai ulang)"
-                        >
-                          <RotateCcw className="w-4 h-4" />
-                        </button>
-                        <button className="p-3 text-slate-300 group-hover:text-indigo-950 group-hover:bg-white rounded-full transition-all shadow-sm opacity-0 group-hover:opacity-100">
-                          <ChevronRight className="w-5 h-5" />
-                        </button>
-                      </div>
-                    </td>
-                  </motion.tr>
-                ))
+                      </td>
+                    </tr>
+                  );
+                })
               ) : (
                 <tr>
-                  <td colSpan={8} className="px-8 py-32 text-center">
-                    <div className="bg-slate-50 w-20 h-20 rounded-[2rem] flex items-center justify-center mx-auto mb-6">
-                      <Trophy className="w-10 h-10 text-slate-200" />
+                  <td colSpan={9} className="px-6 py-20 text-center">
+                    <div className="bg-slate-50 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                      <Trophy className="w-8 h-8 text-slate-300" />
                     </div>
-                    <h3 className="text-xl font-bold text-indigo-950 mb-2">Belum ada hasil</h3>
-                    <p className="text-slate-400 font-medium max-w-xs mx-auto">
+                    <h3 className="text-base font-bold text-indigo-950 mb-1">Belum ada hasil</h3>
+                    <p className="text-slate-400 text-xs max-w-xs mx-auto">
                       Hasil ujian akan muncul di sini setelah siswa menyelesaikan ujian mereka.
                     </p>
                   </td>
@@ -2506,6 +2393,75 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
             </tbody>
           </table>
         </div>
+
+        {/* Pagination Footer Bar */}
+        {!loading && filteredResults.length > 0 && (
+          <div className="px-4 sm:px-6 py-3 border-t border-slate-100 bg-slate-50/60 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-medium text-slate-500">
+            <div className="flex flex-wrap items-center gap-2">
+              <span>Menampilkan</span>
+              <span className="font-bold text-slate-800">
+                {pageSize === 0 
+                  ? `1 - ${filteredResults.length}` 
+                  : `${(currentPage - 1) * pageSize + 1} - ${Math.min(currentPage * pageSize, filteredResults.length)}`}
+              </span>
+              <span>dari</span>
+              <span className="font-bold text-slate-800">{filteredResults.length} siswa</span>
+              
+              <div className="ml-2 flex items-center gap-1 border-l border-slate-200 pl-2">
+                <span>Per hal:</span>
+                {[25, 50, 100].map(size => (
+                  <button
+                    key={size}
+                    type="button"
+                    onClick={() => { setPageSize(size); setCurrentPage(1); }}
+                    className={cn(
+                      "px-2 py-0.5 rounded font-bold text-xs transition-colors cursor-pointer",
+                      pageSize === size ? "bg-indigo-950 text-white" : "hover:bg-slate-200 text-slate-600"
+                    )}
+                  >
+                    {size}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => { setPageSize(0); setCurrentPage(1); }}
+                  className={cn(
+                    "px-2 py-0.5 rounded font-bold text-xs transition-colors cursor-pointer",
+                    pageSize === 0 ? "bg-indigo-950 text-white" : "hover:bg-slate-200 text-slate-600"
+                  )}
+                >
+                  Semua
+                </button>
+              </div>
+            </div>
+
+            {pageSize > 0 && totalPages > 1 && (
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  className="px-2.5 py-1 rounded-lg border border-slate-200 bg-white font-bold hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer flex items-center gap-1"
+                >
+                  <ChevronLeft className="w-3.5 h-3.5" />
+                  <span>Sebelumnya</span>
+                </button>
+                <span className="px-2 font-bold text-slate-700">
+                  {currentPage} / {totalPages}
+                </span>
+                <button
+                  type="button"
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  className="px-2.5 py-1 rounded-lg border border-slate-200 bg-white font-bold hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer flex items-center gap-1"
+                >
+                  <span>Berikutnya</span>
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {createPortal(
@@ -2895,7 +2851,7 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
             </div>
           )}
 
-          {/* Modal Custom Weights (PG % + Essay %) */}
+          {/* Modal Pengaturan Bobot & Bonus Essay */}
           {showCustomWeightModal && (
             <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 sm:p-6 overflow-hidden">
               <motion.div 
@@ -2909,98 +2865,235 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
                 initial={{ opacity: 0, scale: 0.95, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                className="relative w-full max-w-md bg-white rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col z-10 p-6 sm:p-8"
+                className="relative w-full max-w-lg bg-white rounded-[2rem] sm:rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col z-10 p-5 sm:p-7"
               >
-                <div className="flex items-center justify-between mb-5">
+                <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-2xl bg-indigo-950 text-white flex items-center justify-center font-bold text-sm shadow-md">
                       ⚖️
                     </div>
                     <div>
-                      <h3 className="text-lg font-black text-indigo-950">Atur Bobot Penilaian</h3>
-                      <p className="text-xs text-slate-500 font-medium">Tentukan persentase PG & Essay</p>
+                      <h3 className="text-lg font-black text-indigo-950">Atur Skema & Bobot Nilai</h3>
+                      <p className="text-xs text-slate-500 font-medium">Pilih metode perhitungan nilai akhir rapor</p>
                     </div>
                   </div>
                   <button 
                     onClick={() => setShowCustomWeightModal(false)}
-                    className="p-1.5 hover:bg-slate-100 rounded-xl transition-all"
+                    className="p-1.5 hover:bg-slate-100 rounded-xl transition-all cursor-pointer"
                   >
                     <XCircleIcon className="w-5 h-5 text-slate-400" />
                   </button>
                 </div>
 
-                <div className="space-y-4">
-                  <div>
-                    <label className="text-xs font-bold text-slate-700 block mb-1.5">
-                      Bobot Pilihan Ganda (PG): <span className="text-blue-700 font-black">{tempPgWeight}%</span>
-                    </label>
-                    <input 
-                      type="range"
-                      min="0"
-                      max="100"
-                      step="5"
-                      value={tempPgWeight}
-                      onChange={(e) => {
-                        const val = Number(e.target.value);
-                        setTempPgWeight(val);
-                        setTempEssayWeight(100 - val);
-                      }}
-                      className="w-full accent-blue-600 cursor-pointer"
-                    />
-                  </div>
+                {/* Tab Pilihan Mode */}
+                <div className="grid grid-cols-3 gap-1.5 p-1 bg-slate-100 rounded-2xl mb-4 text-xs font-bold">
+                  <button
+                    type="button"
+                    onClick={() => setTempMode('pg_bonus_essay')}
+                    className={cn(
+                      "py-2 px-1 rounded-xl transition-all text-center cursor-pointer",
+                      tempMode === 'pg_bonus_essay' 
+                        ? "bg-white text-emerald-800 shadow-xs" 
+                        : "text-slate-600 hover:text-slate-900"
+                    )}
+                  >
+                    🎁 PG + Bonus
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTempMode('custom')}
+                    className={cn(
+                      "py-2 px-1 rounded-xl transition-all text-center cursor-pointer",
+                      tempMode === 'custom' 
+                        ? "bg-white text-indigo-950 shadow-xs" 
+                        : "text-slate-600 hover:text-slate-900"
+                    )}
+                  >
+                    ⚖️ Bobot (%)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTempMode('proportional')}
+                    className={cn(
+                      "py-2 px-1 rounded-xl transition-all text-center cursor-pointer",
+                      tempMode === 'proportional' 
+                        ? "bg-white text-indigo-950 shadow-xs" 
+                        : "text-slate-600 hover:text-slate-900"
+                    )}
+                  >
+                    📊 Proporsional
+                  </button>
+                </div>
 
-                  <div>
-                    <label className="text-xs font-bold text-slate-700 block mb-1.5">
-                      Bobot Essay / Uraian: <span className="text-purple-700 font-black">{tempEssayWeight}%</span>
-                    </label>
-                    <input 
-                      type="range"
-                      min="0"
-                      max="100"
-                      step="5"
-                      value={tempEssayWeight}
-                      onChange={(e) => {
-                        const val = Number(e.target.value);
-                        setTempEssayWeight(val);
-                        setTempPgWeight(100 - val);
-                      }}
-                      className="w-full accent-purple-600 cursor-pointer"
-                    />
-                  </div>
+                {/* Konten Tab 1: PG + Bonus Essay */}
+                {tempMode === 'pg_bonus_essay' && (
+                  <div className="space-y-4">
+                    <div className="p-3.5 rounded-2xl bg-emerald-50/70 border border-emerald-200/80 text-xs">
+                      <p className="font-bold text-emerald-950 leading-relaxed">
+                        Nilai utama 100% diambil dari skor PG. Siswa yang menjawab essay dengan benar akan mendapatkan bonus poin tambahan (maksimal nilai akhir 100).
+                      </p>
+                    </div>
 
-                  <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between text-xs font-bold">
-                    <span className="text-slate-500">Total Bobot:</span>
-                    <span className={cn(
-                      "font-black text-sm",
-                      (tempPgWeight + tempEssayWeight) === 100 ? "text-emerald-600" : "text-rose-600"
-                    )}>
-                      {tempPgWeight + tempEssayWeight}%
-                    </span>
-                  </div>
+                    <div>
+                      <label className="text-xs font-bold text-slate-700 block mb-2">
+                        Batas Maksimal Bonus Essay:
+                      </label>
+                      <div className="grid grid-cols-4 gap-2">
+                        {[15, 20, 25, 30].map(pts => (
+                          <button
+                            key={pts}
+                            type="button"
+                            onClick={() => setTempBonusMax(pts)}
+                            className={cn(
+                              "py-2 rounded-xl text-xs font-bold transition-all border cursor-pointer",
+                              tempBonusMax === pts
+                                ? "bg-emerald-600 text-white border-emerald-600 shadow-xs"
+                                : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
+                            )}
+                          >
+                            +{pts} Poin
+                          </button>
+                        ))}
+                      </div>
+                    </div>
 
-                  <div className="flex items-center justify-end gap-2 pt-2">
-                    <button
-                      type="button"
-                      onClick={() => setShowCustomWeightModal(false)}
-                      className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition-all cursor-pointer"
-                    >
-                      Batal
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        handleUpdateWeights({
-                          mode: 'custom',
-                          pgWeight: tempPgWeight,
-                          essayWeight: tempEssayWeight
-                        });
-                        setShowCustomWeightModal(false);
-                      }}
-                      className="px-5 py-2 rounded-xl bg-indigo-950 hover:bg-indigo-900 text-white text-xs font-black shadow-md transition-all active:scale-95 cursor-pointer"
-                    >
-                      Terapkan Bobot
-                    </button>
+                    <div className="pt-2 border-t border-slate-100">
+                      <label className="text-xs font-bold text-slate-700 block mb-2">
+                        Kontrol Cepat Status Bonus Siswa:
+                      </label>
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            handleApplyBonusToAll();
+                            alert('Bonus essay berhasil diaktifkan untuk seluruh siswa.');
+                          }}
+                          className="py-2 px-3 rounded-xl text-xs font-bold bg-emerald-100 text-emerald-800 hover:bg-emerald-200 transition-all border border-emerald-200 cursor-pointer"
+                        >
+                          🎁 Semua Siswa ON
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            handleDisableBonusForAll();
+                            alert('Bonus essay dinonaktifkan untuk semua siswa (murni PG).');
+                          }}
+                          className="py-2 px-3 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 transition-all border border-slate-200 cursor-pointer"
+                        >
+                          ⚪ Semua Siswa OFF
+                        </button>
+                      </div>
+                      <p className="text-[11px] text-slate-400 mt-1">Anda juga dapat mengklik tombol bonus pada baris siswa di tabel untuk mengatur per individu.</p>
+                    </div>
                   </div>
+                )}
+
+                {/* Konten Tab 2: Persentase Campuran */}
+                {tempMode === 'custom' && (
+                  <div className="space-y-4">
+                    <div>
+                      <label className="text-xs font-bold text-slate-700 block mb-1.5">Preset Cepat:</label>
+                      <div className="grid grid-cols-3 gap-2">
+                        {[
+                          { label: '70% : 30%', pg: 70, essay: 30 },
+                          { label: '60% : 40%', pg: 60, essay: 40 },
+                          { label: '50% : 50%', pg: 50, essay: 50 },
+                        ].map(preset => (
+                          <button
+                            key={preset.label}
+                            type="button"
+                            onClick={() => {
+                              setTempPgWeight(preset.pg);
+                              setTempEssayWeight(preset.essay);
+                            }}
+                            className={cn(
+                              "py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer",
+                              tempPgWeight === preset.pg && tempEssayWeight === preset.essay
+                                ? "bg-indigo-950 text-white border-indigo-950 shadow-xs"
+                                : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
+                            )}
+                          >
+                            {preset.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="flex justify-between text-xs font-bold text-slate-700 mb-1">
+                        <span>Bobot PG:</span>
+                        <span className="text-blue-700">{tempPgWeight}%</span>
+                      </div>
+                      <input 
+                        type="range"
+                        min="0"
+                        max="100"
+                        step="5"
+                        value={tempPgWeight}
+                        onChange={(e) => {
+                          const val = Number(e.target.value);
+                          setTempPgWeight(val);
+                          setTempEssayWeight(100 - val);
+                        }}
+                        className="w-full accent-blue-600 cursor-pointer"
+                      />
+                    </div>
+
+                    <div>
+                      <div className="flex justify-between text-xs font-bold text-slate-700 mb-1">
+                        <span>Bobot Essay:</span>
+                        <span className="text-purple-700">{tempEssayWeight}%</span>
+                      </div>
+                      <input 
+                        type="range"
+                        min="0"
+                        max="100"
+                        step="5"
+                        value={tempEssayWeight}
+                        onChange={(e) => {
+                          const val = Number(e.target.value);
+                          setTempEssayWeight(val);
+                          setTempPgWeight(100 - val);
+                        }}
+                        className="w-full accent-purple-600 cursor-pointer"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Konten Tab 3: Proporsional */}
+                {tempMode === 'proportional' && (
+                  <div className="p-4 rounded-2xl bg-indigo-50/60 border border-indigo-100 text-xs">
+                    <p className="font-bold text-indigo-950 leading-relaxed">
+                      Nilai dihitung merata dan proporsional berdasarkan jumlah butir soal yang ada pada ujian ini secara otomatis.
+                    </p>
+                  </div>
+                )}
+
+                {/* Tombol Simpan */}
+                <div className="flex items-center justify-end gap-2 pt-4 mt-2 border-t border-slate-100">
+                  <button
+                    type="button"
+                    onClick={() => setShowCustomWeightModal(false)}
+                    className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition-all cursor-pointer"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleUpdateWeights({
+                        mode: tempMode || 'pg_bonus_essay',
+                        pgWeight: tempPgWeight,
+                        essayWeight: tempEssayWeight,
+                        bonusMaxPoints: tempBonusMax
+                      });
+                      setShowCustomWeightModal(false);
+                    }}
+                    className="px-5 py-2 rounded-xl bg-indigo-950 hover:bg-indigo-900 text-white text-xs font-bold shadow-md transition-all active:scale-95 cursor-pointer"
+                  >
+                    Terapkan Skema
+                  </button>
                 </div>
               </motion.div>
             </div>
