@@ -1138,7 +1138,7 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
         });
 
         if (ans.id && !ans.id.startsWith('unanswered-')) {
-          await supabase
+          const { error: ansErr } = await supabase
             .from('answers')
             .update({
               score: aiRes.score,
@@ -1146,8 +1146,19 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
               teacher_feedback: aiRes.feedback
             })
             .eq('id', ans.id);
+
+          if (ansErr) {
+            await supabase
+              .from('answers')
+              .update({ is_correct: aiRes.score >= 60 })
+              .eq('id', ans.id);
+            await supabaseAnon
+              .from('answers')
+              .update({ is_correct: aiRes.score >= 60 })
+              .eq('id', ans.id);
+          }
         } else {
-          await supabase
+          const { error: upErr } = await supabase
             .from('answers')
             .upsert({
               participant_id: selectedResult.id,
@@ -1156,6 +1167,16 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
               is_correct: aiRes.score >= 60,
               teacher_feedback: aiRes.feedback
             }, { onConflict: 'participant_id,question_id' });
+
+          if (upErr) {
+            await supabase
+              .from('answers')
+              .upsert({
+                participant_id: selectedResult.id,
+                question_id: ans.question_id,
+                is_correct: aiRes.score >= 60
+              }, { onConflict: 'participant_id,question_id' });
+          }
         }
 
         updatedAnswers = updatedAnswers.map(a => {
@@ -1382,7 +1403,7 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
             studentAnswer: ans.answer_text || ''
           });
 
-          // Update jawaban ke Supabase (auth dulu, fallback anon)
+          // Update jawaban ke Supabase (auth dulu, fallback anon & fallback kolom standar)
           let { error: updateErr } = await supabase
             .from('answers')
             .update({
@@ -1393,14 +1414,17 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
             .eq('id', ans.id);
 
           if (updateErr) {
-            await supabaseAnon
+            const { error: cErr } = await supabase
               .from('answers')
-              .update({
-                score: aiRes.score,
-                is_correct: aiRes.score >= 60,
-                teacher_feedback: aiRes.feedback
-              })
+              .update({ is_correct: aiRes.score >= 60 })
               .eq('id', ans.id);
+
+            if (cErr) {
+              await supabaseAnon
+                .from('answers')
+                .update({ is_correct: aiRes.score >= 60 })
+                .eq('id', ans.id);
+            }
           }
 
           ans.score = aiRes.score;
@@ -1408,8 +1432,12 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
           ans.teacher_feedback = aiRes.feedback;
 
           evaluatedCount++;
-        } catch (itemErr) {
+        } catch (itemErr: any) {
           console.error(`Gagal evaluasi jawaban ${ans.id}:`, itemErr);
+          // Jika item pertama gagal total, lemparkan error agar terdeteksi
+          if (i === 0 && essayAnswers.length > 1) {
+            throw new Error(`Evaluasi pertama gagal: ${itemErr?.message || 'Koneksi ke AI bermasalah'}`);
+          }
         }
 
         // Cooldown aman

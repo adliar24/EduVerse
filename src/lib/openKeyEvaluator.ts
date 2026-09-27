@@ -115,37 +115,106 @@ Balas HANYA JSON tanpa markdown: {"score":number,"feedback":"1 kalimat singkat"}
   const cleanBaseUrl = config.baseUrl.replace(/\/+$/, '');
   const endpoint = `${cleanBaseUrl}/chat/completions`;
 
-  const response = await fetch(endpoint, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${config.apiKey.trim()}`
-    },
-    body: JSON.stringify({
-      model: config.model.trim() || 'gemini-3.8-flash',
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userContent }
-      ],
-      temperature: 0.1,
-      max_tokens: 80 // Sangat hemat token output
-    })
-  });
+  let data: any = null;
+  let lastError: any = null;
 
-  if (!response.ok) {
-    const errorBody = await response.text();
-    let parsedMsg = errorBody;
-    try {
-      const errJson = JSON.parse(errorBody);
-      parsedMsg = errJson.error?.message || errJson.message || errorBody;
-    } catch {
-      // ignore
+  // 1. Coba lewat Vercel Serverless Function /api/evaluate-essay (Bypass CORS browser)
+  try {
+    const serverlessRes = await fetch('/api/evaluate-essay', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        questionText: cleanQuestion,
+        correctAnswer: cleanAnswerKey,
+        studentAnswer: cleanStudent,
+        apiKey: config.apiKey.trim(),
+        model: config.model.trim(),
+        baseUrl: cleanBaseUrl
+      })
+    });
+
+    if (serverlessRes.ok) {
+      data = await serverlessRes.json();
+    } else {
+      const errText = await serverlessRes.text();
+      console.warn('Serverless endpoint non-200, trying proxy fallback:', errText);
     }
-    throw new Error(`OpenKey API Error (${response.status}): ${parsedMsg}`);
+  } catch (serverlessErr) {
+    // Di luar browser (misal Node) atau offline, lanjutkan ke proxy
   }
 
-  const data = await response.json();
-  const rawText = data.choices?.[0]?.message?.content || '';
+  // 2. Jika serverless belum mengembalikan data, coba lewat rewrite proxy /api/openkey/chat/completions
+  if (!data) {
+    try {
+      const proxyRes = await fetch('/api/openkey/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${config.apiKey.trim()}`
+        },
+        body: JSON.stringify({
+          model: config.model.trim() || 'gemini-3.8-flash',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userContent }
+          ],
+          temperature: 0.1,
+          max_tokens: 80
+        })
+      });
+
+      if (proxyRes.ok) {
+        data = await proxyRes.json();
+      } else {
+        const errText = await proxyRes.text();
+        lastError = new Error(`Proxy Error (${proxyRes.status}): ${errText}`);
+      }
+    } catch (proxyErr) {
+      lastError = proxyErr;
+    }
+  }
+
+  // 3. Fallback direct endpoint (jika di luar browser atau direct URL)
+  if (!data) {
+    try {
+      const directResponse = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${config.apiKey.trim()}`
+        },
+        body: JSON.stringify({
+          model: config.model.trim() || 'gemini-3.8-flash',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userContent }
+          ],
+          temperature: 0.1,
+          max_tokens: 80
+        })
+      });
+
+      if (directResponse.ok) {
+        data = await directResponse.json();
+      } else {
+        const errorBody = await directResponse.text();
+        let parsedMsg = errorBody;
+        try {
+          const errJson = JSON.parse(errorBody);
+          parsedMsg = errJson.error?.message || errJson.message || errorBody;
+        } catch {
+          // ignore
+        }
+        throw new Error(`OpenKey API Error (${directResponse.status}): ${parsedMsg}`);
+      }
+    } catch (directErr: any) {
+      throw lastError || directErr;
+    }
+  }
+
+  const rawText = data?.choices?.[0]?.message?.content || '';
 
   if (!rawText) {
     throw new Error('Tidak ada respon teks yang diterima dari AI OpenKey.');

@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/api/openkey/(.*)",
+      "destination": "https://my.openkey.id/v1/$1"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
