@@ -75,6 +75,9 @@ const EssayAnswerCard: React.FC<{
         setAiReasoning('Jawaban siswa kosong');
         setCurrentScore(0);
         setFeedback('Siswa tidak menuliskan jawaban.');
+        await onSaveScore(answer.question_id, 0, 'Siswa tidak menuliskan jawaban.');
+        setSaveSuccess(true);
+        setTimeout(() => setSaveSuccess(false), 2500);
         return;
       }
 
@@ -86,6 +89,9 @@ const EssayAnswerCard: React.FC<{
         setAiReasoning(localCheck.reason || 'Dideteksi otomatis secara lokal');
         setCurrentScore(localCheck.score);
         setFeedback(localCheck.feedback);
+        await onSaveScore(answer.question_id, localCheck.score, localCheck.feedback);
+        setSaveSuccess(true);
+        setTimeout(() => setSaveSuccess(false), 2500);
         return;
       }
 
@@ -101,6 +107,11 @@ const EssayAnswerCard: React.FC<{
       if (res.feedback) {
         setFeedback(res.feedback);
       }
+
+      // Otomatis simpan nilai dan feedback ke database
+      await onSaveScore(answer.question_id, res.score, res.feedback);
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 2500);
     } catch (err: any) {
       console.error('AI Evaluation error:', err);
       setAiError(err?.message || 'Gagal mengevaluasi dengan AI.');
@@ -1044,42 +1055,60 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
 
     // 4. Persist to DB
     try {
+      const fullAnswerPayload = {
+        score: newScore,
+        is_correct: newScore >= 60,
+        teacher_feedback: feedback !== undefined ? feedback : ''
+      };
+
       const targetAnswer = updatedAnswers.find(a => a.question_id === questionId);
       if (targetAnswer && targetAnswer.id && !targetAnswer.id.startsWith('unanswered-')) {
-        const { error: aErr } = await supabase
+        let { error: aErr } = await supabase
           .from('answers')
-          .update({
-            score: newScore,
-            is_correct: newScore >= 60,
-            teacher_feedback: feedback !== undefined ? feedback : targetAnswer.teacher_feedback
-          })
+          .update(fullAnswerPayload)
           .eq('id', targetAnswer.id);
 
         if (aErr) {
-          await supabase
+          let { error: aAnonErr } = await supabaseAnon
             .from('answers')
-            .update({ is_correct: newScore >= 60 })
+            .update(fullAnswerPayload)
             .eq('id', targetAnswer.id);
+
+          if (aAnonErr) {
+            await supabase
+              .from('answers')
+              .update({ is_correct: newScore >= 60 })
+              .eq('id', targetAnswer.id);
+            await supabaseAnon
+              .from('answers')
+              .update({ is_correct: newScore >= 60 })
+              .eq('id', targetAnswer.id);
+          }
         }
       } else {
-        const { error: upErr } = await supabase
+        const upsertPayload = {
+          participant_id: selectedResult.id,
+          question_id: questionId,
+          ...fullAnswerPayload
+        };
+        let { error: upErr } = await supabase
           .from('answers')
-          .upsert({
-            participant_id: selectedResult.id,
-            question_id: questionId,
-            score: newScore,
-            is_correct: newScore >= 60,
-            teacher_feedback: feedback || ''
-          }, { onConflict: 'participant_id,question_id' });
+          .upsert(upsertPayload, { onConflict: 'participant_id,question_id' });
 
         if (upErr) {
-          await supabase
+          let { error: upAnonErr } = await supabaseAnon
             .from('answers')
-            .upsert({
-              participant_id: selectedResult.id,
-              question_id: questionId,
-              is_correct: newScore >= 60
-            }, { onConflict: 'participant_id,question_id' });
+            .upsert(upsertPayload, { onConflict: 'participant_id,question_id' });
+
+          if (upAnonErr) {
+            await supabase
+              .from('answers')
+              .upsert({
+                participant_id: selectedResult.id,
+                question_id: questionId,
+                is_correct: newScore >= 60
+              }, { onConflict: 'participant_id,question_id' });
+          }
         }
       }
 
@@ -1403,22 +1432,29 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
 
       // Helper untuk simpan penilaian ke Supabase
       const persistAnswerScore = async (ansId: string, score: number, feedback: string) => {
+        const fullPayload = {
+          score,
+          is_correct: score >= 60,
+          teacher_feedback: feedback
+        };
+
         let { error: updateErr } = await supabase
           .from('answers')
-          .update({
-            score,
-            is_correct: score >= 60,
-            teacher_feedback: feedback
-          })
+          .update(fullPayload)
           .eq('id', ansId);
 
         if (updateErr) {
-          const { error: cErr } = await supabase
+          let { error: anonErr } = await supabaseAnon
             .from('answers')
-            .update({ is_correct: score >= 60 })
+            .update(fullPayload)
             .eq('id', ansId);
 
-          if (cErr) {
+          if (anonErr) {
+            await supabase
+              .from('answers')
+              .update({ is_correct: score >= 60 })
+              .eq('id', ansId);
+
             await supabaseAnon
               .from('answers')
               .update({ is_correct: score >= 60 })
@@ -1669,6 +1705,11 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
       }
 
       setBatchSummary({ totalEvaluated: evaluatedCount });
+      try {
+        await fetchResults();
+      } catch (refreshErr) {
+        console.warn('Gagal refresh exam results setelah batch:', refreshErr);
+      }
     } catch (err: any) {
       console.error('Batch grading error:', err);
       alert('Terjadi kendala saat memeriksa batch: ' + (err?.message || 'Error'));
