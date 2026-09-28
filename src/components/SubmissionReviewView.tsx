@@ -575,7 +575,7 @@ export default function SubmissionReviewView({
                 type="text"
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                placeholder="Cari nama atau NISN murid..."
+                placeholder="Cari nama murid..."
                 className="w-full pl-9 pr-3.5 py-2.5 rounded-xl bg-white border border-indigo-200/80 text-xs sm:text-sm font-medium text-slate-800 placeholder:text-slate-400 outline-none focus:border-[#3B66F5] focus:ring-1 focus:ring-[#3B66F5] shadow-2xs transition-all"
               />
             </div>
@@ -656,9 +656,6 @@ export default function SubmissionReviewView({
                       <div className="min-w-0">
                         <p className={`text-xs sm:text-sm font-bold truncate ${isSelected ? 'text-white' : 'text-slate-900'}`}>
                           {student.name}
-                        </p>
-                        <p className={`text-[11px] font-semibold truncate ${isSelected ? 'text-blue-100' : 'text-slate-400'}`}>
-                          NISN: {student.student_code || '-'}
                         </p>
                       </div>
                     </div>
@@ -755,17 +752,15 @@ export default function SubmissionReviewView({
                     </div>
 
                     <p className="text-xs text-slate-500 font-semibold mt-0.5 flex items-center gap-2 flex-wrap">
-                      <span>NISN: {selectedStudent.student_code || '-'}</span>
-                      {selectedSubmission?.submitted_at && (
-                        <>
-                          <span>•</span>
-                          <span className="flex items-center gap-1 text-slate-600">
-                            <Clock className="w-3.5 h-3.5 text-indigo-500" />
-                            {new Date(selectedSubmission.submitted_at).toLocaleDateString('id-ID', {
-                              day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
-                            })}
-                          </span>
-                        </>
+                      {selectedSubmission?.submitted_at ? (
+                        <span className="flex items-center gap-1 text-slate-600">
+                          <Clock className="w-3.5 h-3.5 text-indigo-500" />
+                          Dikirim: {new Date(selectedSubmission.submitted_at).toLocaleDateString('id-ID', {
+                            day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
+                          })}
+                        </span>
+                      ) : (
+                        <span className="text-amber-600 font-semibold">Belum mengumpulkan</span>
                       )}
                     </p>
                   </div>
