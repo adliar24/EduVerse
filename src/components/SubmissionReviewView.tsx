@@ -9,11 +9,18 @@ import {
   Loader2, 
   Check, 
   ExternalLink,
-  Download
+  School,
+  Sparkles,
+  ChevronDown,
+  User,
+  Calendar,
+  CheckCircle2,
+  Clock,
+  Award
 } from 'lucide-react';
 import { Assignment, AssignmentSubmission, Student, ClassEntity } from '../types';
 import { supabase } from '../lib/supabase';
-import { formatFileSize, getOptimizedMediaUrl } from '../utils/fileCompressor';
+import { getOptimizedMediaUrl } from '../utils/fileCompressor';
 import { parseLkpdResponse, OBSERVATION_PRESETS } from '../utils/lkpdPresets';
 
 interface SubmissionReviewViewProps {
@@ -28,6 +35,8 @@ interface SubmissionReviewViewProps {
   onGradeSaved?: () => void;
 }
 
+const STUDENTS_PER_PAGE = 7;
+
 export default function SubmissionReviewView({
   assignment,
   classes,
@@ -41,6 +50,7 @@ export default function SubmissionReviewView({
   const [mobileView, setMobileView] = useState<'list' | 'detail'>('list');
   const [filterTab, setFilterTab] = useState<'all' | 'submitted' | 'unsubmitted' | 'graded'>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [studentPage, setStudentPage] = useState(1);
   
   // Grading form state
   const [scoreInput, setScoreInput] = useState('');
@@ -103,7 +113,7 @@ export default function SubmissionReviewView({
       if (error) throw error;
       let subList = (data as AssignmentSubmission[]) || [];
 
-      // Also merge local submissions if present
+      // Merge local submissions backup if available
       try {
         const rawLocal = localStorage.getItem('eduverse_local_submissions');
         if (rawLocal) {
@@ -221,7 +231,12 @@ export default function SubmissionReviewView({
     return list.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
   }, [allStudents, cloudClassStudents, submissions, selectedClassId]);
 
-  // Auto-select first student when class or students change
+  // Reset page when filter or class changes
+  useEffect(() => {
+    setStudentPage(1);
+  }, [selectedClassId, filterTab, searchQuery]);
+
+  // Auto-select first student when class changes
   useEffect(() => {
     if (classStudents.length > 0) {
       if (!selectedStudentId || !classStudents.some(s => s.id === selectedStudentId)) {
@@ -271,6 +286,7 @@ export default function SubmissionReviewView({
     return classStudents.filter(s => !!getSubForStudent(s));
   }, [classStudents, getSubForStudent]);
   const submittedCount = submittedMuridList.length;
+  const unsubmittedCount = Math.max(0, totalMurid - submittedCount);
   const gradedCount = useMemo(() => {
     return submittedMuridList.filter(s => {
       const sub = getSubForStudent(s);
@@ -296,7 +312,14 @@ export default function SubmissionReviewView({
     });
   }, [classStudents, searchQuery, filterTab, getSubForStudent]);
 
-  // Next and Previous student navigation
+  // Pagination calculations
+  const totalStudentPages = Math.max(1, Math.ceil(filteredStudents.length / STUDENTS_PER_PAGE));
+  const paginatedStudents = useMemo(() => {
+    const startIndex = (studentPage - 1) * STUDENTS_PER_PAGE;
+    return filteredStudents.slice(startIndex, startIndex + STUDENTS_PER_PAGE);
+  }, [filteredStudents, studentPage]);
+
+  // Next and Previous student navigation (across all filtered students)
   const currentIndex = useMemo(() => {
     if (!selectedStudent) return -1;
     return filteredStudents.findIndex(s => s.id === selectedStudent.id);
@@ -304,13 +327,25 @@ export default function SubmissionReviewView({
 
   const handlePrevStudent = () => {
     if (currentIndex > 0) {
-      setSelectedStudentId(filteredStudents[currentIndex - 1].id || null);
+      const prevStudent = filteredStudents[currentIndex - 1];
+      setSelectedStudentId(prevStudent.id || null);
+      // Auto-switch pagination page if prev student is on the previous page
+      const prevTargetPage = Math.floor((currentIndex - 1) / STUDENTS_PER_PAGE) + 1;
+      if (prevTargetPage !== studentPage) {
+        setStudentPage(prevTargetPage);
+      }
     }
   };
 
   const handleNextStudent = () => {
     if (currentIndex >= 0 && currentIndex < filteredStudents.length - 1) {
-      setSelectedStudentId(filteredStudents[currentIndex + 1].id || null);
+      const nextStudent = filteredStudents[currentIndex + 1];
+      setSelectedStudentId(nextStudent.id || null);
+      // Auto-switch pagination page if next student is on the next page
+      const nextTargetPage = Math.floor((currentIndex + 1) / STUDENTS_PER_PAGE) + 1;
+      if (nextTargetPage !== studentPage) {
+        setStudentPage(nextTargetPage);
+      }
     }
   };
 
@@ -371,7 +406,7 @@ export default function SubmissionReviewView({
         console.error('Supabase upsert error:', error);
         setGradeErrorMsg(`Gagal menyimpan: ${error.message}`);
       } else {
-        setGradeSuccessMsg('Nilai & catatan berhasil disimpan!');
+        setGradeSuccessMsg('Nilai & umpan balik berhasil disimpan ke database!');
       }
 
       setSubmissions(prev => {
@@ -410,123 +445,149 @@ export default function SubmissionReviewView({
   const aspects = lkpdConfig.aspects || OBSERVATION_PRESETS.art_elements.aspects;
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
-      {/* Top Bar - Clean & Roomy */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-30 px-4 sm:px-8 py-3.5 flex items-center justify-between gap-4">
-        <div className="flex items-center gap-4 min-w-0">
-          <button
-            type="button"
-            onClick={onBack}
-            className="flex items-center gap-2 text-slate-600 hover:text-slate-900 font-medium text-xs sm:text-sm px-3 py-1.5 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer shrink-0"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Kembali ke Daftar Tugas</span>
-          </button>
-          <div className="h-5 w-px bg-slate-200 hidden sm:block" />
-          <div className="min-w-0">
+    <div className="space-y-6 pb-12 font-sans">
+      {/* Header Bar - EduVerse Theme */}
+      <div className="bg-white rounded-3xl p-5 sm:p-6 border border-indigo-100 shadow-md shadow-[#3B66F5]/5 space-y-4">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div className="space-y-1.5 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">
-                {assignment.assignment_type === 'lkpd' ? 'LKPD Observasi' : 'Pemeriksaan Tugas'}
-              </span>
-              <span className="text-xs text-slate-300">•</span>
-              <span className="text-xs font-semibold text-slate-700">
-                {submittedCount} / {totalMurid} Terkumpul ({gradedCount} Dinilai)
+              <button
+                type="button"
+                onClick={onBack}
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-[#1D4ED8] bg-blue-50 hover:bg-blue-100 border border-blue-200 px-3 py-1.5 rounded-full transition-all cursor-pointer shadow-2xs"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" />
+                <span>Kembali ke Daftar Tugas</span>
+              </button>
+
+              <span className="bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white text-[11px] font-black uppercase tracking-wider px-3 py-1 rounded-full shadow-sm flex items-center gap-1.5">
+                <Sparkles className="w-3 h-3" />
+                {assignment.assignment_type === 'lkpd' ? 'LKPD Observasi Lapangan' : 'Tugas Murid'}
               </span>
             </div>
-            <h1 className="text-base sm:text-lg font-bold text-slate-900 truncate">
+
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-[#1D4ED8] tracking-tight truncate">
               {assignment.title}
             </h1>
           </div>
+
+          {/* Controls: Class Selector Dropdown & Quick Stats */}
+          <div className="flex items-center gap-3 flex-wrap">
+            {/* Dropdown Pemilihan Kelas */}
+            <div className="flex items-center gap-2 bg-indigo-50/70 p-1.5 rounded-2xl border border-indigo-200/80">
+              <School className="w-4 h-4 text-[#1D4ED8] ml-2 shrink-0" />
+              <span className="text-xs font-bold text-slate-600 hidden sm:inline">Pilih Kelas:</span>
+              <div className="relative inline-flex items-center">
+                <select
+                  value={selectedClassId}
+                  onChange={e => setSelectedClassId(e.target.value)}
+                  className="pl-3 pr-8 py-2 rounded-xl bg-white border border-indigo-200 text-xs sm:text-sm font-bold text-[#1D4ED8] focus:ring-2 focus:ring-[#3B66F5] focus:border-[#3B66F5] shadow-2xs cursor-pointer appearance-none outline-none"
+                >
+                  {assignedClasses.map(cls => {
+                    const countInCls = allStudents.filter(s => (s.class_id || (s as any).classId) === cls.id).length;
+                    return (
+                      <option key={cls.id} value={cls.id}>
+                        {cls.name} {countInCls > 0 ? `(${countInCls} Murid)` : ''}
+                      </option>
+                    );
+                  })}
+                </select>
+                <ChevronDown className="w-4 h-4 text-[#1D4ED8] absolute right-2.5 pointer-events-none" />
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* Assigned Classes Filter if > 1 */}
-        {assignedClasses.length > 1 && (
-          <div className="flex items-center gap-1.5 overflow-x-auto shrink-0">
-            {assignedClasses.map(cls => (
-              <button
-                key={cls.id}
-                type="button"
-                onClick={() => setSelectedClassId(cls.id)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
-                  selectedClassId === cls.id
-                    ? 'bg-slate-900 text-white'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                }`}
-              >
-                {cls.name}
-              </button>
-            ))}
+        {/* Quick KPI Stat Badges */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-2 border-t border-slate-100">
+          <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between">
+            <span className="text-xs font-bold text-slate-500 uppercase">Total Murid</span>
+            <span className="text-base font-black text-slate-800">{totalMurid}</span>
           </div>
-        )}
-      </header>
+          <div className="p-3 rounded-2xl bg-blue-50/70 border border-blue-200/80 flex items-center justify-between">
+            <span className="text-xs font-bold text-[#1D4ED8] uppercase">Terkumpul</span>
+            <span className="text-base font-black text-[#1D4ED8]">{submittedCount}</span>
+          </div>
+          <div className="p-3 rounded-2xl bg-emerald-50/70 border border-emerald-200/80 flex items-center justify-between">
+            <span className="text-xs font-bold text-emerald-800 uppercase">Sudah Dinilai</span>
+            <span className="text-base font-black text-emerald-700">{gradedCount}</span>
+          </div>
+          <div className="p-3 rounded-2xl bg-amber-50/70 border border-amber-200/80 flex items-center justify-between">
+            <span className="text-xs font-bold text-amber-800 uppercase">Belum Kumpul</span>
+            <span className="text-base font-black text-amber-700">{unsubmittedCount}</span>
+          </div>
+        </div>
+      </div>
 
       {/* Main 2-Column Workspace */}
-      <div className="flex-1 flex flex-col md:flex-row overflow-hidden max-w-7xl w-full mx-auto p-4 sm:p-6 gap-6">
-        {/* Left Column: Student List (320px) */}
-        <aside className={`w-full md:w-80 bg-white rounded-2xl border border-slate-200 shadow-xs flex flex-col shrink-0 overflow-hidden ${
-          mobileView === 'detail' ? 'hidden md:flex' : 'flex'
+      <div className="flex flex-col lg:flex-row gap-6 items-start">
+        {/* Left Column: Student List (with Pagination & Filter) */}
+        <aside className={`w-full lg:w-96 bg-white rounded-3xl border border-indigo-100 shadow-md shadow-[#3B66F5]/5 flex flex-col shrink-0 overflow-hidden ${
+          mobileView === 'detail' ? 'hidden lg:flex' : 'flex'
         }`}>
-          {/* Search & Tabs */}
-          <div className="p-3.5 border-b border-slate-100 space-y-2.5">
+          {/* Search Box */}
+          <div className="p-4 border-b border-slate-100 space-y-3 bg-gradient-to-b from-indigo-50/40 to-white">
             <div className="relative">
-              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <Search className="w-4 h-4 text-indigo-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                placeholder="Cari siswa atau NISN..."
-                className="w-full pl-8 pr-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-800 placeholder:text-slate-400 outline-none focus:bg-white focus:border-slate-400 transition-colors"
+                placeholder="Cari nama atau NISN murid..."
+                className="w-full pl-9 pr-3.5 py-2.5 rounded-xl bg-white border border-indigo-200/80 text-xs sm:text-sm font-medium text-slate-800 placeholder:text-slate-400 outline-none focus:border-[#3B66F5] focus:ring-1 focus:ring-[#3B66F5] shadow-2xs transition-all"
               />
             </div>
 
-            <div className="grid grid-cols-4 gap-1 p-1 bg-slate-100 rounded-lg text-[11px] font-medium text-slate-600 text-center">
+            {/* Filter Tabs Styled Like EduVerse */}
+            <div className="grid grid-cols-4 gap-1 p-1 bg-indigo-50/80 rounded-xl text-xs font-bold text-slate-600 text-center">
               <button
                 type="button"
                 onClick={() => setFilterTab('all')}
-                className={`py-1 rounded-md transition-colors cursor-pointer ${filterTab === 'all' ? 'bg-white text-slate-900 font-semibold shadow-2xs' : 'hover:text-slate-900'}`}
+                className={`py-1.5 rounded-lg transition-all cursor-pointer ${filterTab === 'all' ? 'bg-[#1D4ED8] text-white shadow-sm' : 'hover:text-[#1D4ED8]'}`}
               >
                 Semua
               </button>
               <button
                 type="button"
                 onClick={() => setFilterTab('submitted')}
-                className={`py-1 rounded-md transition-colors cursor-pointer ${filterTab === 'submitted' ? 'bg-white text-slate-900 font-semibold shadow-2xs' : 'hover:text-slate-900'}`}
+                className={`py-1.5 rounded-lg transition-all cursor-pointer ${filterTab === 'submitted' ? 'bg-[#1D4ED8] text-white shadow-sm' : 'hover:text-[#1D4ED8]'}`}
               >
                 Kumpul
               </button>
               <button
                 type="button"
                 onClick={() => setFilterTab('graded')}
-                className={`py-1 rounded-md transition-colors cursor-pointer ${filterTab === 'graded' ? 'bg-white text-slate-900 font-semibold shadow-2xs' : 'hover:text-slate-900'}`}
+                className={`py-1.5 rounded-lg transition-all cursor-pointer ${filterTab === 'graded' ? 'bg-[#1D4ED8] text-white shadow-sm' : 'hover:text-[#1D4ED8]'}`}
               >
                 Dinilai
               </button>
               <button
                 type="button"
                 onClick={() => setFilterTab('unsubmitted')}
-                className={`py-1 rounded-md transition-colors cursor-pointer ${filterTab === 'unsubmitted' ? 'bg-white text-slate-900 font-semibold shadow-2xs' : 'hover:text-slate-900'}`}
+                className={`py-1.5 rounded-lg transition-all cursor-pointer ${filterTab === 'unsubmitted' ? 'bg-[#1D4ED8] text-white shadow-sm' : 'hover:text-[#1D4ED8]'}`}
               >
                 Belum
               </button>
             </div>
           </div>
 
-          {/* Student Items List */}
-          <div className="flex-1 overflow-y-auto divide-y divide-slate-100">
+          {/* Student Items List (Paginated) */}
+          <div className="divide-y divide-slate-100 flex-1 min-h-[380px]">
             {loading ? (
-              <div className="p-8 text-center text-xs text-slate-400 flex flex-col items-center gap-2">
-                <Loader2 className="w-5 h-5 animate-spin text-slate-400" />
-                <span>Memuat data siswa...</span>
+              <div className="p-12 text-center text-xs text-slate-400 flex flex-col items-center justify-center gap-2">
+                <Loader2 className="w-6 h-6 animate-spin text-[#1D4ED8]" />
+                <span className="font-semibold text-slate-600">Memuat data pengumpulan...</span>
               </div>
-            ) : filteredStudents.length === 0 ? (
-              <div className="p-8 text-center text-xs text-slate-400">
-                Tidak ada siswa yang sesuai filter.
+            ) : paginatedStudents.length === 0 ? (
+              <div className="p-12 text-center text-xs text-slate-400">
+                Tidak ada murid yang sesuai filter pencarian.
               </div>
             ) : (
-              filteredStudents.map(student => {
+              paginatedStudents.map((student, idx) => {
                 const sub = getSubForStudent(student);
                 const isSelected = selectedStudent?.id === student.id;
                 const isGraded = sub?.status === 'graded' && sub?.score !== null && sub?.score !== undefined;
+                const globalIdx = (studentPage - 1) * STUDENTS_PER_PAGE + idx + 1;
 
                 return (
                   <button
@@ -536,36 +597,47 @@ export default function SubmissionReviewView({
                       setSelectedStudentId(student.id || null);
                       setMobileView('detail');
                     }}
-                    className={`w-full text-left p-3.5 transition-colors flex items-center justify-between gap-3 cursor-pointer ${
+                    className={`w-full text-left p-3.5 sm:p-4 transition-all flex items-center justify-between gap-3 cursor-pointer ${
                       isSelected 
-                        ? 'bg-slate-900 text-white' 
-                        : 'hover:bg-slate-50 text-slate-800'
+                        ? 'bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white shadow-md shadow-[#3B66F5]/20' 
+                        : 'hover:bg-indigo-50/50 text-slate-800'
                     }`}
                   >
-                    <div className="min-w-0 flex-1">
-                      <p className={`text-xs font-semibold truncate ${isSelected ? 'text-white' : 'text-slate-900'}`}>
-                        {student.name}
-                      </p>
-                      <p className={`text-[11px] truncate ${isSelected ? 'text-slate-400' : 'text-slate-400'}`}>
-                        NISN: {student.student_code || '-'}
-                      </p>
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 ${
+                        isSelected 
+                          ? 'bg-white/20 text-white' 
+                          : 'bg-indigo-100 text-[#1D4ED8]'
+                      }`}>
+                        {globalIdx}
+                      </div>
+                      <div className="min-w-0">
+                        <p className={`text-xs sm:text-sm font-bold truncate ${isSelected ? 'text-white' : 'text-slate-900'}`}>
+                          {student.name}
+                        </p>
+                        <p className={`text-[11px] font-semibold truncate ${isSelected ? 'text-blue-100' : 'text-slate-400'}`}>
+                          NISN: {student.student_code || '-'}
+                        </p>
+                      </div>
                     </div>
 
                     <div className="shrink-0 text-right">
                       {isGraded ? (
-                        <span className={`text-[11px] font-bold px-2 py-0.5 rounded-md ${
-                          isSelected ? 'bg-emerald-400/20 text-emerald-300' : 'bg-emerald-50 text-emerald-700'
+                        <span className={`inline-flex items-center gap-1 text-[11px] font-black px-2.5 py-1 rounded-full ${
+                          isSelected ? 'bg-white text-emerald-700' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                         }`}>
+                          <Award className="w-3 h-3" />
                           {sub?.score}
                         </span>
                       ) : sub ? (
-                        <span className={`text-[10px] font-medium px-2 py-0.5 rounded-md ${
-                          isSelected ? 'bg-blue-400/20 text-blue-200' : 'bg-blue-50 text-blue-700'
+                        <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                          isSelected ? 'bg-white/20 text-white' : 'bg-blue-50 text-[#1D4ED8] border border-blue-200'
                         }`}>
-                          Terkirim
+                          <CheckCircle2 className="w-3 h-3" />
+                          Terkumpul
                         </span>
                       ) : (
-                        <span className={`text-[10px] font-normal ${isSelected ? 'text-slate-500' : 'text-slate-400'}`}>
+                        <span className={`text-[11px] font-semibold ${isSelected ? 'text-blue-200' : 'text-slate-400'}`}>
                           Belum
                         </span>
                       )}
@@ -575,85 +647,133 @@ export default function SubmissionReviewView({
               })
             )}
           </div>
+
+          {/* Pagination Controls ("Next aja jadinya") */}
+          <div className="p-3.5 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-slate-700">
+            <span className="text-[11px] text-slate-500 font-semibold">
+              Hal {studentPage} dari {totalStudentPages} ({filteredStudents.length} murid)
+            </span>
+
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                disabled={studentPage <= 1}
+                onClick={() => setStudentPage(p => Math.max(1, p - 1))}
+                className="px-2.5 py-1 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 disabled:opacity-40 disabled:pointer-events-none transition-colors cursor-pointer text-xs"
+              >
+                ← Prev
+              </button>
+              <button
+                type="button"
+                disabled={studentPage >= totalStudentPages}
+                onClick={() => setStudentPage(p => Math.min(totalStudentPages, p + 1))}
+                className="px-2.5 py-1 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 disabled:opacity-40 disabled:pointer-events-none transition-colors cursor-pointer text-xs"
+              >
+                Next →
+              </button>
+            </div>
+          </div>
         </aside>
 
-        {/* Right Column: Submission Details & Grading Canvas (Flex-1) */}
-        <main className={`flex-1 bg-white rounded-2xl border border-slate-200 shadow-xs flex flex-col overflow-hidden ${
-          mobileView === 'list' ? 'hidden md:flex' : 'flex'
+        {/* Right Column: Submission Details & Grading Canvas */}
+        <main className={`flex-1 w-full bg-white rounded-3xl border border-indigo-100 shadow-md shadow-[#3B66F5]/5 flex flex-col overflow-hidden ${
+          mobileView === 'list' ? 'hidden lg:flex' : 'flex'
         }`}>
           {selectedStudent ? (
             <>
-              {/* Detail Header & Prev/Next Nav */}
-              <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between gap-3 bg-white shrink-0">
+              {/* Header Murid Aktif & Navigasi Cepat Siswa */}
+              <div className="p-5 sm:p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-gradient-to-r from-indigo-50/40 via-white to-blue-50/40 shrink-0">
                 <div className="flex items-center gap-3 min-w-0">
                   <button
                     type="button"
                     onClick={() => setMobileView('list')}
-                    className="md:hidden text-slate-500 hover:text-slate-900 p-1"
+                    className="lg:hidden text-[#1D4ED8] bg-blue-50 p-2 rounded-xl border border-blue-200"
+                    title="Kembali ke Daftar Murid"
                   >
                     <ChevronLeft className="w-5 h-5" />
                   </button>
+
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#3B66F5] to-[#1D4ED8] text-white flex items-center justify-center font-black text-lg shadow-sm shrink-0">
+                    <User className="w-6 h-6" />
+                  </div>
+
                   <div className="min-w-0">
-                    <h2 className="text-base font-bold text-slate-900 truncate">
-                      {selectedStudent.name}
-                    </h2>
-                    <p className="text-xs text-slate-400">
-                      NISN: {selectedStudent.student_code || '-'}
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h2 className="text-lg sm:text-xl font-extrabold text-[#1D4ED8] truncate">
+                        {selectedStudent.name}
+                      </h2>
+                      {selectedSubmission?.status === 'graded' && selectedSubmission?.score !== null && (
+                        <span className="bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-black px-2.5 py-0.5 rounded-full">
+                          Nilai: {selectedSubmission.score}
+                        </span>
+                      )}
+                    </div>
+
+                    <p className="text-xs text-slate-500 font-semibold mt-0.5 flex items-center gap-2 flex-wrap">
+                      <span>NISN: {selectedStudent.student_code || '-'}</span>
                       {selectedSubmission?.submitted_at && (
-                        <span> • Dikirim: {new Date(selectedSubmission.submitted_at).toLocaleDateString('id-ID', {
-                          day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
-                        })}</span>
+                        <>
+                          <span>•</span>
+                          <span className="flex items-center gap-1 text-slate-600">
+                            <Clock className="w-3.5 h-3.5 text-indigo-500" />
+                            Dikirim: {new Date(selectedSubmission.submitted_at).toLocaleDateString('id-ID', {
+                              day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+                            })}
+                          </span>
+                        </>
                       )}
                     </p>
                   </div>
                 </div>
 
-                {/* Quick Prev / Next Controls */}
-                <div className="flex items-center gap-1.5 shrink-0">
+                {/* Quick Prev / Next Student Buttons */}
+                <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
                   <button
                     type="button"
                     disabled={currentIndex <= 0}
                     onClick={handlePrevStudent}
-                    className="p-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-100 disabled:opacity-30 disabled:pointer-events-none transition-colors cursor-pointer"
-                    title="Siswa Sebelumnya"
+                    className="px-3.5 py-2 rounded-xl border border-indigo-200 bg-white hover:bg-indigo-50 text-[#1D4ED8] font-bold text-xs flex items-center gap-1.5 disabled:opacity-30 disabled:pointer-events-none transition-all shadow-2xs cursor-pointer"
                   >
                     <ChevronLeft className="w-4 h-4" />
+                    <span className="hidden sm:inline">Sebelumnya</span>
                   </button>
-                  <span className="text-xs text-slate-400 font-medium px-1">
+
+                  <span className="text-xs font-black text-[#1D4ED8] bg-indigo-50 border border-indigo-200 px-3 py-2 rounded-xl">
                     {currentIndex + 1} / {filteredStudents.length}
                   </span>
+
                   <button
                     type="button"
                     disabled={currentIndex >= filteredStudents.length - 1}
                     onClick={handleNextStudent}
-                    className="p-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-100 disabled:opacity-30 disabled:pointer-events-none transition-colors cursor-pointer"
-                    title="Siswa Selanjutnya"
+                    className="px-3.5 py-2 rounded-xl border border-indigo-200 bg-white hover:bg-indigo-50 text-[#1D4ED8] font-bold text-xs flex items-center gap-1.5 disabled:opacity-30 disabled:pointer-events-none transition-all shadow-2xs cursor-pointer"
                   >
+                    <span className="hidden sm:inline">Selanjutnya</span>
                     <ChevronRight className="w-4 h-4" />
                   </button>
                 </div>
               </div>
 
               {/* Scrollable Work View */}
-              <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-6">
+              <div className="p-5 sm:p-7 space-y-7 flex-1 overflow-y-auto">
                 {selectedSubmission ? (
                   <>
                     {/* Media / Photo Display */}
                     {selectedSubmission.file_url && (
                       <div className="space-y-2">
-                        <span className="text-xs font-semibold text-slate-400 uppercase tracking-wide">
-                          Foto Objek Observasi
+                        <span className="text-xs font-bold text-[#1D4ED8] uppercase tracking-wider block">
+                          Foto Objek yang Diobservasi
                         </span>
-                        <div className="rounded-xl overflow-hidden border border-slate-200 bg-slate-950 max-w-xl relative group">
+                        <div className="rounded-2xl overflow-hidden border-2 border-indigo-100 bg-slate-950 max-w-xl relative group shadow-sm">
                           {!imgLoadError ? (
                             <img
                               src={getOptimizedMediaUrl(selectedSubmission.file_url)}
                               alt="Foto Siswa"
-                              className="w-full max-h-80 object-contain bg-slate-950"
+                              className="w-full max-h-84 object-contain bg-slate-950"
                               onError={() => setImgLoadError(true)}
                             />
                           ) : (
-                            <div className="p-8 text-center text-xs text-slate-400">
+                            <div className="p-10 text-center text-xs text-slate-400">
                               Gambar tidak dapat dimuat langsung.
                             </div>
                           )}
@@ -661,16 +781,16 @@ export default function SubmissionReviewView({
                             <button
                               type="button"
                               onClick={() => setPreviewImageUrl(getOptimizedMediaUrl(selectedSubmission.file_url!))}
-                              className="px-2.5 py-1.5 rounded-lg bg-black/60 hover:bg-black/80 text-white text-xs font-medium flex items-center gap-1.5 backdrop-blur-xs cursor-pointer"
+                              className="px-3 py-1.5 rounded-xl bg-black/70 hover:bg-black text-white text-xs font-bold flex items-center gap-1.5 backdrop-blur-xs cursor-pointer shadow-md"
                             >
                               <Maximize2 className="w-3.5 h-3.5" />
-                              <span>Perbesar</span>
+                              <span>Perbesar Foto</span>
                             </button>
                             <a
                               href={selectedSubmission.file_url}
                               target="_blank"
                               rel="noreferrer"
-                              className="p-1.5 rounded-lg bg-black/60 hover:bg-black/80 text-white backdrop-blur-xs"
+                              className="p-2 rounded-xl bg-black/70 hover:bg-black text-white backdrop-blur-xs shadow-md"
                               title="Buka Tab Baru"
                             >
                               <ExternalLink className="w-3.5 h-3.5" />
@@ -682,30 +802,38 @@ export default function SubmissionReviewView({
 
                     {/* LKPD Parsed Content */}
                     {parsedLkpd ? (
-                      <div className="space-y-5">
+                      <div className="space-y-6">
                         {parsedLkpd.object_name && (
-                          <div className="space-y-1">
-                            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wide">
-                              Nama Objek yang Diamati
+                          <div className="p-4 rounded-2xl bg-indigo-50/50 border border-indigo-100/80 space-y-1">
+                            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
+                              Nama Objek / Benda
                             </span>
-                            <p className="text-sm font-bold text-slate-900">
+                            <p className="text-base font-extrabold text-[#1D4ED8]">
                               {parsedLkpd.object_name}
                             </p>
                           </div>
                         )}
 
                         <div className="space-y-3">
-                          <span className="text-xs font-bold text-slate-900 uppercase tracking-wider block">
-                            Hasil Analisis Unsur Rupa
-                          </span>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            {aspects.map(asp => (
-                              <div key={asp.id} className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 space-y-1">
-                                <span className="text-xs font-bold text-slate-800 block">
-                                  {asp.label}
-                                </span>
-                                <p className="text-xs sm:text-sm text-slate-700 leading-relaxed whitespace-pre-line font-normal">
-                                  {parsedLkpd.answers?.[asp.id] || <span className="text-slate-400 italic">Tidak diisi</span>}
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-black text-slate-900 uppercase tracking-wider block">
+                              Hasil Analisis 6 Unsur Seni Rupa
+                            </span>
+                            <span className="text-xs font-bold text-[#1D4ED8] bg-blue-50 border border-blue-200 px-2.5 py-0.5 rounded-full">
+                              {aspects.length} Unsur Rupa
+                            </span>
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                            {aspects.map((asp, idx) => (
+                              <div key={asp.id} className="p-4 rounded-2xl bg-white border border-slate-200 hover:border-indigo-200 shadow-2xs space-y-1.5 transition-colors">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-xs font-bold text-[#1D4ED8]">
+                                    {idx + 1}. {asp.label}
+                                  </span>
+                                </div>
+                                <p className="text-xs sm:text-sm text-slate-800 leading-relaxed whitespace-pre-line font-medium">
+                                  {parsedLkpd.answers?.[asp.id] || <span className="text-slate-400 italic">Tidak diisi oleh murid.</span>}
                                 </p>
                               </div>
                             ))}
@@ -713,12 +841,12 @@ export default function SubmissionReviewView({
                         </div>
 
                         {parsedLkpd.reflection && (
-                          <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-1.5">
-                            <span className="text-xs font-bold text-slate-800 block">
-                              Refleksi & Kesimpulan Estetika
+                          <div className="p-4.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1.5">
+                            <span className="text-xs font-black text-slate-900 uppercase tracking-wider block">
+                              Refleksi & Kesimpulan Estetika Murid
                             </span>
-                            <p className="text-xs sm:text-sm text-slate-700 leading-relaxed whitespace-pre-line">
-                              {parsedLkpd.reflection}
+                            <p className="text-xs sm:text-sm text-slate-800 leading-relaxed whitespace-pre-line font-medium">
+                              "{parsedLkpd.reflection}"
                             </p>
                           </div>
                         )}
@@ -726,10 +854,10 @@ export default function SubmissionReviewView({
                     ) : (
                       /* Regular Assignment Response */
                       <div className="space-y-3">
-                        <span className="text-xs font-semibold text-slate-400 uppercase tracking-wide">
-                          Jawaban Siswa
+                        <span className="text-xs font-bold text-[#1D4ED8] uppercase tracking-wider">
+                          Jawaban Teks Murid
                         </span>
-                        <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs sm:text-sm text-slate-800 whitespace-pre-line leading-relaxed">
+                        <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs sm:text-sm text-slate-800 whitespace-pre-line leading-relaxed font-medium">
                           {selectedSubmission.text_response || 'Tidak ada teks jawaban.'}
                         </div>
                       </div>
@@ -738,15 +866,15 @@ export default function SubmissionReviewView({
                     {/* Attached Link if any */}
                     {selectedSubmission.link && (
                       <div className="space-y-1.5">
-                        <span className="text-xs font-semibold text-slate-400 uppercase tracking-wide">
-                          Tautan Tugas Siswa
+                        <span className="text-xs font-bold text-slate-600 uppercase tracking-wide">
+                          Tautan Eksternal:
                         </span>
                         <div>
                           <a
                             href={selectedSubmission.link}
                             target="_blank"
                             rel="noreferrer"
-                            className="inline-flex items-center gap-1.5 text-xs font-medium text-blue-600 hover:text-blue-800 underline underline-offset-2"
+                            className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-800 underline underline-offset-2"
                           >
                             <span>{selectedSubmission.link}</span>
                             <ExternalLink className="w-3.5 h-3.5" />
@@ -757,65 +885,93 @@ export default function SubmissionReviewView({
 
                     {/* Grading Form Panel */}
                     <div className="pt-6 border-t border-slate-200 space-y-4">
-                      <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900">
-                        Penilaian & Umpan Balik Guru
-                      </h3>
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-sm font-black uppercase tracking-wider text-[#1D4ED8] flex items-center gap-2">
+                          <Award className="w-4 h-4 text-[#1D4ED8]" />
+                          <span>Form Penilaian & Umpan Balik Guru</span>
+                        </h3>
+                        {selectedSubmission?.graded_at && (
+                          <span className="text-[11px] font-semibold text-slate-400">
+                            Terakhir dinilai: {new Date(selectedSubmission.graded_at).toLocaleDateString('id-ID', {
+                              day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
+                            })}
+                          </span>
+                        )}
+                      </div>
 
                       {gradeSuccessMsg && (
-                        <div className="p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-medium">
-                          {gradeSuccessMsg}
+                        <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-900 text-xs font-bold flex items-center gap-2">
+                          <Check className="w-4 h-4 text-emerald-600" />
+                          <span>{gradeSuccessMsg}</span>
                         </div>
                       )}
                       {gradeErrorMsg && (
-                        <div className="p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium">
+                        <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-300 text-rose-900 text-xs font-bold">
                           {gradeErrorMsg}
                         </div>
                       )}
 
-                      <form onSubmit={handleSaveGrade} className="space-y-3.5 max-w-xl">
-                        <div className="space-y-1.5">
-                          <label className="text-xs font-semibold text-slate-700 block">
-                            Nilai (0 - 100)
-                          </label>
+                      <form onSubmit={handleSaveGrade} className="space-y-4 max-w-xl">
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <label className="text-xs font-bold text-slate-800">
+                              Nilai (0 - 100) <span className="text-rose-500">*</span>
+                            </label>
+                            {/* Quick score buttons */}
+                            <div className="flex items-center gap-1">
+                              {[75, 80, 85, 90, 95, 100].map(val => (
+                                <button
+                                  key={val}
+                                  type="button"
+                                  onClick={() => setScoreInput(String(val))}
+                                  className="px-2 py-0.5 rounded-md bg-indigo-50 hover:bg-indigo-100 text-[#1D4ED8] text-[10px] font-bold border border-indigo-200 transition-colors cursor-pointer"
+                                >
+                                  {val}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
                           <input
                             type="number"
                             min="0"
                             max="100"
                             step="any"
-                            placeholder="Contoh: 88"
+                            required
+                            placeholder="Contoh: 85"
                             value={scoreInput}
                             onChange={e => setScoreInput(e.target.value)}
-                            className="w-32 px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm font-bold text-slate-900 outline-none focus:border-slate-800 focus:ring-1 focus:ring-slate-800 transition-colors"
+                            className="w-36 px-4 py-2.5 rounded-xl border border-indigo-200 bg-white text-base font-black text-[#1D4ED8] outline-none focus:border-[#3B66F5] focus:ring-2 focus:ring-[#3B66F5]/20 shadow-2xs transition-all"
                           />
                         </div>
 
                         <div className="space-y-1.5">
-                          <label className="text-xs font-semibold text-slate-700 block">
-                            Catatan & Masukan untuk Siswa (Opsional)
+                          <label className="text-xs font-bold text-slate-800">
+                            Catatan & Masukan untuk Murid (Opsional)
                           </label>
                           <textarea
                             rows={3}
-                            placeholder="Tuliskan catatan evaluasi atau apresiasi untuk siswa..."
+                            placeholder="Tuliskan apresiasi atau saran perbaikan untuk lembar kerja murid ini..."
                             value={feedbackInput}
                             onChange={e => setFeedbackInput(e.target.value)}
-                            className="w-full p-2.5 rounded-lg border border-slate-200 bg-white text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 outline-none focus:border-slate-800 focus:ring-1 focus:ring-slate-800 transition-colors resize-none leading-relaxed"
+                            className="w-full p-3 rounded-xl border border-slate-200 bg-white text-xs sm:text-sm font-medium text-slate-800 placeholder:text-slate-400 outline-none focus:border-[#3B66F5] focus:ring-2 focus:ring-[#3B66F5]/20 transition-all resize-none leading-relaxed"
                           />
                         </div>
 
                         <button
                           type="submit"
                           disabled={savingGrade}
-                          className="px-5 py-2.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-medium text-xs sm:text-sm flex items-center gap-2 transition-all disabled:opacity-50 cursor-pointer shadow-xs"
+                          className="bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white px-7 py-3 rounded-full font-bold text-xs sm:text-sm flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-[#3B66F5]/25 border border-white/10 cursor-pointer disabled:opacity-50"
                         >
                           {savingGrade ? (
                             <>
-                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              <Loader2 className="w-4 h-4 animate-spin" />
                               <span>Menyimpan Nilai...</span>
                             </>
                           ) : (
                             <>
-                              <Check className="w-3.5 h-3.5" />
-                              <span>Simpan Nilai</span>
+                              <Check className="w-4 h-4" />
+                              <span>Simpan Penilaian</span>
                             </>
                           )}
                         </button>
@@ -824,24 +980,24 @@ export default function SubmissionReviewView({
                   </>
                 ) : (
                   /* Student has not submitted yet */
-                  <div className="py-16 text-center space-y-4 max-w-sm mx-auto">
-                    <div className="w-12 h-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto text-sm font-semibold">
-                      -
+                  <div className="py-16 text-center space-y-4 max-w-md mx-auto">
+                    <div className="w-14 h-14 rounded-2xl bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center mx-auto text-xl font-bold">
+                      !
                     </div>
                     <div className="space-y-1">
-                      <h4 className="text-sm font-bold text-slate-800">
-                        Belum Ada Pengumpulan
+                      <h4 className="text-base font-extrabold text-slate-800">
+                        Murid Belum Mengumpulkan Tugas
                       </h4>
-                      <p className="text-xs text-slate-400 leading-relaxed">
+                      <p className="text-xs text-slate-500 leading-relaxed font-medium">
                         {selectedStudent.name} belum mengirimkan jawaban atau foto observasi untuk tugas ini.
                       </p>
                     </div>
 
-                    <div className="pt-4 border-t border-slate-100">
-                      <form onSubmit={handleSaveGrade} className="space-y-3 text-left bg-slate-50 p-4 rounded-xl border border-slate-200">
-                        <span className="text-[11px] font-semibold text-slate-500 uppercase block">
-                          Beri Nilai Manual:
-                        </span>
+                    <div className="pt-4 border-t border-slate-100 text-left bg-indigo-50/40 p-4.5 rounded-2xl border border-indigo-100">
+                      <span className="text-xs font-bold text-[#1D4ED8] uppercase block mb-2">
+                        Beri Nilai Manual Offline:
+                      </span>
+                      <form onSubmit={handleSaveGrade} className="space-y-3">
                         <input
                           type="number"
                           min="0"
@@ -850,12 +1006,12 @@ export default function SubmissionReviewView({
                           placeholder="Nilai (0-100)"
                           value={scoreInput}
                           onChange={e => setScoreInput(e.target.value)}
-                          className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs font-bold text-slate-900 outline-none"
+                          className="w-full px-3 py-2 rounded-xl border border-indigo-200 bg-white text-xs font-bold text-slate-900 outline-none"
                         />
                         <button
                           type="submit"
                           disabled={savingGrade}
-                          className="w-full py-2 rounded-lg bg-slate-900 text-white font-medium text-xs hover:bg-slate-800 transition-colors"
+                          className="w-full py-2.5 rounded-xl bg-[#1D4ED8] text-white font-bold text-xs hover:bg-[#1E40AF] transition-colors shadow-sm"
                         >
                           Simpan Nilai Manual
                         </button>
@@ -867,7 +1023,7 @@ export default function SubmissionReviewView({
             </>
           ) : (
             <div className="p-16 text-center text-xs text-slate-400 m-auto">
-              Pilih siswa di panel sebelah kiri untuk memeriksa tugas.
+              Pilih murid di panel sebelah kiri untuk memeriksa tugas.
             </div>
           )}
         </main>
@@ -881,14 +1037,14 @@ export default function SubmissionReviewView({
         >
           <button
             onClick={() => setPreviewImageUrl(null)}
-            className="absolute top-4 right-4 p-2 rounded-full bg-white/20 text-white hover:bg-white/40 cursor-pointer"
+            className="absolute top-4 right-4 p-2.5 rounded-full bg-white/20 text-white hover:bg-white/40 cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
           <img 
             src={previewImageUrl} 
-            alt="Preview perbesaran" 
-            className="max-w-full max-h-[90vh] object-contain rounded-xl"
+            alt="Preview perbesaran foto" 
+            className="max-w-full max-h-[90vh] object-contain rounded-2xl shadow-2xl"
           />
         </div>
       )}

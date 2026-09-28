@@ -261,11 +261,11 @@ export default function LkpdSubmissionModal({
           exit={{ scale: 0.98, opacity: 0, y: 8 }}
           className="relative bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[92vh] flex flex-col overflow-hidden border border-slate-200 z-10"
         >
-          {/* Header - Clean Minimalist */}
-          <div className="px-5 py-4 bg-white flex items-center justify-between shrink-0 border-b border-slate-100">
+          {/* Header - EduVerse Theme */}
+          <div className="px-5 py-4 bg-white flex items-center justify-between shrink-0 border-b border-indigo-100">
             <div>
-              <span className="text-[11px] font-semibold text-slate-400 tracking-wide uppercase">
-                {lkpdConfig.name || 'LKPD Observasi'}
+              <span className="text-[11px] font-black uppercase tracking-wider text-[#1D4ED8] bg-blue-50 border border-blue-200 px-2.5 py-0.5 rounded-full inline-block mb-1">
+                {lkpdConfig.name || 'LKPD Observasi Lapangan'}
               </span>
               <h3 className="text-base sm:text-lg font-bold text-slate-900 leading-snug">
                 {assignment.title}
@@ -274,7 +274,7 @@ export default function LkpdSubmissionModal({
             <button
               type="button"
               onClick={() => { if (!submitting) onClose(); }}
-              className="w-8 h-8 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 flex items-center justify-center transition-colors shrink-0 cursor-pointer"
+              className="w-8 h-8 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 flex items-center justify-center transition-colors shrink-0 cursor-pointer"
               title="Tutup"
             >
               <X className="w-5 h-5" />
@@ -472,20 +472,20 @@ export default function LkpdSubmissionModal({
                           type="button"
                           disabled={isCompressing}
                           onClick={() => cameraInputRef.current?.click()}
-                          className="px-3.5 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-medium text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+                          className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white font-bold text-xs flex items-center gap-2 transition-all shadow-md shadow-[#3B66F5]/20 cursor-pointer"
                         >
-                          <Camera className="w-3.5 h-3.5" />
-                          <span>Kamera</span>
+                          <Camera className="w-4 h-4" />
+                          <span>Buka Kamera HP</span>
                         </button>
 
                         <button
                           type="button"
                           disabled={isCompressing}
                           onClick={() => galleryInputRef.current?.click()}
-                          className="px-3.5 py-2 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 font-medium text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+                          className="px-4 py-2.5 rounded-xl bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 font-bold text-xs flex items-center gap-2 transition-colors cursor-pointer"
                         >
-                          <ImageIcon className="w-3.5 h-3.5" />
-                          <span>Galeri</span>
+                          <ImageIcon className="w-4 h-4" />
+                          <span>Pilih Galeri</span>
                         </button>
                       </div>
                     </div>
@@ -501,7 +501,7 @@ export default function LkpdSubmissionModal({
                     type="text"
                     required
                     placeholder="Contoh: Relief Dinding Gerbang, Patung Sekolah, Pohon Cemara"
-                    className="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 bg-white text-xs sm:text-sm font-normal text-slate-900 placeholder:text-slate-400 outline-none focus:border-slate-800 focus:ring-1 focus:ring-slate-800 transition-colors"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs sm:text-sm font-semibold text-slate-900 placeholder:text-slate-400 outline-none focus:border-[#3B66F5] focus:ring-2 focus:ring-[#3B66F5]/20 transition-all"
                     value={objectName}
                     onChange={(e) => setObjectName(e.target.value)}
                   />
@@ -509,7 +509,7 @@ export default function LkpdSubmissionModal({
 
                 {/* 3. ASPECTS OF ART */}
                 <div className="space-y-3 pt-2">
-                  <label className="text-xs font-bold text-slate-900 block">
+                  <label className="text-xs font-black text-slate-900 block uppercase tracking-wider">
                     3. Analisis Unsur Seni Rupa
                   </label>
 
@@ -517,17 +517,17 @@ export default function LkpdSubmissionModal({
                     {aspects.map((asp) => (
                       <div 
                         key={asp.id} 
-                        className="p-3.5 rounded-xl bg-white border border-slate-200 space-y-1.5 focus-within:border-slate-800 focus-within:ring-1 focus-within:ring-slate-800 transition-all"
+                        className="p-3.5 rounded-xl bg-white border border-slate-200 space-y-1.5 focus-within:border-[#3B66F5] focus-within:ring-2 focus-within:ring-[#3B66F5]/20 transition-all"
                       >
                         <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold text-slate-800">
+                          <span className="text-xs font-bold text-[#1D4ED8]">
                             {asp.label}
                           </span>
                         </div>
                         <textarea
                           rows={2}
                           placeholder={asp.helperText ? `${asp.helperText}` : `Deskripsikan unsur ${asp.label.toLowerCase()} pada objek...`}
-                          className="w-full p-2.5 rounded-md border border-slate-200 bg-slate-50/50 text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 outline-none focus:bg-white focus:border-slate-400 transition-colors resize-none leading-relaxed"
+                          className="w-full p-2.5 rounded-lg border border-slate-200 bg-slate-50/50 text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 outline-none focus:bg-white focus:border-[#3B66F5] transition-colors resize-none leading-relaxed"
                           value={answers[asp.id] || ''}
                           onChange={(e) => handleAnswerChange(asp.id, e.target.value)}
                         />
@@ -538,13 +538,13 @@ export default function LkpdSubmissionModal({
 
                 {/* 4. REFLECTION */}
                 <div className="space-y-1.5 pt-2">
-                  <label className="text-xs font-bold text-slate-900 block">
+                  <label className="text-xs font-black text-slate-900 block uppercase tracking-wider">
                     4. Refleksi & Kesimpulan Estetika
                   </label>
                   <textarea
                     rows={2}
                     placeholder={lkpdConfig.reflectionPrompt || 'Tuliskan kesan keindahan dan alasan kamu memilih objek ini...'}
-                    className="w-full p-2.5 rounded-lg border border-slate-200 bg-white text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 outline-none focus:border-slate-800 focus:ring-1 focus:ring-slate-800 transition-colors resize-none leading-relaxed"
+                    className="w-full p-2.5 rounded-xl border border-slate-200 bg-white text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 outline-none focus:border-[#3B66F5] focus:ring-2 focus:ring-[#3B66F5]/20 transition-all resize-none leading-relaxed"
                     value={reflection}
                     onChange={(e) => setReflection(e.target.value)}
                   />
@@ -557,7 +557,7 @@ export default function LkpdSubmissionModal({
                       type="button"
                       disabled={submitting}
                       onClick={() => setIsEditMode(false)}
-                      className="px-3 py-2 text-slate-500 hover:text-slate-800 text-xs font-medium cursor-pointer"
+                      className="px-3 py-2 text-slate-500 hover:text-slate-800 text-xs font-bold cursor-pointer"
                     >
                       Batal
                     </button>
@@ -567,14 +567,14 @@ export default function LkpdSubmissionModal({
                       type="button"
                       disabled={submitting}
                       onClick={onClose}
-                      className="px-4 py-2 rounded-lg text-slate-600 hover:bg-slate-100 text-xs font-medium cursor-pointer"
+                      className="px-4 py-2 rounded-full text-slate-600 hover:bg-slate-100 text-xs font-bold transition-colors cursor-pointer"
                     >
                       Tutup
                     </button>
                     <button
                       type="submit"
                       disabled={submitting || isCompressing}
-                      className="px-5 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-medium text-xs sm:text-sm flex items-center gap-2 transition-all disabled:opacity-50 cursor-pointer shadow-xs"
+                      className="bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white px-6 py-2.5 rounded-full font-bold text-xs sm:text-sm flex items-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-[#3B66F5]/25 border border-white/10 cursor-pointer disabled:opacity-50"
                     >
                       {submitting ? (
                         <>
@@ -582,7 +582,7 @@ export default function LkpdSubmissionModal({
                           <span>Menyimpan...</span>
                         </>
                       ) : (
-                        <span>Kirim LKPD</span>
+                        <span>Kirim Jawaban LKPD</span>
                       )}
                     </button>
                   </div>
