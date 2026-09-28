@@ -327,21 +327,26 @@ export default function SubmissionReviewView({
     return filteredStudents.findIndex(s => s.id === selectedStudent.id);
   }, [filteredStudents, selectedStudent]);
 
-  // Scroll to absolute top on initial view mount
+  // Scroll to absolute top on initial view mount and lock outer layout scroll
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
     document.documentElement.scrollTo({ top: 0, left: 0, behavior: 'instant' });
     document.body.scrollTo({ top: 0, left: 0, behavior: 'instant' });
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollTo({ top: 0, behavior: 'instant' });
+
+    // Lock outer layout scroll so ONLY the student answer board scrolls
+    const layoutMain = document.querySelector('main.h-screen') as HTMLElement | null;
+    if (layoutMain) {
+      layoutMain.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+      const prevOverflowY = layoutMain.style.overflowY;
+      layoutMain.style.overflowY = 'hidden';
+      return () => {
+        layoutMain.style.overflowY = prevOverflowY;
+      };
     }
   }, []);
 
-  // Smooth scroll to top whenever student changes
+  // Smooth scroll ONLY the student answer board to top whenever student changes
   useEffect(() => {
-    window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
-    document.documentElement.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
-    document.body.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
     if (scrollContainerRef.current) {
       scrollContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -494,11 +499,11 @@ export default function SubmissionReviewView({
   const aspects = lkpdConfig.aspects || OBSERVATION_PRESETS.art_elements.aspects;
 
   return (
-    <div className="space-y-6 pb-16 font-sans">
+    <div className="flex flex-col h-[calc(100dvh-5.5rem)] lg:h-[calc(100dvh-8rem)] font-sans gap-3.5 sm:gap-4 overflow-hidden">
       {/* Header Bar - EduVerse Theme */}
-      <div className="bg-white rounded-3xl p-5 sm:p-6 border border-indigo-100 shadow-md shadow-[#3B66F5]/5 space-y-4">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-          <div className="space-y-1.5 min-w-0">
+      <div className="shrink-0 bg-white rounded-2xl sm:rounded-3xl p-3.5 sm:p-4.5 border border-indigo-100 shadow-md shadow-[#3B66F5]/5 space-y-2.5">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+          <div className="space-y-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <button
                 type="button"
@@ -515,13 +520,13 @@ export default function SubmissionReviewView({
               </span>
             </div>
 
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-[#1D4ED8] tracking-tight truncate">
+            <h1 className="text-xl sm:text-2xl font-extrabold text-[#1D4ED8] tracking-tight truncate">
               {assignment.title}
             </h1>
           </div>
 
           {/* Controls: Class Selector Dropdown */}
-          <div className="flex items-center gap-3 flex-wrap">
+          <div className="flex items-center gap-2 shrink-0">
             <div className="flex items-center gap-2 bg-indigo-50/70 p-1.5 rounded-2xl border border-indigo-200/80">
               <School className="w-4 h-4 text-[#1D4ED8] ml-2 shrink-0" />
               <span className="text-xs font-bold text-slate-600 hidden sm:inline">Pilih Kelas:</span>
@@ -529,7 +534,7 @@ export default function SubmissionReviewView({
                 <select
                   value={selectedClassId}
                   onChange={e => setSelectedClassId(e.target.value)}
-                  className="pl-3 pr-8 py-2 rounded-xl bg-white border border-indigo-200 text-xs sm:text-sm font-bold text-[#1D4ED8] focus:ring-2 focus:ring-[#3B66F5] focus:border-[#3B66F5] shadow-2xs cursor-pointer appearance-none outline-none"
+                  className="pl-3 pr-8 py-1.5 sm:py-2 rounded-xl bg-white border border-indigo-200 text-xs sm:text-sm font-bold text-[#1D4ED8] focus:ring-2 focus:ring-[#3B66F5] focus:border-[#3B66F5] shadow-2xs cursor-pointer appearance-none outline-none"
                 >
                   {assignedClasses.map(cls => {
                     const countInCls = allStudents.filter(s => (s.class_id || (s as any).classId) === cls.id).length;
@@ -547,34 +552,34 @@ export default function SubmissionReviewView({
         </div>
 
         {/* Quick KPI Stat Badges */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-2 border-t border-slate-100">
-          <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-500 uppercase">Total Murid</span>
-            <span className="text-base font-black text-slate-800">{totalMurid}</span>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-slate-100">
+          <div className="p-2 sm:p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
+            <span className="text-[11px] font-bold text-slate-500 uppercase">Total Murid</span>
+            <span className="text-sm sm:text-base font-black text-slate-800">{totalMurid}</span>
           </div>
-          <div className="p-3 rounded-2xl bg-blue-50/70 border border-blue-200/80 flex items-center justify-between">
-            <span className="text-xs font-bold text-[#1D4ED8] uppercase">Terkumpul</span>
-            <span className="text-base font-black text-[#1D4ED8]">{submittedCount}</span>
+          <div className="p-2 sm:p-2.5 rounded-xl bg-blue-50/70 border border-blue-200/80 flex items-center justify-between">
+            <span className="text-[11px] font-bold text-[#1D4ED8] uppercase">Terkumpul</span>
+            <span className="text-sm sm:text-base font-black text-[#1D4ED8]">{submittedCount}</span>
           </div>
-          <div className="p-3 rounded-2xl bg-emerald-50/70 border border-emerald-200/80 flex items-center justify-between">
-            <span className="text-xs font-bold text-emerald-800 uppercase">Sudah Dinilai</span>
-            <span className="text-base font-black text-emerald-700">{gradedCount}</span>
+          <div className="p-2 sm:p-2.5 rounded-xl bg-emerald-50/70 border border-emerald-200/80 flex items-center justify-between">
+            <span className="text-[11px] font-bold text-emerald-800 uppercase">Sudah Dinilai</span>
+            <span className="text-sm sm:text-base font-black text-emerald-700">{gradedCount}</span>
           </div>
-          <div className="p-3 rounded-2xl bg-amber-50/70 border border-amber-200/80 flex items-center justify-between">
-            <span className="text-xs font-bold text-amber-800 uppercase">Belum Kumpul</span>
-            <span className="text-base font-black text-amber-700">{unsubmittedCount}</span>
+          <div className="p-2 sm:p-2.5 rounded-xl bg-amber-50/70 border border-amber-200/80 flex items-center justify-between">
+            <span className="text-[11px] font-bold text-amber-800 uppercase">Belum Kumpul</span>
+            <span className="text-sm sm:text-base font-black text-amber-700">{unsubmittedCount}</span>
           </div>
         </div>
       </div>
 
       {/* Main 2-Column Workspace */}
-      <div className="flex flex-col lg:flex-row gap-6 items-start">
-        {/* Left Column: Student List (with Pagination & Filter) */}
-        <aside className={`w-full lg:w-96 bg-white rounded-3xl border border-indigo-100 shadow-md shadow-[#3B66F5]/5 flex flex-col shrink-0 overflow-hidden ${
+      <div className="flex-1 min-h-0 flex flex-col lg:flex-row gap-4 sm:gap-5 overflow-hidden">
+        {/* Left Column: Student List (Stationary & Always in View) */}
+        <aside className={`w-full lg:w-80 xl:w-96 bg-white rounded-2xl sm:rounded-3xl border border-indigo-100 shadow-md shadow-[#3B66F5]/5 flex flex-col shrink-0 h-full overflow-hidden ${
           mobileView === 'detail' ? 'hidden lg:flex' : 'flex'
         }`}>
           {/* Search Box */}
-          <div className="p-4 border-b border-slate-100 space-y-3 bg-gradient-to-b from-indigo-50/40 to-white">
+          <div className="p-3.5 border-b border-slate-100 space-y-2.5 bg-gradient-to-b from-indigo-50/40 to-white shrink-0">
             <div className="relative">
               <Search className="w-4 h-4 text-indigo-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
@@ -620,7 +625,7 @@ export default function SubmissionReviewView({
           </div>
 
           {/* Student Items List (Paginated) */}
-          <div className="divide-y divide-slate-100 flex-1 min-h-[380px]">
+          <div className="divide-y divide-slate-100 flex-1 min-h-0 overflow-y-auto">
             {loading ? (
               <div className="p-12 text-center text-xs text-slate-400 flex flex-col items-center justify-center gap-2">
                 <Loader2 className="w-6 h-6 animate-spin text-[#1D4ED8]" />
@@ -693,7 +698,7 @@ export default function SubmissionReviewView({
           </div>
 
           {/* Pagination Controls */}
-          <div className="p-3.5 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-slate-700">
+          <div className="p-3.5 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-slate-700 shrink-0">
             <span className="text-[11px] text-slate-500 font-semibold">
               Hal {studentPage} dari {totalStudentPages} ({filteredStudents.length} murid)
             </span>
@@ -722,15 +727,14 @@ export default function SubmissionReviewView({
         {/* Right Column: Submission Details & Grading Canvas */}
         <main 
           id="review-work-canvas" 
-          ref={scrollContainerRef}
-          className={`flex-1 w-full bg-white rounded-3xl border border-indigo-100 shadow-md shadow-[#3B66F5]/5 flex flex-col overflow-hidden ${
+          className={`flex-1 min-h-0 w-full h-full bg-white rounded-2xl sm:rounded-3xl border border-indigo-100 shadow-md shadow-[#3B66F5]/5 flex flex-col overflow-hidden ${
             mobileView === 'list' ? 'hidden lg:flex' : 'flex'
           }`}
         >
           {selectedStudent ? (
             <>
-              {/* STICKY STUDENT HEADER - FLOATS ON TOP WHILE SCROLLING */}
-              <div className="sticky top-0 z-20 bg-white/95 backdrop-blur-md p-4 sm:p-5 border-b border-indigo-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0 shadow-xs transition-all">
+              {/* FIXED STUDENT HEADER - NEVER SCROLLS OUT OF VIEW */}
+              <div className="shrink-0 bg-white/95 backdrop-blur-md p-4 sm:p-5 border-b border-indigo-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs">
                 <div className="flex items-center gap-3 min-w-0">
                   <button
                     type="button"
@@ -802,8 +806,11 @@ export default function SubmissionReviewView({
                 </div>
               </div>
 
-              {/* Scrollable Work View */}
-              <div className="p-5 sm:p-7 space-y-7 flex-1">
+              {/* PAPAN JAWABAN MURID - HANYA INI YANG SCROLL */}
+              <div 
+                ref={scrollContainerRef}
+                className="flex-1 min-h-0 overflow-y-auto p-5 sm:p-7 space-y-7 custom-scrollbar"
+              >
                 {selectedSubmission ? (
                   <>
                     {/* Media / Photo Display */}
