@@ -34,6 +34,7 @@ import { v4 as uuidv4 } from 'uuid';
 import LinkPreviewCard from '../components/LinkPreviewCard';
 import DomainTileIcon from '../components/DomainTileIcon';
 import SubmissionReviewModal from '../components/SubmissionReviewModal';
+import SubmissionReviewView from '../components/SubmissionReviewView';
 import { LKPD_TYPES, OBSERVATION_PRESETS, ObservationPreset } from '../utils/lkpdPresets';
 
 const ELECTRIC_BLUE_GRADIENT = {
@@ -800,6 +801,22 @@ export default function KelolaMateriTugas({ defaultTab = 'materials', fixedTab =
       }
     });
   };
+
+  if (selectedReviewAssignment) {
+    return (
+      <SubmissionReviewView
+        assignment={selectedReviewAssignment}
+        classes={classes}
+        allStudents={students}
+        onBack={() => {
+          setSelectedReviewAssignment(null);
+          setIsReviewModalOpen(false);
+          fetchData();
+        }}
+        onGradeSaved={fetchData}
+      />
+    );
+  }
 
   return (
     <div className="space-y-6 pb-10 font-sans">

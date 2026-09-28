@@ -39,6 +39,7 @@ export default defineConfig(({mode}) => {
           skipWaiting: true,
           clientsClaim: true,
           cleanupOutdatedCaches: true,
+          maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
           // Exclude html from precache to ensure users always receive latest index.html
           globPatterns: [
             '**/*.{js,css,ico,png,svg,webmanifest}'
@@ -115,12 +116,18 @@ export default defineConfig(({mode}) => {
         output: {
           manualChunks: (id) => {
             if (id.includes('node_modules')) {
-              if (id.includes('recharts')) return 'charts';
-              if (id.includes('xlsx')) return 'xlsx';
-              if (id.includes('supabase')) return 'supabase';
-              if (id.includes('lucide-react')) return 'icons';
-              if (id.includes('framer-motion')) return 'motion';
-              if (id.includes('react') || id.includes('router')) return 'react';
+              if (id.includes('tesseract.js')) return 'vendor-ocr';
+              if (id.includes('face-api.js')) return 'vendor-faceapi';
+              if (id.includes('exceljs')) return 'vendor-exceljs';
+              if (id.includes('xlsx') || id.includes('papaparse')) return 'vendor-xlsx';
+              if (id.includes('docx')) return 'vendor-docx';
+              if (id.includes('jspdf') || id.includes('html2canvas') || id.includes('html2pdf')) return 'vendor-pdf';
+              if (id.includes('html5-qrcode') || id.includes('jsqr') || id.includes('qrcode')) return 'vendor-qrcode';
+              if (id.includes('recharts')) return 'vendor-charts';
+              if (id.includes('supabase')) return 'vendor-supabase';
+              if (id.includes('lucide-react')) return 'vendor-icons';
+              if (id.includes('framer-motion')) return 'vendor-motion';
+              if (id.includes('react') || id.includes('router')) return 'vendor-react';
             }
           }
         }
