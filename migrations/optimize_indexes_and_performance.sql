@@ -32,9 +32,9 @@ CREATE INDEX IF NOT EXISTS idx_students_class_id
 CREATE INDEX IF NOT EXISTS idx_students_school_class 
   ON public.students (school_id, class_id);
 
--- 4. Index untuk Hasil Ujian Siswa (EduTest CBT)
-CREATE INDEX IF NOT EXISTS idx_exam_results_exam_student 
-  ON public.exam_results (exam_id, student_id);
+-- 4. Index untuk Hasil Ujian / Peserta CBT (EduTest CBT)
+CREATE INDEX IF NOT EXISTS idx_participants_exam_id 
+  ON public.participants (exam_id);
 
 -- 5. Unified View (Non-Breaking Helper View untuk Pelaporan & Query Modern)
 -- View ini menyediakan relasi terstruktur tanpa mengganggu skema fisik tabel
