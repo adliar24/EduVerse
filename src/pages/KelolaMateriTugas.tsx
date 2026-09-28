@@ -1079,8 +1079,8 @@ export default function KelolaMateriTugas({ defaultTab = 'materials', fixedTab =
                       </div>
                       <div className="flex gap-1 flex-wrap">
                         {((a.assignment_type || a.assignmentType) === 'lkpd' || a.lkpd_type || a.lkpdType) && (
-                          <span className="bg-amber-50 text-amber-700 text-[10px] font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1 border border-amber-200 shadow-2xs">
-                            <Sparkles className="w-3 h-3 text-amber-500" />
+                          <span className="bg-blue-50 text-blue-900 text-[10px] font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1 border border-blue-300 shadow-2xs">
+                            <Sparkles className="w-3 h-3 text-blue-600" />
                             LKPD: {(a.lkpd_type || a.lkpdType) === 'observation' ? 'Observasi Lapangan' : (a.lkpd_type || a.lkpdType) === 'experiment' ? 'Praktikum' : (a.lkpd_type || a.lkpdType) === 'case_study' ? 'Studi Kasus' : (a.lkpd_type || a.lkpdType) === 'interview' ? 'Wawancara' : 'Interaktif'}
                           </span>
                         )}
@@ -1089,7 +1089,7 @@ export default function KelolaMateriTugas({ defaultTab = 'materials', fixedTab =
                             Diberi Nilai
                           </span>
                         ) : (
-                          <span className="bg-slate-100 text-slate-600 text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-slate-200">
+                          <span className="bg-slate-100 text-slate-700 text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-slate-300">
                             Tanpa Nilai
                           </span>
                         )}
@@ -1109,7 +1109,7 @@ export default function KelolaMateriTugas({ defaultTab = 'materials', fixedTab =
                             {isOverdue ? 'Selesai' : 'Aktif'}
                           </span>
                         ) : (
-                          <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1 border bg-slate-100 text-slate-600 border-slate-200">
+                          <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1 border bg-slate-100 text-slate-700 border-slate-300">
                             <Clock className="w-3.5 h-3.5" />
                             Tanpa Tenggat
                           </span>
@@ -1117,8 +1117,8 @@ export default function KelolaMateriTugas({ defaultTab = 'materials', fixedTab =
                       </div>
                     </div>
                     
-                    <h3 className="text-base font-bold text-slate-900 leading-snug">{a.title}</h3>
-                    <p className="text-xs sm:text-sm text-slate-600 leading-relaxed line-clamp-3 whitespace-pre-line">{a.description}</p>
+                    <h3 className="text-base font-bold text-slate-900 leading-snug break-words">{a.title}</h3>
+                    <p className="text-xs sm:text-sm text-slate-800 leading-relaxed whitespace-pre-line break-words">{a.description}</p>
                   </div>
 
                   <div className="space-y-3 mt-1">
@@ -1281,27 +1281,27 @@ export default function KelolaMateriTugas({ defaultTab = 'materials', fixedTab =
 
               <form onSubmit={handleSave} className="space-y-5">
                 {formType === 'assignment' && (
-                  <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200/80 space-y-3.5">
+                  <div className="bg-slate-50 p-4 sm:p-5 rounded-2xl border border-slate-300 space-y-4">
                     <div>
-                      <label className="text-[12px] font-black uppercase tracking-wider text-slate-500">
-                        Format Penugasan
+                      <label className="text-xs font-bold uppercase tracking-wider text-slate-900 block mb-2">
+                        Pilih Format Tugas Murid
                       </label>
-                      <div className="grid grid-cols-2 gap-2 mt-1.5">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                         <button
                           type="button"
                           onClick={() => setFormAssignmentCategory('general')}
-                          className={`p-3 rounded-xl border text-left font-bold text-xs transition-all ${
+                          className={`p-3.5 rounded-xl border text-left font-bold text-xs transition-all ${
                             formAssignmentCategory === 'general'
-                              ? 'bg-blue-600 border-blue-600 text-white shadow-md'
-                              : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300'
+                              ? 'bg-slate-900 border-slate-900 text-white shadow-sm'
+                              : 'bg-white border-slate-300 text-slate-800 hover:bg-slate-100'
                           }`}
                         >
-                          <div className="flex items-center gap-1.5">
+                          <div className="flex items-center gap-2">
                             <FileText className="w-4 h-4" />
-                            <span>Tugas Standar</span>
+                            <span className="text-sm">Tugas Standar</span>
                           </div>
-                          <p className={`text-[10px] mt-1 font-normal ${formAssignmentCategory === 'general' ? 'text-blue-100' : 'text-slate-400'}`}>
-                            Pengumpulan jawaban esai, link tugas, atau file dokumen bebas.
+                          <p className={`text-xs mt-1 font-normal leading-relaxed ${formAssignmentCategory === 'general' ? 'text-slate-200' : 'text-slate-600'}`}>
+                            Tugas umum berupa jawaban esai, tautan dokumen, atau unggahan berkas.
                           </p>
                         </button>
 
@@ -1311,49 +1311,49 @@ export default function KelolaMateriTugas({ defaultTab = 'materials', fixedTab =
                             setFormAssignmentCategory('lkpd');
                             handleApplyLkpdTemplate(formObservationPreset);
                           }}
-                          className={`p-3 rounded-xl border text-left font-bold text-xs transition-all ${
+                          className={`p-3.5 rounded-xl border text-left font-bold text-xs transition-all ${
                             formAssignmentCategory === 'lkpd'
-                              ? 'bg-gradient-to-r from-amber-500 to-orange-500 border-amber-500 text-white shadow-md shadow-amber-500/20'
-                              : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300'
+                              ? 'bg-blue-600 border-blue-600 text-white shadow-sm'
+                              : 'bg-white border-slate-300 text-slate-800 hover:bg-slate-100'
                           }`}
                         >
-                          <div className="flex items-center gap-1.5">
+                          <div className="flex items-center gap-2">
                             <Sparkles className="w-4 h-4" />
-                            <span>LKPD Interaktif</span>
+                            <span className="text-sm">LKPD Interaktif</span>
                           </div>
-                          <p className={`text-[10px] mt-1 font-normal ${formAssignmentCategory === 'lkpd' ? 'text-amber-100' : 'text-slate-400'}`}>
-                            Lembar kerja terstruktur (observasi foto kamera, praktikum, dll).
+                          <p className={`text-xs mt-1 font-normal leading-relaxed ${formAssignmentCategory === 'lkpd' ? 'text-blue-100' : 'text-slate-600'}`}>
+                            Lembar kerja terstruktur (observasi foto kamera langsung, praktikum, dll).
                           </p>
                         </button>
                       </div>
                     </div>
 
                     {formAssignmentCategory === 'lkpd' && (
-                      <div className="pt-2 border-t border-slate-200/60 space-y-3">
+                      <div className="pt-3 border-t border-slate-200 space-y-3.5">
                         <div>
-                          <label className="text-[11px] font-bold text-slate-600 block mb-1.5">
-                            Pilih Ragam LKPD:
+                          <label className="text-xs font-bold text-slate-900 block mb-2">
+                            Ragam LKPD yang Ingin Diberikan:
                           </label>
-                          <div className="grid grid-cols-2 gap-2">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                             {LKPD_TYPES.map(t => (
                               <button
                                 key={t.id}
                                 type="button"
                                 onClick={() => setFormLkpdType(t.id)}
-                                className={`p-2.5 rounded-xl border text-left text-xs transition-all flex flex-col justify-between ${
+                                className={`p-3 rounded-xl border text-left text-xs transition-all flex flex-col justify-between ${
                                   formLkpdType === t.id
-                                    ? 'bg-amber-50 border-amber-400 text-amber-900 font-bold shadow-xs'
-                                    : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'
+                                    ? 'bg-blue-50 border-blue-600 text-blue-950 font-bold ring-1 ring-blue-600'
+                                    : 'bg-white border-slate-300 text-slate-800 hover:bg-slate-100'
                                 }`}
                               >
-                                <span className="flex items-center gap-1.5 font-bold">
-                                  {t.id === 'observation' && <Search className="w-3.5 h-3.5 text-amber-600" />}
-                                  {t.id === 'experiment' && <Layers className="w-3.5 h-3.5 text-emerald-600" />}
-                                  {t.id === 'case_study' && <FileText className="w-3.5 h-3.5 text-indigo-600" />}
-                                  {t.id === 'interview' && <Users className="w-3.5 h-3.5 text-sky-600" />}
-                                  {t.badgeLabel}
+                                <span className="flex items-center gap-2 font-bold text-sm">
+                                  {t.id === 'observation' && <Search className="w-4 h-4 text-blue-600 shrink-0" />}
+                                  {t.id === 'experiment' && <Layers className="w-4 h-4 text-emerald-600 shrink-0" />}
+                                  {t.id === 'case_study' && <FileText className="w-4 h-4 text-indigo-600 shrink-0" />}
+                                  {t.id === 'interview' && <Users className="w-4 h-4 text-sky-600 shrink-0" />}
+                                  {t.title}
                                 </span>
-                                <span className="text-[10px] text-slate-500 font-normal mt-1 line-clamp-2">
+                                <span className="text-xs text-slate-600 font-normal mt-1 leading-relaxed">
                                   {t.description}
                                 </span>
                               </button>
@@ -1362,18 +1362,18 @@ export default function KelolaMateriTugas({ defaultTab = 'materials', fixedTab =
                         </div>
 
                         {formLkpdType === 'observation' && (
-                          <div className="p-3 bg-white rounded-xl border border-amber-200/80 space-y-2.5">
-                            <div className="flex items-center justify-between">
-                              <span className="text-xs font-bold text-amber-900">
-                                Preset Aspek Observasi:
+                          <div className="p-3.5 bg-white rounded-xl border border-slate-300 space-y-2.5">
+                            <div className="flex items-center justify-between flex-wrap gap-2">
+                              <span className="text-xs font-bold text-slate-900">
+                                Preset Topik Observasi:
                               </span>
                               <button
                                 type="button"
                                 onClick={() => handleApplyLkpdTemplate(formObservationPreset)}
-                                className="text-[11px] font-bold text-amber-600 hover:text-amber-700 flex items-center gap-1"
+                                className="text-xs font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1.5 cursor-pointer"
                               >
-                                <Sparkles className="w-3 h-3" />
-                                Terapkan Template Teks
+                                <Sparkles className="w-3.5 h-3.5" />
+                                Terapkan Draf Judul & Petunjuk
                               </button>
                             </div>
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
@@ -1385,15 +1385,15 @@ export default function KelolaMateriTugas({ defaultTab = 'materials', fixedTab =
                                     setFormObservationPreset(p.id);
                                     handleApplyLkpdTemplate(p.id);
                                   }}
-                                  className={`p-2 rounded-lg border text-left text-[11px] transition-all ${
+                                  className={`p-2.5 rounded-lg border text-left text-xs transition-all ${
                                     formObservationPreset === p.id
-                                      ? 'bg-amber-500 text-white font-bold border-amber-600 shadow-xs'
-                                      : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                                      ? 'bg-blue-600 text-white font-bold border-blue-600 shadow-xs'
+                                      : 'bg-slate-50 text-slate-800 border-slate-300 hover:bg-slate-100'
                                   }`}
                                 >
-                                  <div>{p.name}</div>
-                                  <div className={`text-[9px] ${formObservationPreset === p.id ? 'text-amber-100' : 'text-slate-400'}`}>
-                                    {p.aspects.length} Aspek Rupa/Fisik
+                                  <div className="font-bold">{p.name}</div>
+                                  <div className={`text-[11px] mt-0.5 ${formObservationPreset === p.id ? 'text-blue-100' : 'text-slate-600'}`}>
+                                    {p.aspects.length} Poin Analisis
                                   </div>
                                 </button>
                               ))}

@@ -497,16 +497,16 @@ export default function MateriTugasSiswa({ defaultTab = 'materials', fixedTab = 
                     </h3>
                     
                     {a.description && (
-                      <p className="text-slate-600 text-xs sm:text-sm leading-relaxed whitespace-pre-line line-clamp-3">
+                      <p className="text-slate-800 text-xs sm:text-sm leading-relaxed whitespace-pre-line break-words">
                         {a.description}
                       </p>
                     )}
 
                     {/* Show Teacher Feedback snippet if graded */}
                     {isGraded && sub.feedback && (
-                      <div className="bg-emerald-50/70 border border-emerald-100 p-2.5 rounded-xl text-xs text-emerald-900">
-                        <span className="font-bold block text-[11px] text-emerald-800 mb-0.5">Catatan Guru:</span>
-                        <p className="line-clamp-2 italic">"{sub.feedback}"</p>
+                      <div className="bg-emerald-50 border border-emerald-200 p-3 rounded-xl text-xs text-emerald-950 space-y-1">
+                        <span className="font-bold block text-xs text-emerald-900">Catatan Guru:</span>
+                        <p className="italic leading-relaxed whitespace-pre-line break-words font-medium">"{sub.feedback}"</p>
                       </div>
                     )}
                   </div>
@@ -514,13 +514,14 @@ export default function MateriTugasSiswa({ defaultTab = 'materials', fixedTab = 
                   <div className="space-y-3 pt-2 border-t border-slate-100">
                     {/* Deadline info strip */}
                     {hasDeadline ? (
-                      <div className="flex items-center gap-2 text-xs font-semibold text-slate-600 bg-slate-50 p-2.5 rounded-xl border border-slate-200/80">
-                        <Clock className={`w-4 h-4 shrink-0 ${isOverdue ? 'text-rose-500' : 'text-indigo-600'}`} />
-                        <span className="truncate">Tenggat: <b className={isOverdue ? 'text-rose-600' : 'text-slate-800'}>
+                      <div className="flex items-center gap-2 text-xs font-semibold text-slate-700 bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+                        <Clock className={`w-4 h-4 shrink-0 ${isOverdue ? 'text-rose-600' : 'text-blue-600'}`} />
+                        <span className="break-words">Tenggat: <b className={isOverdue ? 'text-rose-700 font-bold' : 'text-slate-900 font-bold'}>
                           {new Date(a.deadline!).toLocaleDateString('id-ID', {
                             weekday: 'short',
                             day: 'numeric',
                             month: 'short',
+                            year: 'numeric',
                             hour: '2-digit',
                             minute: '2-digit'
                           })}

@@ -9,15 +9,11 @@ import {
   AlertCircle, 
   Award, 
   Send, 
-  Sparkles, 
-  MapPin, 
-  Compass, 
   Maximize2, 
   Info,
   Edit3,
-  Calendar,
-  Clock,
-  ArrowRight
+  Palette,
+  FileCheck
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Assignment, AssignmentSubmission } from '../types';
@@ -51,9 +47,8 @@ export default function LkpdSubmissionModal({
     return OBSERVATION_PRESETS[presetKey] || OBSERVATION_PRESETS.art_elements;
   }, [assignment]);
 
-  // Form States
+  // Form States (No location field per user requirement)
   const [objectName, setObjectName] = useState('');
-  const [location, setLocation] = useState('');
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [reflection, setReflection] = useState('');
   
@@ -85,12 +80,10 @@ export default function LkpdSubmissionModal({
       const parsed = parseLkpdResponse(existingSubmission.text_response);
       if (parsed) {
         setObjectName(parsed.object_name || '');
-        setLocation(parsed.location || '');
         setAnswers(parsed.answers || {});
         setReflection(parsed.reflection || '');
       } else {
         setObjectName('');
-        setLocation('');
         setAnswers({});
         setReflection(existingSubmission.text_response || '');
       }
@@ -100,13 +93,12 @@ export default function LkpdSubmissionModal({
       setSelectedFile(null);
       setCompressionResult(null);
 
-      // If already graded, cannot edit. If not graded, default to view mode with edit button
+      // If already graded, cannot edit. If not graded and has submission, default to view mode
       const isGraded = existingSubmission.status === 'graded' || existingSubmission.score !== null;
       setIsEditMode(!isGraded && !existingSubmission.id);
     } else {
       // New submission
       setObjectName('');
-      setLocation('');
       setAnswers({});
       setReflection('');
       setExistingFileUrl(null);
@@ -126,7 +118,7 @@ export default function LkpdSubmissionModal({
     setIsCompressing(true);
 
     try {
-      const result = await compressImageFile(file, 1800, 0.8);
+      const result = await compressImageFile(file, 1800, 0.82);
 
       setSelectedFile(result.file);
       setCompressionResult(result);
@@ -168,10 +160,6 @@ export default function LkpdSubmissionModal({
       setErrorMsg('Harap isi nama objek atau benda yang kamu amati.');
       return;
     }
-    if (!location.trim()) {
-      setErrorMsg('Harap isi titik lokasi objek tersebut di lingkungan sekolah.');
-      return;
-    }
 
     setSubmitting(true);
     setErrorMsg(null);
@@ -182,7 +170,7 @@ export default function LkpdSubmissionModal({
       let finalFileType = existingSubmission?.file_type || null;
       let finalFileSize = existingSubmission?.file_size || null;
 
-      // 1. Upload new photo if changed
+      // 1. Upload new photo if selected
       if (selectedFile) {
         const folder = `lkpd_${studentInfo.school_id || 'general'}/${assignment.id}/${studentInfo.id}`;
         const uploadedUrl = await uploadSubmissionFile(selectedFile, folder);
@@ -192,17 +180,16 @@ export default function LkpdSubmissionModal({
         finalFileSize = selectedFile.size;
       }
 
-      // 2. Prepare structured JSON response
+      // 2. Prepare structured JSON response without location
       const payload: LkpdSubmissionPayload = {
         is_lkpd: true,
         lkpd_type: assignment.lkpd_type || 'observation',
         preset_id: lkpdConfig.id || 'art_elements',
         object_name: objectName.trim(),
-        location: location.trim(),
         answers,
         reflection: reflection.trim(),
         submitted_device: /Mobi|Android/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
-        version: 1
+        version: 2
       };
 
       const now = new Date().toISOString();
@@ -253,14 +240,14 @@ export default function LkpdSubmissionModal({
         console.warn('Local save failed:', locErr);
       }
 
-      setSuccessMsg('Hasil observasi LKPD berhasil dikirim!');
+      setSuccessMsg('Hasil observasi LKPD berhasil disimpan dan dikirim!');
       setIsEditMode(false);
       setTimeout(() => {
         onSuccess();
-      }, 800);
+      }, 700);
     } catch (err: any) {
       console.error(err);
-      setErrorMsg(err.message || 'Gagal mengirim LKPD. Pastikan koneksi internet stabil.');
+      setErrorMsg(err.message || 'Gagal mengirim LKPD. Silakan periksa koneksi internet Anda.');
     } finally {
       setSubmitting(false);
     }
@@ -273,125 +260,132 @@ export default function LkpdSubmissionModal({
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 overflow-y-auto">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
         {/* Backdrop */}
         <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-slate-950/70 backdrop-blur-xs"
+          className="fixed inset-0 bg-slate-950/75 backdrop-blur-xs"
           onClick={() => { if (!submitting) onClose(); }}
         />
 
-        {/* Modal Dialog */}
+        {/* Modal Window */}
         <motion.div
-          initial={{ scale: 0.95, opacity: 0, y: 15 }}
+          initial={{ scale: 0.96, opacity: 0, y: 12 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
-          exit={{ scale: 0.95, opacity: 0, y: 15 }}
-          className="relative bg-white rounded-3xl sm:rounded-[2.2rem] shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden border border-slate-100 z-10"
+          exit={{ scale: 0.96, opacity: 0, y: 12 }}
+          className="relative bg-white rounded-2xl sm:rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden border border-slate-300 z-10"
         >
-          {/* Header */}
-          <div className="px-5 py-4 sm:px-6 sm:py-5 border-b border-slate-100 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-white flex items-center justify-between shrink-0">
+          {/* Header - High Contrast Dark Navy */}
+          <div className="px-5 py-4 sm:px-6 sm:py-4.5 bg-slate-900 text-white flex items-center justify-between shrink-0 border-b border-slate-800">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-xs flex items-center justify-center text-white border border-white/20 shadow-inner">
-                <Sparkles className="w-5 h-5 text-amber-100" />
+              <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-sm shrink-0">
+                <Palette className="w-5 h-5" />
               </div>
-              <div>
-                <span className="text-[10px] font-black uppercase tracking-widest text-amber-200">
-                  LKPD Interaktif • {lkpdConfig.name || 'Observasi'}
+              <div className="min-w-0">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-blue-300 block">
+                  LKPD Observasi • {lkpdConfig.name || 'Seni Rupa'}
                 </span>
-                <h3 className="text-base sm:text-lg font-black leading-snug truncate max-w-[280px] sm:max-w-md">
+                <h3 className="text-base sm:text-lg font-bold text-white leading-snug break-words">
                   {assignment.title}
                 </h3>
               </div>
             </div>
             <button
+              type="button"
               onClick={() => { if (!submitting) onClose(); }}
-              className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors"
+              className="w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center transition-colors shrink-0 ml-2"
+              title="Tutup Modal"
             >
-              <X className="w-4 h-4" />
+              <X className="w-5 h-5" />
             </button>
           </div>
 
           {/* Body Content */}
-          <div className="p-4 sm:p-6 overflow-y-auto custom-scrollbar space-y-5 text-slate-800 flex-1">
+          <div className="p-4 sm:p-6 overflow-y-auto custom-scrollbar space-y-5 text-slate-900 flex-1 bg-white">
             {/* Alert / Notification */}
             {errorMsg && (
-              <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-2xl flex items-center gap-2.5 text-xs font-bold text-rose-700">
-                <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
-                <span>{errorMsg}</span>
+              <div className="p-3.5 bg-rose-50 border border-rose-300 rounded-xl flex items-start gap-2.5 text-xs font-semibold text-rose-900">
+                <AlertCircle className="w-4 h-4 text-rose-700 shrink-0 mt-0.5" />
+                <span className="break-words leading-relaxed">{errorMsg}</span>
               </div>
             )}
             {successMsg && (
-              <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center gap-2.5 text-xs font-bold text-emerald-700">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span>{successMsg}</span>
+              <div className="p-3.5 bg-emerald-50 border border-emerald-300 rounded-xl flex items-start gap-2.5 text-xs font-semibold text-emerald-900">
+                <CheckCircle2 className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" />
+                <span className="break-words leading-relaxed">{successMsg}</span>
               </div>
             )}
 
-            {/* Graded Summary Banner (if already reviewed by teacher) */}
+            {/* Teacher Evaluation Banner (If graded) */}
             {isGraded && (
-              <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-emerald-500/5 border border-emerald-500/30 flex items-start justify-between gap-4">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-emerald-700">
-                    <Award className="w-4 h-4 text-emerald-600" />
+              <div className="p-4 rounded-xl bg-emerald-50 border-2 border-emerald-300 flex items-start justify-between gap-4">
+                <div className="space-y-1.5 flex-1">
+                  <div className="flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-emerald-900">
+                    <Award className="w-4 h-4 text-emerald-700" />
                     <span>Sudah Dinilai Guru</span>
                   </div>
                   {existingSubmission?.feedback ? (
-                    <p className="text-xs text-slate-700 italic bg-white/70 p-2.5 rounded-xl border border-emerald-100">
-                      "{existingSubmission.feedback}"
-                    </p>
+                    <div className="bg-white p-3 rounded-lg border border-emerald-200">
+                      <span className="text-[11px] font-bold text-slate-500 uppercase block mb-0.5">Catatan & Masukan Guru:</span>
+                      <p className="text-xs sm:text-sm text-slate-900 font-medium leading-relaxed break-words whitespace-pre-line">
+                        "{existingSubmission.feedback}"
+                      </p>
+                    </div>
                   ) : (
-                    <p className="text-xs text-slate-500">Guru telah memeriksa hasil observasimu.</p>
+                    <p className="text-xs text-slate-700 font-medium">Guru telah memeriksa dan memberikan penilaian pada lembar kerja ini.</p>
                   )}
                 </div>
-                <div className="text-right shrink-0">
-                  <div className="text-[10px] font-bold text-slate-400 uppercase">Nilai</div>
-                  <div className="text-3xl font-black text-emerald-600">
+                <div className="text-right shrink-0 bg-white px-3.5 py-2 rounded-xl border border-emerald-200 shadow-xs">
+                  <div className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">Nilai</div>
+                  <div className="text-2xl sm:text-3xl font-black text-emerald-700">
                     {existingSubmission?.score ?? '-'}
                   </div>
                 </div>
               </div>
             )}
 
-            {/* Petunjuk Guru */}
+            {/* Petunjuk Pengerjaan Tugas */}
             {assignment.description && (
-              <div className="p-4 bg-amber-50/60 rounded-2xl border border-amber-200/70 text-xs text-amber-950 space-y-1">
-                <div className="flex items-center gap-1.5 font-black text-amber-900">
-                  <Info className="w-3.5 h-3.5 text-amber-600" />
-                  <span>Petunjuk Pengerjaan</span>
+              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 text-slate-800 space-y-1.5">
+                <div className="flex items-center gap-2 text-xs font-bold text-slate-900">
+                  <Info className="w-4 h-4 text-blue-600 shrink-0" />
+                  <span>Petunjuk Guru:</span>
                 </div>
-                <p className="text-slate-600 leading-relaxed whitespace-pre-line">
+                <p className="text-xs sm:text-sm text-slate-800 leading-relaxed whitespace-pre-line break-words">
                   {assignment.description}
                 </p>
               </div>
             )}
 
-            {/* Read-Only Summary Mode (When submitted and not in edit mode) */}
+            {/* VIEW MODE: When already submitted & not editing */}
             {!isEditMode && existingSubmission && (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+              <div className="space-y-5">
+                <div className="flex items-center justify-between pb-3 border-b border-slate-200 gap-2 flex-wrap">
                   <div className="flex items-center gap-2">
-                    <span className="bg-emerald-50 text-emerald-700 text-xs font-bold px-3 py-1 rounded-full border border-emerald-200 flex items-center gap-1">
-                      <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span className="bg-emerald-100 text-emerald-900 border border-emerald-300 text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1.5">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-700" />
                       Jawaban Terkirim
                     </span>
                     {existingSubmission.submitted_at && (
-                      <span className="text-[11px] text-slate-400 font-medium">
-                        {new Date(existingSubmission.submitted_at).toLocaleDateString('id-ID', {
+                      <span className="text-xs text-slate-600 font-medium">
+                        Dikirim: {new Date(existingSubmission.submitted_at).toLocaleDateString('id-ID', {
                           day: 'numeric',
                           month: 'short',
+                          year: 'numeric',
                           hour: '2-digit',
                           minute: '2-digit'
                         })}
                       </span>
                     )}
                   </div>
+
                   {!isGraded && (
                     <button
                       type="button"
                       onClick={() => setIsEditMode(true)}
-                      className="px-3 py-1.5 rounded-xl bg-amber-50 text-amber-800 hover:bg-amber-100 text-xs font-bold border border-amber-200 flex items-center gap-1.5 transition-all cursor-pointer"
+                      className="px-3.5 py-1.5 rounded-lg bg-blue-50 text-blue-800 hover:bg-blue-100 text-xs font-bold border border-blue-200 flex items-center gap-1.5 transition-colors cursor-pointer"
                     >
                       <Edit3 className="w-3.5 h-3.5" />
                       Edit Jawaban
@@ -401,48 +395,67 @@ export default function LkpdSubmissionModal({
 
                 {/* Submitted Photo Preview */}
                 {previewUrl && (
-                  <div className="relative rounded-2xl overflow-hidden border border-slate-200 bg-slate-900 group">
-                    <img 
-                      src={previewUrl} 
-                      alt="Foto Objek Observasi" 
-                      className="w-full max-h-72 object-cover"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-end p-4">
-                      <div className="text-white">
-                        <div className="text-sm font-black">{objectName || 'Objek Observasi'}</div>
-                        <div className="text-xs text-amber-200 flex items-center gap-1 mt-0.5">
-                          <MapPin className="w-3.5 h-3.5" />
-                          <span>{location || 'Lingkungan Sekolah'}</span>
-                        </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-900 uppercase tracking-wider block">
+                      Foto Objek Observasi:
+                    </label>
+                    <div className="rounded-xl overflow-hidden border border-slate-300 bg-slate-900 relative">
+                      <img 
+                        src={previewUrl} 
+                        alt="Foto Objek Observasi" 
+                        className="w-full max-h-72 object-contain bg-slate-950"
+                      />
+                      <div className="p-3 bg-slate-900 text-white flex items-center justify-between gap-2">
+                        <span className="text-xs font-bold truncate">
+                          {objectName || 'Objek Observasi'}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setIsZoomOpen(true)}
+                          className="px-2.5 py-1 rounded bg-white/20 hover:bg-white/30 text-white text-[11px] font-bold flex items-center gap-1"
+                        >
+                          <Maximize2 className="w-3 h-3" />
+                          <span>Perbesar</span>
+                        </button>
                       </div>
                     </div>
                   </div>
                 )}
 
-                {/* Answers Breakdown */}
+                {/* Object Name */}
+                <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
+                  <span className="text-[11px] font-bold text-slate-600 uppercase tracking-wider block">
+                    Nama Objek / Benda:
+                  </span>
+                  <p className="text-sm font-bold text-slate-900 break-words">
+                    {objectName || '-'}
+                  </p>
+                </div>
+
+                {/* 6 Elements Analysis Display */}
                 <div className="space-y-3">
-                  <h4 className="text-xs font-black uppercase tracking-wider text-slate-400">
-                    Hasil Analisis Unsur / Aspek:
+                  <h4 className="text-xs font-black uppercase tracking-wider text-slate-900">
+                    Hasil Analisis 6 Unsur Seni Rupa:
                   </h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-2.5">
                     {aspects.map(asp => (
-                      <div key={asp.id} className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 space-y-1">
-                        <span className="text-[11px] font-bold text-amber-800 uppercase tracking-wide block">
+                      <div key={asp.id} className="p-3.5 rounded-xl bg-white border border-slate-300 space-y-1">
+                        <span className="text-xs font-bold text-blue-900 block">
                           {asp.label}
                         </span>
-                        <p className="text-xs text-slate-700 leading-relaxed whitespace-pre-line">
-                          {answers[asp.id] || <span className="text-slate-400 italic">Tidak ada keterangan.</span>}
+                        <p className="text-xs sm:text-sm text-slate-800 leading-relaxed whitespace-pre-line break-words font-medium">
+                          {answers[asp.id] || <span className="text-slate-400 italic">Belum diisi.</span>}
                         </p>
                       </div>
                     ))}
                   </div>
 
                   {reflection && (
-                    <div className="p-3.5 rounded-2xl bg-amber-50/50 border border-amber-200/60 space-y-1">
-                      <span className="text-[11px] font-bold text-amber-900 uppercase tracking-wide block">
-                        Refleksi Siswa:
+                    <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-300 space-y-1">
+                      <span className="text-xs font-bold text-slate-900 uppercase tracking-wider block">
+                        Refleksi & Kesimpulan Siswa:
                       </span>
-                      <p className="text-xs text-slate-700 leading-relaxed whitespace-pre-line">
+                      <p className="text-xs sm:text-sm text-slate-800 leading-relaxed whitespace-pre-line break-words font-medium">
                         {reflection}
                       </p>
                     </div>
@@ -451,18 +464,23 @@ export default function LkpdSubmissionModal({
               </div>
             )}
 
-            {/* Interactive Edit/Submission Form */}
+            {/* EDIT / SUBMISSION FORM */}
             {isEditMode && (
               <form onSubmit={handleSubmit} className="space-y-5">
-                {/* 1. PHOTO CAPTURE & UPLOAD */}
+                {/* 1. PHOTO CAPTURE */}
                 <div className="space-y-2">
-                  <label className="text-xs font-black uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-                    <Camera className="w-4 h-4 text-amber-500" />
-                    <span>1. Foto Objek di Lingkungan Sekolah</span>
-                    <span className="text-rose-500">*</span>
-                  </label>
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-900 flex items-center gap-1.5">
+                      <Camera className="w-4 h-4 text-blue-600" />
+                      <span>1. Foto Objek di Sekitar Sekolah</span>
+                      <span className="text-rose-600 font-bold">*</span>
+                    </label>
+                    <span className="text-[11px] font-semibold text-slate-500">
+                      Wajib difoto
+                    </span>
+                  </div>
 
-                  {/* Hidden file inputs for Camera & Gallery */}
+                  {/* Hidden inputs */}
                   <input 
                     type="file"
                     ref={cameraInputRef}
@@ -480,150 +498,143 @@ export default function LkpdSubmissionModal({
                   />
 
                   {previewUrl ? (
-                    <div className="relative rounded-2xl overflow-hidden border border-slate-200 bg-slate-900 group">
+                    <div className="rounded-xl overflow-hidden border-2 border-slate-300 bg-slate-950 relative">
                       <img 
                         src={previewUrl} 
-                        alt="Preview Observasi" 
-                        className="w-full max-h-64 object-cover"
+                        alt="Preview Foto Observasi" 
+                        className="w-full max-h-64 object-contain bg-slate-950"
                       />
                       <div className="absolute top-2 right-2 flex items-center gap-2">
                         <button
                           type="button"
                           onClick={() => setIsZoomOpen(true)}
-                          className="p-2 rounded-xl bg-black/50 hover:bg-black/70 text-white backdrop-blur-xs transition-colors"
-                          title="Perbesar Foto"
+                          className="p-2 rounded-lg bg-black/60 hover:bg-black/80 text-white backdrop-blur-xs transition-colors"
+                          title="Perbesar"
                         >
                           <Maximize2 className="w-4 h-4" />
                         </button>
                         <button
                           type="button"
                           onClick={handleRemovePhoto}
-                          className="p-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white shadow-md transition-colors"
-                          title="Hapus / Foto Ulang"
+                          className="p-2 rounded-lg bg-rose-600 hover:bg-rose-700 text-white transition-colors"
+                          title="Hapus Foto"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
-                      <div className="p-3 bg-slate-900/90 text-white text-[11px] flex items-center justify-between">
-                        <span className="truncate">
+                      <div className="p-2.5 bg-slate-900 text-white text-xs flex items-center justify-between gap-2 border-t border-slate-800">
+                        <span className="truncate text-slate-300">
                           {selectedFile ? selectedFile.name : 'Foto tersimpan'}
                         </span>
                         {compressionResult && (
-                          <span className="text-emerald-400 font-bold ml-2 shrink-0">
-                            Terkonversi: {formatFileSize(compressionResult.compressedSize)} (Hemat {compressionResult.reductionPercentage}%)
+                          <span className="text-emerald-400 font-bold shrink-0 text-[11px]">
+                            Ukuran: {formatFileSize(compressionResult.compressedSize)}
                           </span>
                         )}
                       </div>
                     </div>
                   ) : (
-                    <div className="p-5 border-2 border-dashed border-amber-300 rounded-2xl bg-amber-50/40 text-center space-y-3">
-                      <div className="w-12 h-12 rounded-full bg-amber-100 text-amber-600 mx-auto flex items-center justify-center">
+                    <div className="p-6 border-2 border-dashed border-slate-300 hover:border-blue-400 rounded-2xl bg-slate-50/60 text-center space-y-3 transition-colors">
+                      <div className="w-12 h-12 rounded-xl bg-blue-100 text-blue-700 mx-auto flex items-center justify-center">
                         {isCompressing ? (
-                          <Loader2 className="w-6 h-6 animate-spin" />
+                          <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
                         ) : (
                           <Camera className="w-6 h-6" />
                         )}
                       </div>
-                      <div>
-                        <h5 className="text-sm font-bold text-slate-800">
-                          {isCompressing ? 'Sedang mengompres foto...' : 'Ambil Foto Objek Observasi'}
+                      <div className="space-y-1">
+                        <h5 className="text-sm font-bold text-slate-900">
+                          {isCompressing ? 'Sedang memproses foto...' : 'Ambil Foto Objek Langsung'}
                         </h5>
-                        <p className="text-xs text-slate-500 max-w-sm mx-auto mt-0.5">
-                          Jepret langsung objek di sekolah menggunakan kamera smartphone atau pilih dari galeri.
+                        <p className="text-xs text-slate-600 max-w-sm mx-auto leading-relaxed">
+                          Gunakan kamera HP untuk memotret objek yang sedang kamu amati di lingkungan sekolah.
                         </p>
                       </div>
 
-                      <div className="flex items-center justify-center gap-2 pt-1">
+                      <div className="flex items-center justify-center gap-2 pt-1 flex-wrap">
                         <button
                           type="button"
                           disabled={isCompressing}
                           onClick={() => cameraInputRef.current?.click()}
-                          className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold text-xs shadow-md shadow-amber-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-1.5"
+                          className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-sm flex items-center gap-2 transition-all cursor-pointer"
                         >
                           <Camera className="w-4 h-4" />
-                          <span>Buka Kamera</span>
+                          <span>Buka Kamera HP</span>
                         </button>
 
                         <button
                           type="button"
                           disabled={isCompressing}
                           onClick={() => galleryInputRef.current?.click()}
-                          className="px-4 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-700 font-bold text-xs hover:bg-slate-50 transition-all flex items-center gap-1.5"
+                          className="px-4 py-2.5 rounded-xl bg-white border border-slate-300 hover:bg-slate-100 text-slate-800 font-bold text-xs transition-all flex items-center gap-2 cursor-pointer"
                         >
-                          <ImageIcon className="w-4 h-4 text-slate-500" />
-                          <span>Pilih Galeri</span>
+                          <ImageIcon className="w-4 h-4 text-slate-600" />
+                          <span>Pilih dari Galeri</span>
                         </button>
                       </div>
                     </div>
                   )}
                 </div>
 
-                {/* 2. OBJECT NAME & LOCATION */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-                  <div className="space-y-1">
-                    <label className="text-[12px] font-bold text-slate-700 flex items-center gap-1">
-                      <span>Nama Objek / Benda</span>
-                      <span className="text-rose-500">*</span>
-                    </label>
-                    <input 
-                      type="text"
-                      required
-                      placeholder="Contoh: Relief Dinding, Patung Elang, Daun Palem"
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 outline-none focus:border-amber-500 transition-colors"
-                      value={objectName}
-                      onChange={(e) => setObjectName(e.target.value)}
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-[12px] font-bold text-slate-700 flex items-center gap-1">
-                      <MapPin className="w-3.5 h-3.5 text-amber-500" />
-                      <span>Titik Lokasi di Sekolah</span>
-                      <span className="text-rose-500">*</span>
-                    </label>
-                    <input 
-                      type="text"
-                      required
-                      placeholder="Contoh: Taman Depan Lab Biologi, Koridor Lt.2"
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 outline-none focus:border-amber-500 transition-colors"
-                      value={location}
-                      onChange={(e) => setLocation(e.target.value)}
-                    />
-                  </div>
+                {/* 2. OBJECT NAME (Location field removed per user requirement) */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-900 flex items-center gap-1">
+                    <span>2. Nama Objek / Benda yang Diobservasi</span>
+                    <span className="text-rose-600 font-bold">*</span>
+                  </label>
+                  <input 
+                    type="text"
+                    required
+                    placeholder="Contoh: Relief Dinding Gerbang, Patung Lambang Sekolah, Pohon Cemara Kipas"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs sm:text-sm font-semibold text-slate-900 placeholder:text-slate-400 outline-none focus:border-blue-600 transition-colors"
+                    value={objectName}
+                    onChange={(e) => setObjectName(e.target.value)}
+                  />
+                  <p className="text-[11px] text-slate-600">
+                    Tuliskan nama jelas dari benda atau sudut karya seni rupa yang kamu amati.
+                  </p>
                 </div>
 
-                {/* 3. ASPECTS ANALYSIS (UNSUR RUPA / ASPEK) */}
-                <div className="space-y-3 pt-2">
+                {/* 3. 6 ELEMENTS OF ART (UNSUR-UNSUR RUPA) */}
+                <div className="space-y-3 pt-2 border-t border-slate-200">
                   <div className="flex items-center justify-between">
-                    <label className="text-xs font-black uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-                      <Compass className="w-4 h-4 text-amber-500" />
-                      <span>3. Analisis Unsur-Unsur Rupa / Karakteristik</span>
-                    </label>
-                    <span className="text-[11px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md">
-                      {aspects.length} Poin Analisis
+                    <div>
+                      <label className="text-xs font-bold uppercase tracking-wider text-slate-900 flex items-center gap-1.5">
+                        <Palette className="w-4 h-4 text-blue-600" />
+                        <span>3. Analisis 6 Unsur Seni Rupa</span>
+                      </label>
+                      <p className="text-[11px] text-slate-600 mt-0.5">
+                        Jelaskan hasil pengamatanmu pada masing-masing unsur rupa di bawah ini:
+                      </p>
+                    </div>
+                    <span className="text-xs font-bold text-blue-800 bg-blue-50 border border-blue-200 px-2.5 py-1 rounded-lg shrink-0">
+                      {aspects.length} Unsur Rupa
                     </span>
                   </div>
 
-                  <div className="space-y-3">
-                    {aspects.map((asp) => (
+                  <div className="space-y-3.5">
+                    {aspects.map((asp, idx) => (
                       <div 
                         key={asp.id} 
-                        className="p-3.5 rounded-2xl bg-slate-50/70 border border-slate-200/80 focus-within:border-amber-400 focus-within:bg-white transition-all space-y-1.5"
+                        className="p-4 rounded-xl bg-white border border-slate-300 focus-within:border-blue-600 focus-within:ring-1 focus-within:ring-blue-600 space-y-2 transition-all shadow-2xs"
                       >
                         <div className="flex items-center justify-between">
-                          <span className="text-xs font-black text-slate-800">
+                          <span className="text-xs sm:text-sm font-bold text-slate-900">
                             {asp.label}
+                          </span>
+                          <span className="text-[10px] font-bold text-slate-500 uppercase">
+                            Unsur {idx + 1} dari {aspects.length}
                           </span>
                         </div>
                         {asp.helperText && (
-                          <p className="text-[11px] text-slate-500 font-medium">
-                            💡 {asp.helperText}
+                          <p className="text-xs text-slate-700 leading-relaxed break-words bg-slate-50 p-2.5 rounded-lg border border-slate-200">
+                            💡 <span className="font-semibold text-slate-900">Panduan:</span> {asp.helperText}
                           </p>
                         )}
                         <textarea
-                          rows={2}
-                          placeholder={asp.placeholder || 'Tuliskan hasil pengamatanmu...'}
-                          className="w-full p-2.5 rounded-xl border border-slate-200/90 text-xs font-medium text-slate-800 outline-none focus:border-amber-500 transition-colors resize-none"
+                          rows={3}
+                          placeholder={asp.placeholder || 'Tuliskan hasil pengamatanmu untuk unsur ini...'}
+                          className="w-full p-3 rounded-lg border border-slate-300 bg-white text-xs sm:text-sm font-medium text-slate-900 placeholder:text-slate-400 outline-none focus:border-blue-600 transition-colors resize-none leading-relaxed"
                           value={answers[asp.id] || ''}
                           onChange={(e) => handleAnswerChange(asp.id, e.target.value)}
                         />
@@ -633,31 +644,31 @@ export default function LkpdSubmissionModal({
                 </div>
 
                 {/* 4. REFLECTION */}
-                <div className="space-y-1.5 pt-2">
-                  <label className="text-xs font-black uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-                    <Sparkles className="w-4 h-4 text-amber-500" />
-                    <span>4. Refleksi / Kesimpulan Pengamatan</span>
+                <div className="space-y-2 pt-2 border-t border-slate-200">
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-900 flex items-center gap-1.5">
+                    <FileCheck className="w-4 h-4 text-blue-600" />
+                    <span>4. Refleksi & Kesimpulan Estetika</span>
                   </label>
-                  <p className="text-[11px] text-slate-500">
-                    {lkpdConfig.reflectionPrompt || 'Tuliskan alasan memilih objek ini serta kesan estetika/keindahannya.'}
+                  <p className="text-xs text-slate-700 leading-relaxed break-words">
+                    {lkpdConfig.reflectionPrompt || 'Mengapa kamu memilih objek ini dan apa kesan keindahan yang kamu rasakan?'}
                   </p>
                   <textarea
                     rows={3}
-                    placeholder="Contoh: Saya memilih objek ini karena perpaduan warna dan teksturnya sangat unik..."
-                    className="w-full p-3 rounded-xl border border-slate-200 text-xs font-medium text-slate-800 outline-none focus:border-amber-500 transition-colors resize-none"
+                    placeholder="Contoh: Saya memilih objek ini karena perpaduan unsur bentuk dan teksturnya sangat unik serta harmonis..."
+                    className="w-full p-3 rounded-xl border border-slate-300 bg-white text-xs sm:text-sm font-medium text-slate-900 placeholder:text-slate-400 outline-none focus:border-blue-600 transition-colors resize-none leading-relaxed"
                     value={reflection}
                     onChange={(e) => setReflection(e.target.value)}
                   />
                 </div>
 
-                {/* Submit Action Buttons */}
-                <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-3">
+                {/* Footer Buttons */}
+                <div className="pt-4 border-t border-slate-200 flex items-center justify-between gap-3">
                   {existingSubmission && (
                     <button
                       type="button"
                       disabled={submitting}
                       onClick={() => setIsEditMode(false)}
-                      className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs font-bold transition-colors"
+                      className="px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-100 text-xs font-bold transition-colors cursor-pointer"
                     >
                       Batal Edit
                     </button>
@@ -667,19 +678,19 @@ export default function LkpdSubmissionModal({
                       type="button"
                       disabled={submitting}
                       onClick={onClose}
-                      className="px-4 py-2.5 rounded-xl text-slate-500 hover:bg-slate-100 text-xs font-bold transition-colors"
+                      className="px-4 py-2.5 rounded-xl text-slate-700 hover:bg-slate-100 text-xs font-bold transition-colors cursor-pointer"
                     >
                       Tutup
                     </button>
                     <button
                       type="submit"
                       disabled={submitting || isCompressing}
-                      className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold text-xs shadow-lg shadow-amber-500/25 flex items-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50"
+                      className="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm shadow-md flex items-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50 cursor-pointer"
                     >
                       {submitting ? (
                         <>
                           <Loader2 className="w-4 h-4 animate-spin" />
-                          <span>Mengirim LKPD...</span>
+                          <span>Menyimpan & Mengirim...</span>
                         </>
                       ) : (
                         <>

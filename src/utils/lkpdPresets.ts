@@ -76,40 +76,46 @@ export const OBSERVATION_PRESETS: Record<string, ObservationPreset> = {
     id: 'art_elements',
     name: 'Seni Rupa (Unsur-Unsur Rupa)',
     subject: 'Seni Budaya / Seni Rupa',
-    defaultTitle: 'LKPD Observasi Lingkungan: Eksplorasi Unsur Seni Rupa',
-    defaultDesc: 'Temukan 1 objek atau sudut visual menarik di lingkungan sekolah. Ambil foto objek tersebut menggunakan kameramu, lalu jelaskan unsur-unsur rupa yang ada pada objek tersebut secara cermat.',
+    defaultTitle: 'LKPD Observasi Lingkungan: Eksplorasi 6 Unsur Seni Rupa',
+    defaultDesc: 'Temukan 1 objek atau karya visual menarik di lingkungan sekolah. Ambil foto objek tersebut menggunakan kamera, lalu analisis 6 unsur rupa yang tampak: titik dan garis, bidang dan bentuk, ruang, tekstur, warna, serta gelap terang.',
     requirePhoto: true,
     photoLabel: 'Foto Objek yang Diobservasi',
     aspects: [
       {
-        id: 'garis',
-        label: '1. Unsur Garis',
-        placeholder: 'Contoh: Terlihat garis lengkung dinamis pada tepi daun, dan garis lurus tegas pada pilar penyangga...',
-        helperText: 'Perhatikan jenis garis: lurus, melengkung, patah-patah, tegas, atau semu.'
+        id: 'titik_garis',
+        label: '1. Titik dan Garis',
+        placeholder: 'Contoh: Terlihat garis lengkung dinamis pada tepi ornamen, garis lurus tegas pada pilar, serta pola bintik/titik tekstural...',
+        helperText: 'Perhatikan bagaimana unsur titik dan goresan garis membentuk objek (lurus, melengkung, patah-patah, tegas, atau semu).'
       },
       {
         id: 'bidang_bentuk',
-        label: '2. Unsur Bidang & Bentuk',
-        placeholder: 'Contoh: Bentuk 3 dimensi gabungan bidang geometris (alas kotak) dan organis (patung elang)...',
-        helperText: 'Apakah bentuknya geometris (persegi, lingkaran) atau organis/alami? 2 Dimensi atau 3 Dimensi?'
+        label: '2. Bidang dan Bentuk',
+        placeholder: 'Contoh: Wujud 3 dimensi bervolume, gabungan bidang geometris (alas balok) dan bentuk organis (sayap burung)...',
+        helperText: 'Amati wujud bidang (2 Dimensi) dan bentuk bervolume (3 Dimensi), apakah geometris (teratur) atau organis (alami/bebas).'
       },
       {
-        id: 'warna',
-        label: '3. Unsur Warna',
-        placeholder: 'Contoh: Dominan warna hijau lumut alami dipadukan dengan aksen kuning kecokelatan...',
-        helperText: 'Sebutkan warna dominan, apakah warna primer/sekunder, bernuansa hangat, dingin, atau kontras.'
+        id: 'ruang',
+        label: '3. Ruang',
+        placeholder: 'Contoh: Objek memiliki ruang nyata 3 dimensi dengan rongga terbuka di bagian tengah yang memberi kesan kedalaman...',
+        helperText: 'Amati kesan kedalaman, rongga, atau jarak (ruang nyata pada benda 3D atau ilusi kedalaman pada karya 2D).'
       },
       {
         id: 'tekstur',
-        label: '4. Unsur Tekstur',
-        placeholder: 'Contoh: Tekstur nyata yang terasa kasar saat disentuh, dengan pori-pori yang jelas...',
-        helperText: 'Bagaimana tekstur permukaannya: kasar, halus, licin, berpori, atau bergelombang? Nyata atau semu?'
+        label: '4. Tekstur',
+        placeholder: 'Contoh: Tekstur nyata yang terasa kasar dan berpori saat diraba pada bagian batu, serta halus licin pada bagian logam...',
+        helperText: 'Bagaimana permukaan benda: kasar, halus, licin, berpori, atau bergelombang? Apakah tekstur nyata atau semu?'
+      },
+      {
+        id: 'warna',
+        label: '5. Warna',
+        placeholder: 'Contoh: Didominasi warna hijau lumut alami dipadukan dengan aksen kuning kecokelatan yang hangat dan harmonis...',
+        helperText: 'Sebutkan warna dominan, keharmonisan, kontras, serta kesan hangat, dingin, atau netral dari warna objek.'
       },
       {
         id: 'gelap_terang',
-        label: '5. Unsur Gelap-Terang & Ruang',
-        placeholder: 'Contoh: Pencahayaan dari atas menimbulkan bayangan pekat di bawah lipatan, memberi kesan volume...',
-        helperText: 'Bagaimana arah jatuhnya cahaya dan bayangan? Apakah menciptakan kesan kedalaman ruang?'
+        label: '6. Gelap Terang',
+        placeholder: 'Contoh: Arah datangnya sinar matahari dari samping atas menimbulkan bayangan pekat di sisi bawah, mempertegas volume objek...',
+        helperText: 'Amati intensitas cahaya dan bayangan. Bagaimana gelap terang mempertegas bentuk, dimensi, dan volume benda?'
       }
     ],
     reflectionPrompt: 'Mengapa kamu memilih objek ini dan apa kesan keindahan/estetika yang kamu rasakan?'

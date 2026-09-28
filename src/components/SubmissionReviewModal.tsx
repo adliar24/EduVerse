@@ -753,77 +753,78 @@ export default function SubmissionReviewModal({
                   if (lkpdData) {
                     return (
                       <div className="space-y-4">
-                        {/* Header Banner */}
-                        <div className="p-3.5 bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-500/5 rounded-2xl border border-amber-500/30 flex items-center justify-between gap-3 flex-wrap">
-                          <div className="flex items-center gap-2.5">
-                            <div className="w-8 h-8 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white flex items-center justify-center shadow-xs">
-                              <Sparkles className="w-4 h-4" />
+                        {/* Header Banner - High Contrast */}
+                        <div className="p-4 bg-slate-900 text-white rounded-xl flex items-center justify-between gap-3 flex-wrap">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-lg bg-blue-600 text-white flex items-center justify-center shrink-0">
+                              <Sparkles className="w-5 h-5" />
                             </div>
-                            <div>
-                              <span className="text-[10px] font-black uppercase tracking-wider text-amber-700 block">
-                                Laporan LKPD Observasi Lapangan
+                            <div className="min-w-0">
+                              <span className="text-[10px] font-bold uppercase tracking-wider text-blue-300 block">
+                                Laporan LKPD Observasi
                               </span>
-                              <h4 className="text-sm font-black text-slate-800">
+                              <h4 className="text-sm sm:text-base font-bold text-white break-words">
                                 {lkpdData.object_name || 'Objek Observasi'}
                               </h4>
                             </div>
                           </div>
-                          {lkpdData.location && (
-                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-amber-200 text-amber-900 text-xs font-bold shadow-2xs">
-                              <MapPin className="w-3.5 h-3.5 text-amber-600" />
-                              <span>Lokasi: {lkpdData.location}</span>
-                            </span>
-                          )}
                         </div>
 
                         {/* Student Photo */}
                         {selectedSubmission.file_url && (
                           <div className="space-y-1.5">
-                            <label className="text-[11px] font-bold text-slate-700 flex items-center gap-1.5">
-                              <ImageIcon className="w-3.5 h-3.5 text-amber-600" />
-                              <span>Foto Objek yang Diobservasi</span>
+                            <label className="text-xs font-bold text-slate-900 uppercase tracking-wider block">
+                              Foto Objek yang Diobservasi:
                             </label>
-                            <div className="relative rounded-2xl overflow-hidden border border-slate-200 bg-slate-900 group">
+                            <div className="rounded-xl overflow-hidden border border-slate-300 bg-slate-900">
                               <img 
                                 src={getOptimizedMediaUrl(selectedSubmission.file_url, selectedSubmission.file_type, selectedSubmission.file_name)}
                                 alt={lkpdData.object_name || 'Foto Observasi'}
-                                className="w-full max-h-72 object-contain bg-slate-950/80"
+                                className="w-full max-h-80 object-contain bg-slate-950"
                               />
-                              <div className="p-2.5 bg-slate-900/90 text-white text-[11px] flex items-center justify-between">
-                                <span className="truncate">{lkpdData.object_name || selectedSubmission.file_name || 'Foto Objek'}</span>
+                              <div className="p-3 bg-slate-900 text-white text-xs flex items-center justify-between gap-2 border-t border-slate-800">
+                                <span className="font-semibold truncate text-slate-200">
+                                  {lkpdData.object_name || selectedSubmission.file_name || 'Foto Objek'}
+                                </span>
                                 <a
                                   href={selectedSubmission.file_url}
                                   target="_blank"
                                   rel="noreferrer"
-                                  className="text-amber-400 hover:text-amber-300 font-bold flex items-center gap-1 ml-2 shrink-0"
+                                  className="text-blue-300 hover:text-white font-bold flex items-center gap-1 shrink-0"
                                 >
-                                  <span>Buka Foto Asli</span>
-                                  <ExternalLink className="w-3 h-3" />
+                                  <span>Buka Ukuran Penuh</span>
+                                  <ExternalLink className="w-3.5 h-3.5" />
                                 </a>
                               </div>
                             </div>
                           </div>
                         )}
 
-                        {/* Breakdown of aspects */}
+                        {/* Breakdown of 6 elements */}
                         <div className="space-y-2">
-                          <label className="text-[11px] font-bold text-slate-700 flex items-center gap-1.5">
-                            <Compass className="w-3.5 h-3.5 text-amber-600" />
-                            <span>Rincian Analisis Unsur-Unsur Rupa / Karakteristik</span>
+                          <label className="text-xs font-bold text-slate-900 uppercase tracking-wider block">
+                            Rincian Analisis 6 Unsur Seni Rupa:
                           </label>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                          <div className="space-y-2.5">
                             {Object.entries(lkpdData.answers || {}).map(([key, value]) => {
-                              const aspectDef = OBSERVATION_PRESETS.art_elements.aspects.find(a => a.id === key) 
-                                || OBSERVATION_PRESETS.biology_morphology.aspects.find(a => a.id === key);
-                              const label = aspectDef ? aspectDef.label : (key.replace(/_/g, ' ').toUpperCase());
+                              const aspectMap: Record<string, string> = {
+                                titik_garis: '1. Titik dan Garis',
+                                garis: '1. Titik dan Garis',
+                                bidang_bentuk: '2. Bidang dan Bentuk',
+                                ruang: '3. Ruang',
+                                tekstur: '4. Tekstur',
+                                warna: '5. Warna',
+                                gelap_terang: '6. Gelap Terang'
+                              };
+                              const label = aspectMap[key] || (key.replace(/_/g, ' ').toUpperCase());
 
                               return (
-                                <div key={key} className="p-3 bg-slate-50 rounded-xl border border-slate-200/90 space-y-1">
-                                  <span className="text-[10px] font-bold text-amber-800 uppercase tracking-wider block">
+                                <div key={key} className="p-3.5 bg-white rounded-xl border border-slate-300 space-y-1">
+                                  <span className="text-xs font-bold text-blue-900 block">
                                     {label}
                                   </span>
-                                  <p className="text-xs text-slate-800 leading-relaxed whitespace-pre-line font-medium">
-                                    {value || <span className="text-slate-400 italic">Tidak diisi</span>}
+                                  <p className="text-xs sm:text-sm text-slate-900 leading-relaxed whitespace-pre-line break-words font-medium">
+                                    {value || <span className="text-slate-400 italic">Tidak diisi oleh murid.</span>}
                                   </p>
                                 </div>
                               );
@@ -833,11 +834,11 @@ export default function SubmissionReviewModal({
 
                         {/* Reflection */}
                         {lkpdData.reflection && (
-                          <div className="p-3 bg-amber-50/60 rounded-xl border border-amber-200/80 space-y-1">
-                            <span className="text-[10px] font-bold text-amber-900 uppercase tracking-wider block">
-                              Refleksi / Kesimpulan Murid:
+                          <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-300 space-y-1">
+                            <span className="text-xs font-bold text-slate-900 uppercase tracking-wider block">
+                              Refleksi & Kesimpulan Murid:
                             </span>
-                            <p className="text-xs text-slate-800 leading-relaxed whitespace-pre-line font-medium">
+                            <p className="text-xs sm:text-sm text-slate-900 leading-relaxed whitespace-pre-line break-words font-medium">
                               {lkpdData.reflection}
                             </p>
                           </div>
