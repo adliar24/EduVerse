@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { 
   ArrowLeft, 
   Search, 
@@ -13,10 +13,9 @@ import {
   Sparkles,
   ChevronDown,
   User,
-  Calendar,
-  CheckCircle2,
   Clock,
-  Award
+  Award,
+  ArrowRight
 } from 'lucide-react';
 import { Assignment, AssignmentSubmission, Student, ClassEntity } from '../types';
 import { supabase } from '../lib/supabase';
@@ -62,6 +61,9 @@ export default function SubmissionReviewView({
   // Full image preview
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
   const [imgLoadError, setImgLoadError] = useState(false);
+
+  // Ref for scroll container
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // Assigned classes for this assignment
   const assignedClasses = useMemo(() => {
@@ -325,32 +327,63 @@ export default function SubmissionReviewView({
     return filteredStudents.findIndex(s => s.id === selectedStudent.id);
   }, [filteredStudents, selectedStudent]);
 
-  const handlePrevStudent = () => {
+  // Auto-scroll to top smoothly whenever student changes
+  useEffect(() => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    const canvasEl = document.getElementById('review-work-canvas');
+    if (canvasEl) {
+      const canvasTop = canvasEl.getBoundingClientRect().top + window.pageYOffset - 80;
+      if (window.pageYOffset > canvasTop) {
+        window.scrollTo({ top: Math.max(0, canvasTop), behavior: 'smooth' });
+      }
+    }
+  }, [selectedStudentId]);
+
+  const handlePrevStudent = useCallback(() => {
     if (currentIndex > 0) {
       const prevStudent = filteredStudents[currentIndex - 1];
       setSelectedStudentId(prevStudent.id || null);
-      // Auto-switch pagination page if prev student is on the previous page
       const prevTargetPage = Math.floor((currentIndex - 1) / STUDENTS_PER_PAGE) + 1;
       if (prevTargetPage !== studentPage) {
         setStudentPage(prevTargetPage);
       }
     }
-  };
+  }, [currentIndex, filteredStudents, studentPage]);
 
-  const handleNextStudent = () => {
+  const handleNextStudent = useCallback(() => {
     if (currentIndex >= 0 && currentIndex < filteredStudents.length - 1) {
       const nextStudent = filteredStudents[currentIndex + 1];
       setSelectedStudentId(nextStudent.id || null);
-      // Auto-switch pagination page if next student is on the next page
       const nextTargetPage = Math.floor((currentIndex + 1) / STUDENTS_PER_PAGE) + 1;
       if (nextTargetPage !== studentPage) {
         setStudentPage(nextTargetPage);
       }
     }
-  };
+  }, [currentIndex, filteredStudents, studentPage]);
 
-  const handleSaveGrade = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Global Keyboard shortcuts: Arrow Left (Prev) & Arrow Right (Next)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const activeEl = document.activeElement as HTMLElement | null;
+      if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.tagName === 'SELECT')) {
+        return;
+      }
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        handlePrevStudent();
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        handleNextStudent();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handlePrevStudent, handleNextStudent]);
+
+  const handleSaveGrade = async (e?: React.FormEvent, andGoNext: boolean = false) => {
+    if (e) e.preventDefault();
     if (!selectedStudent || !assignment) return;
 
     const numScore = parseFloat(scoreInput);
@@ -406,7 +439,7 @@ export default function SubmissionReviewView({
         console.error('Supabase upsert error:', error);
         setGradeErrorMsg(`Gagal menyimpan: ${error.message}`);
       } else {
-        setGradeSuccessMsg('Nilai & umpan balik berhasil disimpan ke database!');
+        setGradeSuccessMsg('Nilai & umpan balik berhasil disimpan!');
       }
 
       setSubmissions(prev => {
@@ -424,6 +457,16 @@ export default function SubmissionReviewView({
       });
 
       if (onGradeSaved) onGradeSaved();
+
+      // If user chose "Save and Go Next", seamlessly jump to next student
+      if (andGoNext) {
+        if (currentIndex < filteredStudents.length - 1) {
+          handleNextStudent();
+        } else {
+          setGradeSuccessMsg('Nilai tersimpan! Ini adalah murid terakhir di daftar.');
+        }
+      }
+
       setTimeout(() => setGradeSuccessMsg(null), 3000);
     } catch (err: any) {
       console.error('Error saving grade:', err);
@@ -445,7 +488,7 @@ export default function SubmissionReviewView({
   const aspects = lkpdConfig.aspects || OBSERVATION_PRESETS.art_elements.aspects;
 
   return (
-    <div className="space-y-6 pb-12 font-sans">
+    <div className="space-y-6 pb-16 font-sans">
       {/* Header Bar - EduVerse Theme */}
       <div className="bg-white rounded-3xl p-5 sm:p-6 border border-indigo-100 shadow-md shadow-[#3B66F5]/5 space-y-4">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
@@ -471,9 +514,8 @@ export default function SubmissionReviewView({
             </h1>
           </div>
 
-          {/* Controls: Class Selector Dropdown & Quick Stats */}
+          {/* Controls: Class Selector Dropdown */}
           <div className="flex items-center gap-3 flex-wrap">
-            {/* Dropdown Pemilihan Kelas */}
             <div className="flex items-center gap-2 bg-indigo-50/70 p-1.5 rounded-2xl border border-indigo-200/80">
               <School className="w-4 h-4 text-[#1D4ED8] ml-2 shrink-0" />
               <span className="text-xs font-bold text-slate-600 hidden sm:inline">Pilih Kelas:</span>
@@ -633,7 +675,6 @@ export default function SubmissionReviewView({
                         <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${
                           isSelected ? 'bg-white/20 text-white' : 'bg-blue-50 text-[#1D4ED8] border border-blue-200'
                         }`}>
-                          <CheckCircle2 className="w-3 h-3" />
                           Terkumpul
                         </span>
                       ) : (
@@ -648,7 +689,7 @@ export default function SubmissionReviewView({
             )}
           </div>
 
-          {/* Pagination Controls ("Next aja jadinya") */}
+          {/* Pagination Controls */}
           <div className="p-3.5 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-slate-700">
             <span className="text-[11px] text-slate-500 font-semibold">
               Hal {studentPage} dari {totalStudentPages} ({filteredStudents.length} murid)
@@ -676,13 +717,17 @@ export default function SubmissionReviewView({
         </aside>
 
         {/* Right Column: Submission Details & Grading Canvas */}
-        <main className={`flex-1 w-full bg-white rounded-3xl border border-indigo-100 shadow-md shadow-[#3B66F5]/5 flex flex-col overflow-hidden ${
-          mobileView === 'list' ? 'hidden lg:flex' : 'flex'
-        }`}>
+        <main 
+          id="review-work-canvas" 
+          ref={scrollContainerRef}
+          className={`flex-1 w-full bg-white rounded-3xl border border-indigo-100 shadow-md shadow-[#3B66F5]/5 flex flex-col overflow-hidden ${
+            mobileView === 'list' ? 'hidden lg:flex' : 'flex'
+          }`}
+        >
           {selectedStudent ? (
             <>
-              {/* Header Murid Aktif & Navigasi Cepat Siswa */}
-              <div className="p-5 sm:p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-gradient-to-r from-indigo-50/40 via-white to-blue-50/40 shrink-0">
+              {/* STICKY STUDENT HEADER - FLOATS ON TOP WHILE SCROLLING */}
+              <div className="sticky top-0 z-20 bg-white/95 backdrop-blur-md p-4 sm:p-5 border-b border-indigo-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0 shadow-xs transition-all">
                 <div className="flex items-center gap-3 min-w-0">
                   <button
                     type="button"
@@ -693,13 +738,13 @@ export default function SubmissionReviewView({
                     <ChevronLeft className="w-5 h-5" />
                   </button>
 
-                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#3B66F5] to-[#1D4ED8] text-white flex items-center justify-center font-black text-lg shadow-sm shrink-0">
-                    <User className="w-6 h-6" />
+                  <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-[#3B66F5] to-[#1D4ED8] text-white flex items-center justify-center font-black text-base shadow-sm shrink-0">
+                    <User className="w-5 h-5" />
                   </div>
 
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <h2 className="text-lg sm:text-xl font-extrabold text-[#1D4ED8] truncate">
+                      <h2 className="text-base sm:text-lg font-extrabold text-[#1D4ED8] truncate">
                         {selectedStudent.name}
                       </h2>
                       {selectedSubmission?.status === 'graded' && selectedSubmission?.score !== null && (
@@ -716,8 +761,8 @@ export default function SubmissionReviewView({
                           <span>•</span>
                           <span className="flex items-center gap-1 text-slate-600">
                             <Clock className="w-3.5 h-3.5 text-indigo-500" />
-                            Dikirim: {new Date(selectedSubmission.submitted_at).toLocaleDateString('id-ID', {
-                              day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+                            {new Date(selectedSubmission.submitted_at).toLocaleDateString('id-ID', {
+                              day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
                             })}
                           </span>
                         </>
@@ -726,12 +771,13 @@ export default function SubmissionReviewView({
                   </div>
                 </div>
 
-                {/* Quick Prev / Next Student Buttons */}
+                {/* Quick Prev / Next Student Buttons (Sticky & Keyboard shortcut hint) */}
                 <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
                   <button
                     type="button"
                     disabled={currentIndex <= 0}
                     onClick={handlePrevStudent}
+                    title="Navigasi ke murid sebelumnya (atau tekan panah kiri pada keyboard)"
                     className="px-3.5 py-2 rounded-xl border border-indigo-200 bg-white hover:bg-indigo-50 text-[#1D4ED8] font-bold text-xs flex items-center gap-1.5 disabled:opacity-30 disabled:pointer-events-none transition-all shadow-2xs cursor-pointer"
                   >
                     <ChevronLeft className="w-4 h-4" />
@@ -746,6 +792,7 @@ export default function SubmissionReviewView({
                     type="button"
                     disabled={currentIndex >= filteredStudents.length - 1}
                     onClick={handleNextStudent}
+                    title="Navigasi ke murid selanjutnya (atau tekan panah kanan pada keyboard)"
                     className="px-3.5 py-2 rounded-xl border border-indigo-200 bg-white hover:bg-indigo-50 text-[#1D4ED8] font-bold text-xs flex items-center gap-1.5 disabled:opacity-30 disabled:pointer-events-none transition-all shadow-2xs cursor-pointer"
                   >
                     <span className="hidden sm:inline">Selanjutnya</span>
@@ -755,7 +802,7 @@ export default function SubmissionReviewView({
               </div>
 
               {/* Scrollable Work View */}
-              <div className="p-5 sm:p-7 space-y-7 flex-1 overflow-y-auto">
+              <div className="p-5 sm:p-7 space-y-7 flex-1">
                 {selectedSubmission ? (
                   <>
                     {/* Media / Photo Display */}
@@ -883,15 +930,15 @@ export default function SubmissionReviewView({
                       </div>
                     )}
 
-                    {/* Grading Form Panel */}
-                    <div className="pt-6 border-t border-slate-200 space-y-4">
+                    {/* Bottom Grading Panel with "Save & Next Student" Superpower */}
+                    <div className="pt-6 border-t border-slate-200 space-y-4 bg-gradient-to-b from-indigo-50/20 to-indigo-50/50 -mx-5 -mb-7 p-5 sm:p-7 rounded-b-3xl">
                       <div className="flex items-center justify-between">
                         <h3 className="text-sm font-black uppercase tracking-wider text-[#1D4ED8] flex items-center gap-2">
                           <Award className="w-4 h-4 text-[#1D4ED8]" />
                           <span>Form Penilaian & Umpan Balik Guru</span>
                         </h3>
                         {selectedSubmission?.graded_at && (
-                          <span className="text-[11px] font-semibold text-slate-400">
+                          <span className="text-[11px] font-semibold text-slate-500">
                             Terakhir dinilai: {new Date(selectedSubmission.graded_at).toLocaleDateString('id-ID', {
                               day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
                             })}
@@ -901,7 +948,7 @@ export default function SubmissionReviewView({
 
                       {gradeSuccessMsg && (
                         <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-900 text-xs font-bold flex items-center gap-2">
-                          <Check className="w-4 h-4 text-emerald-600" />
+                          <Check className="w-4 h-4 text-emerald-600 shrink-0" />
                           <span>{gradeSuccessMsg}</span>
                         </div>
                       )}
@@ -911,20 +958,20 @@ export default function SubmissionReviewView({
                         </div>
                       )}
 
-                      <form onSubmit={handleSaveGrade} className="space-y-4 max-w-xl">
+                      <form onSubmit={e => handleSaveGrade(e, false)} className="space-y-4 max-w-2xl">
                         <div className="space-y-2">
                           <div className="flex items-center justify-between">
                             <label className="text-xs font-bold text-slate-800">
                               Nilai (0 - 100) <span className="text-rose-500">*</span>
                             </label>
                             {/* Quick score buttons */}
-                            <div className="flex items-center gap-1">
+                            <div className="flex items-center gap-1 flex-wrap">
                               {[75, 80, 85, 90, 95, 100].map(val => (
                                 <button
                                   key={val}
                                   type="button"
                                   onClick={() => setScoreInput(String(val))}
-                                  className="px-2 py-0.5 rounded-md bg-indigo-50 hover:bg-indigo-100 text-[#1D4ED8] text-[10px] font-bold border border-indigo-200 transition-colors cursor-pointer"
+                                  className="px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-[#1D4ED8] text-xs font-bold border border-indigo-200 transition-colors cursor-pointer"
                                 >
                                   {val}
                                 </button>
@@ -958,23 +1005,56 @@ export default function SubmissionReviewView({
                           />
                         </div>
 
-                        <button
-                          type="submit"
-                          disabled={savingGrade}
-                          className="bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white px-7 py-3 rounded-full font-bold text-xs sm:text-sm flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-[#3B66F5]/25 border border-white/10 cursor-pointer disabled:opacity-50"
-                        >
-                          {savingGrade ? (
-                            <>
-                              <Loader2 className="w-4 h-4 animate-spin" />
-                              <span>Menyimpan Nilai...</span>
-                            </>
-                          ) : (
-                            <>
-                              <Check className="w-4 h-4" />
-                              <span>Simpan Penilaian</span>
-                            </>
-                          )}
-                        </button>
+                        {/* Action Buttons: Save & Next vs Save Current vs Bottom Nav */}
+                        <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            {/* Primary Action: Simpan & Lanjut Murid Berikutnya */}
+                            <button
+                              type="button"
+                              disabled={savingGrade}
+                              onClick={() => handleSaveGrade(undefined, true)}
+                              className="bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white px-6 py-2.5 rounded-full font-bold text-xs sm:text-sm flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-[#3B66F5]/25 border border-white/10 cursor-pointer disabled:opacity-50"
+                            >
+                              {savingGrade ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <Check className="w-4 h-4" />
+                              )}
+                              <span>Simpan & Lanjut Murid Berikutnya →</span>
+                            </button>
+
+                            {/* Secondary Action: Simpan Nilai Saja */}
+                            <button
+                              type="submit"
+                              disabled={savingGrade}
+                              className="px-4 py-2.5 rounded-full bg-white hover:bg-slate-100 text-[#1D4ED8] border border-indigo-200 font-bold text-xs transition-colors cursor-pointer disabled:opacity-50"
+                            >
+                              Simpan Saja
+                            </button>
+                          </div>
+
+                          {/* Bottom Navigation Buttons */}
+                          <div className="flex items-center gap-1.5 self-end sm:self-auto">
+                            <button
+                              type="button"
+                              disabled={currentIndex <= 0}
+                              onClick={handlePrevStudent}
+                              className="px-3 py-2 rounded-xl border border-indigo-200 bg-white hover:bg-indigo-50 text-slate-700 font-bold text-xs flex items-center gap-1 disabled:opacity-30 disabled:pointer-events-none transition-colors cursor-pointer"
+                            >
+                              <ChevronLeft className="w-4 h-4" />
+                              <span>Prev</span>
+                            </button>
+                            <button
+                              type="button"
+                              disabled={currentIndex >= filteredStudents.length - 1}
+                              onClick={handleNextStudent}
+                              className="px-3 py-2 rounded-xl border border-indigo-200 bg-white hover:bg-indigo-50 text-slate-700 font-bold text-xs flex items-center gap-1 disabled:opacity-30 disabled:pointer-events-none transition-colors cursor-pointer"
+                            >
+                              <span>Next</span>
+                              <ChevronRight className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
                       </form>
                     </div>
                   </>
@@ -997,7 +1077,7 @@ export default function SubmissionReviewView({
                       <span className="text-xs font-bold text-[#1D4ED8] uppercase block mb-2">
                         Beri Nilai Manual Offline:
                       </span>
-                      <form onSubmit={handleSaveGrade} className="space-y-3">
+                      <form onSubmit={e => handleSaveGrade(e, false)} className="space-y-3">
                         <input
                           type="number"
                           min="0"
@@ -1008,13 +1088,23 @@ export default function SubmissionReviewView({
                           onChange={e => setScoreInput(e.target.value)}
                           className="w-full px-3 py-2 rounded-xl border border-indigo-200 bg-white text-xs font-bold text-slate-900 outline-none"
                         />
-                        <button
-                          type="submit"
-                          disabled={savingGrade}
-                          className="w-full py-2.5 rounded-xl bg-[#1D4ED8] text-white font-bold text-xs hover:bg-[#1E40AF] transition-colors shadow-sm"
-                        >
-                          Simpan Nilai Manual
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            disabled={savingGrade}
+                            onClick={() => handleSaveGrade(undefined, true)}
+                            className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white font-bold text-xs hover:brightness-110 transition-all shadow-sm"
+                          >
+                            Simpan & Lanjut →
+                          </button>
+                          <button
+                            type="submit"
+                            disabled={savingGrade}
+                            className="px-3.5 py-2.5 rounded-xl border border-indigo-200 bg-white text-slate-700 font-bold text-xs hover:bg-slate-100 transition-colors"
+                          >
+                            Simpan
+                          </button>
+                        </div>
                       </form>
                     </div>
                   </div>
