@@ -327,17 +327,23 @@ export default function SubmissionReviewView({
     return filteredStudents.findIndex(s => s.id === selectedStudent.id);
   }, [filteredStudents, selectedStudent]);
 
-  // Auto-scroll to top smoothly whenever student changes
+  // Scroll to absolute top on initial view mount
   useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    document.documentElement.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    document.body.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTo({ top: 0, behavior: 'instant' });
+    }
+  }, []);
+
+  // Smooth scroll to top whenever student changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+    document.documentElement.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+    document.body.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
     if (scrollContainerRef.current) {
       scrollContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-    const canvasEl = document.getElementById('review-work-canvas');
-    if (canvasEl) {
-      const canvasTop = canvasEl.getBoundingClientRect().top + window.pageYOffset - 80;
-      if (window.pageYOffset > canvasTop) {
-        window.scrollTo({ top: Math.max(0, canvasTop), behavior: 'smooth' });
-      }
     }
   }, [selectedStudentId]);
 

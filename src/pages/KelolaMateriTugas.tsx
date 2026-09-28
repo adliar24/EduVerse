@@ -811,6 +811,9 @@ export default function KelolaMateriTugas({ defaultTab = 'materials', fixedTab =
         onBack={() => {
           setSelectedReviewAssignment(null);
           setIsReviewModalOpen(false);
+          window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+          document.documentElement.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+          document.body.scrollTo({ top: 0, left: 0, behavior: 'instant' });
           fetchData();
         }}
         onGradeSaved={fetchData}
@@ -1230,6 +1233,9 @@ export default function KelolaMateriTugas({ defaultTab = 'materials', fixedTab =
                             onClick={() => {
                               setSelectedReviewAssignment(a);
                               setIsReviewModalOpen(true);
+                              window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+                              document.documentElement.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+                              document.body.scrollTo({ top: 0, left: 0, behavior: 'instant' });
                             }}
                             className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-bold text-xs shadow-sm transition-all cursor-pointer shrink-0"
                           >

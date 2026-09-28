@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import React, { useEffect, useState, useRef, Suspense, lazy } from 'react';
 import { supabase } from './lib/supabase';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -456,12 +456,25 @@ export default function App() {
     <ModernLoader />
   );
 
+  function ScrollToTop() {
+    const { pathname } = useLocation();
+
+    useEffect(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+      document.documentElement.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+      document.body.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    }, [pathname]);
+
+    return null;
+  }
+
   return (
     <ThemeProvider>
       <AlertProvider>
         <ToastProvider>
           <SchoolProvider>
             <Router>
+              <ScrollToTop />
               <ErrorBoundary>
                 <Suspense fallback={
                   <div className="flex items-center justify-center min-h-screen bg-slate-50">
