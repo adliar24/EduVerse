@@ -25,7 +25,15 @@ import {
   SlidersHorizontal,
   ChevronLeft,
   FileCheck,
-  FileText
+  FileText,
+  Cloud,
+  CloudOff,
+  Database,
+  Copy,
+  ExternalLink,
+  RefreshCw,
+  UploadCloud,
+  Sparkles
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import React from 'react';
@@ -36,6 +44,54 @@ import { useLocation } from 'react-router-dom';
 import { evaluateEssayAnswer, highlightTextSegments, EvaluationMode, fastLocalHeuristicCheck, calculateTextSimilarity } from '../lib/essayEvaluator';
 import { calculateExamScores, getExamWeights, saveExamWeights, ExamWeights } from '../lib/examScoring';
 import { evaluateEssayWithAI, evaluateQuestionBatchWithAI } from '../lib/openKeyEvaluator';
+
+export const SQL_MIGRATION_SCRIPT = `-- 1. Tambahkan kolom nilai & catatan guru/AI pada tabel answers
+ALTER TABLE public.answers 
+ADD COLUMN IF NOT EXISTS score NUMERIC DEFAULT NULL;
+
+ALTER TABLE public.answers 
+ADD COLUMN IF NOT EXISTS teacher_feedback TEXT DEFAULT NULL;
+
+-- 2. Tambahkan kolom nilai PG, nilai Essay, dan status penilaian pada participants
+ALTER TABLE public.participants 
+ADD COLUMN IF NOT EXISTS score_pg NUMERIC DEFAULT NULL;
+
+ALTER TABLE public.participants 
+ADD COLUMN IF NOT EXISTS score_essay NUMERIC DEFAULT NULL;
+
+ALTER TABLE public.participants 
+ADD COLUMN IF NOT EXISTS essay_graded BOOLEAN DEFAULT true;
+
+-- 3. Tambahkan kolom pengaturan bobot & penilaian pada tabel exams
+ALTER TABLE public.exams 
+ADD COLUMN IF NOT EXISTS grading_settings JSONB DEFAULT NULL;
+
+-- 4. Berikan hak akses penuh kepada role anon, authenticated, dan service_role
+GRANT ALL ON public.answers TO anon, authenticated, service_role;
+GRANT ALL ON public.participants TO anon, authenticated, service_role;
+GRANT ALL ON public.exams TO anon, authenticated, service_role;
+
+-- 5. Pastikan Row Level Security (RLS) mengizinkan baca dan tulis secara bebas
+ALTER TABLE public.answers ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "allow_all_answers_access" ON public.answers;
+CREATE POLICY "allow_all_answers_access" ON public.answers FOR ALL TO public USING (true) WITH CHECK (true);
+
+ALTER TABLE public.participants ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "allow_all_participants_access" ON public.participants;
+CREATE POLICY "allow_all_participants_access" ON public.participants FOR ALL TO public USING (true) WITH CHECK (true);
+
+-- 6. Tambahkan ke publikasi Realtime Supabase
+DO $$
+BEGIN
+  BEGIN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.answers;
+  EXCEPTION WHEN duplicate_object THEN
+  END;
+  BEGIN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.participants;
+  EXCEPTION WHEN duplicate_object THEN
+  END;
+END $$;`;
 
 export const getCachedEssayScores = (participantId: string): Record<string, { score: number; feedback: string }> => {
   try {
@@ -541,22 +597,234 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
   // Single Student AI Batch Grading
   const [studentAiGrading, setStudentAiGrading] = useState(false);
 
+  // Cloud Sync State
+  const [cloudSyncStatus, setCloudSyncStatus] = useState<'checking' | 'ready' | 'needs_migration'>('checking');
+  const [showCloudMigrationModal, setShowCloudMigrationModal] = useState(false);
+  const [syncingLocalToCloud, setSyncingLocalToCloud] = useState(false);
+  const [syncLocalResult, setSyncLocalResult] = useState<{ syncedCount: number; message: string } | null>(null);
+  const [copySuccess, setCopySuccess] = useState(false);
+
+  // Periksa kesiapan kolom cloud di Supabase
+  const checkCloudSyncStatus = async () => {
+    try {
+      const { error: aErr } = await supabase.from('answers').select('score, teacher_feedback').limit(1);
+      const { error: pErr } = await supabase.from('participants').select('score_pg, score_essay, essay_graded').limit(1);
+      if (!aErr && !pErr) {
+        setCloudSyncStatus('ready');
+        return true;
+      } else {
+        setCloudSyncStatus('needs_migration');
+        return false;
+      }
+    } catch {
+      setCloudSyncStatus('needs_migration');
+      return false;
+    }
+  };
+
+  useEffect(() => {
+    checkCloudSyncStatus();
+  }, []);
+
+  // Hitung jumlah hasil nilai yang tersimpan di localStorage browser ini
+  const localCacheStats = useMemo(() => {
+    if (typeof window === 'undefined' || typeof localStorage === 'undefined') return { totalAnswers: 0, totalParticipants: 0 };
+    let totalAnswers = 0;
+    let totalParticipants = 0;
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('eduverse_essay_scores_')) {
+          totalParticipants++;
+          const val = JSON.parse(localStorage.getItem(key) || '{}');
+          totalAnswers += Object.keys(val).length;
+        }
+      }
+    } catch (e) {}
+    return { totalAnswers, totalParticipants };
+  }, [results, showDetailModal, showBatchModal]);
+
+  // Sinkronkan seluruh data evaluasi lokal ke Cloud Supabase
+  const handleSyncLocalToCloud = async () => {
+    if (cloudSyncStatus !== 'ready') {
+      setShowCloudMigrationModal(true);
+      return;
+    }
+    setSyncingLocalToCloud(true);
+    setSyncLocalResult(null);
+
+    let syncedAnswersCount = 0;
+    let syncedParticipantsCount = 0;
+
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('eduverse_essay_scores_')) {
+          const participantId = key.replace('eduverse_essay_scores_', '');
+          try {
+            const scoresObj = JSON.parse(localStorage.getItem(key) || '{}');
+            for (const questionId of Object.keys(scoresObj)) {
+              const item = scoresObj[questionId];
+              if (item && typeof item.score === 'number') {
+                const payload = {
+                  score: item.score,
+                  is_correct: item.score >= 60,
+                  teacher_feedback: item.feedback || ''
+                };
+                
+                const { error: upErr } = await supabase
+                  .from('answers')
+                  .update(payload)
+                  .eq('participant_id', participantId)
+                  .eq('question_id', questionId);
+
+                if (upErr) {
+                  await supabaseAnon
+                    .from('answers')
+                    .update(payload)
+                    .eq('participant_id', participantId)
+                    .eq('question_id', questionId);
+                }
+                syncedAnswersCount++;
+              }
+            }
+          } catch (e) {
+            console.warn('Gagal sync essay:', e);
+          }
+        }
+      }
+
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('eduverse_part_scores_')) {
+          const participantId = key.replace('eduverse_part_scores_', '');
+          try {
+            const partObj = JSON.parse(localStorage.getItem(key) || '{}');
+            const pPayload: any = {};
+            if (partObj.score_pg !== undefined) pPayload.score_pg = partObj.score_pg;
+            if (partObj.score_essay !== undefined) pPayload.score_essay = partObj.score_essay;
+            if (partObj.essay_graded !== undefined) pPayload.essay_graded = partObj.essay_graded;
+
+            if (Object.keys(pPayload).length > 0) {
+              const { error: pUpErr } = await supabase
+                .from('participants')
+                .update(pPayload)
+                .eq('id', participantId);
+
+              if (pUpErr) {
+                await supabaseAnon
+                  .from('participants')
+                  .update(pPayload)
+                  .eq('id', participantId);
+              }
+              syncedParticipantsCount++;
+            }
+          } catch (e) {
+            console.warn('Gagal sync participant:', e);
+          }
+        }
+      }
+
+      if (selectedExam !== 'all') {
+        try {
+          await supabase.from('exams').update({
+            grading_settings: {
+              weights: examWeights,
+              bonusDisabledStudents
+            }
+          }).eq('id', selectedExam);
+        } catch (e) {}
+      }
+
+      setSyncLocalResult({
+        syncedCount: syncedAnswersCount,
+        message: `Berhasil menyinkronkan ${syncedAnswersCount} jawaban essay & ${syncedParticipantsCount} data nilai siswa ke Supabase Cloud!`
+      });
+
+      await fetchResults();
+    } catch (err: any) {
+      console.error('Error syncing local to cloud:', err);
+      setSyncLocalResult({
+        syncedCount: 0,
+        message: 'Terjadi kesalahan saat mengunggah data ke Cloud: ' + (err?.message || err)
+      });
+    } finally {
+      setSyncingLocalToCloud(false);
+    }
+  };
+
   useEffect(() => {
     if (selectedExam !== 'all') {
-      const saved = getExamWeights(selectedExam);
-      setExamWeights(saved);
-      setTempPgWeight(saved.pgWeight);
-      setTempEssayWeight(saved.essayWeight);
-      setTempBonusMax(saved.bonusMaxPoints || 20);
-      setTempMode(saved.mode || 'pg_bonus_essay');
+      const loadExamSettings = async () => {
+        try {
+          const { data: exData } = await supabase
+            .from('exams')
+            .select('grading_settings')
+            .eq('id', selectedExam)
+            .maybeSingle();
 
-      try {
-        const key = `eduverse_bonus_disabled_${selectedExam}`;
-        const savedBonus = localStorage.getItem(key);
-        setBonusDisabledStudents(savedBonus ? JSON.parse(savedBonus) : {});
-      } catch (e) {}
+          if (exData?.grading_settings) {
+            const gs = exData.grading_settings;
+            if (gs.weights) {
+              setExamWeights(gs.weights);
+              setTempPgWeight(gs.weights.pgWeight);
+              setTempEssayWeight(gs.weights.essayWeight);
+              setTempBonusMax(gs.weights.bonusMaxPoints || 20);
+              setTempMode(gs.weights.mode || 'pg_bonus_essay');
+            }
+            if (gs.bonusDisabledStudents) {
+              setBonusDisabledStudents(gs.bonusDisabledStudents);
+            }
+            return;
+          }
+        } catch (e) {}
+
+        const saved = getExamWeights(selectedExam);
+        setExamWeights(saved);
+        setTempPgWeight(saved.pgWeight);
+        setTempEssayWeight(saved.essayWeight);
+        setTempBonusMax(saved.bonusMaxPoints || 20);
+        setTempMode(saved.mode || 'pg_bonus_essay');
+
+        try {
+          const key = `eduverse_bonus_disabled_${selectedExam}`;
+          const savedBonus = localStorage.getItem(key);
+          setBonusDisabledStudents(savedBonus ? JSON.parse(savedBonus) : {});
+        } catch (e) {}
+      };
+
+      loadExamSettings();
     }
   }, [selectedExam]);
+
+  // Realtime subscription agar perubahan nilai di device lain langsung sinkron live
+  useEffect(() => {
+    const channel = supabase
+      .channel('eduverse_grading_live_sync')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'participants' }, (payload) => {
+        if (payload.new && (payload.new as any).id) {
+          const updated = payload.new as any;
+          setResults(prev => prev.map(p => {
+            if (p.id === updated.id) {
+              const scorePg = updated.score_pg !== undefined && updated.score_pg !== null ? updated.score_pg : p.score_pg;
+              const scoreEssay = updated.score_essay !== undefined && updated.score_essay !== null ? updated.score_essay : p.score_essay;
+              const isEssayGraded = updated.essay_graded !== undefined && updated.essay_graded !== null ? updated.essay_graded : p.essay_graded;
+              const pMerged = { ...p, ...updated, score_pg: scorePg, score_essay: scoreEssay, essay_graded: isEssayGraded };
+              return {
+                ...pMerged,
+                score: computeStudentFinalScore(pMerged, examWeights, bonusDisabledStudents)
+              };
+            }
+            return p;
+          }));
+        }
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [examWeights, bonusDisabledStudents]);
 
   // Reset pagination saat pencarian atau filter berubah
   useEffect(() => {
@@ -599,6 +867,16 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
     setExamWeights(newWeights);
     saveExamWeights(newWeights, selectedExam !== 'all' ? selectedExam : undefined);
     
+    // Simpan juga ke cloud jika ada ujian yang dipilih
+    if (selectedExam !== 'all') {
+      supabase.from('exams').update({
+        grading_settings: {
+          weights: newWeights,
+          bonusDisabledStudents
+        }
+      }).eq('id', selectedExam).then(() => {}, () => {});
+    }
+
     // Rekalkulasi skor real-time untuk seluruh peserta di tabel
     setResults(prev => prev.map(p => ({
       ...p,
@@ -616,6 +894,15 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
     
     const storageKey = `eduverse_bonus_disabled_${selectedExam !== 'all' ? selectedExam : 'default'}`;
     localStorage.setItem(storageKey, JSON.stringify(updatedDisabled));
+
+    if (selectedExam !== 'all') {
+      supabase.from('exams').update({
+        grading_settings: {
+          weights: examWeights,
+          bonusDisabledStudents: updatedDisabled
+        }
+      }).eq('id', selectedExam).then(() => {}, () => {});
+    }
 
     let updatedTarget: any = null;
     const updated = results.map(p => {
@@ -647,6 +934,15 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
     setBonusDisabledStudents({});
     const storageKey = `eduverse_bonus_disabled_${selectedExam !== 'all' ? selectedExam : 'default'}`;
     localStorage.removeItem(storageKey);
+
+    if (selectedExam !== 'all') {
+      supabase.from('exams').update({
+        grading_settings: {
+          weights: examWeights,
+          bonusDisabledStudents: {}
+        }
+      }).eq('id', selectedExam).then(() => {}, () => {});
+    }
     
     const updated = results.map(p => ({
       ...p,
@@ -672,6 +968,15 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
     setBonusDisabledStudents(newDisabled);
     const storageKey = `eduverse_bonus_disabled_${selectedExam !== 'all' ? selectedExam : 'default'}`;
     localStorage.setItem(storageKey, JSON.stringify(newDisabled));
+
+    if (selectedExam !== 'all') {
+      supabase.from('exams').update({
+        grading_settings: {
+          weights: examWeights,
+          bonusDisabledStudents: newDisabled
+        }
+      }).eq('id', selectedExam).then(() => {}, () => {});
+    }
 
     const updated = results.map(p => ({
       ...p,
@@ -871,6 +1176,16 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
         const scorePg = p.score_pg !== undefined && p.score_pg !== null ? p.score_pg : (cached.score_pg !== undefined ? cached.score_pg : null);
         const scoreEssay = p.score_essay !== undefined && p.score_essay !== null ? p.score_essay : (cached.score_essay !== undefined ? cached.score_essay : null);
         const isEssayGraded = p.essay_graded !== undefined && p.essay_graded !== null ? p.essay_graded : (cached.essay_graded !== undefined ? cached.essay_graded : (scoreEssay !== null));
+        
+        // Simpan ke local cache agar tetap tersedia saat offline
+        if (p.score_pg !== undefined && p.score_pg !== null) {
+          setCachedParticipantScores(p.id, {
+            score_pg: scorePg,
+            score_essay: scoreEssay,
+            essay_graded: isEssayGraded
+          });
+        }
+
         const pWithScores = {
           ...p,
           score_pg: scorePg,
@@ -1054,6 +1369,11 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
                   : (ans?.is_correct ? 100 : 0)));
 
         const finalFeedback = ans?.teacher_feedback || cachedItem?.feedback || '';
+
+        // Sinkronkan ke local cache jika data dibaca dari database Cloud
+        if (typeof ans?.score === 'number' && participant?.id) {
+          setCachedEssayScore(participant.id, question.id, ans.score, finalFeedback);
+        }
 
         return {
           id: ans?.id || `unanswered-${question.id}`,
@@ -2214,6 +2534,124 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
           onClick={exportToExcel}
           className="hidden"
         />
+      )}
+
+      {/* Cloud Sync Status Banner */}
+      {cloudSyncStatus === 'needs_migration' && (
+        <div className="bg-gradient-to-r from-amber-500/10 via-indigo-500/10 to-blue-500/10 border-2 border-amber-300/80 rounded-2xl p-4 sm:p-5 shadow-xs transition-all">
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div className="flex items-start gap-3.5">
+              <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-700 flex items-center justify-center shrink-0 mt-0.5">
+                <CloudOff className="w-5 h-5 text-amber-600" />
+              </div>
+              <div className="space-y-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h3 className="text-sm sm:text-base font-bold text-slate-800">
+                    Aktivasi Penyimpanan Cloud AI (Multi-Device)
+                  </h3>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-100 text-amber-800 border border-amber-300">
+                    Mode Lokal Sementara
+                  </span>
+                </div>
+                <p className="text-xs sm:text-sm text-slate-600 max-w-2xl leading-relaxed">
+                  Hasil evaluasi AI saat ini baru tersimpan di browser perangkat ini. Jalankan 1x perintah SQL di Supabase agar hasil koreksi otomatis tersimpan ke Cloud dan dapat dibuka di semua perangkat (laptop guru lain, HP, atau komputer sekolah).
+                </p>
+              </div>
+            </div>
+            <div className="flex flex-wrap items-center gap-2 w-full md:w-auto shrink-0">
+              <button
+                type="button"
+                onClick={() => {
+                  navigator.clipboard.writeText(SQL_MIGRATION_SCRIPT);
+                  setCopySuccess(true);
+                  setTimeout(() => setCopySuccess(false), 2500);
+                }}
+                className="flex-1 md:flex-initial inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-bold text-xs shadow-xs transition-all active:scale-95 cursor-pointer"
+              >
+                {copySuccess ? (
+                  <>
+                    <Check className="w-3.5 h-3.5 text-emerald-600" />
+                    <span className="text-emerald-700 font-bold">Tersalin!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-3.5 h-3.5 text-slate-500" />
+                    <span>Salin Skrip SQL</span>
+                  </>
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowCloudMigrationModal(true)}
+                className="flex-1 md:flex-initial inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-indigo-950 hover:bg-indigo-900 text-white font-bold text-xs shadow-xs transition-all active:scale-95 cursor-pointer"
+              >
+                <Database className="w-3.5 h-3.5 text-indigo-300" />
+                <span>Panduan 10 Detik</span>
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  setCloudSyncStatus('checking');
+                  const ok = await checkCloudSyncStatus();
+                  if (ok) {
+                    alert('Selamat! Kolom Cloud Database telah aktif. Hasil periksa AI sekarang otomatis tersimpan ke Cloud!');
+                  } else {
+                    alert('Kolom belum terdeteksi. Pastikan Anda telah menempelkan dan menjalankan (Run) skrip SQL di Supabase SQL Editor.');
+                  }
+                }}
+                className="p-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-600 border border-slate-200 transition-all active:scale-95 cursor-pointer"
+                title="Periksa Ulang Status Database"
+              >
+                <RefreshCw className={cn("w-3.5 h-3.5", cloudSyncStatus === 'checking' && "animate-spin text-indigo-600")} />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {cloudSyncStatus === 'ready' && (
+        <div className="bg-emerald-500/10 border border-emerald-200/80 rounded-2xl px-4 py-3 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+            <span className="text-xs sm:text-sm font-semibold text-emerald-950">
+              Cloud Sync Aktif &mdash; Hasil periksa AI otomatis tersimpan di Cloud Database dan langsung tersinkron di semua perangkat.
+            </span>
+          </div>
+          {localCacheStats.totalAnswers > 0 && (
+            <button
+              type="button"
+              onClick={handleSyncLocalToCloud}
+              disabled={syncingLocalToCloud}
+              className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-xs active:scale-95 cursor-pointer disabled:opacity-50 shrink-0 self-start sm:self-auto"
+            >
+              {syncingLocalToCloud ? (
+                <>
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                  <span>Mengunggah ke Cloud...</span>
+                </>
+              ) : (
+                <>
+                  <UploadCloud className="w-3.5 h-3.5" />
+                  <span>Unggah {localCacheStats.totalAnswers} Nilai Lokal ke Cloud</span>
+                </>
+              )}
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Pesan Berhasil Sinkronisasi Lokal ke Cloud */}
+      {syncLocalResult && (
+        <div className="bg-blue-50 border border-blue-200 text-blue-900 rounded-xl px-4 py-2.5 text-xs font-medium flex items-center justify-between gap-2">
+          <span>{syncLocalResult.message}</span>
+          <button 
+            type="button" 
+            onClick={() => setSyncLocalResult(null)}
+            className="text-blue-600 hover:text-blue-900 font-bold ml-2 cursor-pointer"
+          >
+            ✕
+          </button>
+        </div>
       )}
 
       {/* Filter Grid */}
@@ -3430,6 +3868,142 @@ export default function HasilUjian({ isEmbedded = false }: { isEmbedded?: boolea
             </div>
           )}
         </AnimatePresence>,
+        document.body
+      )}
+
+      {/* Modal Panduan Aktivasi Cloud Sync Supabase */}
+      {showCloudMigrationModal && createPortal(
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border border-slate-100 max-h-[90vh] flex flex-col"
+          >
+            <div className="flex items-center justify-between pb-4 border-b border-slate-100 shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600">
+                  <Database className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-slate-800">Panduan Aktivasi Cloud Sync (10 Detik)</h3>
+                  <p className="text-xs text-slate-500 font-medium">Buka hasil periksa AI di komputer sekolah, laptop lain, atau HP.</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowCloudMigrationModal(false)}
+                className="w-8 h-8 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 flex items-center justify-center transition-colors cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="overflow-y-auto py-5 space-y-4 text-xs sm:text-sm text-slate-600 pr-1">
+              <div className="bg-indigo-50/70 border border-indigo-100 rounded-2xl p-4 space-y-2">
+                <h4 className="font-bold text-indigo-950 flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-indigo-600" />
+                  Mengapa Perlu Skrip Ini?
+                </h4>
+                <p className="text-xs text-indigo-900/80 leading-relaxed">
+                  Tabel database Supabase saat ini belum memiliki kolom khusus untuk menyimpan skor nilai per butir essay (<code className="bg-indigo-100 px-1 py-0.5 rounded text-indigo-950 font-mono">score</code>) dan catatan feedback AI (<code className="bg-indigo-100 px-1 py-0.5 rounded text-indigo-950 font-mono">teacher_feedback</code>).
+                  Skrip ini menambahkan kolom tersebut ke Cloud Supabase sehingga semua perangkat langsung tersinkron.
+                </p>
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex items-start gap-3">
+                  <span className="w-6 h-6 rounded-full bg-indigo-950 text-white font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">1</span>
+                  <div>
+                    <p className="font-bold text-slate-800">Salin skrip SQL di bawah ini</p>
+                    <p className="text-xs text-slate-500">Klik tombol salin untuk menyalin seluruh perintah SQL sekaligus.</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <span className="w-6 h-6 rounded-full bg-indigo-950 text-white font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">2</span>
+                  <div className="space-y-1.5 flex-1">
+                    <p className="font-bold text-slate-800">Buka SQL Editor di Dashboard Supabase</p>
+                    <a
+                      href="https://supabase.com/dashboard/project/dvagyvlkshwpqvbcxwjx/sql/new"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-xs"
+                    >
+                      <span>Buka Supabase SQL Editor</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <span className="w-6 h-6 rounded-full bg-indigo-950 text-white font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">3</span>
+                  <div>
+                    <p className="font-bold text-slate-800">Tempel (Paste) &amp; Klik tombol "Run"</p>
+                    <p className="text-xs text-slate-500">Perintah akan dieksekusi dalam 1 detik.</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <span className="w-6 h-6 rounded-full bg-indigo-950 text-white font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">4</span>
+                  <div>
+                    <p className="font-bold text-slate-800">Klik "Verifikasi Status Cloud" di bawah ini</p>
+                    <p className="text-xs text-slate-500">Setelah terdeteksi aktif, semua hasil periksa langsung tersimpan ke Cloud!</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Box Kode SQL */}
+              <div className="relative mt-2">
+                <div className="flex items-center justify-between bg-slate-900 text-slate-300 px-4 py-2 rounded-t-xl text-xs font-mono">
+                  <span>enable_cloud_ai_grading.sql</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(SQL_MIGRATION_SCRIPT);
+                      setCopySuccess(true);
+                      setTimeout(() => setCopySuccess(false), 2500);
+                    }}
+                    className="inline-flex items-center gap-1 text-slate-200 hover:text-white font-bold cursor-pointer transition-colors"
+                  >
+                    {copySuccess ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                    <span>{copySuccess ? 'Tersalin!' : 'Salin SQL'}</span>
+                  </button>
+                </div>
+                <pre className="bg-slate-950 text-slate-200 p-4 rounded-b-xl text-[11px] font-mono overflow-x-auto max-h-48 border border-t-0 border-slate-800">
+                  {SQL_MIGRATION_SCRIPT}
+                </pre>
+              </div>
+            </div>
+
+            <div className="pt-4 border-t border-slate-100 flex items-center justify-between gap-3 shrink-0">
+              <button
+                type="button"
+                onClick={() => setShowCloudMigrationModal(false)}
+                className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 font-bold text-xs cursor-pointer"
+              >
+                Tutup
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  setCloudSyncStatus('checking');
+                  const ok = await checkCloudSyncStatus();
+                  if (ok) {
+                    setShowCloudMigrationModal(false);
+                    alert('🎉 Luar biasa! Kolom Cloud Database telah aktif. Hasil periksa AI sekarang otomatis tersimpan ke Cloud dan dapat dibuka di semua perangkat!');
+                  } else {
+                    alert('Kolom belum terdeteksi di Supabase. Pastikan Anda telah menempelkan skrip SQL dan menekan tombol "Run" di dashboard Supabase.');
+                  }
+                }}
+                className="px-5 py-2.5 rounded-xl bg-indigo-950 hover:bg-indigo-900 text-white font-bold text-xs shadow-md transition-all active:scale-95 cursor-pointer inline-flex items-center gap-2"
+              >
+                <RefreshCw className={cn("w-3.5 h-3.5", cloudSyncStatus === 'checking' && "animate-spin")} />
+                <span>Verifikasi Status Cloud</span>
+              </button>
+            </div>
+          </motion.div>
+        </div>,
         document.body
       )}
     </div>

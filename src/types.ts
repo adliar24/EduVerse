@@ -383,6 +383,12 @@ export interface Assignment {
   studentIds?: string[];
   is_graded?: boolean;
   isGraded?: boolean;
+  assignment_type?: 'general' | 'lkpd';
+  assignmentType?: 'general' | 'lkpd';
+  lkpd_type?: 'observation' | 'experiment' | 'case_study' | 'interview';
+  lkpdType?: 'observation' | 'experiment' | 'case_study' | 'interview';
+  lkpd_config?: any;
+  lkpdConfig?: any;
   created_at?: string;
   createdAt?: string;
 }

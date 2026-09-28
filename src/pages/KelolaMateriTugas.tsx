@@ -20,7 +20,10 @@ import {
   Eye,
   CheckCircle2,
   Award,
-  RefreshCw
+  RefreshCw,
+  Sparkles,
+  Compass,
+  Layers
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAlert } from '../context/AlertContext';
@@ -31,6 +34,7 @@ import { v4 as uuidv4 } from 'uuid';
 import LinkPreviewCard from '../components/LinkPreviewCard';
 import DomainTileIcon from '../components/DomainTileIcon';
 import SubmissionReviewModal from '../components/SubmissionReviewModal';
+import { LKPD_TYPES, OBSERVATION_PRESETS, ObservationPreset } from '../utils/lkpdPresets';
 
 const ELECTRIC_BLUE_GRADIENT = {
   bg: 'bg-gradient-to-br from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white border border-white/20 hover:scale-[1.01] transition-all shadow-xl shadow-[#3B66F5]/20',
@@ -93,6 +97,9 @@ export default function KelolaMateriTugas({ defaultTab = 'materials', fixedTab =
   const [formLink, setFormLink] = useState('');
   const [formDeadline, setFormDeadline] = useState('');
   const [formIsGraded, setFormIsGraded] = useState(true);
+  const [formAssignmentCategory, setFormAssignmentCategory] = useState<'general' | 'lkpd'>('general');
+  const [formLkpdType, setFormLkpdType] = useState<'observation' | 'experiment' | 'case_study' | 'interview'>('observation');
+  const [formObservationPreset, setFormObservationPreset] = useState<string>('art_elements');
   const [formClassId, setFormClassId] = useState('');
   const [selectedClassIds, setSelectedClassIds] = useState<string[]>([]);
   const [formTargetType, setFormTargetType] = useState<'class' | 'students'>('class');
@@ -313,12 +320,23 @@ export default function KelolaMateriTugas({ defaultTab = 'materials', fixedTab =
     setFormLink('');
     setFormDeadline('');
     setFormIsGraded(true);
+    setFormAssignmentCategory('general');
+    setFormLkpdType('observation');
+    setFormObservationPreset('art_elements');
     setFormClassId(classes[0]?.id || 'all');
     setSelectedClassIds([]);
     setFormTargetType('class');
     setSelectedStudentIds([]);
     setStudentSearchTerm('');
     setShowModal(true);
+  };
+
+  const handleApplyLkpdTemplate = (presetKey: string) => {
+    const preset = OBSERVATION_PRESETS[presetKey];
+    if (preset) {
+      setFormTitle(preset.defaultTitle);
+      setFormDesc(preset.defaultDesc);
+    }
   };
 
   const handleOpenEditModal = (item: any, type: 'material' | 'assignment') => {
@@ -330,6 +348,9 @@ export default function KelolaMateriTugas({ defaultTab = 'materials', fixedTab =
     setFormLink(item.link || '');
     if (type === 'assignment') {
       setFormIsGraded(item.isGraded !== false && item.is_graded !== false);
+      setFormAssignmentCategory(item.assignment_type || item.assignmentType || (item.lkpd_type || item.lkpdType ? 'lkpd' : 'general'));
+      setFormLkpdType(item.lkpd_type || item.lkpdType || 'observation');
+      setFormObservationPreset(item.lkpd_config?.preset || item.lkpd_config?.id || 'art_elements');
       // Format deadline to yyyy-MM-ddThh:mm
       if (item.deadline) {
         const d = new Date(item.deadline);
@@ -460,9 +481,16 @@ export default function KelolaMateriTugas({ defaultTab = 'materials', fixedTab =
         }
       } else {
         const deadlineISO = formDeadline ? new Date(formDeadline).toISOString() : null;
+        const isLkpd = formAssignmentCategory === 'lkpd';
+        const lkpdConfigData = isLkpd
+          ? (formLkpdType === 'observation' 
+              ? { preset: formObservationPreset, ...(OBSERVATION_PRESETS[formObservationPreset] || OBSERVATION_PRESETS.art_elements) }
+              : { type: formLkpdType })
+          : null;
+
         for (const classId of classesToUpsert) {
           const uuid = classToRecordIdMap[classId] || uuidv4();
-          const payload = {
+          const payload: any = {
             id: uuid,
             teacher_id: user.id,
             school_id: activeSchoolId,
@@ -477,6 +505,9 @@ export default function KelolaMateriTugas({ defaultTab = 'materials', fixedTab =
               return s && (s.classId === classId || (s as any).class_id === classId);
             }) : [],
             is_graded: formIsGraded,
+            assignment_type: isLkpd ? 'lkpd' : 'general',
+            lkpd_type: isLkpd ? formLkpdType : null,
+            lkpd_config: lkpdConfigData
           };
 
           const { error } = await supabase.from('assignments').upsert(payload);
@@ -500,6 +531,12 @@ export default function KelolaMateriTugas({ defaultTab = 'materials', fixedTab =
             student_ids: payload.student_ids,
             isGraded: formIsGraded,
             is_graded: formIsGraded,
+            assignment_type: payload.assignment_type,
+            assignmentType: payload.assignment_type,
+            lkpd_type: payload.lkpd_type,
+            lkpdType: payload.lkpd_type,
+            lkpd_config: payload.lkpd_config,
+            lkpdConfig: payload.lkpd_config,
             created_at: new Date().toISOString()
           });
         }
@@ -627,6 +664,12 @@ export default function KelolaMateriTugas({ defaultTab = 'materials', fixedTab =
           is_graded: a.is_graded !== false && a.isGraded !== false,
           isGraded: a.is_graded !== false && a.isGraded !== false,
           deadline: a.deadline,
+          assignment_type: a.assignment_type || a.assignmentType,
+          assignmentType: a.assignment_type || a.assignmentType,
+          lkpd_type: a.lkpd_type || a.lkpdType,
+          lkpdType: a.lkpd_type || a.lkpdType,
+          lkpd_config: a.lkpd_config || a.lkpdConfig,
+          lkpdConfig: a.lkpd_config || a.lkpdConfig,
           created_at: a.created_at || a.createdAt
         };
       } else {
@@ -638,6 +681,18 @@ export default function KelolaMateriTugas({ defaultTab = 'materials', fixedTab =
             groups[key].classIds.push(classId);
           }
           groups[key].assignmentByClass[classId] = a;
+        }
+        if (!groups[key].assignment_type && (a.assignment_type || a.assignmentType)) {
+          groups[key].assignment_type = a.assignment_type || a.assignmentType;
+          groups[key].assignmentType = a.assignment_type || a.assignmentType;
+        }
+        if (!groups[key].lkpd_type && (a.lkpd_type || a.lkpdType)) {
+          groups[key].lkpd_type = a.lkpd_type || a.lkpdType;
+          groups[key].lkpdType = a.lkpd_type || a.lkpdType;
+        }
+        if (!groups[key].lkpd_config && (a.lkpd_config || a.lkpdConfig)) {
+          groups[key].lkpd_config = a.lkpd_config || a.lkpdConfig;
+          groups[key].lkpdConfig = a.lkpd_config || a.lkpdConfig;
         }
         if (!groups[key].description && a.description) {
           groups[key].description = a.description;
@@ -1023,6 +1078,12 @@ export default function KelolaMateriTugas({ defaultTab = 'materials', fixedTab =
                         </div>
                       </div>
                       <div className="flex gap-1 flex-wrap">
+                        {((a.assignment_type || a.assignmentType) === 'lkpd' || a.lkpd_type || a.lkpdType) && (
+                          <span className="bg-amber-50 text-amber-700 text-[10px] font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1 border border-amber-200 shadow-2xs">
+                            <Sparkles className="w-3 h-3 text-amber-500" />
+                            LKPD: {(a.lkpd_type || a.lkpdType) === 'observation' ? 'Observasi Lapangan' : (a.lkpd_type || a.lkpdType) === 'experiment' ? 'Praktikum' : (a.lkpd_type || a.lkpdType) === 'case_study' ? 'Studi Kasus' : (a.lkpd_type || a.lkpdType) === 'interview' ? 'Wawancara' : 'Interaktif'}
+                          </span>
+                        )}
                         {a.isGraded !== false && a.is_graded !== false ? (
                           <span className="bg-blue-50 text-blue-700 text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-blue-200">
                             Diberi Nilai
@@ -1219,8 +1280,133 @@ export default function KelolaMateriTugas({ defaultTab = 'materials', fixedTab =
                 </h3>
 
               <form onSubmit={handleSave} className="space-y-5">
+                {formType === 'assignment' && (
+                  <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200/80 space-y-3.5">
+                    <div>
+                      <label className="text-[12px] font-black uppercase tracking-wider text-slate-500">
+                        Format Penugasan
+                      </label>
+                      <div className="grid grid-cols-2 gap-2 mt-1.5">
+                        <button
+                          type="button"
+                          onClick={() => setFormAssignmentCategory('general')}
+                          className={`p-3 rounded-xl border text-left font-bold text-xs transition-all ${
+                            formAssignmentCategory === 'general'
+                              ? 'bg-blue-600 border-blue-600 text-white shadow-md'
+                              : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300'
+                          }`}
+                        >
+                          <div className="flex items-center gap-1.5">
+                            <FileText className="w-4 h-4" />
+                            <span>Tugas Standar</span>
+                          </div>
+                          <p className={`text-[10px] mt-1 font-normal ${formAssignmentCategory === 'general' ? 'text-blue-100' : 'text-slate-400'}`}>
+                            Pengumpulan jawaban esai, link tugas, atau file dokumen bebas.
+                          </p>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setFormAssignmentCategory('lkpd');
+                            handleApplyLkpdTemplate(formObservationPreset);
+                          }}
+                          className={`p-3 rounded-xl border text-left font-bold text-xs transition-all ${
+                            formAssignmentCategory === 'lkpd'
+                              ? 'bg-gradient-to-r from-amber-500 to-orange-500 border-amber-500 text-white shadow-md shadow-amber-500/20'
+                              : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300'
+                          }`}
+                        >
+                          <div className="flex items-center gap-1.5">
+                            <Sparkles className="w-4 h-4" />
+                            <span>LKPD Interaktif</span>
+                          </div>
+                          <p className={`text-[10px] mt-1 font-normal ${formAssignmentCategory === 'lkpd' ? 'text-amber-100' : 'text-slate-400'}`}>
+                            Lembar kerja terstruktur (observasi foto kamera, praktikum, dll).
+                          </p>
+                        </button>
+                      </div>
+                    </div>
+
+                    {formAssignmentCategory === 'lkpd' && (
+                      <div className="pt-2 border-t border-slate-200/60 space-y-3">
+                        <div>
+                          <label className="text-[11px] font-bold text-slate-600 block mb-1.5">
+                            Pilih Ragam LKPD:
+                          </label>
+                          <div className="grid grid-cols-2 gap-2">
+                            {LKPD_TYPES.map(t => (
+                              <button
+                                key={t.id}
+                                type="button"
+                                onClick={() => setFormLkpdType(t.id)}
+                                className={`p-2.5 rounded-xl border text-left text-xs transition-all flex flex-col justify-between ${
+                                  formLkpdType === t.id
+                                    ? 'bg-amber-50 border-amber-400 text-amber-900 font-bold shadow-xs'
+                                    : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'
+                                }`}
+                              >
+                                <span className="flex items-center gap-1.5 font-bold">
+                                  {t.id === 'observation' && <Search className="w-3.5 h-3.5 text-amber-600" />}
+                                  {t.id === 'experiment' && <Layers className="w-3.5 h-3.5 text-emerald-600" />}
+                                  {t.id === 'case_study' && <FileText className="w-3.5 h-3.5 text-indigo-600" />}
+                                  {t.id === 'interview' && <Users className="w-3.5 h-3.5 text-sky-600" />}
+                                  {t.badgeLabel}
+                                </span>
+                                <span className="text-[10px] text-slate-500 font-normal mt-1 line-clamp-2">
+                                  {t.description}
+                                </span>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {formLkpdType === 'observation' && (
+                          <div className="p-3 bg-white rounded-xl border border-amber-200/80 space-y-2.5">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs font-bold text-amber-900">
+                                Preset Aspek Observasi:
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => handleApplyLkpdTemplate(formObservationPreset)}
+                                className="text-[11px] font-bold text-amber-600 hover:text-amber-700 flex items-center gap-1"
+                              >
+                                <Sparkles className="w-3 h-3" />
+                                Terapkan Template Teks
+                              </button>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                              {Object.values(OBSERVATION_PRESETS).map(p => (
+                                <button
+                                  key={p.id}
+                                  type="button"
+                                  onClick={() => {
+                                    setFormObservationPreset(p.id);
+                                    handleApplyLkpdTemplate(p.id);
+                                  }}
+                                  className={`p-2 rounded-lg border text-left text-[11px] transition-all ${
+                                    formObservationPreset === p.id
+                                      ? 'bg-amber-500 text-white font-bold border-amber-600 shadow-xs'
+                                      : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                                  }`}
+                                >
+                                  <div>{p.name}</div>
+                                  <div className={`text-[9px] ${formObservationPreset === p.id ? 'text-amber-100' : 'text-slate-400'}`}>
+                                    {p.aspects.length} Aspek Rupa/Fisik
+                                  </div>
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 <div className="space-y-1">
-                  <label className="text-[13px] font-bold text-slate-700 ml-0.5">Judul {formType === 'material' ? 'Materi' : 'Tugas'}</label>
+                  <label className="text-[13px] font-bold text-slate-700 ml-0.5">Judul {formType === 'material' ? 'Materi' : (formAssignmentCategory === 'lkpd' ? 'LKPD' : 'Tugas')}</label>
                   <input 
                     type="text" 
                     required 

@@ -15,12 +15,15 @@ import {
   CheckCircle2,
   Upload,
   Award,
-  ArrowUpRight
+  ArrowUpRight,
+  Sparkles,
+  Camera
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Material, Assignment, AssignmentSubmission } from '../../types';
 import LinkPreviewCard from '../../components/LinkPreviewCard';
 import StudentSubmissionModal from '../../components/StudentSubmissionModal';
+import LkpdSubmissionModal from '../../components/LkpdSubmissionModal';
 
 interface MateriTugasSiswaProps {
   defaultTab?: 'materials' | 'assignments';
@@ -44,6 +47,7 @@ export default function MateriTugasSiswa({ defaultTab = 'materials', fixedTab = 
   
   const [selectedAssignmentForSubmission, setSelectedAssignmentForSubmission] = useState<Assignment | null>(null);
   const [isSubmissionModalOpen, setIsSubmissionModalOpen] = useState(false);
+  const [isLkpdModalOpen, setIsLkpdModalOpen] = useState(false);
   
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -442,10 +446,17 @@ export default function MateriTugasSiswa({ defaultTab = 'materials', fixedTab = 
                 >
                   <div className="space-y-3">
                     <div className="flex items-center justify-between flex-wrap gap-2">
-                      <span className="bg-indigo-50 text-indigo-700 border border-indigo-200/70 text-[11px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider flex items-center gap-1.5">
-                        <FileText className="w-3.5 h-3.5 text-indigo-600" />
-                        Tugas Sekolah
-                      </span>
+                      {((a.assignment_type || a.assignmentType) === 'lkpd' || a.lkpd_type || a.lkpdType) ? (
+                        <span className="bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[11px] font-black px-3 py-1 rounded-full uppercase tracking-wider flex items-center gap-1.5 shadow-xs">
+                          <Sparkles className="w-3.5 h-3.5 text-amber-200" />
+                          LKPD: {(a.lkpd_type || a.lkpdType) === 'observation' ? 'Observasi Lapangan' : (a.lkpd_type || a.lkpdType) === 'experiment' ? 'Praktikum' : (a.lkpd_type || a.lkpdType) === 'case_study' ? 'Studi Kasus' : (a.lkpd_type || a.lkpdType) === 'interview' ? 'Wawancara' : 'Interaktif'}
+                        </span>
+                      ) : (
+                        <span className="bg-indigo-50 text-indigo-700 border border-indigo-200/70 text-[11px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider flex items-center gap-1.5">
+                          <FileText className="w-3.5 h-3.5 text-indigo-600" />
+                          Tugas Sekolah
+                        </span>
+                      )}
                       
                       <div className="flex gap-1.5 flex-wrap">
                         {/* Submission Status Badge */}
@@ -522,37 +533,55 @@ export default function MateriTugasSiswa({ defaultTab = 'materials', fixedTab = 
                       </div>
                     )}
 
-                    {/* Main CTA: Kumpulkan Tugas */}
-                    <button
-                      onClick={() => {
-                        setSelectedAssignmentForSubmission(a);
-                        setIsSubmissionModalOpen(true);
-                      }}
-                      className={`w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-bold text-xs sm:text-sm shadow-sm hover:shadow transition-all cursor-pointer active:scale-[0.98] ${
-                        isGraded
-                          ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
-                          : isSubmitted
-                          ? 'bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200'
-                          : 'bg-indigo-600 hover:bg-indigo-700 text-white'
-                      }`}
-                    >
-                      {isGraded ? (
-                        <>
-                          <Award className="w-4 h-4" />
-                          <span>Lihat Nilai & Hasil Tugas</span>
-                        </>
-                      ) : isSubmitted ? (
-                        <>
-                          <CheckCircle2 className="w-4 h-4 text-indigo-600" />
-                          <span>Lihat / Perbarui Pengumpulan</span>
-                        </>
-                      ) : (
-                        <>
-                          <Upload className="w-4 h-4" />
-                          <span>Kumpulkan Tugas (Teks / Foto / PDF)</span>
-                        </>
-                      )}
-                    </button>
+                    {/* Main CTA: Kumpulkan Tugas / Kerjakan LKPD */}
+                    {(() => {
+                      const isLkpd = (a.assignment_type || a.assignmentType) === 'lkpd' || a.lkpd_type || a.lkpdType;
+                      return (
+                        <button
+                          onClick={() => {
+                            setSelectedAssignmentForSubmission(a);
+                            if (isLkpd) {
+                              setIsLkpdModalOpen(true);
+                            } else {
+                              setIsSubmissionModalOpen(true);
+                            }
+                          }}
+                          className={`w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-bold text-xs sm:text-sm shadow-sm hover:shadow transition-all cursor-pointer active:scale-[0.98] ${
+                            isGraded
+                              ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                              : isSubmitted
+                              ? isLkpd
+                                ? 'bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200'
+                                : 'bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200'
+                              : isLkpd
+                              ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-amber-500/20'
+                              : 'bg-indigo-600 hover:bg-indigo-700 text-white'
+                          }`}
+                        >
+                          {isGraded ? (
+                            <>
+                              <Award className="w-4 h-4" />
+                              <span>{isLkpd ? 'Lihat Nilai & Hasil LKPD' : 'Lihat Nilai & Hasil Tugas'}</span>
+                            </>
+                          ) : isSubmitted ? (
+                            <>
+                              <CheckCircle2 className={`w-4 h-4 ${isLkpd ? 'text-amber-600' : 'text-indigo-600'}`} />
+                              <span>{isLkpd ? 'Buka LKPD (Terkirim)' : 'Lihat / Perbarui Pengumpulan'}</span>
+                            </>
+                          ) : isLkpd ? (
+                            <>
+                              <Camera className="w-4 h-4" />
+                              <span>Mulai Observasi LKPD 📸</span>
+                            </>
+                          ) : (
+                            <>
+                              <Upload className="w-4 h-4" />
+                              <span>Kumpulkan Tugas (Teks / Foto / PDF)</span>
+                            </>
+                          )}
+                        </button>
+                      );
+                    })()}
 
                     {/* Papan Link Preview Card persis seperti di akun guru */}
                     {a.link && (
@@ -583,6 +612,19 @@ export default function MateriTugasSiswa({ defaultTab = 'materials', fixedTab = 
         isOpen={isSubmissionModalOpen}
         onClose={() => {
           setIsSubmissionModalOpen(false);
+          setSelectedAssignmentForSubmission(null);
+        }}
+        assignment={selectedAssignmentForSubmission}
+        studentInfo={studentInfo}
+        existingSubmission={selectedAssignmentForSubmission ? submissions[selectedAssignmentForSubmission.id] || null : null}
+        onSuccess={() => fetchStudentData(true)}
+      />
+
+      {/* Student LKPD Submission Modal */}
+      <LkpdSubmissionModal
+        isOpen={isLkpdModalOpen}
+        onClose={() => {
+          setIsLkpdModalOpen(false);
           setSelectedAssignmentForSubmission(null);
         }}
         assignment={selectedAssignmentForSubmission}
