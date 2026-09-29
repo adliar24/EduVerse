@@ -39,6 +39,7 @@ const ScanUjian = lazy(() => import('./pages/ScanUjian'));
 const KelolaSiswa = lazy(() => import('./pages/KelolaSiswa'));
 const KelolaMateriTugas = lazy(() => import('./pages/KelolaMateriTugas'));
 const MateriTugasSiswa = lazy(() => import('./pages/student/MateriTugasSiswa'));
+const MyVerse = lazy(() => import('./pages/student/MyVerse'));
 
 // EduCheck (Attendance) Pages
 const AttendanceScan = lazy(() => import('./pages/attendance/Attendance').then(m => ({ default: m.Attendance })));
@@ -253,6 +254,7 @@ function AnimatedRoutes({ session, studentSession, profileCompleted, userRole }:
         <Route path="/hasil-ujian" element={session && userRole === 'guru' ? <HasilUjian /> : <Navigate to="/dashboard" />} />
         <Route path="/analisis" element={session && userRole === 'guru' ? <Analisis /> : <Navigate to="/dashboard" />} />
         <Route path="/profil" element={session || studentSession ? <Profil /> : <Navigate to="/login" />} />
+        <Route path="/my-verse" element={studentSession ? <MyVerse /> : <Navigate to="/login" />} />
         <Route path="/daftar-ujian-siswa" element={studentSession ? <StudentJoin isDashboardView={true} /> : <Navigate to="/login" />} />
         <Route path="/materi-siswa" element={studentSession ? <MateriTugasSiswa defaultTab="materials" fixedTab={true} /> : <Navigate to="/login" />} />
         <Route path="/tugas-siswa" element={studentSession ? <MateriTugasSiswa defaultTab="assignments" fixedTab={true} /> : <Navigate to="/login" />} />

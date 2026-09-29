@@ -417,3 +417,22 @@ export interface AssignmentSubmission {
   updated_at?: string;
 }
 
+// --- STUDENT VERSE (GAMIFICATION) ---
+export type VerseElement = 'api' | 'air' | 'bumi' | 'angin' | 'petir';
+export type VerseSpecies = 'Pyrofox' | 'Aquaxolt' | 'Pangorock' | 'Cirrofinch' | 'Voltlynx';
+export type VerseStage = 1 | 2 | 3 | 4;
+
+export interface StudentVerse {
+  id: string;
+  studentId: string;
+  schoolId?: string;
+  species: VerseSpecies;
+  element: VerseElement;
+  nickname: string;
+  lifetimePoints: number;
+  level: number;
+  stage: VerseStage;
+  createdAt: string;
+  updatedAt: string;
+}
+

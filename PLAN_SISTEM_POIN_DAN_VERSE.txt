@@ -1,5 +1,5 @@
 ================================================================================
-RENCANA & KONSEP: SISTEM POIN, LEVELING MURID & 5 KARAKTER VIRTUAL "VERSE"
+RENCANA & KONSEP LENGKAP: SISTEM POIN, LEVELING & PET "MY VERSE"
 EduVerse Portal
 ================================================================================
 
@@ -11,108 +11,98 @@ Setiap murid memiliki identitas progres belajar berupa:
   - Poin Belajar Kumulatif (Lifetime EXP)
   - Seekor makhluk fiksi pendamping belajar yang disebut "Verse".
 
-Prinsip Desain (Patokan EduVerse):
+Prinsip Desain (Patokan Paten EduVerse):
   - Bahasa Desain Bersih: Electric Blue (#3B66F5), slate neuters, cards rounded-2xl, border-slate-200.
   - Minimalis Ikon: Visual tenang tanpa ikon berlebih yang berisik.
   - Teks Singkat & Jelas: Dialog dan status ringkas tanpa bertele-tele.
-  - Alur Cepat & Responsif: Beban grafis ultra-ringan (vector SVG), cepat dibuka di ponsel murid.
+  - Alur Cepat & Responsif: Aset dioptimalkan ke WebP ultra-ringan, instan dimuat di perangkat ponsel murid.
 
 
-2. INISIASI: 5 TELUR ELEMEN (THE 5 ELEMENTAL EGGS)
+2. NAVIGASI SIDEBAR EKSKLUSIF: "MY VERSE"
 --------------------------------------------------------------------------------
-Saat pertama kali murid membuka dashboard setelah fitur aktif, muncul modal
-elegan untuk memilih 1 dari 5 Telur Elemen:
-
-  1. TELUR API (Hangat & Membara)
-     -> Pyrofox (Rubah Kerdil Api)
-     Filosofi: Keberanian, antusiasme tinggi, dan ketangkasan aksi.
-
-  2. TELUR AIR (Menenangkan & Jernih)
-     -> Aqualotl (Axolotl Melayang Air)
-     Filosofi: Ketenangan, empati, dan kejernihan berpikir.
-
-  3. TELUR BUMI (Kokoh & Teguh)
-     -> Pangorock (Trenggiling Berbatu)
-     Filosofi: Ketekunan, kedisiplinan, dan daya tahan belajar.
-
-  4. TELUR ANGIN (Semilir & Bebas)
-     -> Cirrofinch (Burung Awan)
-     Filosofi: Kebebasan berpikir, kreativitas, dan rasa ingin tahu tinggi.
-
-  5. TELUR PETIR (Dinamis & Cepat)
-     -> Voltlynx (Musang / Kucing Lincah Petir)
-     Filosofi: Kecerdikan, refleks kilat, dan ketepatan logika.
-
-Setiap murid juga dapat memberikan Nama Panggilan (Nickname) personal untuk Verse-nya.
+Di akun murid (portal siswa), menu "My Verse" ditempatkan dengan penekanan visual khusus:
+  - Posisi: Tepat di bawah Dashboard (urutan ke-2 di navigasi murid).
+  - Aksen Visual Khusus:
+      * Gradasi lembut Electric Blue ke Violet (misal: from-blue-500/10 via-indigo-500/15 to-purple-500/10).
+      * Border halus bercahaya (border border-[#3B66F5]/30).
+      * Badge eksklusif "✨ Spesial" / "Verse" di sebelah kanan label menu.
+      * Efek hover dinamis namun tetap elegan dan tidak berlebihan.
 
 
-3. 4 TAHAPAN EVOLUSI PER KARAKTER
+3. ALUR ONBOARDING PERTAMA KALI (FIRST-TIME OPENING FLOW)
 --------------------------------------------------------------------------------
-Verse akan berevolusi seiring meningkatnya level murid:
+Ketika murid pertama kali membuka halaman /my-verse (kondisi belum memiliki pet):
 
-[1] ELEMEN API: PYROFOX (Rubah Kerdil)
-    - Tahap 1: Hatchling (Lv 1 - 5)   : Emberkit
-      Wujud: Rubah kerdil mungil berujung ekor bara api lembut.
-    - Tahap 2: Junior (Lv 6 - 15)     : Pyrofox
-      Wujud: Rubah remaja lincah bertelinga api dengan syal petualang.
-    - Tahap 3: Guardian (Lv 16 - 30)  : Flametail
-      Wujud: Rubah anggun berekor tiga berkobar dengan cakar obsidian.
-    - Tahap 4: Mythic Titan (Lv 31+)  : Solaris Kyubi
-      Wujud: Rubah dewa surya agung bermahkota api matahari abadi.
+  A. FASE 1: THE MYSTERIOUS CHEST (Peti Rahasia)
+     - Tampilan visual terpusat yang bersih dan magis.
+     - Gambar: public/verse/chest.webp (atau chest.png teroptimasi).
+     - Efek animasi mengapung lembut (subtle float) & pancaran aura halus.
+     - Teks ringkas: "Peti Misterius Verse Ditemukan!"
+     - Tombol aksi: "Ketuk Peti untuk Membuka".
 
-[2] ELEMEN AIR: AQUALOTL (Axolotl Melayang)
-    - Tahap 1: Hatchling (Lv 1 - 5)   : Dewlotl
-      Wujud: Bayi axolotl transparan yang mengapung di gelembung embun.
-    - Tahap 2: Junior (Lv 6 - 15)     : Aqualotl
-      Wujud: Axolotl melayang bersirip ombak dan antena mutiara.
-    - Tahap 3: Guardian (Lv 16 - 30)  : Tidestride
-      Wujud: Axolotl anggun berjubah kabut air dengan aura ombak samudra.
-    - Tahap 4: Mythic Titan (Lv 31+)  : Leviathan Levi
-      Wujud: Naga air celestial bermahkota kristal samudra agung.
+  B. FASE 2: PEMECAHAN / PEMILIHAN 5 TELUR ELEMEN (egg.webp)
+     - Begitu peti diketuk, peti terbuka dan memunculkan 5 Telur Elemen:
 
-[3] ELEMEN BUMI: PANGOROCK (Trenggiling Berbatu)
-    - Tahap 1: Hatchling (Lv 1 - 5)   : Pebbleling
-      Wujud: Trenggiling mini berkulit kerikil halus yang bisa membulat.
-    - Tahap 2: Junior (Lv 6 - 15)     : Pangorock
-      Wujud: Trenggiling berzirah lempeng granit kokoh pelindung.
-    - Tahap 3: Guardian (Lv 16 - 30)  : Geoshield
-      Wujud: Trenggiling lapis baja batu zamrud berbelalai kokoh.
-    - Tahap 4: Mythic Titan (Lv 31+)  : Titanscale
-      Wujud: Titan bebatuan bumi berhias urat kristal zamrud bercahaya.
+       [1] Pyrofox (Api - Merah Hangat)
+           Aset: public/verse/Pyrofox/egg.webp
+           Filosofi: Keberanian, antusiasme tinggi, dan ketangkasan aksi.
 
-[4] ELEMEN ANGIN: CIRROFINCH (Burung Awan)
-    - Tahap 1: Hatchling (Lv 1 - 5)   : Breezeling
-      Wujud: Anak burung mungil berbulu kapas halus seperti awan kecil.
-    - Tahap 2: Junior (Lv 6 - 15)     : Cirrofinch
-      Wujud: Burung awan bersayap semilir fajar dengan jambul meliuk.
-    - Tahap 3: Guardian (Lv 16 - 30)  : Stormwing
-      Wujud: Rajawali awan stratus penyibak kabut berbulu aerodinamis.
-    - Tahap 4: Mythic Titan (Lv 31+)  : Aero Tempest
-      Wujud: Garuda angin surgawi bermahkota pelangi langit luas.
+       [2] Aquaxolt (Air - Biru Sejuk)
+           Aset: public/verse/Aquaxolt/egg.webp
+           Filosofi: Ketenangan, empati, dan kejernihan berpikir.
 
-[5] ELEMEN PETIR: VOLTLYNX (Musang / Kucing Lincah)
-    - Tahap 1: Hatchling (Lv 1 - 5)   : Sparkitten
-      Wujud: Anak kucing bertelinga petir dengan percikan listrik lucu.
-    - Tahap 2: Junior (Lv 6 - 15)     : Voltlynx
-      Wujud: Kucing musang lincah bergaris kilat neon berkecepatan tinggi.
-    - Tahap 3: Guardian (Lv 16 - 30)  : Thundershade
-      Wujud: Lynx pemburu petir bermata neon berkecepatan suara.
-    - Tahap 4: Mythic Titan (Lv 31+)  : Raijin Lynx
-      Wujud: Kucing dewa halilintar berzirah petir emas beraura plasma.
+       [3] Pangorock (Bumi - Cokelat Zamrud)
+           Aset: public/verse/Pangorock/egg.webp
+           Filosofi: Ketekunan, kedisiplinan, dan ketahanan belajar.
+
+       [4] Cirrofinch (Angin - Biru Muda Awan)
+           Aset: public/verse/Cirrofinch/egg.webp
+           Filosofi: Kreativitas, kebebasan berpikir, dan eksplorasi ilmu.
+
+       [5] Voltlynx (Petir - Kuning Neon)
+           Aset: public/verse/Voltlynx/egg.webp
+           Filosofi: Kecerdikan, refleks kilat, dan ketepatan logika.
+
+  C. FASE 3: PENAMAAN & PENETASAN (HATCHING CELEBRATION)
+     - Murid memilih salah satu telur yang paling disukai.
+     - Input nama panggilan (Nickname), misal: "Sparky", "Blaze", dsb.
+     - Murid menekan tombol "Tetaskan Verse".
+     - Animasi menetas selebrasi singkat.
+     - Karakter langsung muncul dalam wujud Tahap 1: Hatchling (1.webp / 1.png).
 
 
-4. MEKANISME POIN & LEVELING ENGINE
+4. TAHAPAN EVOLUSI & SKEMA ASET KARAKTER
+--------------------------------------------------------------------------------
+Setiap karakter memiliki 4 tahapan evolusi berbasis Level & Lifetime EXP:
+
+  - Tahap 1: Hatchling    (Lv. 1 - 5)   -> File: 1.webp / 1.png  (0 - 250 Poin)
+  - Tahap 2: Junior       (Lv. 6 - 15)  -> File: 2.webp / 2.png  (251 - 1.000 Poin)
+  - Tahap 3: Guardian     (Lv. 16 - 30) -> File: 3.webp / 3.png  (1.001 - 2.500 Poin)
+  - Tahap 4: Mythic Titan (Lv. 31+)     -> File: 4.webp / 4.png  (2.501+ Poin)
+
+Rincian Karakter & Spesies:
+  [1] API (Pyrofox)      : Emberkit (1) -> Pyrofox (2) -> Flametail (3) -> Solaris Kyubi (4)
+  [2] AIR (Aquaxolt)     : Dewlotl (1)  -> Aquaxolt (2) -> Tidestride (3) -> Leviathan Levi (4)
+  [3] BUMI (Pangorock)   : Pebbleling (1)-> Pangorock (2) -> Geoshield (3) -> Titanscale (4)
+  [4] ANGIN (Cirrofinch) : Breezeling (1)-> Cirrofinch (2) -> Stormwing (3) -> Aero Tempest (4)
+  [5] PETIR (Voltlynx)   : Sparkitten (1)-> Voltlynx (2) -> Thundershade (3) -> Raijin Lynx (4)
+
+
+5. OPTIMASI ASET & PIPELINE GRAFIS
+--------------------------------------------------------------------------------
+Aset asli di root folder Verse/ (~4.5 MB PNG) dioptimasi ke format WebP lossless/high-quality:
+  - Lokasi target web: public/verse/
+  - Target ukuran: ~25 - 50 KB per gambar (total bundel aset < 800 KB).
+  - Transparansi alpha channel tetap terjaga 100% jernih.
+  - Skrip optimasi otomatis: scripts/optimize-verse-assets.cjs (menggunakan Sharp).
+
+
+6. MEKANISME POIN & LEVELING ENGINE
 --------------------------------------------------------------------------------
 Poin bersifat AKUMULATIF SEUMUR HIDUP (Lifetime EXP). Poin total tidak akan
 berkurang saat murid naik level atau Verse berevolusi.
 
-Skala Level & Tahapan:
-  - Level 1 - 5   : Tahap 1 (Hatchling)    -> 0 s/d 250 Poin
-  - Level 6 - 15  : Tahap 2 (Junior)       -> 251 s/d 1.000 Poin
-  - Level 16 - 30 : Tahap 3 (Guardian)     -> 1.001 s/d 2.500 Poin
-  - Level 31+     : Tahap 4 (Mythic Titan) -> 2.501+ Poin
-
-Rumus Kebutuhan Poin:
+Rumus Level Murid:
   XP_Next_Level = Level * 50 + 20
 
 Sumber Poin Otomatis:
@@ -122,50 +112,32 @@ Sumber Poin Otomatis:
   - Reward Perilaku Guru     : +5 s/d +50 Poin (dari menu Kelola Poin guru)
 
 
-5. DESAIN TAMPILAN LAYAR (UI/UX)
+7. TAMPILAN HALAMAN MY VERSE (SETELAH MEMILIKI PET)
 --------------------------------------------------------------------------------
-A. Widget Verse di Dashboard Siswa:
-   - Posisi di paling atas dashboard murid.
-   - Avatar bulat mengapung lembut (subtle float animation).
-   - Teks informasi ringkas:
-       * Nama: "Sparky" • Voltlynx (Petir)
-       * Badge: Lv. 8 • Tahap 2: Junior
-       * Progress Bar: 420 / 470 Poin (sisa 50 poin ke Lv. 9)
-       * Target: Evolusi Tahap 3 di Lv. 16
+A. Header & Profil Verse:
+   - Gambar Pet aktif (mengapung lembut sesuai stage saat ini).
+   - Kartu Info: Nickname, Spesies, Elemen, dan Level saat ini.
+   - Progres Bar EXP: Lifetime Poin saat ini / Poin target level berikutnya.
 
-B. Pesan Motivasi Singkat (1 Baris):
-   - Contoh: "Semangat pagi, Budi! Selesaikan 1 tugas seni hari ini untuk +20 poin."
+B. Galeri Jejak Evolusi:
+   - Menampilkan 4 tahap wujud pet (Hatchling, Junior, Guardian, Titan).
+   - Wujud yang sudah terbuka ditampilkan berwarna cerah, wujud masa depan siluet elegan.
 
-C. Modal Evolusi:
-   - Selebrasi visual saat murid naik ke level evolusi (Lv 6, Lv 16, Lv 31).
+C. Riwayat & Sumber Poin:
+   - Log aktivitas terakhir murid yang menghasilkan poin (CBT, Tugas, Kehadiran, Apresiasi Guru).
 
-D. Tampilan Sisi Guru:
-   - Pin level murid di tabel siswa (misal: "Lv. 8 [⚡]").
+D. Dialog Sapaan Pendamping Belajar:
+   - Teks 1 baris yang menyemangati murid belajar setiap hari.
 
 
-6. ARSITEKTUR TEKNIS
+8. TAHAPAN EKSEKUSI TEKNIS
 --------------------------------------------------------------------------------
-A. Database Supabase & IndexedDB:
-   - Tabel: `student_verses`
-     (id, student_id, school_id, element, species, nickname, lifetime_points,
-      level, evolution_stage, updated_at, created_at)
-
-B. Modular Engine:
-   - `src/utils/verseEngine.ts`: fungsi murni penghitung level, stage, dan sapaan.
-   - Aset Visual Karakter: Telah tersedia di folder `Verse/` dengan 4 tahapan wujud PNG:
-       * Api: `Verse/Pyrofox/` (1.png s/d 4.png)
-       * Air: `Verse/Aquaxolt/` (1.png s/d 4.png)
-       * Bumi: `Verse/Pangorock/` (1.png s/d 4.png)
-       * Angin: `Verse/Cirrofinch/` (1.png s/d 4.png)
-       * Petir: `Verse/Voltlynx/` (1.png s/d 4.png)
-     Aset ini nantinya dapat di-copy ke `public/verse/` untuk akses cepat dan ringan di browser.
-
-
-7. TAHAPAN EKSEKUSI (SAAT DILANJUTKAN NANTI)
---------------------------------------------------------------------------------
-Langkah 1: Skema Database & Helper Engine (verseEngine.ts).
-Langkah 2: Penyalinan Aset Gambar Verse ke public/verse/ & Mapping Metadata.
-Langkah 3: Modal Pemilihan Telur Elemen & Input Nama Verse.
-Langkah 4: Integrasi Widget Verse & Progress Bar di Dashboard Siswa.
-Langkah 5: Sambungkan Poin Otomatis (LKPD, Absen, CBT) & Modal Perayaan Evolusi.
+Langkah 1: Jalankan optimasi aset dari Verse/ ke public/verse/ (format WebP ringan).
+Langkah 2: Buat verseEngine.ts (kalkulasi level, milestone evolusi, metadata 5 karakter).
+Langkah 3: Tambahkan item menu eksklusif "My Verse" di Layout.tsx (sidebar murid).
+Langkah 4: Bangun halaman MyVerse.tsx:
+           - State Onboarding: Chest -> 5 Eggs -> Hatching form & celebration.
+           - State Pet Active: Avatar, stats, progress evolusi, dan riwayat poin.
+Langkah 5: Integrasikan penyimpanan data Verse (Supabase & IndexedDB lokal).
+Langkah 6: Tambahkan widget ringkas Verse di Dashboard utama murid.
 ================================================================================

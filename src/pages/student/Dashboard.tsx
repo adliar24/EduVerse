@@ -11,12 +11,16 @@ import {
   Link2,
   GraduationCap,
   Camera,
-  RotateCw
+  RotateCw,
+  Sparkles,
+  ArrowRight
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import React from 'react';
 import { cn, capitalizeEachWord } from '../../lib/utils';
+import { getStudentVerse, getStudentPointsHistory } from '../../services/verseService';
+import { calculateLevelAndProgress, getStageInfo, CHEST_ASSET } from '../../utils/verseEngine';
 
 export default function StudentDashboard() {
   const navigate = useNavigate();
@@ -33,6 +37,8 @@ export default function StudentDashboard() {
   const [startingExamId, setStartingExamId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [studentVerse, setStudentVerse] = useState<any>(null);
+  const [versePoints, setVersePoints] = useState(0);
 
   useEffect(() => {
     const studentSessionStr = localStorage.getItem('student_session');
@@ -174,6 +180,18 @@ export default function StudentDashboard() {
         ongoingExams: availableSessions.length
       });
       setRecentResults(results || []);
+
+      // Fetch student verse and lifetime points
+      try {
+        const [vData, pData] = await Promise.all([
+          getStudentVerse(studentObj.id),
+          getStudentPointsHistory(studentObj.id, formattedName, className)
+        ]);
+        setStudentVerse(vData);
+        setVersePoints(pData.totalPoints);
+      } catch (verseErr) {
+        console.debug('[Dashboard] Verse loading skipped:', verseErr);
+      }
     } catch (error) {
       console.error('Error fetching student dashboard data:', error);
     } finally {
@@ -349,6 +367,93 @@ export default function StudentDashboard() {
           </button>
         </div>
       </div>
+
+      {/* Verse Pet Companion Widget */}
+      {studentVerse ? (
+        (() => {
+          const vStats = calculateLevelAndProgress(versePoints);
+          const stageInfo = getStageInfo(studentVerse.species, studentVerse.stage);
+          return (
+            <div className="relative overflow-hidden bg-white rounded-3xl border border-slate-200/90 shadow-sm p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-2xl bg-blue-50/80 border border-blue-100 flex items-center justify-center p-1.5 shrink-0 shadow-xs">
+                  <img
+                    src={stageInfo.image}
+                    onError={(e) => { (e.currentTarget as HTMLImageElement).src = stageInfo.pngImage; }}
+                    alt={studentVerse.nickname}
+                    className="w-full h-full object-contain filter drop-shadow-xs"
+                  />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-base font-extrabold text-slate-800 tracking-tight">
+                      {studentVerse.nickname}
+                    </h3>
+                    <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-blue-50 text-[#3B66F5] border border-blue-200/60 uppercase">
+                      Lv. {vStats.currentLevel} • {stageInfo.name}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 mt-1">
+                    <div className="w-32 sm:w-48 h-2 rounded-full bg-slate-100 overflow-hidden">
+                      <div 
+                        className="h-full bg-[#3B66F5] rounded-full" 
+                        style={{ width: `${vStats.progressPercent}%` }} 
+                      />
+                    </div>
+                    <span className="text-[11px] text-slate-400 font-medium">
+                      {vStats.currentLevelProgress}/{vStats.pointsNeededForNext} XP ({vStats.progressPercent}%)
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <Link
+                to="/my-verse"
+                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#3B66F5] to-indigo-600 text-white text-xs font-bold shadow-md shadow-blue-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer shrink-0"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Buka My Verse</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+          );
+        })()
+      ) : (
+        <div className="relative overflow-hidden bg-gradient-to-r from-amber-500/10 via-indigo-500/10 to-blue-500/10 rounded-3xl border border-amber-300/40 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 rounded-2xl bg-amber-100/60 border border-amber-200/60 flex items-center justify-center p-1.5 shrink-0 shadow-xs">
+              <img
+                src={CHEST_ASSET.webp}
+                onError={(e) => { (e.currentTarget as HTMLImageElement).src = CHEST_ASSET.png; }}
+                alt="Peti Verse"
+                className="w-full h-full object-contain filter drop-shadow-xs"
+              />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm sm:text-base font-extrabold text-slate-800 tracking-tight">
+                  Peti Misterius Verse Siap Dibuka!
+                </h3>
+                <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-amber-200/60 text-amber-800 border border-amber-300/60 uppercase">
+                  Spesial
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Buka sekarang untuk memilih 1 dari 5 telur elemen pendamping belajarmu.
+              </p>
+            </div>
+          </div>
+
+          <Link
+            to="/my-verse"
+            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 text-xs font-black shadow-md shadow-amber-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer shrink-0"
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>Buka Peti Sekarang</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+      )}
 
       {/* Active Exam Sessions Ready to Take */}
       {activeExamSessions.length > 0 && (

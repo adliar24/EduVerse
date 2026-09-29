@@ -49,6 +49,7 @@ const prefetchMap: Record<string, () => Promise<any>> = {
   '/kelola-tugas': () => import('../pages/KelolaMateriTugas'),
   '/materi-siswa': () => import('../pages/student/MateriTugasSiswa'),
   '/tugas-siswa': () => import('../pages/student/MateriTugasSiswa'),
+  '/my-verse': () => import('../pages/student/MyVerse'),
   '/monitor-ujian': () => import('../pages/MonitorUjian'),
   '/scan-ujian': () => import('../pages/ScanUjian'),
   '/profil': () => import('../pages/Profil'),
@@ -162,6 +163,8 @@ export default function Layout({ session }: LayoutProps) {
     label: string;
     path?: string;
     subItems?: { label: string; path: string }[];
+    isSpecial?: boolean;
+    badge?: string;
   }
 
   const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
@@ -231,6 +234,13 @@ export default function Layout({ session }: LayoutProps) {
 
   const studentMenuItems: MenuItem[] = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
+    { 
+      icon: Sparkles, 
+      label: 'My Verse', 
+      path: '/my-verse',
+      isSpecial: true,
+      badge: 'Spesial'
+    },
     { icon: ListTodo, label: 'Ujian Saya', path: '/daftar-ujian-siswa' },
     { icon: BookOpen, label: 'Materi Pelajaran', path: '/materi-siswa' },
     { icon: FileText, label: 'Tugas Murid', path: '/tugas-siswa' },
@@ -411,14 +421,33 @@ export default function Layout({ session }: LayoutProps) {
                     if (prefetch) prefetch();
                   }}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 rounded-2xl transition-all duration-150 group text-left cursor-pointer",
-                    location.pathname === item.path
-                      ? "bg-white text-indigo-900 shadow-lg shadow-indigo-950/20 font-extrabold"
-                      : "text-slate-200/90 hover:bg-white/10 hover:text-white"
+                    "flex items-center gap-3 px-3 py-2.5 rounded-2xl transition-all duration-200 group text-left cursor-pointer relative",
+                    item.isSpecial
+                      ? (location.pathname === item.path
+                          ? "bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 text-slate-950 font-black shadow-lg shadow-amber-500/25 border border-amber-200"
+                          : "bg-gradient-to-r from-amber-500/20 via-indigo-500/20 to-purple-500/20 text-amber-200 hover:text-white hover:from-amber-500/30 hover:to-indigo-500/30 border border-amber-400/35 shadow-xs")
+                      : (location.pathname === item.path
+                          ? "bg-white text-indigo-900 shadow-lg shadow-indigo-950/20 font-extrabold"
+                          : "text-slate-200/90 hover:bg-white/10 hover:text-white")
                   )}
                 >
-                  <item.icon className={cn("w-[18px] h-[18px]", location.pathname === item.path ? "text-indigo-600" : "text-slate-400 group-hover:text-white")} />
-                  <span className="font-semibold text-[13px]">{item.label}</span>
+                  <item.icon className={cn(
+                    "w-[18px] h-[18px] shrink-0 transition-transform duration-200 group-hover:scale-110",
+                    item.isSpecial
+                      ? (location.pathname === item.path ? "text-slate-950" : "text-amber-300 group-hover:text-amber-200")
+                      : (location.pathname === item.path ? "text-indigo-600" : "text-slate-400 group-hover:text-white")
+                  )} />
+                  <span className="font-semibold text-[13px] flex-1">{item.label}</span>
+                  {item.badge && (
+                    <span className={cn(
+                      "text-[9px] font-black px-2 py-0.5 rounded-full tracking-wider uppercase shrink-0",
+                      location.pathname === item.path
+                        ? "bg-slate-950 text-amber-300"
+                        : "bg-amber-400/25 text-amber-200 border border-amber-300/40"
+                    )}>
+                      {item.badge}
+                    </span>
+                  )}
                 </Link>
               );
             })}
@@ -550,14 +579,33 @@ export default function Layout({ session }: LayoutProps) {
                         if (prefetch) prefetch();
                       }}
                       className={cn(
-                        "flex items-center gap-3 px-3 py-2.5 rounded-2xl transition-all duration-150 text-[13px] font-semibold group",
-                        location.pathname === item.path
-                          ? "bg-white text-[#1D4ED8] shadow-lg font-extrabold"
-                          : "text-blue-100 hover:bg-white/10 hover:text-white"
+                        "flex items-center gap-3 px-3 py-2.5 rounded-2xl transition-all duration-200 text-[13px] font-semibold group relative",
+                        item.isSpecial
+                          ? (location.pathname === item.path
+                              ? "bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 text-slate-950 font-black shadow-lg shadow-amber-500/25 border border-amber-200"
+                              : "bg-gradient-to-r from-amber-500/20 via-indigo-500/20 to-purple-500/20 text-amber-200 hover:text-white border border-amber-400/35 shadow-xs")
+                          : (location.pathname === item.path
+                              ? "bg-white text-[#1D4ED8] shadow-lg font-extrabold"
+                              : "text-blue-100 hover:bg-white/10 hover:text-white")
                       )}
                     >
-                      <item.icon className={cn("w-[18px] h-[18px]", location.pathname === item.path ? "text-[#1D4ED8]" : "text-blue-200/80 group-hover:text-white")} />
-                      <span className="font-semibold">{item.label}</span>
+                      <item.icon className={cn(
+                        "w-[18px] h-[18px] shrink-0",
+                        item.isSpecial
+                          ? (location.pathname === item.path ? "text-slate-950" : "text-amber-300")
+                          : (location.pathname === item.path ? "text-[#1D4ED8]" : "text-blue-200/80 group-hover:text-white")
+                      )} />
+                      <span className="font-semibold flex-1">{item.label}</span>
+                      {item.badge && (
+                        <span className={cn(
+                          "text-[9px] font-black px-2 py-0.5 rounded-full tracking-wider uppercase shrink-0",
+                          location.pathname === item.path
+                            ? "bg-slate-950 text-amber-300"
+                            : "bg-amber-400/25 text-amber-200 border border-amber-300/40"
+                        )}>
+                          {item.badge}
+                        </span>
+                      )}
                     </Link>
                   );
                 })}
