@@ -1313,156 +1313,167 @@ export default function KelolaMateriTugas({ defaultTab = 'materials', fixedTab =
               className="absolute inset-0 bg-slate-950/70"
               onClick={() => { if (!submitting) setShowModal(false); }}
             />
-            {/* Panel */}
+            {/* Panel Modal: Responsif Mobile & Desktop */}
             <motion.div 
-              initial={{ scale: 0.95, opacity: 0, y: 20 }}
+              initial={{ scale: 0.95, opacity: 0, y: 15 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.95, opacity: 0, y: 20 }}
-              className="bg-white rounded-[2.5rem] max-w-2xl w-full max-h-[85vh] overflow-y-auto custom-scrollbar relative z-10 shadow-2xl border border-slate-100"
+              exit={{ scale: 0.95, opacity: 0, y: 15 }}
+              className="bg-white rounded-2xl sm:rounded-3xl max-w-3xl w-full max-h-[90vh] overflow-y-auto custom-scrollbar relative z-10 shadow-2xl border border-slate-100"
             >
-              <div className="p-8">
-                <h3 className="text-2xl font-black text-[#1D4ED8] mb-6 tracking-tight">
-                  {editingId ? 'Edit' : 'Tambah'} {formType === 'material' ? 'Materi Pelajaran' : 'Tugas Murid'}
+              <div className="p-4 sm:p-6 md:p-8">
+                <h3 className="text-xl sm:text-2xl font-black text-[#1D4ED8] mb-5 tracking-tight">
+                  {editingId ? 'Edit' : 'Tambah'} {formType === 'material' ? 'Materi Pelajaran' : (formAssignmentCategory === 'lkpd' ? 'LKPD Interaktif' : 'Tugas Murid')}
                 </h3>
 
-              <form onSubmit={handleSave} className="space-y-5">
+              <form onSubmit={handleSave} className="space-y-4 sm:space-y-5">
+                {/* 1. Pilih Format Tugas */}
                 {formType === 'assignment' && (
-                  <div className="bg-slate-50 p-4 sm:p-5 rounded-2xl border border-slate-300 space-y-4">
-                    <div>
-                      <label className="text-xs font-bold uppercase tracking-wider text-slate-900 block mb-2">
-                        Pilih Format Tugas Murid
-                      </label>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                        <button
-                          type="button"
-                          onClick={() => setFormAssignmentCategory('general')}
-                          className={`p-3.5 rounded-xl border text-left font-bold text-xs transition-all ${
-                            formAssignmentCategory === 'general'
-                              ? 'bg-slate-900 border-slate-900 text-white shadow-sm'
-                              : 'bg-white border-slate-300 text-slate-800 hover:bg-slate-100'
-                          }`}
-                        >
-                          <div className="flex items-center gap-2">
-                            <FileText className="w-4 h-4" />
-                            <span className="text-sm">Tugas Standar</span>
-                          </div>
-                          <p className={`text-xs mt-1 font-normal leading-relaxed ${formAssignmentCategory === 'general' ? 'text-slate-200' : 'text-slate-600'}`}>
-                            Tugas umum berupa jawaban esai, tautan dokumen, atau unggahan berkas.
-                          </p>
-                        </button>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block">
+                      Format Penugasan
+                    </label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setFormAssignmentCategory('general')}
+                        className={`p-3 rounded-xl border text-left font-bold text-xs transition-all ${
+                          formAssignmentCategory === 'general'
+                            ? 'bg-slate-900 border-slate-900 text-white shadow-xs'
+                            : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                        }`}
+                      >
+                        <div className="text-sm font-bold">Tugas Standar</div>
+                        <p className={`text-[11px] mt-0.5 font-normal leading-relaxed ${formAssignmentCategory === 'general' ? 'text-slate-300' : 'text-slate-500'}`}>
+                          Pengumpulan esai biasa, tautan link luar, atau dokumen umum.
+                        </p>
+                      </button>
 
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setFormAssignmentCategory('lkpd');
-                            handleApplyLkpdTemplate(formObservationPreset);
-                          }}
-                          className={`p-3.5 rounded-xl border text-left font-bold text-xs transition-all ${
-                            formAssignmentCategory === 'lkpd'
-                              ? 'bg-blue-600 border-blue-600 text-white shadow-sm'
-                              : 'bg-white border-slate-300 text-slate-800 hover:bg-slate-100'
-                          }`}
-                        >
-                          <div className="flex items-center gap-2">
-                            <Sparkles className="w-4 h-4" />
-                            <span className="text-sm">LKPD Interaktif</span>
-                          </div>
-                          <p className={`text-xs mt-1 font-normal leading-relaxed ${formAssignmentCategory === 'lkpd' ? 'text-blue-100' : 'text-slate-600'}`}>
-                            Lembar kerja terstruktur (observasi foto kamera langsung, praktikum, dll).
-                          </p>
-                        </button>
-                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFormAssignmentCategory('lkpd');
+                          handleApplyLkpdTemplate(formObservationPreset);
+                        }}
+                        className={`p-3 rounded-xl border text-left font-bold text-xs transition-all ${
+                          formAssignmentCategory === 'lkpd'
+                            ? 'bg-blue-600 border-blue-600 text-white shadow-xs'
+                            : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                        }`}
+                      >
+                        <div className="text-sm font-bold">LKPD Interaktif</div>
+                        <p className={`text-[11px] mt-0.5 font-normal leading-relaxed ${formAssignmentCategory === 'lkpd' ? 'text-blue-100' : 'text-slate-500'}`}>
+                          Lembar kerja terstruktur per butir (teks, link, foto kamera, audio, video).
+                        </p>
+                      </button>
                     </div>
-
-                    {formAssignmentCategory === 'lkpd' && (
-                      <div className="pt-3 border-t border-slate-200">
-                        <LkpdFormBuilder
-                          blocks={formLkpdBlocks.length > 0 ? formLkpdBlocks : convertPresetToBlocks(formObservationPreset)}
-                          onChange={setFormLkpdBlocks}
-                          presetKey={formObservationPreset}
-                          onSelectPreset={(pKey) => {
-                            setFormObservationPreset(pKey);
-                            handleApplyLkpdTemplate(pKey);
-                          }}
-                        />
-                      </div>
-                    )}
                   </div>
                 )}
 
+                {/* 2. Judul & Deskripsi / Arahan Guru */}
                 <div className="space-y-1">
-                  <label className="text-[13px] font-bold text-slate-700 ml-0.5">Judul {formType === 'material' ? 'Materi' : (formAssignmentCategory === 'lkpd' ? 'LKPD' : 'Tugas')}</label>
+                  <label className="text-xs font-bold text-slate-700">
+                    Judul {formType === 'material' ? 'Materi' : (formAssignmentCategory === 'lkpd' ? 'LKPD' : 'Tugas')}
+                  </label>
                   <input 
                     type="text" 
                     required 
                     placeholder={`Masukkan judul ${formType === 'material' ? 'materi' : 'tugas'}...`}
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-[#3B66F5] text-sm font-semibold text-slate-800 transition-colors"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white outline-none focus:border-[#3B66F5] text-xs sm:text-sm font-bold text-slate-900 transition-colors"
                     value={formTitle}
                     onChange={(e) => setFormTitle(e.target.value)}
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[13px] font-bold text-slate-700 ml-0.5">Deskripsi / Instruksi</label>
+                  <label className="text-xs font-bold text-slate-700">
+                    {formAssignmentCategory === 'lkpd' ? 'Petunjuk Umum / Pengantar LKPD' : 'Deskripsi / Instruksi'}
+                  </label>
                   <textarea 
                     required 
-                    rows={4}
-                    placeholder={`Tulis penjelasan materi atau deskripsi petunjuk pengerjaan tugas...`}
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-[#3B66F5] text-sm font-semibold text-slate-800 transition-colors resize-none"
+                    rows={3}
+                    placeholder={`Tulis penjelasan ringkas petunjuk atau pengantar kegiatan...`}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white outline-none focus:border-[#3B66F5] text-xs sm:text-sm text-slate-800 transition-colors resize-none leading-relaxed"
                     value={formDesc}
                     onChange={(e) => setFormDesc(e.target.value)}
                   />
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* 3. Tautan Tambahan & Pengaturan Tenggat / Penilaian */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-1">
-                    <label className="text-[13px] font-bold text-slate-700 ml-0.5">Tautan Luar (Google Drive, dll)</label>
+                    <label className="text-xs font-bold text-slate-700">Tautan Tambahan (Opsional)</label>
                     <input 
                       type="url" 
                       placeholder="https://drive.google.com/..."
-                      className="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-[#3B66F5] text-sm font-semibold text-slate-800 transition-colors"
+                      className="w-full px-3.5 py-2 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white outline-none focus:border-[#3B66F5] text-xs font-medium text-slate-800 transition-colors"
                       value={formLink}
                       onChange={(e) => setFormLink(e.target.value)}
                     />
                   </div>
 
                   {formType === 'assignment' && (
-                    <>
-                      <div className="space-y-1">
-                        <label className="text-[13px] font-bold text-slate-700 ml-0.5">Tenggat Waktu (Deadline) (Opsional)</label>
-                        <input 
-                          type="datetime-local" 
-                          className="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-[#3B66F5] text-sm font-semibold text-slate-800 transition-colors"
-                          value={formDeadline}
-                          onChange={(e) => setFormDeadline(e.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-[13px] font-bold text-slate-700 ml-0.5">Penilaian</label>
-                        <div className="flex gap-4 py-2.5">
-                          <label className="flex items-center gap-2 text-sm font-bold text-slate-700 cursor-pointer">
-                            <input 
-                              type="radio" 
-                              name="is_graded" 
-                              checked={formIsGraded === true} 
-                              onChange={() => setFormIsGraded(true)}
-                            />
-                            Diberi Nilai
-                          </label>
-                          <label className="flex items-center gap-2 text-sm font-bold text-slate-700 cursor-pointer">
-                            <input 
-                              type="radio" 
-                              name="is_graded" 
-                              checked={formIsGraded === false} 
-                              onChange={() => setFormIsGraded(false)}
-                            />
-                            Tugas Tanpa Nilai
-                          </label>
-                        </div>
-                      </div>
-                    </>
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-slate-700">Tenggat Waktu (Opsional)</label>
+                      <input 
+                        type="datetime-local" 
+                        className="w-full px-3.5 py-2 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white outline-none focus:border-[#3B66F5] text-xs font-medium text-slate-800 transition-colors"
+                        value={formDeadline}
+                        onChange={(e) => setFormDeadline(e.target.value)}
+                      />
+                    </div>
                   )}
                 </div>
+
+                {/* Opsi Penilaian */}
+                {formType === 'assignment' && (
+                  <div className="flex items-center gap-4 pt-1">
+                    <span className="text-xs font-bold text-slate-700">Sistem Penilaian:</span>
+                    <label className="flex items-center gap-1.5 text-xs font-bold text-slate-700 cursor-pointer">
+                      <input 
+                        type="radio" 
+                        name="is_graded" 
+                        checked={formIsGraded === true} 
+                        onChange={() => setFormIsGraded(true)}
+                        className="text-blue-600"
+                      />
+                      Diberi Nilai
+                    </label>
+                    <label className="flex items-center gap-1.5 text-xs font-bold text-slate-700 cursor-pointer">
+                      <input 
+                        type="radio" 
+                        name="is_graded" 
+                        checked={formIsGraded === false} 
+                        onChange={() => setFormIsGraded(false)}
+                        className="text-blue-600"
+                      />
+                      Tanpa Nilai
+                    </label>
+                  </div>
+                )}
+
+                {/* 4. FORM BUILDER LKPD: Diposisikan rapi setelah petunjuk umum */}
+                {formType === 'assignment' && formAssignmentCategory === 'lkpd' && (
+                  <div className="pt-4 border-t border-slate-200 space-y-3">
+                    <div>
+                      <label className="text-xs font-bold uppercase tracking-wider text-slate-900 block">
+                        Penyusun Lembar Kerja (Butir LKPD)
+                      </label>
+                      <p className="text-[11px] text-slate-500">
+                        Atur setiap butir LKPD apakah berupa petunjuk materi atau pertanyaan siswa (teks, link, media).
+                      </p>
+                    </div>
+
+                    <LkpdFormBuilder
+                      blocks={formLkpdBlocks.length > 0 ? formLkpdBlocks : convertPresetToBlocks(formObservationPreset)}
+                      onChange={setFormLkpdBlocks}
+                      presetKey={formObservationPreset}
+                      onSelectPreset={(pKey) => {
+                        setFormObservationPreset(pKey);
+                        handleApplyLkpdTemplate(pKey);
+                      }}
+                    />
+                  </div>
+                )}
 
                 <div className="border-t border-slate-50 pt-4">
                   <div className="space-y-2">

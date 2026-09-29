@@ -363,12 +363,12 @@ export default function LkpdSubmissionModal({
           className="relative bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[92vh] flex flex-col overflow-hidden border border-slate-200 z-10"
         >
           {/* Header EduVerse: Bersih & Ringkas */}
-          <div className="px-5 py-4 bg-white flex items-center justify-between shrink-0 border-b border-slate-100">
-            <div>
-              <span className="text-[11px] font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full inline-block mb-1">
+          <div className="px-4 sm:px-5 py-3.5 sm:py-4 bg-white flex items-center justify-between shrink-0 border-b border-slate-100">
+            <div className="min-w-0 pr-2">
+              <span className="text-[10px] sm:text-[11px] font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full inline-block mb-1">
                 LKPD Pembelajaran
               </span>
-              <h3 className="text-base sm:text-lg font-bold text-slate-900 leading-snug">
+              <h3 className="text-sm sm:text-lg font-bold text-slate-900 leading-snug truncate">
                 {assignment.title}
               </h3>
             </div>
@@ -383,7 +383,7 @@ export default function LkpdSubmissionModal({
           </div>
 
           {/* Body Content */}
-          <div className="p-5 sm:p-6 overflow-y-auto space-y-5 text-slate-800 flex-1 bg-white">
+          <div className="p-4 sm:p-6 overflow-y-auto space-y-4 sm:space-y-5 text-slate-800 flex-1 bg-white">
             {/* Status alerts */}
             {errorMsg && (
               <div className="p-3 bg-rose-50 text-rose-700 border border-rose-200 rounded-xl text-xs font-semibold">
