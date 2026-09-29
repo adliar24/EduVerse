@@ -332,8 +332,8 @@ export default function KelolaMateriTugas({ defaultTab = 'materials', fixedTab =
     setFormIsGraded(true);
     setFormAssignmentCategory('general');
     setFormLkpdType('observation');
-    setFormObservationPreset('art_elements');
-    setFormLkpdBlocks(convertPresetToBlocks('art_elements'));
+    setFormObservationPreset('custom');
+    setFormLkpdBlocks([]);
     setFormClassId(classes[0]?.id || 'all');
     setSelectedClassIds([]);
     setFormTargetType('class');
@@ -345,8 +345,8 @@ export default function KelolaMateriTugas({ defaultTab = 'materials', fixedTab =
   const handleApplyLkpdTemplate = (presetKey: string) => {
     const preset = OBSERVATION_PRESETS[presetKey];
     if (preset) {
-      setFormTitle(preset.defaultTitle);
-      setFormDesc(preset.defaultDesc);
+      if (!formTitle.trim()) setFormTitle(preset.defaultTitle);
+      if (!formDesc.trim()) setFormDesc(preset.defaultDesc);
       setFormLkpdBlocks(convertPresetToBlocks(presetKey));
     }
   };
@@ -409,6 +409,15 @@ export default function KelolaMateriTugas({ defaultTab = 'materials', fixedTab =
 
     if (formTargetType === 'students' && selectedStudentIds.length === 0) {
       showAlert({ title: 'Murid Belum Dipilih', message: 'Harap pilih minimal satu murid jika memilih target Murid Tertentu.', type: 'warning' });
+      return;
+    }
+
+    if (formType === 'assignment' && formAssignmentCategory === 'lkpd' && formLkpdBlocks.length === 0) {
+      showAlert({ 
+        title: 'Butir LKPD Belum Ditambahkan', 
+        message: 'Harap tambahkan minimal satu pertanyaan atau petunjuk pada LKPD sebelum menyimpan.', 
+        type: 'warning' 
+      });
       return;
     }
 
@@ -500,8 +509,7 @@ export default function KelolaMateriTugas({ defaultTab = 'materials', fixedTab =
       } else {
         const deadlineISO = formDeadline ? new Date(formDeadline).toISOString() : null;
         const isLkpd = formAssignmentCategory === 'lkpd';
-        const finalBlocks = (formLkpdBlocks.length > 0 ? formLkpdBlocks : convertPresetToBlocks(formObservationPreset))
-          .map((b, idx) => ({ ...b, order: idx + 1 }));
+        const finalBlocks = formLkpdBlocks.map((b, idx) => ({ ...b, order: idx + 1 }));
 
         const lkpdConfigData = isLkpd
           ? {
@@ -1352,7 +1360,6 @@ export default function KelolaMateriTugas({ defaultTab = 'materials', fixedTab =
                         type="button"
                         onClick={() => {
                           setFormAssignmentCategory('lkpd');
-                          handleApplyLkpdTemplate(formObservationPreset);
                         }}
                         className={`p-3 rounded-xl border text-left font-bold text-xs transition-all ${
                           formAssignmentCategory === 'lkpd'
@@ -1464,7 +1471,7 @@ export default function KelolaMateriTugas({ defaultTab = 'materials', fixedTab =
                     </div>
 
                     <LkpdFormBuilder
-                      blocks={formLkpdBlocks.length > 0 ? formLkpdBlocks : convertPresetToBlocks(formObservationPreset)}
+                      blocks={formLkpdBlocks}
                       onChange={setFormLkpdBlocks}
                       presetKey={formObservationPreset}
                       onSelectPreset={(pKey) => {

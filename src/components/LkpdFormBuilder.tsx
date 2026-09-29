@@ -1,19 +1,18 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Plus, 
   Trash2, 
   ChevronUp, 
   ChevronDown, 
-  HelpCircle,
-  FileText
+  FileText,
+  Sparkles,
+  RotateCcw
 } from 'lucide-react';
 import { 
   LkpdBlock, 
-  LkpdResponseType, 
   LkpdMediaKind, 
   OBSERVATION_PRESETS,
-  convertPresetToBlocks,
-  createEmptyFormBlocks
+  convertPresetToBlocks
 } from '../utils/lkpdPresets';
 
 interface LkpdFormBuilderProps {
@@ -29,6 +28,7 @@ export default function LkpdFormBuilder({
   presetKey,
   onSelectPreset
 }: LkpdFormBuilderProps) {
+  const [showPresetMenu, setShowPresetMenu] = useState(false);
 
   // Tambah blok pertanyaan baru
   const handleAddQuestion = () => {
@@ -51,7 +51,7 @@ export default function LkpdFormBuilder({
       id: `blk_inst_${Date.now()}`,
       order: blocks.length + 1,
       type: 'instruction',
-      title: 'Petunjuk Kegiatan',
+      title: '',
       description: ''
     };
     onChange([...blocks, newBlock]);
@@ -73,10 +73,6 @@ export default function LkpdFormBuilder({
 
   // Hapus blok
   const handleRemoveBlock = (index: number) => {
-    if (blocks.length <= 1) {
-      alert('LKPD minimal harus memiliki 1 butir.');
-      return;
-    }
     const newBlocks = blocks.filter((_, idx) => idx !== index);
     const updated = newBlocks.map((b, idx) => ({ ...b, order: idx + 1 }));
     onChange(updated);
@@ -125,37 +121,125 @@ export default function LkpdFormBuilder({
     }
   };
 
+  // 1. TAMPILAN AWAL KOSONG (CLEAN EMPTY STATE)
+  if (blocks.length === 0) {
+    return (
+      <div className="space-y-4 pt-1">
+        <div className="p-5 sm:p-7 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/60 text-center space-y-4">
+          <div className="space-y-1">
+            <h4 className="text-sm font-bold text-slate-900">
+              Lembar Kerja Masih Kosong
+            </h4>
+            <p className="text-xs text-slate-500 max-w-sm mx-auto leading-relaxed">
+              Mulai susun LKPD dengan menambahkan butir pertanyaan untuk siswa atau petunjuk langkah kerja.
+            </p>
+          </div>
+
+          {/* Tombol Aksi Tambah Awal */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-2.5 max-w-md mx-auto">
+            <button
+              type="button"
+              onClick={handleAddQuestion}
+              className="w-full sm:w-auto px-5 py-2.5 bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-xs cursor-pointer"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Tambah Pertanyaan</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleAddInstruction}
+              className="w-full sm:w-auto px-5 py-2.5 bg-white hover:bg-slate-100 border border-slate-200 active:scale-[0.98] text-slate-700 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer"
+            >
+              <Plus className="w-4 h-4 text-slate-500" />
+              <span>Tambah Petunjuk</span>
+            </button>
+          </div>
+
+          {/* Opsi Cadangan: Template Cepat */}
+          <div className="pt-2 border-t border-slate-200/80 max-w-sm mx-auto">
+            {!showPresetMenu ? (
+              <button
+                type="button"
+                onClick={() => setShowPresetMenu(true)}
+                className="text-xs font-semibold text-blue-600 hover:text-blue-800 flex items-center justify-center gap-1.5 mx-auto cursor-pointer"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Atau gunakan draf template siap pakai</span>
+              </button>
+            ) : (
+              <div className="space-y-2 text-left bg-white p-3 rounded-xl border border-slate-200 shadow-2xs">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-800">Pilih Template Pembelajaran:</span>
+                  <button
+                    type="button"
+                    onClick={() => setShowPresetMenu(false)}
+                    className="text-[11px] text-slate-400 hover:text-slate-600 font-semibold cursor-pointer"
+                  >
+                    Tutup
+                  </button>
+                </div>
+                <div className="space-y-1">
+                  {Object.values(OBSERVATION_PRESETS).map(p => (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => {
+                        onSelectPreset(p.id);
+                        onChange(convertPresetToBlocks(p.id));
+                        setShowPresetMenu(false);
+                      }}
+                      className="w-full text-left p-2 rounded-lg hover:bg-blue-50 text-xs font-semibold text-slate-700 hover:text-blue-700 transition-colors flex items-center justify-between cursor-pointer"
+                    >
+                      <span>{p.name}</span>
+                      <span className="text-[10px] text-slate-400">{p.aspects.length + 3} butir</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // 2. TAMPILAN JIKA SUDAH ADA BUTIR
   return (
-    <div className="space-y-3.5">
-      {/* Bar Preset Template: Ringkas & Tidak Memenuhi Layar */}
-      <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+    <div className="space-y-3.5 pt-1">
+      {/* Bar Header Ringkas */}
+      <div className="flex items-center justify-between px-0.5">
+        <span className="text-xs font-bold text-slate-800">
+          Rincian Butir LKPD ({blocks.length}):
+        </span>
+
         <div className="flex items-center gap-2">
-          <span className="text-xs font-bold text-slate-800">
-            Draf Cepat:
-          </span>
+          {/* Dropdown Draf Template jika ingin ganti */}
           <select
             value={presetKey}
             onChange={(e) => {
               const val = e.target.value;
-              onSelectPreset(val);
               if (val === 'empty') {
-                onChange(createEmptyFormBlocks());
-              } else {
-                onChange(convertPresetToBlocks(val));
+                if (confirm('Kosongkan semua butir?')) {
+                  onChange([]);
+                  onSelectPreset('custom');
+                }
+              } else if (val) {
+                if (confirm('Ganti butir saat ini dengan template yang dipilih?')) {
+                  onSelectPreset(val);
+                  onChange(convertPresetToBlocks(val));
+                }
               }
             }}
-            className="px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-semibold text-slate-800 outline-none focus:border-blue-500 cursor-pointer"
+            className="px-2 py-1 bg-white border border-slate-200 rounded-lg text-[11px] font-semibold text-slate-600 outline-none focus:border-blue-500 cursor-pointer"
           >
+            <option value="">Template Siap Pakai...</option>
             {Object.values(OBSERVATION_PRESETS).map(p => (
               <option key={p.id} value={p.id}>{p.name}</option>
             ))}
-            <option value="empty">Mulai Form Kosong (Kustom)</option>
+            <option value="empty">Kosongkan Semua</option>
           </select>
         </div>
-
-        <span className="text-[11px] text-slate-500 font-medium">
-          {blocks.length} butir tersusun
-        </span>
       </div>
 
       {/* Daftar Butir LKPD */}
@@ -173,14 +257,14 @@ export default function LkpdFormBuilder({
                   : 'bg-white border-slate-200'
               }`}
             >
-              {/* Header Kartu Butir: Nomor, Tipe Toggle, & Tombol Kontrol */}
+              {/* Header Kartu Butir: Nomor, Toggle Tipe, & Kontrol Geser */}
               <div className="flex items-center justify-between gap-2 pb-2.5 mb-2.5 border-b border-slate-100">
                 <div className="flex items-center gap-2 min-w-0">
                   <span className="w-5 h-5 rounded-full bg-slate-900 text-white font-bold text-[11px] flex items-center justify-center shrink-0">
                     {index + 1}
                   </span>
 
-                  {/* Toggle Tipe: Pertanyaan vs Petunjuk Saja */}
+                  {/* Toggle Tipe: Pertanyaan vs Petunjuk */}
                   <div className="flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200 shrink-0">
                     <button
                       type="button"
@@ -188,7 +272,7 @@ export default function LkpdFormBuilder({
                         type: 'question', 
                         responseType: block.responseType || 'text' 
                       })}
-                      className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition-all ${
+                      className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
                         !isInstruction 
                           ? 'bg-white text-blue-700 shadow-2xs' 
                           : 'text-slate-600 hover:text-slate-900'
@@ -203,7 +287,7 @@ export default function LkpdFormBuilder({
                         responseType: undefined,
                         mediaKind: undefined
                       })}
-                      className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition-all ${
+                      className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
                         isInstruction 
                           ? 'bg-amber-500 text-white shadow-2xs' 
                           : 'text-slate-600 hover:text-slate-900'
@@ -254,14 +338,14 @@ export default function LkpdFormBuilder({
                       type="text"
                       value={block.title}
                       onChange={(e) => handleUpdateBlock(index, { title: e.target.value })}
-                      placeholder="Judul petunjuk (contoh: Petunjuk Pengamatan)"
+                      placeholder="Judul petunjuk (contoh: Langkah Kerja Pengamatan)"
                       className="w-full px-3 py-2 bg-slate-50 rounded-lg border border-slate-200 text-xs font-bold text-slate-900 outline-none focus:bg-white focus:border-amber-500 transition-colors"
                     />
                     <textarea
                       rows={2}
                       value={block.description || ''}
                       onChange={(e) => handleUpdateBlock(index, { description: e.target.value })}
-                      placeholder="Tuliskan petunjuk atau arahan langkah kerja untuk murid..."
+                      placeholder="Tuliskan petunjuk, arahan, atau materi pengantar untuk murid..."
                       className="w-full px-3 py-2 bg-slate-50 rounded-lg border border-slate-200 text-xs text-slate-800 outline-none focus:bg-white focus:border-amber-500 transition-colors resize-none leading-relaxed"
                     />
                   </>
@@ -272,7 +356,7 @@ export default function LkpdFormBuilder({
                       type="text"
                       value={block.title}
                       onChange={(e) => handleUpdateBlock(index, { title: e.target.value })}
-                      placeholder="Tuliskan pertanyaan / poin yang harus dijawab siswa..."
+                      placeholder="Tuliskan pertanyaan / instruksi pengumpulan untuk siswa..."
                       className="w-full px-3 py-2 bg-slate-50 rounded-lg border border-slate-200 text-xs font-bold text-slate-900 outline-none focus:bg-white focus:border-blue-500 transition-colors"
                     />
 
@@ -307,12 +391,12 @@ export default function LkpdFormBuilder({
                       </label>
                     </div>
 
-                    {/* Catatan Bantuan Tambahan (Opsional) */}
+                    {/* Catatan Tambahan (Opsional) */}
                     <input
                       type="text"
                       value={block.description || ''}
                       onChange={(e) => handleUpdateBlock(index, { description: e.target.value })}
-                      placeholder="Petunjuk tambahan opsional untuk murid (misal: 'Amati bagian warna')..."
+                      placeholder="Petunjuk tambahan opsional (misal: 'Perhatikan bagian warna')..."
                       className="w-full px-3 py-1.5 bg-slate-50/70 rounded-lg border border-slate-200 text-[11px] text-slate-700 outline-none focus:bg-white focus:border-blue-400 transition-colors"
                     />
                   </>
