@@ -559,10 +559,10 @@ export default function MyVerse() {
                   <div className="relative flex flex-col items-center text-center max-w-lg w-full py-6">
                     {/* Massive Ambient Elemental Aura */}
                     <div 
-                      className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[340px] sm:w-[480px] md:w-[600px] h-[340px] sm:h-[480px] md:h-[600px] rounded-full blur-[120px] pointer-events-none transition-all duration-700"
+                      className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] sm:w-[550px] md:w-[720px] h-[400px] sm:h-[550px] md:h-[720px] rounded-full blur-[140px] pointer-events-none transition-all duration-700"
                       style={{ 
                         backgroundColor: selChar.elementColor || '#3B66F5',
-                        opacity: 0.38
+                        opacity: 0.45
                       }}
                     />
 
@@ -597,18 +597,18 @@ export default function MyVerse() {
                       {selChar.philosophy}
                     </motion.p>
 
-                    {/* HERO-SCALE MASCOT IN THE CENTER */}
+                    {/* HERO-SCALE MASCOT IN THE CENTER (EXTRA LARGE) */}
                     <motion.div
                       initial={{ scale: 0.5, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}
                       transition={{ type: 'spring', damping: 14, stiffness: 90, delay: 0.25 }}
-                      className="relative z-10 my-4 sm:my-6 w-72 h-72 sm:w-84 sm:h-84 md:w-96 md:h-96 lg:w-[440px] lg:h-[440px] flex items-center justify-center"
+                      className="relative z-10 my-3 sm:my-5 w-80 h-80 sm:w-96 sm:h-96 md:w-[480px] md:h-[480px] lg:w-[540px] lg:h-[540px] xl:w-[580px] xl:h-[580px] flex items-center justify-center"
                     >
                       <img 
                         src={stage1Info.image} 
                         onError={(e) => { (e.currentTarget as HTMLImageElement).src = stage1Info.pngImage; }}
                         alt={stage1Info.name}
-                        className="w-full h-full object-contain filter drop-shadow-[0_20px_50px_rgba(0,0,0,0.8)] select-none"
+                        className="w-full h-full object-contain filter drop-shadow-[0_25px_60px_rgba(0,0,0,0.85)] select-none"
                       />
                     </motion.div>
 
