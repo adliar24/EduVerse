@@ -189,18 +189,256 @@ export const OBSERVATION_PRESETS: Record<string, ObservationPreset> = {
 };
 
 /**
+ * Tipe Blok pada Form Builder LKPD
+ */
+export type LkpdBlockType = 'instruction' | 'question';
+export type LkpdResponseType = 'text' | 'link' | 'media';
+export type LkpdMediaKind = 'image' | 'audio' | 'video' | 'document' | 'any';
+
+export interface LkpdBlock {
+  id: string;
+  order: number;
+  type: LkpdBlockType;
+  title: string;
+  description?: string;
+  responseType?: LkpdResponseType;
+  mediaKind?: LkpdMediaKind;
+  required?: boolean;
+  placeholder?: string;
+  helperText?: string;
+}
+
+export interface LkpdFormConfig {
+  version: number; // 3 = modular form builder
+  preset?: string;
+  blocks: LkpdBlock[];
+  allowReflection?: boolean;
+  reflectionPrompt?: string;
+  // Legacy backward compatibility fields
+  id?: string;
+  name?: string;
+  requirePhoto?: boolean;
+  photoLabel?: string;
+  aspects?: LkpdAspect[];
+}
+
+/**
+ * Jawaban murid per blok pada versi Form Builder Modular (V3)
+ */
+export interface LkpdBlockAnswer {
+  blockId: string;
+  type: LkpdResponseType;
+  textValue?: string;
+  fileUrl?: string;
+  fileName?: string;
+  fileType?: string;
+  fileSize?: number;
+}
+
+/**
  * Interface payload jawaban siswa pada tabel assignment_submissions
  */
 export interface LkpdSubmissionPayload {
   is_lkpd: boolean;
-  lkpd_type: 'observation' | 'experiment' | 'case_study' | 'interview';
+  lkpd_type?: 'observation' | 'experiment' | 'case_study' | 'interview' | 'modular' | string;
   preset_id?: string;
   object_name?: string;
   location?: string;
-  answers: Record<string, string>;
+  answers?: Record<string, string>; // Legacy V1/V2 answers
+  blockAnswers?: Record<string, LkpdBlockAnswer>; // V3 modular answers
   reflection?: string;
   submitted_device?: string;
   version: number;
+}
+
+/**
+ * Helper untuk memastikan URL valid dan memiliki skema https://
+ */
+export function ensureHttpUrl(url?: string | null): string {
+  if (!url) return '';
+  const trimmed = url.trim();
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  return `https://${trimmed}`;
+}
+
+/**
+ * Ekstrak daftar URL dari string teks
+ */
+export function extractUrlsFromText(text?: string | null): string[] {
+  if (!text) return [];
+  const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+|[a-zA-Z0-9-]+\.(?:com|org|net|edu|gov|id|co|io|me|app|link|dev|gl|ly)(?:\/[^\s]*)?)/gi;
+  const matches = text.match(urlRegex) || [];
+  return Array.from(new Set(matches.map(m => ensureHttpUrl(m))));
+}
+
+/**
+ * Konversi preset observasi menjadi blok-blok modular form builder (V3)
+ */
+export function convertPresetToBlocks(presetKey: string): LkpdBlock[] {
+  const preset = OBSERVATION_PRESETS[presetKey] || OBSERVATION_PRESETS.art_elements;
+  const blocks: LkpdBlock[] = [];
+  let order = 1;
+
+  // 1. Blok Instruksi / Pengantar
+  blocks.push({
+    id: `blk_inst_${Date.now()}_1`,
+    order: order++,
+    type: 'instruction',
+    title: 'Petunjuk & Arahan Observasi',
+    description: preset.defaultDesc
+  });
+
+  // 2. Blok Nama Objek
+  blocks.push({
+    id: `blk_obj_${Date.now()}_2`,
+    order: order++,
+    type: 'question',
+    title: 'Nama Objek / Benda Pengamatan',
+    description: 'Tuliskan nama benda, karya, atau objek yang kamu amati secara spesifik.',
+    responseType: 'text',
+    required: true,
+    placeholder: 'Contoh: Patung Hias Taman Sekolah / Daun Sirih Kebun...'
+  });
+
+  // 3. Blok Foto Objek (jika preset mewajibkan foto)
+  if (preset.requirePhoto) {
+    blocks.push({
+      id: `blk_photo_${Date.now()}_3`,
+      order: order++,
+      type: 'question',
+      title: preset.photoLabel || 'Foto Objek Pengamatan',
+      description: 'Gunakan kamera smartphone langsung atau unggah foto objek yang jelas.',
+      responseType: 'media',
+      mediaKind: 'image',
+      required: true
+    });
+  }
+
+  // 4. Blok Poin Analisis dari Aspek Preset
+  preset.aspects.forEach((asp, idx) => {
+    blocks.push({
+      id: asp.id || `blk_asp_${Date.now()}_${order}`,
+      order: order++,
+      type: 'question',
+      title: asp.label,
+      description: asp.helperText,
+      responseType: 'text',
+      required: true,
+      placeholder: asp.placeholder
+    });
+  });
+
+  // 5. Blok Refleksi
+  if (preset.reflectionPrompt) {
+    blocks.push({
+      id: `blk_refl_${Date.now()}_${order}`,
+      order: order++,
+      type: 'question',
+      title: 'Refleksi & Kesimpulan Siswa',
+      description: preset.reflectionPrompt,
+      responseType: 'text',
+      required: false,
+      placeholder: 'Tuliskan kesimpulan atau kesan yang kamu peroleh...'
+    });
+  }
+
+  return blocks;
+}
+
+/**
+ * Buat template form kosong untuk kreasi bebas guru
+ */
+export function createEmptyFormBlocks(): LkpdBlock[] {
+  return [
+    {
+      id: `blk_${Date.now()}_1`,
+      order: 1,
+      type: 'instruction',
+      title: 'Petunjuk Kegiatan Pembelajaran',
+      description: 'Tuliskan panduan pengerjaan, tujuan kegiatan, atau materi pengantar di sini...'
+    },
+    {
+      id: `blk_${Date.now()}_2`,
+      order: 2,
+      type: 'question',
+      title: 'Poin Soal / Analisis 1',
+      description: 'Tuliskan pertanyaan atau instruksi pengumpulan untuk siswa.',
+      responseType: 'text',
+      required: true,
+      placeholder: 'Tuliskan jawaban kamu di sini...'
+    }
+  ];
+}
+
+/**
+ * Normalisasi konfigurasi LKPD (apakah legacy V1/V2 atau modular V3) menjadi daftar blok
+ */
+export function getNormalizedLkpdBlocks(config?: any): LkpdBlock[] {
+  if (!config) return [];
+  if (Array.isArray(config.blocks) && config.blocks.length > 0) {
+    return config.blocks;
+  }
+  // Fallback dari config preset lama
+  if (config.preset && OBSERVATION_PRESETS[config.preset]) {
+    return convertPresetToBlocks(config.preset);
+  }
+  if (config.aspects && Array.isArray(config.aspects)) {
+    const blocks: LkpdBlock[] = [];
+    let order = 1;
+    if (config.defaultDesc) {
+      blocks.push({
+        id: 'inst_legacy',
+        order: order++,
+        type: 'instruction',
+        title: 'Petunjuk Pengerjaan',
+        description: config.defaultDesc
+      });
+    }
+    blocks.push({
+      id: 'legacy_object_name',
+      order: order++,
+      type: 'question',
+      title: 'Nama Objek Pengamatan',
+      responseType: 'text',
+      required: true
+    });
+    if (config.requirePhoto !== false) {
+      blocks.push({
+        id: 'legacy_photo',
+        order: order++,
+        type: 'question',
+        title: config.photoLabel || 'Foto Objek Pengamatan',
+        responseType: 'media',
+        mediaKind: 'image',
+        required: true
+      });
+    }
+    config.aspects.forEach((asp: any) => {
+      blocks.push({
+        id: asp.id,
+        order: order++,
+        type: 'question',
+        title: asp.label,
+        description: asp.helperText,
+        responseType: 'text',
+        required: true,
+        placeholder: asp.placeholder
+      });
+    });
+    if (config.reflectionPrompt) {
+      blocks.push({
+        id: 'legacy_reflection',
+        order: order++,
+        type: 'question',
+        title: 'Refleksi Siswa',
+        description: config.reflectionPrompt,
+        responseType: 'text',
+        required: false
+      });
+    }
+    return blocks;
+  }
+  return [];
 }
 
 /**
@@ -210,7 +448,7 @@ export function parseLkpdResponse(textResponse?: string | null): LkpdSubmissionP
   if (!textResponse) return null;
   try {
     const parsed = JSON.parse(textResponse);
-    if (parsed && (parsed.is_lkpd || parsed.lkpd_type)) {
+    if (parsed && (parsed.is_lkpd || parsed.lkpd_type || parsed.blockAnswers)) {
       return parsed as LkpdSubmissionPayload;
     }
   } catch (e) {
@@ -218,3 +456,4 @@ export function parseLkpdResponse(textResponse?: string | null): LkpdSubmissionP
   }
   return null;
 }
+

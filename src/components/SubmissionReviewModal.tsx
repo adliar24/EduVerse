@@ -28,7 +28,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Assignment, AssignmentSubmission, Student, ClassEntity } from '../types';
 import { supabase } from '../lib/supabase';
 import { formatFileSize, getOptimizedMediaUrl } from '../utils/fileCompressor';
-import { parseLkpdResponse, OBSERVATION_PRESETS } from '../utils/lkpdPresets';
+import { 
+  parseLkpdResponse, 
+  OBSERVATION_PRESETS,
+  getNormalizedLkpdBlocks,
+  ensureHttpUrl,
+  extractUrlsFromText,
+  LkpdBlock
+} from '../utils/lkpdPresets';
 
 interface SubmissionReviewModalProps {
   isOpen: boolean;
@@ -751,48 +758,47 @@ export default function SubmissionReviewModal({
                   const lkpdData = parseLkpdResponse(selectedSubmission.text_response);
 
                   if (lkpdData) {
+                    const lkpdBlocks: LkpdBlock[] = getNormalizedLkpdBlocks(assignment?.lkpd_config);
+
                     return (
                       <div className="space-y-4">
-                        {/* Header Banner - High Contrast */}
-                        <div className="p-4 bg-slate-900 text-white rounded-xl flex items-center justify-between gap-3 flex-wrap">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-lg bg-blue-600 text-white flex items-center justify-center shrink-0">
-                              <Sparkles className="w-5 h-5" />
-                            </div>
-                            <div className="min-w-0">
-                              <span className="text-[10px] font-bold uppercase tracking-wider text-blue-300 block">
-                                Laporan LKPD Observasi
-                              </span>
-                              <h4 className="text-sm sm:text-base font-bold text-white break-words">
-                                {lkpdData.object_name || 'Objek Observasi'}
-                              </h4>
-                            </div>
+                        {/* Header Banner LKPD */}
+                        <div className="p-3.5 bg-slate-900 text-white rounded-xl flex items-center justify-between gap-3 flex-wrap">
+                          <div className="flex items-center gap-2.5">
+                            <span className="text-[11px] font-bold text-blue-300 uppercase tracking-wider">
+                              Lembar Kerja Peserta Didik (LKPD)
+                            </span>
                           </div>
+                          {lkpdData.object_name && (
+                            <span className="text-xs font-bold text-white bg-slate-800 px-2.5 py-1 rounded-lg border border-slate-700">
+                              Objek: {lkpdData.object_name}
+                            </span>
+                          )}
                         </div>
 
-                        {/* Student Photo */}
-                        {selectedSubmission.file_url && (
+                        {/* Top Attachment File (jika ada file utama legacy atau submission umum) */}
+                        {selectedSubmission.file_url && !lkpdData.blockAnswers && (
                           <div className="space-y-1.5">
-                            <label className="text-xs font-bold text-slate-900 uppercase tracking-wider block">
-                              Foto Objek yang Diobservasi:
+                            <label className="text-xs font-bold text-slate-800 block">
+                              Dokumentasi Foto / Berkas Utama:
                             </label>
-                            <div className="rounded-xl overflow-hidden border border-slate-300 bg-slate-900">
+                            <div className="rounded-xl overflow-hidden border border-slate-200 bg-slate-950">
                               <img 
                                 src={getOptimizedMediaUrl(selectedSubmission.file_url, selectedSubmission.file_type, selectedSubmission.file_name)}
-                                alt={lkpdData.object_name || 'Foto Observasi'}
-                                className="w-full max-h-80 object-contain bg-slate-950"
+                                alt="Foto LKPD"
+                                className="w-full max-h-72 object-contain bg-slate-950"
                               />
-                              <div className="p-3 bg-slate-900 text-white text-xs flex items-center justify-between gap-2 border-t border-slate-800">
-                                <span className="font-semibold truncate text-slate-200">
-                                  {lkpdData.object_name || selectedSubmission.file_name || 'Foto Objek'}
+                              <div className="p-2.5 bg-slate-900 text-white text-xs flex items-center justify-between gap-2 border-t border-slate-800">
+                                <span className="font-medium truncate text-slate-300">
+                                  {selectedSubmission.file_name || 'Foto Observasi'}
                                 </span>
                                 <a
-                                  href={selectedSubmission.file_url}
+                                  href={ensureHttpUrl(selectedSubmission.file_url)}
                                   target="_blank"
                                   rel="noreferrer"
                                   className="text-blue-300 hover:text-white font-bold flex items-center gap-1 shrink-0"
                                 >
-                                  <span>Buka Ukuran Penuh</span>
+                                  <span>Buka Tab Baru</span>
                                   <ExternalLink className="w-3.5 h-3.5" />
                                 </a>
                               </div>
@@ -800,46 +806,170 @@ export default function SubmissionReviewModal({
                           </div>
                         )}
 
-                        {/* Breakdown of 6 elements */}
-                        <div className="space-y-2">
-                          <label className="text-xs font-bold text-slate-900 uppercase tracking-wider block">
-                            Rincian Analisis 6 Unsur Seni Rupa:
-                          </label>
-                          <div className="space-y-2.5">
-                            {Object.entries(lkpdData.answers || {}).map(([key, value]) => {
-                              const aspectMap: Record<string, string> = {
-                                titik_garis: '1. Titik dan Garis',
-                                garis: '1. Titik dan Garis',
-                                bidang_bentuk: '2. Bidang dan Bentuk',
-                                ruang: '3. Ruang',
-                                tekstur: '4. Tekstur',
-                                warna: '5. Warna',
-                                gelap_terang: '6. Gelap Terang'
-                              };
-                              const label = aspectMap[key] || (key.replace(/_/g, ' ').toUpperCase());
+                        {/* Rincian Butir LKPD Siswa */}
+                        <div className="space-y-3">
+                          {lkpdBlocks.length > 0 ? (
+                            lkpdBlocks.map((block, idx) => {
+                              const num = idx + 1;
+                              const blockAns = lkpdData.blockAnswers ? lkpdData.blockAnswers[block.id] : null;
+
+                              // Nilai jawaban fallback legacy
+                              const textAns = blockAns?.textValue || 
+                                (lkpdData.answers ? lkpdData.answers[block.id] : '') ||
+                                (block.id === 'legacy_object_name' ? lkpdData.object_name : '') ||
+                                (block.id === 'legacy_reflection' ? lkpdData.reflection : '');
+
+                              const fileUrlAns = blockAns?.fileUrl || (block.mediaKind === 'image' ? selectedSubmission.file_url : null);
+                              const detectedUrls = extractUrlsFromText(textAns);
+
+                              if (block.type === 'instruction') {
+                                return (
+                                  <div key={block.id || idx} className="p-3 bg-amber-50/60 rounded-xl border border-amber-200 text-xs text-slate-800 space-y-0.5">
+                                    <span className="font-bold text-amber-900 block">{num}. {block.title}</span>
+                                    {block.description && <p className="text-slate-600 whitespace-pre-line">{block.description}</p>}
+                                  </div>
+                                );
+                              }
 
                               return (
-                                <div key={key} className="p-3.5 bg-white rounded-xl border border-slate-300 space-y-1">
-                                  <span className="text-xs font-bold text-blue-900 block">
-                                    {label}
-                                  </span>
-                                  <p className="text-xs sm:text-sm text-slate-900 leading-relaxed whitespace-pre-line break-words font-medium">
-                                    {value || <span className="text-slate-400 italic">Tidak diisi oleh murid.</span>}
-                                  </p>
+                                <div key={block.id || idx} className="p-3.5 bg-white rounded-xl border border-slate-200 space-y-2">
+                                  <div className="flex items-center justify-between gap-2">
+                                    <span className="text-xs font-bold text-slate-900">
+                                      {num}. {block.title}
+                                    </span>
+                                  </div>
+
+                                  {/* Respon Tautan (Link) */}
+                                  {(block.responseType === 'link' || blockAns?.type === 'link') ? (
+                                    textAns ? (
+                                      <div className="p-2.5 bg-violet-50/80 rounded-xl border border-violet-200 flex items-center justify-between gap-2">
+                                        <div className="truncate text-xs font-bold text-violet-900">
+                                          {textAns}
+                                        </div>
+                                        <a
+                                          href={ensureHttpUrl(textAns)}
+                                          target="_blank"
+                                          rel="noreferrer"
+                                          className="px-3 py-1.5 bg-violet-600 hover:bg-violet-700 text-white rounded-lg text-xs font-bold flex items-center gap-1 shrink-0 transition-colors shadow-2xs"
+                                        >
+                                          <span>Buka Tautan</span>
+                                          <ExternalLink className="w-3.5 h-3.5" />
+                                        </a>
+                                      </div>
+                                    ) : (
+                                      <span className="text-xs text-slate-400 italic">Tidak ada tautan yang dikirim.</span>
+                                    )
+                                  ) : (block.responseType === 'media' || blockAns?.type === 'media') ? (
+                                    /* Respon Media (Foto / Audio / Video / Dokumen) */
+                                    fileUrlAns ? (
+                                      <div className="space-y-1.5">
+                                        {blockAns?.fileType?.startsWith('audio/') || fileUrlAns.match(/\.(mp3|wav|m4a|ogg)/i) ? (
+                                          <div className="p-2.5 bg-slate-900 rounded-xl flex items-center justify-between gap-2 text-white">
+                                            <audio controls src={fileUrlAns} className="w-full h-8" />
+                                            <a
+                                              href={fileUrlAns}
+                                              target="_blank"
+                                              rel="noreferrer"
+                                              className="text-xs font-bold text-blue-300 hover:text-white shrink-0 px-2"
+                                            >
+                                              Unduh
+                                            </a>
+                                          </div>
+                                        ) : blockAns?.fileType?.startsWith('video/') || fileUrlAns.match(/\.(mp4|webm)/i) ? (
+                                          <div className="rounded-xl overflow-hidden bg-slate-950 border border-slate-200">
+                                            <video controls src={fileUrlAns} className="max-h-60 w-full object-contain" />
+                                          </div>
+                                        ) : blockAns?.fileType?.startsWith('image/') || fileUrlAns.match(/\.(jpeg|jpg|png|webp|gif)/i) ? (
+                                          <div className="rounded-xl overflow-hidden bg-slate-950 border border-slate-200">
+                                            <img
+                                              src={getOptimizedMediaUrl(fileUrlAns)}
+                                              alt={blockAns?.fileName || 'Foto'}
+                                              className="max-h-64 w-full object-contain"
+                                            />
+                                            <div className="p-2 bg-slate-900 text-white text-xs flex items-center justify-between">
+                                              <span className="truncate text-slate-300">{blockAns?.fileName || 'Foto Murid'}</span>
+                                              <a
+                                                href={fileUrlAns}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                className="text-blue-300 hover:text-white font-bold flex items-center gap-1"
+                                              >
+                                                <span>Buka Tab Baru</span>
+                                                <ExternalLink className="w-3 h-3" />
+                                              </a>
+                                            </div>
+                                          </div>
+                                        ) : (
+                                          <div className="p-2.5 bg-slate-100 rounded-xl flex items-center justify-between gap-2">
+                                            <span className="text-xs font-medium text-slate-700 truncate">
+                                              {blockAns?.fileName || 'Berkas Dokumen'}
+                                            </span>
+                                            <a
+                                              href={fileUrlAns}
+                                              target="_blank"
+                                              rel="noreferrer"
+                                              className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold flex items-center gap-1 shrink-0"
+                                            >
+                                              <span>Unduh / Buka</span>
+                                              <ExternalLink className="w-3.5 h-3.5" />
+                                            </a>
+                                          </div>
+                                        )}
+                                      </div>
+                                    ) : (
+                                      <span className="text-xs text-slate-400 italic">Tidak ada berkas yang dilampirkan.</span>
+                                    )
+                                  ) : (
+                                    /* Respon Teks */
+                                    <div className="space-y-1.5">
+                                      <p className="text-xs sm:text-sm text-slate-900 leading-relaxed whitespace-pre-line font-medium select-text">
+                                        {textAns || <span className="text-slate-400 italic">Tidak diisi oleh murid.</span>}
+                                      </p>
+                                      {/* Jika teks mengandung tautan URL, berikan tombol akses langsung */}
+                                      {detectedUrls.length > 0 && (
+                                        <div className="pt-1 flex flex-wrap gap-2">
+                                          {detectedUrls.map((url, uIdx) => (
+                                            <a
+                                              key={uIdx}
+                                              href={url}
+                                              target="_blank"
+                                              rel="noreferrer"
+                                              className="px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-xs font-bold border border-blue-200 flex items-center gap-1 transition-colors"
+                                            >
+                                              <span>Buka Link: {url.replace(/^https?:\/\//i, '').slice(0, 30)}...</span>
+                                              <ExternalLink className="w-3 h-3" />
+                                            </a>
+                                          ))}
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
                                 </div>
                               );
-                            })}
-                          </div>
+                            })
+                          ) : (
+                            /* Fallback render legacy raw answers */
+                            Object.entries(lkpdData.answers || {}).map(([key, value]) => (
+                              <div key={key} className="p-3.5 bg-white rounded-xl border border-slate-200 space-y-1">
+                                <span className="text-xs font-bold text-slate-800 block capitalize">
+                                  {key.replace(/_/g, ' ')}
+                                </span>
+                                <p className="text-xs sm:text-sm text-slate-800 leading-relaxed whitespace-pre-line font-medium">
+                                  {value || <span className="text-slate-400 italic">Tidak diisi.</span>}
+                                </p>
+                              </div>
+                            ))
+                          )}
                         </div>
 
-                        {/* Reflection */}
+                        {/* Refleksi Siswa jika ada */}
                         {lkpdData.reflection && (
-                          <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-300 space-y-1">
-                            <span className="text-xs font-bold text-slate-900 uppercase tracking-wider block">
+                          <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
+                            <span className="text-xs font-bold text-slate-800 uppercase tracking-wider block">
                               Refleksi & Kesimpulan Murid:
                             </span>
-                            <p className="text-xs sm:text-sm text-slate-900 leading-relaxed whitespace-pre-line break-words font-medium">
-                              {lkpdData.reflection}
+                            <p className="text-xs sm:text-sm text-slate-800 leading-relaxed whitespace-pre-line font-medium">
+                              "{lkpdData.reflection}"
                             </p>
                           </div>
                         )}
@@ -857,18 +987,37 @@ export default function SubmissionReviewModal({
                     ? selectedSubmission.text_response.replace(/\[Tautan Tugas\]:\s*\S+/i, '').trim()
                     : null;
 
+                  const textUrls = extractUrlsFromText(cleanTextResponse);
+
                   return (
                     <div className="space-y-4">
-                      {/* Text Answer */}
+                      {/* Jawaban Teks Murid */}
                       {cleanTextResponse ? (
                         <div className="space-y-1.5">
-                          <label className="text-[11px] font-bold text-slate-700 flex items-center gap-1.5">
-                            <FileText className="w-3.5 h-3.5 text-indigo-600" />
+                          <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                            <FileText className="w-3.5 h-3.5 text-blue-600" />
                             <span>Jawaban Teks Murid</span>
                           </label>
                           <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-slate-800 text-xs leading-relaxed whitespace-pre-line font-medium select-text">
                             {cleanTextResponse}
                           </div>
+                          {/* Akses langsung jika ada link dalam teks jawaban */}
+                          {textUrls.length > 0 && (
+                            <div className="pt-1 flex flex-wrap gap-2">
+                              {textUrls.map((url, uIdx) => (
+                                <a
+                                  key={uIdx}
+                                  href={url}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-xs font-bold border border-blue-200 flex items-center gap-1.5 transition-colors cursor-pointer"
+                                >
+                                  <span>Buka Tautan: {url.replace(/^https?:\/\//i, '').slice(0, 32)}...</span>
+                                  <ExternalLink className="w-3.5 h-3.5" />
+                                </a>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       ) : !resolvedLink && !selectedSubmission.file_url ? (
                         <div className="p-2.5 bg-slate-50 rounded-xl text-xs text-slate-400 italic">
@@ -876,16 +1025,16 @@ export default function SubmissionReviewModal({
                         </div>
                       ) : null}
 
-                      {/* Attached External Link */}
+                      {/* Tautan Tugas Murid (Link) - Akses Langsung 1-Klik */}
                       {resolvedLink && (
                         <div className="space-y-1.5">
-                          <label className="text-[11px] font-bold text-slate-700 flex items-center gap-1.5">
+                          <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
                             <Link2 className="w-3.5 h-3.5 text-violet-600" />
                             <span>Tautan Tugas Murid (Link)</span>
                           </label>
-                          <div className="p-3 bg-gradient-to-r from-violet-50/70 via-indigo-50/50 to-blue-50/70 rounded-xl border border-violet-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 shadow-2xs">
+                          <div className="p-3 bg-gradient-to-r from-violet-50/70 via-indigo-50/50 to-blue-50/70 rounded-xl border border-violet-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 shadow-2xs">
                             <div className="flex items-center gap-2.5 overflow-hidden">
-                              <div className="w-8 h-8 rounded-lg bg-violet-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
+                              <div className="w-8 h-8 rounded-lg bg-violet-600 text-white flex items-center justify-center shrink-0">
                                 <Globe className="w-4 h-4" />
                               </div>
                               <div className="truncate">
@@ -896,13 +1045,13 @@ export default function SubmissionReviewModal({
                               </div>
                             </div>
                             <a
-                              href={resolvedLink.startsWith('http') ? resolvedLink : `https://${resolvedLink}`}
+                              href={ensureHttpUrl(resolvedLink)}
                               target="_blank"
                               rel="noreferrer"
-                              className="px-3 py-1.5 bg-violet-600 hover:bg-violet-700 text-white font-bold text-xs rounded-lg shadow-2xs transition-all flex items-center justify-center gap-1 shrink-0 active:scale-95 cursor-pointer"
+                              className="px-3.5 py-1.5 bg-violet-600 hover:bg-violet-700 text-white font-bold text-xs rounded-lg transition-colors flex items-center justify-center gap-1.5 shrink-0 cursor-pointer shadow-2xs"
                             >
                               <span>Buka Tautan</span>
-                              <ExternalLink className="w-3 h-3" />
+                              <ExternalLink className="w-3.5 h-3.5" />
                             </a>
                           </div>
                         </div>

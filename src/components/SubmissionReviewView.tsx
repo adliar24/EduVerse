@@ -20,7 +20,14 @@ import {
 import { Assignment, AssignmentSubmission, Student, ClassEntity } from '../types';
 import { supabase } from '../lib/supabase';
 import { getOptimizedMediaUrl } from '../utils/fileCompressor';
-import { parseLkpdResponse, OBSERVATION_PRESETS } from '../utils/lkpdPresets';
+import { 
+  parseLkpdResponse, 
+  OBSERVATION_PRESETS,
+  getNormalizedLkpdBlocks,
+  ensureHttpUrl,
+  extractUrlsFromText,
+  LkpdBlock
+} from '../utils/lkpdPresets';
 
 interface SubmissionReviewViewProps {
   assignment: (Assignment & {
@@ -856,87 +863,240 @@ export default function SubmissionReviewView({
                     )}
 
                     {/* LKPD Parsed Content */}
-                    {parsedLkpd ? (
-                      <div className="space-y-6">
-                        {parsedLkpd.object_name && (
-                          <div className="p-4 rounded-2xl bg-indigo-50/50 border border-indigo-100/80 space-y-1">
-                            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
-                              Nama Objek / Benda
-                            </span>
-                            <p className="text-base font-extrabold text-[#1D4ED8]">
-                              {parsedLkpd.object_name}
-                            </p>
-                          </div>
-                        )}
+                    {parsedLkpd ? (() => {
+                      const lkpdBlocks: LkpdBlock[] = getNormalizedLkpdBlocks(assignment?.lkpd_config);
 
-                        <div className="space-y-3">
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs font-black text-slate-900 uppercase tracking-wider block">
-                              Hasil Analisis 6 Unsur Seni Rupa
-                            </span>
-                            <span className="text-xs font-bold text-[#1D4ED8] bg-blue-50 border border-blue-200 px-2.5 py-0.5 rounded-full">
-                              {aspects.length} Unsur Rupa
-                            </span>
-                          </div>
+                      return (
+                        <div className="space-y-4">
+                          {parsedLkpd.object_name && (
+                            <div className="p-3.5 rounded-xl bg-slate-900 text-white flex items-center justify-between gap-3">
+                              <span className="text-xs font-bold text-slate-300">Objek Pengamatan:</span>
+                              <span className="text-sm font-bold text-white">{parsedLkpd.object_name}</span>
+                            </div>
+                          )}
 
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-                            {aspects.map((asp, idx) => (
-                              <div key={asp.id} className="p-4 rounded-2xl bg-white border border-slate-200 hover:border-indigo-200 shadow-2xs space-y-1.5 transition-colors">
-                                <div className="flex items-center justify-between">
-                                  <span className="text-xs font-bold text-[#1D4ED8]">
-                                    {idx + 1}. {asp.label}
+                          <div className="space-y-3">
+                            {lkpdBlocks.length > 0 ? (
+                              lkpdBlocks.map((block, idx) => {
+                                const num = idx + 1;
+                                const blockAns = parsedLkpd.blockAnswers ? parsedLkpd.blockAnswers[block.id] : null;
+
+                                const textAns = blockAns?.textValue || 
+                                  (parsedLkpd.answers ? parsedLkpd.answers[block.id] : '') ||
+                                  (block.id === 'legacy_object_name' ? parsedLkpd.object_name : '') ||
+                                  (block.id === 'legacy_reflection' ? parsedLkpd.reflection : '');
+
+                                const fileUrlAns = blockAns?.fileUrl || (block.mediaKind === 'image' ? selectedSubmission.file_url : null);
+                                const detectedUrls = extractUrlsFromText(textAns);
+
+                                if (block.type === 'instruction') {
+                                  return (
+                                    <div key={block.id || idx} className="p-3 bg-amber-50/60 rounded-xl border border-amber-200 text-xs text-slate-800 space-y-0.5">
+                                      <span className="font-bold text-amber-900 block">{num}. {block.title}</span>
+                                      {block.description && <p className="text-slate-600 whitespace-pre-line">{block.description}</p>}
+                                    </div>
+                                  );
+                                }
+
+                                return (
+                                  <div key={block.id || idx} className="p-3.5 bg-white rounded-xl border border-slate-200 space-y-2">
+                                    <span className="text-xs font-bold text-slate-900 block">
+                                      {num}. {block.title}
+                                    </span>
+
+                                    {/* Link Response */}
+                                    {(block.responseType === 'link' || blockAns?.type === 'link') ? (
+                                      textAns ? (
+                                        <div className="p-2.5 bg-violet-50/80 rounded-xl border border-violet-200 flex items-center justify-between gap-2">
+                                          <div className="truncate text-xs font-bold text-violet-900">
+                                            {textAns}
+                                          </div>
+                                          <a
+                                            href={ensureHttpUrl(textAns)}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="px-3 py-1.5 bg-violet-600 hover:bg-violet-700 text-white rounded-lg text-xs font-bold flex items-center gap-1 shrink-0 transition-colors shadow-2xs cursor-pointer"
+                                          >
+                                            <span>Buka Tautan</span>
+                                            <ExternalLink className="w-3.5 h-3.5" />
+                                          </a>
+                                        </div>
+                                      ) : (
+                                        <span className="text-xs text-slate-400 italic">Tidak ada tautan.</span>
+                                      )
+                                    ) : (block.responseType === 'media' || blockAns?.type === 'media') ? (
+                                      /* Media Response */
+                                      fileUrlAns ? (
+                                        <div className="space-y-1.5">
+                                          {blockAns?.fileType?.startsWith('audio/') || fileUrlAns.match(/\.(mp3|wav|m4a|ogg)/i) ? (
+                                            <div className="p-2 bg-slate-900 rounded-xl flex items-center justify-between gap-2 text-white">
+                                              <audio controls src={fileUrlAns} className="w-full h-8" />
+                                              <a
+                                                href={fileUrlAns}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                className="text-xs font-bold text-blue-300 hover:text-white shrink-0 px-2"
+                                              >
+                                                Unduh
+                                              </a>
+                                            </div>
+                                          ) : blockAns?.fileType?.startsWith('video/') || fileUrlAns.match(/\.(mp4|webm)/i) ? (
+                                            <div className="rounded-xl overflow-hidden bg-slate-950 border border-slate-200">
+                                              <video controls src={fileUrlAns} className="max-h-60 w-full object-contain" />
+                                            </div>
+                                          ) : blockAns?.fileType?.startsWith('image/') || fileUrlAns.match(/\.(jpeg|jpg|png|webp|gif)/i) ? (
+                                            <div className="rounded-xl overflow-hidden bg-slate-950 border border-slate-200">
+                                              <img
+                                                src={getOptimizedMediaUrl(fileUrlAns)}
+                                                alt={blockAns?.fileName || 'Foto'}
+                                                className="max-h-64 w-full object-contain"
+                                              />
+                                              <div className="p-2 bg-slate-900 text-white text-xs flex items-center justify-between">
+                                                <span className="truncate text-slate-300">{blockAns?.fileName || 'Foto Murid'}</span>
+                                                <a
+                                                  href={fileUrlAns}
+                                                  target="_blank"
+                                                  rel="noreferrer"
+                                                  className="text-blue-300 hover:text-white font-bold flex items-center gap-1"
+                                                >
+                                                  <span>Buka Tab Baru</span>
+                                                  <ExternalLink className="w-3.5 h-3.5" />
+                                                </a>
+                                              </div>
+                                            </div>
+                                          ) : (
+                                            <div className="p-2.5 bg-slate-100 rounded-xl flex items-center justify-between gap-2">
+                                              <span className="text-xs font-medium text-slate-700 truncate">
+                                                {blockAns?.fileName || 'Berkas Dokumen'}
+                                              </span>
+                                              <a
+                                                href={fileUrlAns}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold flex items-center gap-1 shrink-0"
+                                              >
+                                                <span>Unduh / Buka</span>
+                                                <ExternalLink className="w-3.5 h-3.5" />
+                                              </a>
+                                            </div>
+                                          )}
+                                        </div>
+                                      ) : (
+                                        <span className="text-xs text-slate-400 italic">Tidak ada berkas.</span>
+                                      )
+                                    ) : (
+                                      /* Text Response */
+                                      <div className="space-y-1.5">
+                                        <p className="text-xs sm:text-sm text-slate-900 leading-relaxed whitespace-pre-line font-medium select-text">
+                                          {textAns || <span className="text-slate-400 italic">Tidak diisi oleh murid.</span>}
+                                        </p>
+                                        {detectedUrls.length > 0 && (
+                                          <div className="pt-1 flex flex-wrap gap-2">
+                                            {detectedUrls.map((url, uIdx) => (
+                                              <a
+                                                key={uIdx}
+                                                href={url}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                className="px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-xs font-bold border border-blue-200 flex items-center gap-1 transition-colors cursor-pointer"
+                                              >
+                                                <span>Buka Link: {url.replace(/^https?:\/\//i, '').slice(0, 30)}...</span>
+                                                <ExternalLink className="w-3 h-3" />
+                                              </a>
+                                            ))}
+                                          </div>
+                                        )}
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })
+                            ) : (
+                              Object.entries(parsedLkpd.answers || {}).map(([key, value]) => (
+                                <div key={key} className="p-3.5 rounded-xl bg-white border border-slate-200 space-y-1">
+                                  <span className="text-xs font-bold text-slate-800 block capitalize">
+                                    {key.replace(/_/g, ' ')}
                                   </span>
+                                  <p className="text-xs sm:text-sm text-slate-800 leading-relaxed whitespace-pre-line font-medium">
+                                    {value || <span className="text-slate-400 italic">Tidak diisi.</span>}
+                                  </p>
                                 </div>
-                                <p className="text-xs sm:text-sm text-slate-800 leading-relaxed whitespace-pre-line font-medium">
-                                  {parsedLkpd.answers?.[asp.id] || <span className="text-slate-400 italic">Tidak diisi oleh murid.</span>}
-                                </p>
-                              </div>
-                            ))}
+                              ))
+                            )}
                           </div>
-                        </div>
 
-                        {parsedLkpd.reflection && (
-                          <div className="p-4.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1.5">
-                            <span className="text-xs font-black text-slate-900 uppercase tracking-wider block">
-                              Refleksi & Kesimpulan Estetika Murid
-                            </span>
-                            <p className="text-xs sm:text-sm text-slate-800 leading-relaxed whitespace-pre-line font-medium">
-                              "{parsedLkpd.reflection}"
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    ) : (
+                          {parsedLkpd.reflection && (
+                            <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+                              <span className="text-xs font-bold text-slate-800 uppercase tracking-wider block">
+                                Refleksi & Kesimpulan Murid:
+                              </span>
+                              <p className="text-xs sm:text-sm text-slate-800 leading-relaxed whitespace-pre-line font-medium">
+                                "{parsedLkpd.reflection}"
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })() : (
                       /* Regular Assignment Response */
                       <div className="space-y-3">
-                        <span className="text-xs font-bold text-[#1D4ED8] uppercase tracking-wider">
+                        <span className="text-xs font-bold text-blue-700 uppercase tracking-wider">
                           Jawaban Teks Murid
                         </span>
-                        <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs sm:text-sm text-slate-800 whitespace-pre-line leading-relaxed font-medium">
+                        <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs sm:text-sm text-slate-800 whitespace-pre-line leading-relaxed font-medium select-text">
                           {selectedSubmission.text_response || 'Tidak ada teks jawaban.'}
                         </div>
+                        {/* Auto detect links in text */}
+                        {extractUrlsFromText(selectedSubmission.text_response).length > 0 && (
+                          <div className="pt-1 flex flex-wrap gap-2">
+                            {extractUrlsFromText(selectedSubmission.text_response).map((url, uIdx) => (
+                              <a
+                                key={uIdx}
+                                href={url}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-xs font-bold border border-blue-200 flex items-center gap-1.5 transition-colors cursor-pointer"
+                              >
+                                <span>Buka Tautan: {url.replace(/^https?:\/\//i, '').slice(0, 32)}...</span>
+                                <ExternalLink className="w-3.5 h-3.5" />
+                              </a>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     )}
 
-                    {/* Attached Link if any */}
-                    {selectedSubmission.link && (
-                      <div className="space-y-1.5">
-                        <span className="text-xs font-bold text-slate-600 uppercase tracking-wide">
-                          Tautan Eksternal:
-                        </span>
-                        <div>
-                          <a
-                            href={selectedSubmission.link}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-800 underline underline-offset-2"
-                          >
-                            <span>{selectedSubmission.link}</span>
-                            <ExternalLink className="w-3.5 h-3.5" />
-                          </a>
+                    {/* Attached Link (Direct Access Button) */}
+                    {(selectedSubmission.link || (() => {
+                      const match = selectedSubmission.text_response?.match(/\[Tautan Tugas\]:\s*(\S+)/i);
+                      return match ? match[1] : null;
+                    })()) && (() => {
+                      const rawL = selectedSubmission.link || selectedSubmission.text_response?.match(/\[Tautan Tugas\]:\s*(\S+)/i)?.[1];
+                      if (!rawL) return null;
+                      const validUrl = ensureHttpUrl(rawL);
+
+                      return (
+                        <div className="space-y-1.5">
+                          <span className="text-xs font-bold text-slate-700 block">
+                            Tautan Tugas Murid (Link):
+                          </span>
+                          <div className="p-3 bg-violet-50/80 rounded-xl border border-violet-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                            <span className="text-xs font-bold text-violet-900 truncate">
+                              {rawL}
+                            </span>
+                            <a
+                              href={validUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="px-3.5 py-1.5 bg-violet-600 hover:bg-violet-700 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 shrink-0 transition-colors shadow-2xs cursor-pointer"
+                            >
+                              <span>Buka Tautan</span>
+                              <ExternalLink className="w-3.5 h-3.5" />
+                            </a>
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      );
+                    })()}
 
                     {/* Bottom Grading Panel with "Save & Next Student" Superpower */}
                     <div className="pt-6 border-t border-slate-200 space-y-4 bg-gradient-to-b from-indigo-50/20 to-indigo-50/50 -mx-5 -mb-7 p-5 sm:p-7 rounded-b-3xl">

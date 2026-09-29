@@ -1,16 +1,32 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { 
   X, 
   Camera, 
   ImageIcon, 
   Loader2, 
-  Maximize2
+  Maximize2,
+  ExternalLink,
+  Trash2,
+  FileText
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Assignment, AssignmentSubmission } from '../types';
 import { supabase, supabaseAnon } from '../lib/supabase';
 import { compressImageFile, formatFileSize, uploadSubmissionFile, getOptimizedMediaUrl, CompressionResult } from '../utils/fileCompressor';
-import { OBSERVATION_PRESETS, parseLkpdResponse, LkpdSubmissionPayload, LkpdAspect } from '../utils/lkpdPresets';
+import { 
+  getNormalizedLkpdBlocks, 
+  parseLkpdResponse, 
+  LkpdBlock, 
+  LkpdBlockAnswer, 
+  LkpdSubmissionPayload,
+  ensureHttpUrl
+} from '../utils/lkpdPresets';
+
+interface LocalMediaFile {
+  file: File;
+  previewUrl: string;
+  compression?: CompressionResult;
+}
 
 interface LkpdSubmissionModalProps {
   isOpen: boolean;
@@ -29,27 +45,20 @@ export default function LkpdSubmissionModal({
   existingSubmission,
   onSuccess
 }: LkpdSubmissionModalProps) {
-  // Determine LKPD Configuration
-  const lkpdConfig = React.useMemo(() => {
-    if (assignment?.lkpd_config && assignment.lkpd_config.aspects) {
-      return assignment.lkpd_config;
-    }
-    const presetKey = assignment?.lkpd_config?.preset || 'art_elements';
-    return OBSERVATION_PRESETS[presetKey] || OBSERVATION_PRESETS.art_elements;
+  // Susunan blok LKPD dinamis
+  const blocks: LkpdBlock[] = useMemo(() => {
+    return getNormalizedLkpdBlocks(assignment?.lkpd_config);
   }, [assignment]);
 
-  // Form States
-  const [objectName, setObjectName] = useState('');
-  const [answers, setAnswers] = useState<Record<string, string>>({});
-  const [reflection, setReflection] = useState('');
+  // Answers map: key = blockId
+  const [blockAnswers, setBlockAnswers] = useState<Record<string, LkpdBlockAnswer>>({});
   
-  // Media State
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [existingFileUrl, setExistingFileUrl] = useState<string | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [compressionResult, setCompressionResult] = useState<CompressionResult | null>(null);
-  const [isCompressing, setIsCompressing] = useState(false);
-  const [isZoomOpen, setIsZoomOpen] = useState(false);
+  // Media local preview map: key = blockId -> LocalMediaFile
+  const [localFiles, setLocalFiles] = useState<Record<string, LocalMediaFile>>({});
+  const [compressingBlockId, setCompressingBlockId] = useState<string | null>(null);
+
+  // Zoom modal image
+  const [zoomUrl, setZoomUrl] = useState<string | null>(null);
 
   // Status & Mode
   const [isEditMode, setIsEditMode] = useState(false);
@@ -57,81 +66,149 @@ export default function LkpdSubmissionModal({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
-  // Native input refs
-  const cameraInputRef = useRef<HTMLInputElement>(null);
-  const galleryInputRef = useRef<HTMLInputElement>(null);
+  // Input refs for dynamic file inputs
+  const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
-  // Populate data when modal opens or submission changes
+  const isGraded = existingSubmission?.status === 'graded' || existingSubmission?.score !== null;
+
+  // Initialize data on modal open
   useEffect(() => {
     if (!isOpen) return;
     setErrorMsg(null);
     setSuccessMsg(null);
+    setLocalFiles({});
 
     if (existingSubmission) {
       const parsed = parseLkpdResponse(existingSubmission.text_response);
-      if (parsed) {
-        setObjectName(parsed.object_name || '');
-        setAnswers(parsed.answers || {});
-        setReflection(parsed.reflection || '');
-      } else {
-        setObjectName('');
-        setAnswers({});
-        setReflection(existingSubmission.text_response || '');
+      const initialMap: Record<string, LkpdBlockAnswer> = {};
+
+      if (parsed?.blockAnswers) {
+        // V3 Modular format
+        Object.entries(parsed.blockAnswers).forEach(([bId, ans]) => {
+          initialMap[bId] = ans;
+        });
+      } else if (parsed) {
+        // Legacy V1/V2 format: petakan ke blok yang ada
+        blocks.forEach(b => {
+          if (b.type === 'question') {
+            if (b.responseType === 'media' && b.mediaKind === 'image' && existingSubmission.file_url) {
+              initialMap[b.id] = {
+                blockId: b.id,
+                type: 'media',
+                fileUrl: existingSubmission.file_url,
+                fileName: existingSubmission.file_name || 'Foto Observasi'
+              };
+            } else if (b.id === 'legacy_object_name' || b.title.toLowerCase().includes('nama objek')) {
+              initialMap[b.id] = {
+                blockId: b.id,
+                type: 'text',
+                textValue: parsed.object_name || ''
+              };
+            } else if (b.id === 'legacy_reflection' || b.title.toLowerCase().includes('refleksi')) {
+              initialMap[b.id] = {
+                blockId: b.id,
+                type: 'text',
+                textValue: parsed.reflection || ''
+              };
+            } else if (parsed.answers && parsed.answers[b.id]) {
+              initialMap[b.id] = {
+                blockId: b.id,
+                type: 'text',
+                textValue: parsed.answers[b.id]
+              };
+            }
+          }
+        });
       }
 
-      setExistingFileUrl(existingSubmission.file_url || null);
-      setPreviewUrl(existingSubmission.file_url ? getOptimizedMediaUrl(existingSubmission.file_url) : null);
-      setSelectedFile(null);
-      setCompressionResult(null);
-
-      const isGraded = existingSubmission.status === 'graded' || existingSubmission.score !== null;
+      setBlockAnswers(initialMap);
       setIsEditMode(!isGraded && !existingSubmission.id);
     } else {
-      setObjectName('');
-      setAnswers({});
-      setReflection('');
-      setExistingFileUrl(null);
-      setPreviewUrl(null);
-      setSelectedFile(null);
-      setCompressionResult(null);
+      setBlockAnswers({});
       setIsEditMode(true);
     }
-  }, [isOpen, existingSubmission, assignment]);
+  }, [isOpen, existingSubmission, assignment, blocks, isGraded]);
 
-  // Handle Photo selection & compression
-  const handlePhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  // Handle text / link change
+  const handleTextChange = (blockId: string, val: string, type: 'text' | 'link') => {
+    setBlockAnswers(prev => ({
+      ...prev,
+      [blockId]: {
+        blockId,
+        type,
+        textValue: val
+      }
+    }));
+  };
+
+  // Handle file select (image, audio, video, doc)
+  const handleFileSelect = async (block: LkpdBlock, file?: File | null) => {
     if (!file) return;
-
     setErrorMsg(null);
-    setIsCompressing(true);
 
-    try {
-      const result = await compressImageFile(file, 1800, 0.82);
-      setSelectedFile(result.file);
-      setCompressionResult(result);
-      setPreviewUrl(result.previewUrl);
-    } catch (err: any) {
-      console.error('Gagal kompresi foto:', err);
-      setErrorMsg('Gagal memproses foto. Silakan coba pilih foto lain.');
-    } finally {
-      setIsCompressing(false);
-      if (e.target) e.target.value = '';
+    const isImage = file.type.startsWith('image/');
+
+    if (isImage) {
+      setCompressingBlockId(block.id);
+      try {
+        const compressed = await compressImageFile(file, 1800, 0.82);
+        setLocalFiles(prev => ({
+          ...prev,
+          [block.id]: {
+            file: compressed.file,
+            previewUrl: compressed.previewUrl,
+            compression: compressed
+          }
+        }));
+        setBlockAnswers(prev => ({
+          ...prev,
+          [block.id]: {
+            blockId: block.id,
+            type: 'media',
+            fileName: compressed.file.name,
+            fileType: compressed.file.type,
+            fileSize: compressed.file.size
+          }
+        }));
+      } catch (err: any) {
+        setErrorMsg('Gagal memproses gambar. Silakan coba pilih file lain.');
+      } finally {
+        setCompressingBlockId(null);
+      }
+    } else {
+      // Non-image file (Audio, Video, Dokumen)
+      const preview = URL.createObjectURL(file);
+      setLocalFiles(prev => ({
+        ...prev,
+        [block.id]: {
+          file,
+          previewUrl: preview
+        }
+      }));
+      setBlockAnswers(prev => ({
+        ...prev,
+        [block.id]: {
+          blockId: block.id,
+          type: 'media',
+          fileName: file.name,
+          fileType: file.type,
+          fileSize: file.size
+        }
+      }));
     }
   };
 
-  const handleRemovePhoto = () => {
-    setSelectedFile(null);
-    setCompressionResult(null);
-    setExistingFileUrl(null);
-    setPreviewUrl(null);
-  };
-
-  const handleAnswerChange = (aspectId: string, val: string) => {
-    setAnswers(prev => ({
-      ...prev,
-      [aspectId]: val
-    }));
+  const handleRemoveMedia = (blockId: string) => {
+    setLocalFiles(prev => {
+      const copy = { ...prev };
+      delete copy[blockId];
+      return copy;
+    });
+    setBlockAnswers(prev => {
+      const copy = { ...prev };
+      delete copy[blockId];
+      return copy;
+    });
   };
 
   // Submit Handler
@@ -139,42 +216,80 @@ export default function LkpdSubmissionModal({
     e.preventDefault();
     if (!assignment || !studentInfo) return;
 
-    if (!previewUrl && !selectedFile && !existingFileUrl) {
-      setErrorMsg('Harap ambil atau unggah foto objek observasi.');
-      return;
-    }
-    if (!objectName.trim()) {
-      setErrorMsg('Harap tuliskan nama objek yang diobservasi.');
-      return;
+    // Validasi butir yang wajib diisi
+    for (let i = 0; i < blocks.length; i++) {
+      const b = blocks[i];
+      if (b.type === 'question' && b.required !== false) {
+        const ans = blockAnswers[b.id];
+        const local = localFiles[b.id];
+
+        if (b.responseType === 'media') {
+          if (!ans?.fileUrl && !local?.file) {
+            setErrorMsg(`Butir nomor ${i + 1} (${b.title}) wajib dilampirkan berkas.`);
+            return;
+          }
+        } else {
+          if (!ans?.textValue || !ans.textValue.trim()) {
+            setErrorMsg(`Butir nomor ${i + 1} (${b.title}) wajib diisi.`);
+            return;
+          }
+        }
+      }
     }
 
     setSubmitting(true);
     setErrorMsg(null);
 
     try {
-      let finalFileUrl = existingFileUrl;
-      let finalFileName = existingSubmission?.file_name || null;
-      let finalFileType = existingSubmission?.file_type || null;
-      let finalFileSize = existingSubmission?.file_size || null;
+      const finalBlockAnswers: Record<string, LkpdBlockAnswer> = { ...blockAnswers };
+      let primaryFileUrl = existingSubmission?.file_url || null;
+      let primaryFileName = existingSubmission?.file_name || null;
+      let primaryFileType = existingSubmission?.file_type || null;
+      let primaryFileSize = existingSubmission?.file_size || null;
 
-      if (selectedFile) {
+      // Upload local files
+      const uploadEntries = Object.entries(localFiles) as [string, LocalMediaFile][];
+      for (const [bId, item] of uploadEntries) {
         const folder = `lkpd_${studentInfo.school_id || 'general'}/${assignment.id}/${studentInfo.id}`;
-        const uploadedUrl = await uploadSubmissionFile(selectedFile, folder);
-        finalFileUrl = uploadedUrl;
-        finalFileName = selectedFile.name;
-        finalFileType = selectedFile.type;
-        finalFileSize = selectedFile.size;
+        const uploadedUrl = await uploadSubmissionFile(item.file, folder);
+        
+        finalBlockAnswers[bId] = {
+          blockId: bId,
+          type: 'media',
+          fileUrl: uploadedUrl,
+          fileName: item.file.name,
+          fileType: item.file.type,
+          fileSize: item.file.size
+        };
+
+        if (!primaryFileUrl) {
+          primaryFileUrl = uploadedUrl;
+          primaryFileName = item.file.name;
+          primaryFileType = item.file.type;
+          primaryFileSize = item.file.size;
+        }
       }
+
+      // Normalisasi link answers
+      Object.keys(finalBlockAnswers).forEach(bId => {
+        if (finalBlockAnswers[bId].type === 'link' && finalBlockAnswers[bId].textValue) {
+          finalBlockAnswers[bId].textValue = ensureHttpUrl(finalBlockAnswers[bId].textValue);
+        }
+      });
+
+      // Backward-compatible answers dictionary
+      const legacyAnswers: Record<string, string> = {};
+      Object.entries(finalBlockAnswers).forEach(([bId, ans]) => {
+        if (ans.textValue) legacyAnswers[bId] = ans.textValue;
+      });
 
       const payload: LkpdSubmissionPayload = {
         is_lkpd: true,
-        lkpd_type: assignment.lkpd_type || 'observation',
-        preset_id: lkpdConfig.id || 'art_elements',
-        object_name: objectName.trim(),
-        answers,
-        reflection: reflection.trim(),
-        submitted_device: /Mobi|Android/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
-        version: 2
+        lkpd_type: assignment.lkpd_type || 'modular',
+        version: 3,
+        blockAnswers: finalBlockAnswers,
+        answers: legacyAnswers,
+        submitted_device: /Mobi|Android/i.test(navigator.userAgent) ? 'mobile' : 'desktop'
       };
 
       const now = new Date().toISOString();
@@ -186,10 +301,10 @@ export default function LkpdSubmissionModal({
         student_name: studentInfo.name || null,
         student_code: studentInfo.student_code || null,
         text_response: JSON.stringify(payload),
-        file_url: finalFileUrl,
-        file_name: finalFileName,
-        file_type: finalFileType,
-        file_size: finalFileSize,
+        file_url: primaryFileUrl,
+        file_name: primaryFileName,
+        file_type: primaryFileType,
+        file_size: primaryFileSize,
         status: existingSubmission?.status === 'graded' ? 'graded' : 'submitted',
         submitted_at: existingSubmission?.submitted_at || now,
         updated_at: now
@@ -203,14 +318,13 @@ export default function LkpdSubmissionModal({
         .single();
 
       if (upsertErr) {
-        console.warn('Upsert fallback:', upsertErr);
         const { error: insErr } = await client
           .from('assignment_submissions')
           .insert(submissionRecord);
         if (insErr) throw insErr;
       }
 
-      // Local storage backup
+      // Backup local storage
       try {
         const rawLocal = localStorage.getItem('eduverse_local_submissions');
         const localMap = rawLocal ? JSON.parse(rawLocal) : {};
@@ -224,14 +338,14 @@ export default function LkpdSubmissionModal({
         console.warn('Local save failed:', locErr);
       }
 
-      setSuccessMsg('Hasil observasi LKPD berhasil terkirim!');
+      setSuccessMsg('Jawaban LKPD berhasil dikumpulkan!');
       setIsEditMode(false);
       setTimeout(() => {
         onSuccess();
+        onClose();
       }, 700);
     } catch (err: any) {
-      console.error(err);
-      setErrorMsg(err.message || 'Gagal mengirim LKPD. Silakan periksa koneksi internet Anda.');
+      setErrorMsg(err.message || 'Gagal mengirim tugas. Silakan periksa koneksi Anda.');
     } finally {
       setSubmitting(false);
     }
@@ -239,33 +353,20 @@ export default function LkpdSubmissionModal({
 
   if (!isOpen || !assignment) return null;
 
-  const isGraded = existingSubmission?.status === 'graded' || (existingSubmission?.score !== null && existingSubmission?.score !== undefined);
-  const aspects: LkpdAspect[] = lkpdConfig.aspects || OBSERVATION_PRESETS.art_elements.aspects;
-
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
-        {/* Backdrop */}
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs"
-          onClick={() => { if (!submitting) onClose(); }}
-        />
-
-        {/* Modal Window */}
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/60 backdrop-blur-xs overflow-y-auto">
         <motion.div
-          initial={{ scale: 0.98, opacity: 0, y: 8 }}
+          initial={{ scale: 0.95, opacity: 0, y: 10 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.98, opacity: 0, y: 8 }}
           className="relative bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[92vh] flex flex-col overflow-hidden border border-slate-200 z-10"
         >
-          {/* Header - EduVerse Theme */}
-          <div className="px-5 py-4 bg-white flex items-center justify-between shrink-0 border-b border-indigo-100">
+          {/* Header EduVerse: Bersih & Ringkas */}
+          <div className="px-5 py-4 bg-white flex items-center justify-between shrink-0 border-b border-slate-100">
             <div>
-              <span className="text-[11px] font-black uppercase tracking-wider text-[#1D4ED8] bg-blue-50 border border-blue-200 px-2.5 py-0.5 rounded-full inline-block mb-1">
-                {lkpdConfig.name || 'LKPD Observasi Lapangan'}
+              <span className="text-[11px] font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full inline-block mb-1">
+                LKPD Pembelajaran
               </span>
               <h3 className="text-base sm:text-lg font-bold text-slate-900 leading-snug">
                 {assignment.title}
@@ -282,24 +383,24 @@ export default function LkpdSubmissionModal({
           </div>
 
           {/* Body Content */}
-          <div className="p-5 sm:p-6 overflow-y-auto space-y-6 text-slate-800 flex-1 bg-white">
+          <div className="p-5 sm:p-6 overflow-y-auto space-y-5 text-slate-800 flex-1 bg-white">
             {/* Status alerts */}
             {errorMsg && (
-              <div className="p-3 bg-rose-50 text-rose-700 border border-rose-200 rounded-xl text-xs font-medium">
+              <div className="p-3 bg-rose-50 text-rose-700 border border-rose-200 rounded-xl text-xs font-semibold">
                 {errorMsg}
               </div>
             )}
             {successMsg && (
-              <div className="p-3 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-xl text-xs font-medium">
+              <div className="p-3 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-xl text-xs font-semibold">
                 {successMsg}
               </div>
             )}
 
-            {/* Graded Banner (Minimalist) */}
+            {/* Banner Nilai Guru jika sudah dinilai */}
             {isGraded && (
               <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between gap-4">
                 <div className="space-y-1">
-                  <div className="text-xs font-semibold text-emerald-700">Sudah Dinilai</div>
+                  <div className="text-xs font-bold text-emerald-700">Sudah Dinilai</div>
                   {existingSubmission?.feedback ? (
                     <p className="text-xs text-slate-600 italic">"{existingSubmission.feedback}"</p>
                   ) : (
@@ -315,240 +416,305 @@ export default function LkpdSubmissionModal({
               </div>
             )}
 
-            {/* Teacher Guidance / Description (Quiet, clean text) */}
+            {/* Petunjuk Awal Guru (Teks Singkat) */}
             {assignment.description && (
-              <div className="text-xs sm:text-sm text-slate-600 bg-slate-50/70 p-3.5 rounded-xl border border-slate-100 leading-relaxed whitespace-pre-line">
-                <span className="font-semibold text-slate-800 block mb-1">Petunjuk Guru:</span>
+              <div className="text-xs sm:text-sm text-slate-700 bg-slate-50 p-3.5 rounded-xl border border-slate-200/80 leading-relaxed whitespace-pre-line">
+                <span className="font-bold text-slate-900 block mb-1">Pengantar:</span>
                 {assignment.description}
               </div>
             )}
 
-            {/* VIEW MODE: When already submitted & not editing */}
+            {/* Mode Terkirim / Pratinjau Jawaban */}
             {!isEditMode && existingSubmission && (
-              <div className="space-y-6">
-                <div className="flex items-center justify-between pb-3 border-b border-slate-100 text-xs">
-                  <span className="text-emerald-700 font-semibold bg-emerald-50 px-2.5 py-1 rounded-md">
-                    Jawaban Terkirim
+              <div className="space-y-4">
+                <div className="flex items-center justify-between pb-2 border-b border-slate-100 text-xs">
+                  <span className="text-emerald-700 font-bold bg-emerald-50 px-2.5 py-1 rounded-md">
+                    Jawaban Kamu Terkirim
                   </span>
                   {!isGraded && (
                     <button
                       type="button"
                       onClick={() => setIsEditMode(true)}
-                      className="text-blue-600 hover:text-blue-700 font-semibold cursor-pointer underline underline-offset-2"
+                      className="text-blue-600 hover:text-blue-700 font-bold cursor-pointer underline underline-offset-2"
                     >
                       Ubah Jawaban
                     </button>
                   )}
                 </div>
 
-                {/* Submitted Photo */}
-                {previewUrl && (
-                  <div className="space-y-2">
-                    <span className="text-xs font-semibold text-slate-700 block">Foto Objek</span>
-                    <div className="rounded-xl overflow-hidden border border-slate-200 bg-slate-950 relative group">
-                      <img 
-                        src={previewUrl} 
-                        alt="Foto Objek Observasi" 
-                        className="w-full max-h-72 object-contain bg-slate-950"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setIsZoomOpen(true)}
-                        className="absolute bottom-3 right-3 px-3 py-1.5 rounded-lg bg-black/60 hover:bg-black/80 text-white text-xs font-medium flex items-center gap-1.5 backdrop-blur-xs cursor-pointer"
-                      >
-                        <Maximize2 className="w-3.5 h-3.5" />
-                        <span>Perbesar</span>
-                      </button>
-                    </div>
-                  </div>
-                )}
+                <div className="space-y-3.5">
+                  {blocks.map((b, idx) => {
+                    if (b.type === 'instruction') {
+                      return (
+                        <div key={b.id || idx} className="p-3 bg-amber-50/50 rounded-xl border border-amber-200/70 text-xs text-slate-800">
+                          <span className="font-bold block text-amber-900 mb-0.5">{b.title}</span>
+                          <p className="whitespace-pre-line">{b.description}</p>
+                        </div>
+                      );
+                    }
 
-                {/* Object Name */}
-                <div className="space-y-1">
-                  <span className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Nama Objek</span>
-                  <p className="text-sm font-semibold text-slate-900">{objectName || '-'}</p>
-                </div>
-
-                {/* Aspects Answers */}
-                <div className="space-y-4 pt-2">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800">
-                    Hasil Analisis Unsur Rupa
-                  </h4>
-                  <div className="space-y-3">
-                    {aspects.map(asp => (
-                      <div key={asp.id} className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 space-y-1">
-                        <span className="text-xs font-bold text-slate-800 block">
-                          {asp.label}
+                    const ans = blockAnswers[b.id];
+                    return (
+                      <div key={b.id || idx} className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 space-y-1.5">
+                        <span className="text-xs font-bold text-slate-900 block">
+                          {idx + 1}. {b.title}
                         </span>
-                        <p className="text-xs sm:text-sm text-slate-700 leading-relaxed whitespace-pre-line font-normal">
-                          {answers[asp.id] || <span className="text-slate-400 italic">Belum diisi.</span>}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
 
-                  {reflection && (
-                    <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 space-y-1">
-                      <span className="text-xs font-bold text-slate-800 block">
-                        Refleksi & Kesimpulan
-                      </span>
-                      <p className="text-xs sm:text-sm text-slate-700 leading-relaxed whitespace-pre-line">
-                        {reflection}
-                      </p>
-                    </div>
-                  )}
+                        {b.responseType === 'link' ? (
+                          ans?.textValue ? (
+                            <a
+                              href={ensureHttpUrl(ans.textValue)}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:underline"
+                            >
+                              <span>{ans.textValue}</span>
+                              <ExternalLink className="w-3.5 h-3.5" />
+                            </a>
+                          ) : (
+                            <span className="text-xs text-slate-400 italic">Tidak ada tautan.</span>
+                          )
+                        ) : b.responseType === 'media' ? (
+                          ans?.fileUrl ? (
+                            <div className="pt-1">
+                              {ans.fileType?.startsWith('image/') || ans.fileUrl.match(/\.(jpeg|jpg|png|webp|gif)/i) ? (
+                                <img
+                                  src={getOptimizedMediaUrl(ans.fileUrl)}
+                                  alt={ans.fileName || 'Media'}
+                                  onClick={() => setZoomUrl(ans.fileUrl!)}
+                                  className="max-h-48 rounded-lg object-contain bg-slate-950 border border-slate-200 cursor-pointer"
+                                />
+                              ) : ans.fileType?.startsWith('audio/') || ans.fileUrl.match(/\.(mp3|wav|m4a|ogg)/i) ? (
+                                <audio controls src={ans.fileUrl} className="w-full h-10 mt-1" />
+                              ) : ans.fileType?.startsWith('video/') || ans.fileUrl.match(/\.(mp4|webm)/i) ? (
+                                <video controls src={ans.fileUrl} className="max-h-56 rounded-lg w-full bg-slate-950 mt-1" />
+                              ) : (
+                                <a
+                                  href={ans.fileUrl}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:underline"
+                                >
+                                  <span>Unduh Berkas: {ans.fileName || 'Dokumen'}</span>
+                                  <ExternalLink className="w-3.5 h-3.5" />
+                                </a>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-xs text-slate-400 italic">Tidak ada berkas.</span>
+                          )
+                        ) : (
+                          <p className="text-xs sm:text-sm text-slate-800 whitespace-pre-line leading-relaxed">
+                            {ans?.textValue || <span className="text-slate-400 italic">Tidak diisi.</span>}
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}
 
-            {/* EDIT / SUBMISSION FORM */}
+            {/* Mode Form Pengerjaan (Edit / Pengumpulan) */}
             {isEditMode && (
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {/* 1. PHOTO CAPTURE */}
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-slate-900 block">
-                    1. Foto Objek Observasi <span className="text-rose-500">*</span>
-                  </label>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                {blocks.map((block, index) => {
+                  const num = index + 1;
 
-                  <input 
-                    type="file"
-                    ref={cameraInputRef}
-                    accept="image/*"
-                    capture="environment"
-                    className="hidden"
-                    onChange={handlePhotoSelect}
-                  />
-                  <input 
-                    type="file"
-                    ref={galleryInputRef}
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handlePhotoSelect}
-                  />
-
-                  {previewUrl ? (
-                    <div className="rounded-xl overflow-hidden border border-slate-200 bg-slate-950 relative">
-                      <img 
-                        src={previewUrl} 
-                        alt="Preview Foto" 
-                        className="w-full max-h-64 object-contain bg-slate-950"
-                      />
-                      <div className="absolute top-2 right-2 flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => setIsZoomOpen(true)}
-                          className="p-1.5 rounded-md bg-black/60 hover:bg-black/80 text-white backdrop-blur-xs transition-colors cursor-pointer"
-                          title="Perbesar"
-                        >
-                          <Maximize2 className="w-4 h-4" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={handleRemovePhoto}
-                          className="px-2.5 py-1 rounded-md bg-rose-600/90 hover:bg-rose-600 text-white text-xs font-medium transition-colors cursor-pointer"
-                        >
-                          Hapus
-                        </button>
-                      </div>
-                      <div className="p-2 bg-slate-900 text-white text-[11px] flex items-center justify-between">
-                        <span className="truncate text-slate-300">
-                          {selectedFile ? selectedFile.name : 'Foto terpilih'}
+                  // 1. Tipe Instruksi Saja
+                  if (block.type === 'instruction') {
+                    return (
+                      <div key={block.id || index} className="p-3.5 rounded-xl bg-amber-50/60 border border-amber-200/90 text-xs text-slate-800 space-y-1">
+                        <span className="font-bold text-amber-950 block">
+                          {num}. {block.title}
                         </span>
-                        {compressionResult && (
-                          <span className="text-slate-400">
-                            {formatFileSize(compressionResult.compressedSize)}
-                          </span>
+                        {block.description && (
+                          <p className="text-slate-700 whitespace-pre-line leading-relaxed">
+                            {block.description}
+                          </p>
                         )}
                       </div>
-                    </div>
-                  ) : (
-                    <div className="p-6 border border-dashed border-slate-300 rounded-xl bg-slate-50/50 text-center space-y-3">
-                      <p className="text-xs text-slate-500">
-                        {isCompressing ? 'Sedang memproses foto...' : 'Ambil foto objek langsung atau pilih dari galeri.'}
-                      </p>
+                    );
+                  }
 
-                      <div className="flex items-center justify-center gap-2">
-                        <button
-                          type="button"
-                          disabled={isCompressing}
-                          onClick={() => cameraInputRef.current?.click()}
-                          className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white font-bold text-xs flex items-center gap-2 transition-all shadow-md shadow-[#3B66F5]/20 cursor-pointer"
-                        >
-                          <Camera className="w-4 h-4" />
-                          <span>Buka Kamera HP</span>
-                        </button>
+                  // 2. Tipe Poin Pertanyaan
+                  const ans = blockAnswers[block.id];
+                  const local = localFiles[block.id];
+                  const previewMedia = local?.previewUrl || (ans?.fileUrl ? getOptimizedMediaUrl(ans.fileUrl) : null);
 
-                        <button
-                          type="button"
-                          disabled={isCompressing}
-                          onClick={() => galleryInputRef.current?.click()}
-                          className="px-4 py-2.5 rounded-xl bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 font-bold text-xs flex items-center gap-2 transition-colors cursor-pointer"
-                        >
-                          <ImageIcon className="w-4 h-4" />
-                          <span>Pilih Galeri</span>
-                        </button>
+                  return (
+                    <div 
+                      key={block.id || index} 
+                      className="p-3.5 rounded-xl bg-white border border-slate-200 space-y-2 focus-within:border-blue-500 transition-colors"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <label className="text-xs font-bold text-slate-900 leading-snug">
+                          {num}. {block.title}
+                          {block.required !== false && <span className="text-rose-500 ml-1">*</span>}
+                        </label>
                       </div>
-                    </div>
-                  )}
-                </div>
 
-                {/* 2. OBJECT NAME */}
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-900 block">
-                    2. Nama Objek yang Diobservasi <span className="text-rose-500">*</span>
-                  </label>
-                  <input 
-                    type="text"
-                    required
-                    placeholder="Contoh: Relief Dinding Gerbang, Patung Sekolah, Pohon Cemara"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs sm:text-sm font-semibold text-slate-900 placeholder:text-slate-400 outline-none focus:border-[#3B66F5] focus:ring-2 focus:ring-[#3B66F5]/20 transition-all"
-                    value={objectName}
-                    onChange={(e) => setObjectName(e.target.value)}
-                  />
-                </div>
+                      {block.description && (
+                        <p className="text-[11px] text-slate-500 whitespace-pre-line leading-relaxed">
+                          {block.description}
+                        </p>
+                      )}
 
-                {/* 3. ASPECTS OF ART */}
-                <div className="space-y-3 pt-2">
-                  <label className="text-xs font-black text-slate-900 block uppercase tracking-wider">
-                    3. Analisis Unsur Seni Rupa
-                  </label>
-
-                  <div className="space-y-3">
-                    {aspects.map((asp) => (
-                      <div 
-                        key={asp.id} 
-                        className="p-3.5 rounded-xl bg-white border border-slate-200 space-y-1.5 focus-within:border-[#3B66F5] focus-within:ring-2 focus-within:ring-[#3B66F5]/20 transition-all"
-                      >
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold text-[#1D4ED8]">
-                            {asp.label}
-                          </span>
+                      {/* Input Sesuai Format Respon */}
+                      {block.responseType === 'link' ? (
+                        /* Tipe Link */
+                        <div className="space-y-1.5">
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="url"
+                              value={ans?.textValue || ''}
+                              onChange={(e) => handleTextChange(block.id, e.target.value, 'link')}
+                              placeholder={block.placeholder || 'https://drive.google.com/... atau tautan Canva/dokumen'}
+                              className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 focus:bg-white text-xs text-slate-900 outline-none focus:border-blue-500 transition-colors font-medium"
+                            />
+                            {ans?.textValue && (
+                              <a
+                                href={ensureHttpUrl(ans.textValue)}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="px-2.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold shrink-0 flex items-center gap-1 transition-colors"
+                                title="Uji buka link"
+                              >
+                                <span>Cek</span>
+                                <ExternalLink className="w-3 h-3" />
+                              </a>
+                            )}
+                          </div>
                         </div>
+                      ) : block.responseType === 'media' ? (
+                        /* Tipe Media: Gambar / Audio / Video / Dokumen */
+                        <div className="space-y-2">
+                          <input
+                            type="file"
+                            ref={(el) => { fileInputRefs.current[block.id] = el; }}
+                            accept={
+                              block.mediaKind === 'image' ? 'image/*' :
+                              block.mediaKind === 'audio' ? 'audio/*' :
+                              block.mediaKind === 'video' ? 'video/*' :
+                              block.mediaKind === 'document' ? '.pdf,.doc,.docx' : '*/*'
+                            }
+                            className="hidden"
+                            onChange={(e) => handleFileSelect(block, e.target.files?.[0])}
+                          />
+
+                          {previewMedia ? (
+                            <div className="rounded-xl overflow-hidden border border-slate-200 bg-slate-950 relative">
+                              {block.mediaKind === 'audio' || (local?.file?.type.startsWith('audio/') || ans?.fileType?.startsWith('audio/')) ? (
+                                <div className="p-3 bg-slate-900 text-white flex items-center justify-between gap-2">
+                                  <audio controls src={previewMedia} className="w-full h-8" />
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemoveMedia(block.id)}
+                                    className="p-1.5 text-rose-400 hover:text-rose-300"
+                                    title="Hapus berkas"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              ) : block.mediaKind === 'video' || (local?.file?.type.startsWith('video/') || ans?.fileType?.startsWith('video/')) ? (
+                                <div>
+                                  <video controls src={previewMedia} className="max-h-56 w-full object-contain bg-slate-950" />
+                                  <div className="p-2 bg-slate-900 text-white text-[11px] flex items-center justify-between">
+                                    <span className="truncate">{local?.file ? local.file.name : (ans?.fileName || 'Video')}</span>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleRemoveMedia(block.id)}
+                                      className="text-rose-400 hover:text-rose-300 text-xs font-bold"
+                                    >
+                                      Hapus
+                                    </button>
+                                  </div>
+                                </div>
+                              ) : block.mediaKind === 'document' ? (
+                                <div className="p-3 bg-slate-900 text-white text-xs flex items-center justify-between gap-2">
+                                  <div className="flex items-center gap-2 truncate">
+                                    <FileText className="w-4 h-4 text-blue-400 shrink-0" />
+                                    <span className="truncate">{local?.file ? local.file.name : (ans?.fileName || 'Dokumen')}</span>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemoveMedia(block.id)}
+                                    className="text-rose-400 hover:text-rose-300 font-bold"
+                                  >
+                                    Hapus
+                                  </button>
+                                </div>
+                              ) : (
+                                <div>
+                                  <img
+                                    src={previewMedia}
+                                    alt="Foto Unggahan"
+                                    className="w-full max-h-56 object-contain bg-slate-950"
+                                  />
+                                  <div className="p-2 bg-slate-900 text-white text-[11px] flex items-center justify-between">
+                                    <span className="truncate text-slate-300">
+                                      {local?.file ? local.file.name : (ans?.fileName || 'Foto terpilih')}
+                                      {local?.compression && ` (${formatFileSize(local.compression.compressedSize)})`}
+                                    </span>
+                                    <div className="flex items-center gap-2">
+                                      <button
+                                        type="button"
+                                        onClick={() => setZoomUrl(previewMedia)}
+                                        className="text-slate-300 hover:text-white"
+                                        title="Perbesar"
+                                      >
+                                        <Maximize2 className="w-3.5 h-3.5" />
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => handleRemoveMedia(block.id)}
+                                        className="text-rose-400 hover:text-rose-300 font-bold"
+                                      >
+                                        Ganti
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="p-3.5 border border-dashed border-slate-300 rounded-xl bg-slate-50/50 flex items-center justify-between gap-2">
+                              <span className="text-xs text-slate-500">
+                                {compressingBlockId === block.id 
+                                  ? 'Memproses berkas...' 
+                                  : block.mediaKind === 'image' 
+                                  ? 'Ambil foto kamera atau unggah gambar' 
+                                  : block.mediaKind === 'audio' 
+                                  ? 'Unggah rekaman audio' 
+                                  : block.mediaKind === 'video' 
+                                  ? 'Unggah video' 
+                                  : 'Pilih dokumen'}
+                              </span>
+
+                              <button
+                                type="button"
+                                disabled={compressingBlockId === block.id}
+                                onClick={() => fileInputRefs.current[block.id]?.click()}
+                                className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-colors cursor-pointer"
+                              >
+                                {block.mediaKind === 'image' ? 'Pilih / Foto' : 'Unggah'}
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        /* Tipe Teks / Esai */
                         <textarea
                           rows={2}
-                          placeholder={asp.helperText ? `${asp.helperText}` : `Deskripsikan unsur ${asp.label.toLowerCase()} pada objek...`}
-                          className="w-full p-2.5 rounded-lg border border-slate-200 bg-slate-50/50 text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 outline-none focus:bg-white focus:border-[#3B66F5] transition-colors resize-none leading-relaxed"
-                          value={answers[asp.id] || ''}
-                          onChange={(e) => handleAnswerChange(asp.id, e.target.value)}
+                          value={ans?.textValue || ''}
+                          onChange={(e) => handleTextChange(block.id, e.target.value, 'text')}
+                          placeholder={block.placeholder || 'Tuliskan jawaban kamu di sini...'}
+                          className="w-full p-2.5 rounded-lg border border-slate-200 bg-slate-50 focus:bg-white text-xs sm:text-sm text-slate-800 outline-none focus:border-blue-500 transition-colors resize-none leading-relaxed font-medium"
                         />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* 4. REFLECTION */}
-                <div className="space-y-1.5 pt-2">
-                  <label className="text-xs font-black text-slate-900 block uppercase tracking-wider">
-                    4. Refleksi & Kesimpulan Estetika
-                  </label>
-                  <textarea
-                    rows={2}
-                    placeholder={lkpdConfig.reflectionPrompt || 'Tuliskan kesan keindahan dan alasan kamu memilih objek ini...'}
-                    className="w-full p-2.5 rounded-xl border border-slate-200 bg-white text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 outline-none focus:border-[#3B66F5] focus:ring-2 focus:ring-[#3B66F5]/20 transition-all resize-none leading-relaxed"
-                    value={reflection}
-                    onChange={(e) => setReflection(e.target.value)}
-                  />
-                </div>
+                      )}
+                    </div>
+                  );
+                })}
 
                 {/* Footer Buttons */}
                 <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-3">
@@ -567,14 +733,14 @@ export default function LkpdSubmissionModal({
                       type="button"
                       disabled={submitting}
                       onClick={onClose}
-                      className="px-4 py-2 rounded-full text-slate-600 hover:bg-slate-100 text-xs font-bold transition-colors cursor-pointer"
+                      className="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-100 text-xs font-bold transition-colors cursor-pointer"
                     >
                       Tutup
                     </button>
                     <button
                       type="submit"
-                      disabled={submitting || isCompressing}
-                      className="bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white px-6 py-2.5 rounded-full font-bold text-xs sm:text-sm flex items-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-[#3B66F5]/25 border border-white/10 cursor-pointer disabled:opacity-50"
+                      disabled={submitting || compressingBlockId !== null}
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-2 transition-all cursor-pointer disabled:opacity-50"
                     >
                       {submitting ? (
                         <>
@@ -592,21 +758,21 @@ export default function LkpdSubmissionModal({
           </div>
         </motion.div>
 
-        {/* Full Image Zoom Modal */}
-        {isZoomOpen && previewUrl && (
+        {/* Zoom Lightbox Modal */}
+        {zoomUrl && (
           <div 
             className="fixed inset-0 z-60 bg-black/90 flex items-center justify-center p-4 cursor-pointer"
-            onClick={() => setIsZoomOpen(false)}
+            onClick={() => setZoomUrl(null)}
           >
             <button
-              onClick={() => setIsZoomOpen(false)}
+              onClick={() => setZoomUrl(null)}
               className="absolute top-4 right-4 p-2 rounded-full bg-white/20 text-white hover:bg-white/40 cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
             <img 
-              src={previewUrl} 
-              alt="Zoomed preview" 
+              src={zoomUrl} 
+              alt="Zoomed" 
               className="max-w-full max-h-[90vh] object-contain rounded-xl"
             />
           </div>

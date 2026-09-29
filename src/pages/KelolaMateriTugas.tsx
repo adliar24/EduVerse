@@ -35,7 +35,15 @@ import LinkPreviewCard from '../components/LinkPreviewCard';
 import DomainTileIcon from '../components/DomainTileIcon';
 import SubmissionReviewModal from '../components/SubmissionReviewModal';
 import SubmissionReviewView from '../components/SubmissionReviewView';
-import { LKPD_TYPES, OBSERVATION_PRESETS, ObservationPreset } from '../utils/lkpdPresets';
+import LkpdFormBuilder from '../components/LkpdFormBuilder';
+import { 
+  LKPD_TYPES, 
+  OBSERVATION_PRESETS, 
+  ObservationPreset, 
+  LkpdBlock, 
+  convertPresetToBlocks, 
+  getNormalizedLkpdBlocks 
+} from '../utils/lkpdPresets';
 
 const ELECTRIC_BLUE_GRADIENT = {
   bg: 'bg-gradient-to-br from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white border border-white/20 hover:scale-[1.01] transition-all shadow-xl shadow-[#3B66F5]/20',
@@ -101,6 +109,7 @@ export default function KelolaMateriTugas({ defaultTab = 'materials', fixedTab =
   const [formAssignmentCategory, setFormAssignmentCategory] = useState<'general' | 'lkpd'>('general');
   const [formLkpdType, setFormLkpdType] = useState<'observation' | 'experiment' | 'case_study' | 'interview'>('observation');
   const [formObservationPreset, setFormObservationPreset] = useState<string>('art_elements');
+  const [formLkpdBlocks, setFormLkpdBlocks] = useState<LkpdBlock[]>([]);
   const [formClassId, setFormClassId] = useState('');
   const [selectedClassIds, setSelectedClassIds] = useState<string[]>([]);
   const [formTargetType, setFormTargetType] = useState<'class' | 'students'>('class');
@@ -324,6 +333,7 @@ export default function KelolaMateriTugas({ defaultTab = 'materials', fixedTab =
     setFormAssignmentCategory('general');
     setFormLkpdType('observation');
     setFormObservationPreset('art_elements');
+    setFormLkpdBlocks(convertPresetToBlocks('art_elements'));
     setFormClassId(classes[0]?.id || 'all');
     setSelectedClassIds([]);
     setFormTargetType('class');
@@ -337,6 +347,7 @@ export default function KelolaMateriTugas({ defaultTab = 'materials', fixedTab =
     if (preset) {
       setFormTitle(preset.defaultTitle);
       setFormDesc(preset.defaultDesc);
+      setFormLkpdBlocks(convertPresetToBlocks(presetKey));
     }
   };
 
@@ -351,7 +362,13 @@ export default function KelolaMateriTugas({ defaultTab = 'materials', fixedTab =
       setFormIsGraded(item.isGraded !== false && item.is_graded !== false);
       setFormAssignmentCategory(item.assignment_type || item.assignmentType || (item.lkpd_type || item.lkpdType ? 'lkpd' : 'general'));
       setFormLkpdType(item.lkpd_type || item.lkpdType || 'observation');
-      setFormObservationPreset(item.lkpd_config?.preset || item.lkpd_config?.id || 'art_elements');
+      const pKey = item.lkpd_config?.preset || item.lkpd_config?.id || 'art_elements';
+      setFormObservationPreset(pKey);
+      if (item.lkpd_config) {
+        setFormLkpdBlocks(getNormalizedLkpdBlocks(item.lkpd_config));
+      } else {
+        setFormLkpdBlocks(convertPresetToBlocks(pKey));
+      }
       // Format deadline to yyyy-MM-ddThh:mm
       if (item.deadline) {
         const d = new Date(item.deadline);
@@ -483,10 +500,16 @@ export default function KelolaMateriTugas({ defaultTab = 'materials', fixedTab =
       } else {
         const deadlineISO = formDeadline ? new Date(formDeadline).toISOString() : null;
         const isLkpd = formAssignmentCategory === 'lkpd';
+        const finalBlocks = (formLkpdBlocks.length > 0 ? formLkpdBlocks : convertPresetToBlocks(formObservationPreset))
+          .map((b, idx) => ({ ...b, order: idx + 1 }));
+
         const lkpdConfigData = isLkpd
-          ? (formLkpdType === 'observation' 
-              ? { preset: formObservationPreset, ...(OBSERVATION_PRESETS[formObservationPreset] || OBSERVATION_PRESETS.art_elements) }
-              : { type: formLkpdType })
+          ? {
+              version: 3,
+              preset: formObservationPreset,
+              type: formLkpdType,
+              blocks: finalBlocks
+            }
           : null;
 
         for (const classId of classesToUpsert) {
@@ -1352,77 +1375,16 @@ export default function KelolaMateriTugas({ defaultTab = 'materials', fixedTab =
                     </div>
 
                     {formAssignmentCategory === 'lkpd' && (
-                      <div className="pt-3 border-t border-slate-200 space-y-3.5">
-                        <div>
-                          <label className="text-xs font-bold text-slate-900 block mb-2">
-                            Ragam LKPD yang Ingin Diberikan:
-                          </label>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                            {LKPD_TYPES.map(t => (
-                              <button
-                                key={t.id}
-                                type="button"
-                                onClick={() => setFormLkpdType(t.id)}
-                                className={`p-3 rounded-xl border text-left text-xs transition-all flex flex-col justify-between ${
-                                  formLkpdType === t.id
-                                    ? 'bg-blue-50 border-blue-600 text-blue-950 font-bold ring-1 ring-blue-600'
-                                    : 'bg-white border-slate-300 text-slate-800 hover:bg-slate-100'
-                                }`}
-                              >
-                                <span className="flex items-center gap-2 font-bold text-sm">
-                                  {t.id === 'observation' && <Search className="w-4 h-4 text-blue-600 shrink-0" />}
-                                  {t.id === 'experiment' && <Layers className="w-4 h-4 text-emerald-600 shrink-0" />}
-                                  {t.id === 'case_study' && <FileText className="w-4 h-4 text-indigo-600 shrink-0" />}
-                                  {t.id === 'interview' && <Users className="w-4 h-4 text-sky-600 shrink-0" />}
-                                  {t.title}
-                                </span>
-                                <span className="text-xs text-slate-600 font-normal mt-1 leading-relaxed">
-                                  {t.description}
-                                </span>
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-
-                        {formLkpdType === 'observation' && (
-                          <div className="p-3.5 bg-white rounded-xl border border-slate-300 space-y-2.5">
-                            <div className="flex items-center justify-between flex-wrap gap-2">
-                              <span className="text-xs font-bold text-slate-900">
-                                Preset Topik Observasi:
-                              </span>
-                              <button
-                                type="button"
-                                onClick={() => handleApplyLkpdTemplate(formObservationPreset)}
-                                className="text-xs font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1.5 cursor-pointer"
-                              >
-                                <Sparkles className="w-3.5 h-3.5" />
-                                Terapkan Draf Judul & Petunjuk
-                              </button>
-                            </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                              {Object.values(OBSERVATION_PRESETS).map(p => (
-                                <button
-                                  key={p.id}
-                                  type="button"
-                                  onClick={() => {
-                                    setFormObservationPreset(p.id);
-                                    handleApplyLkpdTemplate(p.id);
-                                  }}
-                                  className={`p-2.5 rounded-lg border text-left text-xs transition-all ${
-                                    formObservationPreset === p.id
-                                      ? 'bg-blue-600 text-white font-bold border-blue-600 shadow-xs'
-                                      : 'bg-slate-50 text-slate-800 border-slate-300 hover:bg-slate-100'
-                                  }`}
-                                >
-                                  <div className="font-bold">{p.name}</div>
-                                  <div className={`text-[11px] mt-0.5 ${formObservationPreset === p.id ? 'text-blue-100' : 'text-slate-600'}`}>
-                                    {p.aspects.length} Poin Analisis
-                                  </div>
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                        )}
+                      <div className="pt-3 border-t border-slate-200">
+                        <LkpdFormBuilder
+                          blocks={formLkpdBlocks.length > 0 ? formLkpdBlocks : convertPresetToBlocks(formObservationPreset)}
+                          onChange={setFormLkpdBlocks}
+                          presetKey={formObservationPreset}
+                          onSelectPreset={(pKey) => {
+                            setFormObservationPreset(pKey);
+                            handleApplyLkpdTemplate(pKey);
+                          }}
+                        />
                       </div>
                     )}
                   </div>
