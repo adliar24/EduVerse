@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Sparkles, 
-  Trophy, 
   RotateCw, 
   Check, 
   Zap, 
@@ -419,7 +418,7 @@ export default function MyVerse() {
   // ACTIVE PET HUB: VERSE HAS BEEN ADOPTED
   // --------------------------------------------------------------------------
   return (
-    <div className="max-w-5xl mx-auto px-4 py-6 space-y-6">
+    <div className="max-w-6xl mx-auto px-4 py-6 space-y-6">
       {/* Top Banner: Verse Identity & Live Mascot */}
       <div className="relative overflow-hidden bg-white rounded-3xl border border-slate-200/90 shadow-sm p-6 md:p-8">
         {/* Subtle decorative background gradient matching element */}
@@ -427,11 +426,11 @@ export default function MyVerse() {
 
         <div className="relative z-10 flex flex-col md:flex-row items-center gap-6 md:gap-10">
           {/* Pet Avatar - Hero Sized, Crisp, Seamless */}
-          <div className="relative shrink-0 flex flex-col items-center w-full md:w-[380px] lg:w-[430px]">
-            <div className="w-72 h-72 sm:w-80 sm:h-80 md:w-96 md:h-96 lg:w-[420px] lg:h-[420px] flex items-center justify-center relative">
+          <div className="relative shrink-0 flex flex-col items-center w-full md:w-[460px] lg:w-[520px]">
+            <div className="w-80 h-80 sm:w-96 sm:h-96 md:w-[460px] md:h-[460px] lg:w-[500px] lg:h-[500px] xl:w-[520px] xl:h-[520px] flex items-center justify-center relative">
               {/* Vibrant radial aura behind the transparent character */}
               <div 
-                className="absolute inset-0 rounded-full blur-3xl opacity-30 pointer-events-none"
+                className="absolute inset-0 rounded-full blur-3xl opacity-35 pointer-events-none"
                 style={{ backgroundColor: activeCharData?.elementColor || '#3B66F5' }}
               />
               {activeStageInfo && (
@@ -444,7 +443,7 @@ export default function MyVerse() {
               )}
             </div>
 
-            <span className="mt-3 inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-black bg-slate-100/90 text-slate-800 border border-slate-200/90 shadow-2xs">
+            <span className="mt-3 inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-black bg-slate-100/90 text-slate-800 border border-slate-200/90 shadow-2xs">
               {getElementIcon(verse.element)}
               {activeStageInfo?.name} • Tahap {verse.stage}
             </span>
@@ -521,86 +520,56 @@ export default function MyVerse() {
         </div>
       </div>
 
-      {/* Bottom Grid: Points History & Information */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Left: Sources of Points Summary */}
-        <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-4">
+      {/* Point Activity History (Bersih tanpa aturan poin) */}
+      <div className="bg-white rounded-3xl border border-slate-200/90 p-6 shadow-sm space-y-4">
+        <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Trophy className="w-5 h-5 text-amber-500" />
-            <h3 className="text-sm font-bold text-slate-800">Aturan Perolehan Poin</h3>
+            <Zap className="w-5 h-5 text-[#3B66F5]" />
+            <h3 className="text-base font-bold text-slate-800">Riwayat Perolehan Poin</h3>
           </div>
-
-          <div className="space-y-2.5 text-xs">
-            <div className="flex items-start justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100">
-              <span className="text-slate-600 font-medium">Ujian Digital (CBT)</span>
-              <span className="font-bold text-[#3B66F5]">+25 Poin</span>
-            </div>
-            <div className="flex items-start justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100">
-              <span className="text-slate-600 font-medium">Bonus Nilai CBT (≥85)</span>
-              <span className="font-bold text-emerald-600">+15 Poin</span>
-            </div>
-            <div className="flex items-start justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100">
-              <span className="text-slate-600 font-medium">Kirim Tugas / LKPD</span>
-              <span className="font-bold text-[#3B66F5]">+20 Poin</span>
-            </div>
-            <div className="flex items-start justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100">
-              <span className="text-slate-600 font-medium">Apresiasi Guru di Kelas</span>
-              <span className="font-bold text-amber-600">+5 s/d +50 Poin</span>
-            </div>
-          </div>
+          <span className="text-xs font-semibold text-slate-400">
+            {pointsHistory.length} aktivitas
+          </span>
         </div>
 
-        {/* Right: Point Activity History */}
-        <div className="md:col-span-2 bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Zap className="w-5 h-5 text-[#3B66F5]" />
-              <h3 className="text-sm font-bold text-slate-800">Riwayat Perolehan Poin Terakhir</h3>
-            </div>
-            <span className="text-xs font-semibold text-slate-400">
-              {pointsHistory.length} aktivitas
-            </span>
+        {pointsHistory.length === 0 ? (
+          <div className="py-10 text-center text-slate-400 text-xs font-medium">
+            Belum ada riwayat perolehan poin. Selesaikan ujian atau tugas untuk mulai mengumpulkan EXP!
           </div>
-
-          {pointsHistory.length === 0 ? (
-            <div className="py-8 text-center text-slate-400 text-xs">
-              Belum ada riwayat perolehan poin. Selesaikan ujian atau tugas untuk mulai mengumpulkan EXP!
-            </div>
-          ) : (
-            <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
-              {pointsHistory.slice(0, 15).map((item) => (
-                <div 
-                  key={item.id} 
-                  className="flex items-center justify-between p-3 rounded-xl border border-slate-100 hover:border-slate-200 bg-slate-50/50 transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-blue-50 text-[#3B66F5] flex items-center justify-center shrink-0">
-                      <Sparkles className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <div className="text-xs font-bold text-slate-800 leading-tight">{item.title}</div>
-                      <div className="text-[10px] text-slate-400 mt-0.5">
-                        {new Date(item.date).toLocaleDateString('id-ID', {
-                          day: 'numeric',
-                          month: 'short',
-                          year: 'numeric'
-                        })}
-                      </div>
+        ) : (
+          <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
+            {pointsHistory.slice(0, 25).map((item) => (
+              <div 
+                key={item.id} 
+                className="flex items-center justify-between p-3 sm:p-3.5 rounded-2xl border border-slate-100 hover:border-slate-200 bg-slate-50/60 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-blue-50 text-[#3B66F5] flex items-center justify-center shrink-0">
+                    <Sparkles className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold text-slate-800 leading-tight">{item.title}</div>
+                    <div className="text-[10px] text-slate-400 mt-0.5">
+                      {new Date(item.date).toLocaleDateString('id-ID', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric'
+                      })}
                     </div>
                   </div>
-
-                  <span className={`text-xs font-black px-2.5 py-1 rounded-lg ${
-                    item.type === 'positive' 
-                      ? 'text-emerald-700 bg-emerald-50 border border-emerald-200/60' 
-                      : 'text-rose-700 bg-rose-50 border border-rose-200/60'
-                  }`}>
-                    {item.points >= 0 ? `+${item.points}` : item.points} Poin
-                  </span>
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
+
+                <span className={`text-xs font-black px-2.5 py-1 rounded-xl ${
+                  item.type === 'positive' 
+                    ? 'text-emerald-700 bg-emerald-50 border border-emerald-200/60' 
+                    : 'text-rose-700 bg-rose-50 border border-rose-200/60'
+                }`}>
+                  {item.points >= 0 ? `+${item.points}` : item.points} Poin
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Rename Nickname Modal */}
