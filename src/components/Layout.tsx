@@ -50,6 +50,7 @@ const prefetchMap: Record<string, () => Promise<any>> = {
   '/materi-siswa': () => import('../pages/student/MateriTugasSiswa'),
   '/tugas-siswa': () => import('../pages/student/MateriTugasSiswa'),
   '/my-verse': () => import('../pages/student/MyVerse'),
+  '/kelola-verse': () => import('../pages/KelolaVerse'),
   '/monitor-ujian': () => import('../pages/MonitorUjian'),
   '/scan-ujian': () => import('../pages/ScanUjian'),
   '/profil': () => import('../pages/Profil'),
@@ -211,6 +212,13 @@ export default function Layout({ session }: LayoutProps) {
       ]
     },
     { icon: Trophy, label: 'Poin Prestasi', path: '/grading/points' },
+    { 
+      icon: Sparkles, 
+      label: 'Verse Murid', 
+      path: '/kelola-verse',
+      isSpecial: true,
+      badge: 'Pet & Level'
+    },
     {
       icon: Wrench,
       label: 'Alat Bantu',

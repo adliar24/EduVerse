@@ -40,6 +40,7 @@ const KelolaSiswa = lazy(() => import('./pages/KelolaSiswa'));
 const KelolaMateriTugas = lazy(() => import('./pages/KelolaMateriTugas'));
 const MateriTugasSiswa = lazy(() => import('./pages/student/MateriTugasSiswa'));
 const MyVerse = lazy(() => import('./pages/student/MyVerse'));
+const KelolaVerse = lazy(() => import('./pages/KelolaVerse'));
 
 // EduCheck (Attendance) Pages
 const AttendanceScan = lazy(() => import('./pages/attendance/Attendance').then(m => ({ default: m.Attendance })));
@@ -246,6 +247,7 @@ function AnimatedRoutes({ session, studentSession, profileCompleted, userRole }:
         <Route path="/kelola-materi" element={session && userRole === 'guru' ? <KelolaMateriTugas defaultTab="materials" fixedTab={true} /> : <Navigate to="/dashboard" />} />
         <Route path="/kelola-tugas" element={session && userRole === 'guru' ? <KelolaMateriTugas defaultTab="assignments" fixedTab={true} /> : <Navigate to="/dashboard" />} />
         <Route path="/kelola-materi-tugas" element={session && userRole === 'guru' ? <Navigate to="/kelola-materi" replace /> : <Navigate to="/dashboard" />} />
+        <Route path="/kelola-verse" element={session && userRole === 'guru' ? <KelolaVerse /> : <Navigate to="/dashboard" />} />
         <Route path="/bank-soal" element={session && userRole === 'guru' ? <BankSoal /> : <Navigate to="/dashboard" />} />
         <Route path="/buat-ujian" element={session && userRole === 'guru' ? <BuatUjian /> : <Navigate to="/dashboard" />} />
         <Route path="/daftar-ujian" element={session || studentSession ? <DaftarUjian /> : <Navigate to="/login" />} />

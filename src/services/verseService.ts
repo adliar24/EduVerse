@@ -37,24 +37,30 @@ export async function getStudentVerse(studentId: string): Promise<StudentVerse |
       .eq('student_id', studentId)
       .maybeSingle();
 
-    if (!error && data) {
-      const cloudVerse: StudentVerse = {
-        id: data.id,
-        studentId: data.student_id,
-        schoolId: data.school_id,
-        species: data.species as VerseSpecies,
-        element: data.element as VerseElement,
-        nickname: data.nickname,
-        lifetimePoints: data.lifetime_points || 0,
-        level: data.level || 1,
-        stage: data.stage || 1,
-        createdAt: data.created_at || new Date().toISOString(),
-        updatedAt: data.updated_at || new Date().toISOString(),
-      };
+    if (!error) {
+      if (data) {
+        const cloudVerse: StudentVerse = {
+          id: data.id,
+          studentId: data.student_id,
+          schoolId: data.school_id,
+          species: data.species as VerseSpecies,
+          element: data.element as VerseElement,
+          nickname: data.nickname,
+          lifetimePoints: data.lifetime_points || 0,
+          level: data.level || 1,
+          stage: data.stage || 1,
+          createdAt: data.created_at || new Date().toISOString(),
+          updatedAt: data.updated_at || new Date().toISOString(),
+        };
 
-      // Save to local cache
-      localStorage.setItem(`${LOCAL_STORAGE_PREFIX}${studentId}`, JSON.stringify(cloudVerse));
-      return cloudVerse;
+        // Save to local cache
+        localStorage.setItem(`${LOCAL_STORAGE_PREFIX}${studentId}`, JSON.stringify(cloudVerse));
+        return cloudVerse;
+      } else {
+        // Record was removed / reset in cloud!
+        localStorage.removeItem(`${LOCAL_STORAGE_PREFIX}${studentId}`);
+        return null;
+      }
     }
   } catch (err) {
     // Cloud fetch failure (e.g. offline or table not yet migrated), fallback gracefully
@@ -62,6 +68,36 @@ export async function getStudentVerse(studentId: string): Promise<StudentVerse |
   }
 
   return localVerse;
+}
+
+/**
+ * Admin / Teacher action to reset a student's Verse companion
+ */
+export async function resetStudentVerse(studentId: string): Promise<boolean> {
+  if (!studentId) return false;
+
+  // Clear local storage cache
+  try {
+    localStorage.removeItem(`${LOCAL_STORAGE_PREFIX}${studentId}`);
+  } catch (e) {}
+
+  // Delete from Supabase
+  try {
+    const client = supabaseAnon || supabase;
+    const { error } = await client
+      .from('student_verses')
+      .delete()
+      .eq('student_id', studentId);
+
+    if (error) {
+      console.warn('[verseService] Error deleting student verse from Supabase:', error);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error('[verseService] Reset verse exception:', err);
+    return false;
+  }
 }
 
 /**

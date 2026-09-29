@@ -50,6 +50,13 @@ CREATE POLICY "Public & Student Update Verse"
   USING (true) 
   WITH CHECK (true);
 
+DROP POLICY IF EXISTS "Public & Student Delete Verse" ON public.student_verses;
+CREATE POLICY "Public & Student Delete Verse" 
+  ON public.student_verses 
+  FOR DELETE 
+  TO public 
+  USING (true);
+
 -- 5. Kebijakan RLS agar Siswa (anon) bisa membaca student_points miliknya
 DROP POLICY IF EXISTS "Siswa dapat membaca poin miliknya sendiri" ON public.student_points;
 CREATE POLICY "Siswa dapat membaca poin miliknya sendiri" 
