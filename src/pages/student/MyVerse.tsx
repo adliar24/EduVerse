@@ -10,7 +10,8 @@ import {
   Droplets, 
   Mountain, 
   Wind,
-  Edit2
+  Edit2,
+  ArrowRight
 } from 'lucide-react';
 import { capitalizeEachWord } from '../../lib/utils';
 import { StudentVerse, VerseSpecies } from '../../types';
@@ -31,6 +32,8 @@ import {
   PointHistoryItem
 } from '../../services/verseService';
 
+type OnboardingStep = 'chest' | 'select_egg' | 'hatching' | 'reveal';
+
 export default function MyVerse() {
   const navigate = useNavigate();
 
@@ -44,11 +47,17 @@ export default function MyVerse() {
   const [pointsHistory, setPointsHistory] = useState<PointHistoryItem[]>([]);
   const [totalLifetimePoints, setTotalLifetimePoints] = useState(0);
 
-  // Onboarding States: 'chest' | 'select_egg' | 'hatching'
-  const [onboardingStep, setOnboardingStep] = useState<'chest' | 'select_egg' | 'hatching'>('chest');
+  // Onboarding States: 'chest' | 'select_egg' | 'hatching' | 'reveal'
+  const [onboardingStep, setOnboardingStep] = useState<OnboardingStep>('chest');
   const [selectedSpecies, setSelectedSpecies] = useState<VerseSpecies>('Pyrofox');
   const [nicknameInput, setNicknameInput] = useState('');
   const [isSubmittingAdoption, setIsSubmittingAdoption] = useState(false);
+
+  // Interactive Tap-Tap Hatching States
+  const [tapCount, setTapCount] = useState(0);
+  const [isWobbling, setIsWobbling] = useState(false);
+  const [isCracking, setIsCracking] = useState(false);
+  const [sparkles, setSparkles] = useState<Array<{ id: number; x: number; y: number; color: string; size: number }>>([]);
 
   // Rename modal
   const [isEditingName, setIsEditingName] = useState(false);
@@ -114,43 +123,83 @@ export default function MyVerse() {
     return getStageInfo(verse.species, verse.stage);
   }, [verse]);
 
-  // Handle adopting & hatching verse
-  const handleHatchVerse = async () => {
+  // Start the tap-tap egg hatching flow
+  const handleStartEggHatching = () => {
+    setTapCount(0);
+    setIsWobbling(false);
+    setIsCracking(false);
+    setSparkles([]);
+    setOnboardingStep('hatching');
+  };
+
+  // Handle each interactive tap on the egg
+  const handleTapEgg = () => {
+    if (isCracking) return;
+    const nextCount = tapCount + 1;
+    setTapCount(nextCount);
+
+    // Vibration feedback on mobile devices if supported
+    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+      navigator.vibrate(35);
+    }
+
+    // Trigger fluid wobble
+    setIsWobbling(true);
+    setTimeout(() => setIsWobbling(false), 280);
+
+    // Spawn colorful element sparkles around the egg
+    const char = getVerseCharacter(selectedSpecies);
+    const newSparkles = Array.from({ length: 7 }).map((_, i) => ({
+      id: Date.now() + i + Math.random(),
+      x: (Math.random() - 0.5) * 190,
+      y: (Math.random() - 0.5) * 190,
+      color: char.elementColor || '#F59E0B',
+      size: Math.floor(Math.random() * 8) + 8
+    }));
+    setSparkles(prev => [...prev.slice(-21), ...newSparkles]);
+
+    // Check if reached 5 taps -> crack egg and reveal character
+    if (nextCount >= 5) {
+      setIsCracking(true);
+      setTimeout(() => {
+        setIsCracking(false);
+        setOnboardingStep('reveal');
+      }, 700);
+    }
+  };
+
+  // Confirm adoption on the Reveal Screen
+  const handleConfirmAdoption = async () => {
     if (!student || !selectedSpecies) return;
     const finalNickname = nicknameInput.trim() || selectedSpecies;
 
     setIsSubmittingAdoption(true);
-    setOnboardingStep('hatching');
+    try {
+      const char = getVerseCharacter(selectedSpecies);
+      const { currentLevel, currentStage } = calculateLevelAndProgress(totalLifetimePoints);
 
-    // Slight suspense for hatching animation (1.2s)
-    setTimeout(async () => {
-      try {
-        const char = getVerseCharacter(selectedSpecies);
-        const { currentLevel, currentStage } = calculateLevelAndProgress(totalLifetimePoints);
+      const newVerse: StudentVerse = {
+        id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `verse_${Date.now()}`,
+        studentId: student.id,
+        schoolId: student.school_id || undefined,
+        species: selectedSpecies,
+        element: char.element,
+        nickname: finalNickname,
+        lifetimePoints: totalLifetimePoints,
+        level: currentLevel,
+        stage: currentStage,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
 
-        const newVerse: StudentVerse = {
-          id: crypto.randomUUID ? crypto.randomUUID() : `verse_${Date.now()}`,
-          studentId: student.id,
-          schoolId: student.school_id || undefined,
-          species: selectedSpecies,
-          element: char.element,
-          nickname: finalNickname,
-          lifetimePoints: totalLifetimePoints,
-          level: currentLevel,
-          stage: currentStage,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        };
-
-        const saved = await saveStudentVerse(newVerse);
-        setVerse(saved);
-        setQuote(getRandomMotivationQuote(saved.species, saved.nickname));
-      } catch (err) {
-        console.error('[MyVerse] Error hatching verse:', err);
-      } finally {
-        setIsSubmittingAdoption(false);
-      }
-    }, 1400);
+      const saved = await saveStudentVerse(newVerse);
+      setVerse(saved);
+      setQuote(getRandomMotivationQuote(saved.species, saved.nickname));
+    } catch (err) {
+      console.error('[MyVerse] Error adopting verse:', err);
+    } finally {
+      setIsSubmittingAdoption(false);
+    }
   };
 
   // Handle updating nickname
@@ -341,20 +390,6 @@ export default function MyVerse() {
                           </div>
                         </div>
 
-                        <div className="pt-2 border-t border-slate-100">
-                          <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                            Beri Nama Panggilan Verse-mu:
-                          </label>
-                          <input
-                            type="text"
-                            maxLength={24}
-                            value={nicknameInput}
-                            onChange={(e) => setNicknameInput(e.target.value)}
-                            placeholder={`Contoh: ${selChar.species === 'Pyrofox' ? 'Blaze' : selChar.species === 'Voltlynx' ? 'Sparky' : selChar.species}`}
-                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#3B66F5]/20 focus:border-[#3B66F5]"
-                          />
-                        </div>
-
                         <div className="flex items-center gap-3 pt-2">
                           <button
                             onClick={() => setOnboardingStep('chest')}
@@ -363,12 +398,11 @@ export default function MyVerse() {
                             Kembali
                           </button>
                           <button
-                            onClick={handleHatchVerse}
-                            disabled={isSubmittingAdoption}
-                            className="flex-1 py-2.5 px-4 rounded-xl bg-[#3B66F5] hover:bg-blue-600 text-white font-bold text-sm shadow-md shadow-blue-500/20 active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer"
+                            onClick={handleStartEggHatching}
+                            className="flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-[#3B66F5] to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-black text-xs sm:text-sm shadow-md shadow-blue-500/25 active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer"
                           >
-                            <Sparkles className="w-4 h-4" />
-                            Tetaskan Verse Sekarang
+                            <Sparkles className="w-4 h-4 text-amber-300" />
+                            Pilih & Mulai Tetaskan Telur
                           </button>
                         </div>
                       </div>
@@ -379,34 +413,245 @@ export default function MyVerse() {
             </motion.div>
           )}
 
-          {/* STEP 3: HATCHING ANIMATION */}
+          {/* STEP 3: INTERACTIVE TAP-TAP HATCHING (DARK THEME) */}
           {onboardingStep === 'hatching' && (
             <motion.div
               key="step_hatching"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="flex flex-col items-center justify-center py-20 text-center"
+              className="fixed inset-0 z-50 bg-[#070A13] flex flex-col items-center justify-center p-4 select-none overflow-hidden text-white"
             >
-              <motion.div
-                animate={{ rotate: [-6, 6, -6], scale: [1, 1.08, 1] }}
-                transition={{ duration: 0.35, repeat: Infinity }}
-                className="w-40 h-40 mb-6 flex items-center justify-center"
-              >
-                {(() => {
-                  const selChar = getVerseCharacter(selectedSpecies);
-                  return (
-                    <img 
-                      src={selChar.eggImage} 
-                      onError={(e) => { (e.currentTarget as HTMLImageElement).src = selChar.eggPngImage; }}
-                      alt="Hatching Egg"
-                      className="w-full h-full object-contain filter drop-shadow-xl"
+              {(() => {
+                const selChar = getVerseCharacter(selectedSpecies);
+                return (
+                  <div className="relative flex flex-col items-center text-center max-w-md w-full">
+                    {/* Ambient Element Glow */}
+                    <div 
+                      className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 sm:w-96 sm:h-96 rounded-full blur-[100px] pointer-events-none transition-all duration-300"
+                      style={{ 
+                        backgroundColor: selChar.elementColor || '#3B66F5',
+                        opacity: 0.25 + (tapCount * 0.08)
+                      }}
                     />
-                  );
-                })()}
-              </motion.div>
-              <h2 className="text-xl font-extrabold text-slate-800">Telur Sedang Menetas...</h2>
-              <p className="text-slate-500 text-xs mt-1">Sahabat barumu segera menyapamu!</p>
+
+                    {/* Top Guide */}
+                    <div className="relative z-10 mb-6 sm:mb-8 space-y-1.5">
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-white/10 text-white border border-white/20 uppercase tracking-widest backdrop-blur-md">
+                        {getElementIcon(selChar.element)}
+                        {selChar.species} • Elemen {selChar.elementName}
+                      </span>
+                      <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+                        Ketuk Telur untuk Menetaskannya!
+                      </h2>
+                      <p className="text-slate-400 text-xs sm:text-sm max-w-xs mx-auto">
+                        Tekan telur berulang kali sampai sahabat Verse-mu keluar!
+                      </p>
+                    </div>
+
+                    {/* Interactive Tappable Egg with Sparkles */}
+                    <div className="relative z-10 my-4 flex items-center justify-center cursor-pointer select-none" onClick={handleTapEgg}>
+                      {/* Floating Sparkles Array */}
+                      {sparkles.map((sp) => (
+                        <motion.div
+                          key={sp.id}
+                          initial={{ opacity: 1, scale: 0.5, x: 0, y: 0 }}
+                          animate={{ opacity: 0, scale: 1.6, x: sp.x, y: sp.y }}
+                          transition={{ duration: 0.55, ease: 'easeOut' }}
+                          className="absolute pointer-events-none z-20 flex items-center justify-center"
+                        >
+                          <Sparkles 
+                            className="drop-shadow-lg" 
+                            style={{ 
+                              color: sp.color, 
+                              width: sp.size, 
+                              height: sp.size 
+                            }} 
+                          />
+                        </motion.div>
+                      ))}
+
+                      {/* Egg Image with Fluid Spring Wobble */}
+                      <motion.div
+                        animate={
+                          isWobbling 
+                            ? { 
+                                rotate: [-10 - tapCount * 2.5, 10 + tapCount * 2.5, -6, 6, 0], 
+                                scale: [1, 1.14 + tapCount * 0.02, 0.96, 1],
+                                y: [-4, 4, 0]
+                              } 
+                            : { 
+                                y: [0, -8, 0],
+                                scale: [1, 1.02, 1]
+                              }
+                        }
+                        transition={
+                          isWobbling 
+                            ? { duration: 0.3, ease: 'easeOut' } 
+                            : { duration: 2.2, repeat: Infinity, ease: 'easeInOut' }
+                        }
+                        className="w-56 h-56 sm:w-64 sm:h-64 flex items-center justify-center relative active:scale-95 transition-transform"
+                      >
+                        <img 
+                          src={selChar.eggImage} 
+                          onError={(e) => { (e.currentTarget as HTMLImageElement).src = selChar.eggPngImage; }}
+                          alt="Telur Verse"
+                          className="w-full h-full object-contain filter drop-shadow-[0_15px_30px_rgba(0,0,0,0.7)] pointer-events-none"
+                        />
+                      </motion.div>
+
+                      {/* Egg Flash when fully cracked */}
+                      {isCracking && (
+                        <motion.div 
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 2 }}
+                          transition={{ duration: 0.6 }}
+                          className="absolute inset-0 bg-white rounded-full blur-2xl z-30 pointer-events-none"
+                        />
+                      )}
+                    </div>
+
+                    {/* Tap Progress Counter (5 Dots) */}
+                    <div className="relative z-10 mt-6 sm:mt-8 flex flex-col items-center gap-3">
+                      <div className="flex items-center gap-2">
+                        {[1, 2, 3, 4, 5].map((step) => {
+                          const isFilled = tapCount >= step;
+                          return (
+                            <div 
+                              key={step}
+                              className={`h-2.5 rounded-full transition-all duration-300 ${
+                                isFilled 
+                                  ? 'w-7 bg-gradient-to-r from-amber-400 to-amber-500 shadow-sm shadow-amber-500/50' 
+                                  : 'w-2.5 bg-slate-800 border border-slate-700'
+                              }`}
+                            />
+                          );
+                        })}
+                      </div>
+
+                      <button
+                        onClick={handleTapEgg}
+                        className="px-5 py-2 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 border border-white/20 text-xs font-black text-amber-300 flex items-center gap-2 transition-all cursor-pointer shadow-md"
+                      >
+                        <Sparkles className="w-3.5 h-3.5" />
+                        <span>Ketuk telur! ({Math.min(tapCount, 5)} / 5)</span>
+                      </button>
+                    </div>
+                  </div>
+                );
+              })()}
+            </motion.div>
+          )}
+
+          {/* STEP 4: DRAMATIC CHARACTER REVEAL (DARK THEME) */}
+          {onboardingStep === 'reveal' && (
+            <motion.div
+              key="step_reveal"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 bg-[#060810] flex flex-col items-center justify-center p-4 sm:p-6 select-none overflow-y-auto text-white"
+            >
+              {(() => {
+                const selChar = getVerseCharacter(selectedSpecies);
+                const stage1Info = getStageInfo(selectedSpecies, 1);
+                return (
+                  <div className="relative flex flex-col items-center text-center max-w-lg w-full py-6">
+                    {/* Massive Ambient Elemental Aura */}
+                    <div 
+                      className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[340px] sm:w-[480px] md:w-[600px] h-[340px] sm:h-[480px] md:h-[600px] rounded-full blur-[120px] pointer-events-none transition-all duration-700"
+                      style={{ 
+                        backgroundColor: selChar.elementColor || '#3B66F5',
+                        opacity: 0.38
+                      }}
+                    />
+
+                    {/* Celebration Badge */}
+                    <motion.div
+                      initial={{ y: -20, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      transition={{ delay: 0.1 }}
+                      className="relative z-10 mb-2"
+                    >
+                      <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-black bg-white/10 text-white border border-white/20 uppercase tracking-widest backdrop-blur-md shadow-lg">
+                        <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                        Sahabat Baru Telah Menetas!
+                      </span>
+                    </motion.div>
+
+                    {/* Title */}
+                    <motion.h2
+                      initial={{ y: -15, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      transition={{ delay: 0.15 }}
+                      className="relative z-10 text-2xl sm:text-3xl md:text-4xl font-black text-white tracking-tight"
+                    >
+                      Selamat Datang, {selChar.species}!
+                    </motion.h2>
+                    <motion.p
+                      initial={{ y: -10, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      transition={{ delay: 0.2 }}
+                      className="relative z-10 text-slate-300 text-xs sm:text-sm mt-1 max-w-sm"
+                    >
+                      {selChar.philosophy}
+                    </motion.p>
+
+                    {/* HERO-SCALE MASCOT IN THE CENTER */}
+                    <motion.div
+                      initial={{ scale: 0.5, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{ type: 'spring', damping: 14, stiffness: 90, delay: 0.25 }}
+                      className="relative z-10 my-4 sm:my-6 w-72 h-72 sm:w-84 sm:h-84 md:w-96 md:h-96 lg:w-[440px] lg:h-[440px] flex items-center justify-center"
+                    >
+                      <img 
+                        src={stage1Info.image} 
+                        onError={(e) => { (e.currentTarget as HTMLImageElement).src = stage1Info.pngImage; }}
+                        alt={stage1Info.name}
+                        className="w-full h-full object-contain filter drop-shadow-[0_20px_50px_rgba(0,0,0,0.8)] select-none"
+                      />
+                    </motion.div>
+
+                    {/* Nickname & Action Card */}
+                    <motion.div
+                      initial={{ y: 25, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      transition={{ delay: 0.35 }}
+                      className="relative z-10 w-full max-w-md bg-white/10 backdrop-blur-xl border border-white/20 p-5 rounded-2xl text-left space-y-3 shadow-2xl"
+                    >
+                      <div>
+                        <label className="block text-xs font-bold text-slate-200 mb-1">
+                          Beri Nama Panggilan Verse-mu:
+                        </label>
+                        <input
+                          type="text"
+                          maxLength={24}
+                          value={nicknameInput}
+                          onChange={(e) => setNicknameInput(e.target.value)}
+                          placeholder={`Contoh: ${selChar.species === 'Pyrofox' ? 'Blaze' : selChar.species === 'Voltlynx' ? 'Sparky' : selChar.species}`}
+                          className="w-full px-4 py-2.5 rounded-xl bg-slate-900/80 border border-white/20 text-sm font-semibold text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#3B66F5] focus:border-transparent transition-all"
+                        />
+                      </div>
+
+                      <button
+                        onClick={handleConfirmAdoption}
+                        disabled={isSubmittingAdoption}
+                        className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-[#3B66F5] to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-black text-xs sm:text-sm shadow-lg shadow-blue-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                      >
+                        {isSubmittingAdoption ? (
+                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        ) : (
+                          <>
+                            <Sparkles className="w-4 h-4 text-amber-300" />
+                            <span>Mulai Petualangan Bersama {nicknameInput.trim() || selChar.species}</span>
+                            <ArrowRight className="w-4 h-4" />
+                          </>
+                        )}
+                      </button>
+                    </motion.div>
+                  </div>
+                );
+              })()}
             </motion.div>
           )}
         </AnimatePresence>

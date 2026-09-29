@@ -98,7 +98,7 @@ export async function saveStudentVerse(verse: StudentVerse): Promise<StudentVers
 
     const { data, error } = await client
       .from('student_verses')
-      .upsert(payload)
+      .upsert(payload, { onConflict: 'student_id' })
       .select()
       .maybeSingle();
 
@@ -163,7 +163,8 @@ export async function getStudentPointsHistory(
 
   // 1. Fetch teacher-granted points from Supabase & IndexedDB
   try {
-    const { data: dbPoints } = await supabase
+    const client = supabaseAnon || supabase;
+    const { data: dbPoints } = await client
       .from('student_points')
       .select('*')
       .eq('id_siswa', studentId);
