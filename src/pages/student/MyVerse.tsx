@@ -250,11 +250,6 @@ export default function MyVerse() {
               exit={{ opacity: 0, scale: 0.95 }}
               className="flex flex-col items-center text-center py-10"
             >
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-50 border border-amber-200/80 text-amber-700 text-xs font-bold mb-4 shadow-xs">
-                <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                Pusat Sahabat Belajar EduVerse
-              </div>
-
               <h1 className="text-2xl md:text-3xl font-extrabold text-slate-800 tracking-tight mb-2">
                 Peti Misterius Verse Ditemukan!
               </h1>
