@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { Student } from '../../types/tools';
 import InputSection from './InputSection';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -137,7 +137,7 @@ const WheelView = ({
              className="w-full h-full rounded-full relative"
              style={{ 
                transform: `rotate(${rotation}deg)`,
-               transition: isSpinning ? 'transform 5s cubic-bezier(0.25, 0.1, 0.25, 1)' : 'none',
+               transition: isSpinning ? 'transform 5s cubic-bezier(0.15, 0.9, 0.2, 1)' : 'none',
                background: getWheelBackground()
              }}
            >
@@ -145,25 +145,28 @@ const WheelView = ({
                 <div className="w-full h-full bg-slate-100 flex items-center justify-center text-slate-400 font-bold">Belum Ada Data Siswa</div>
              ) : (
                 activeStudents.map((student: any, i: number) => {
-                  const sliceAngle = 360 / activeStudents.length;
+                  const count = activeStudents.length;
+                  const sliceAngle = 360 / count;
                   const midAngle = (i * sliceAngle) + (sliceAngle / 2);
+                  const itemHeight = count > 30 ? '16px' : (count > 20 ? '20px' : '24px');
+                  const paddingLeft = count > 30 ? '14px' : (count > 20 ? '22px' : '32px');
                   return (
                     <div
                       key={student.id}
                       className="absolute top-1/2 left-1/2 flex items-center justify-end"
                       style={{
                         width: '50%',
-                        height: '24px',
+                        height: itemHeight,
                         transformOrigin: '0% 50%',
                         transform: `translateY(-50%) rotate(${midAngle - 90}deg)`,
-                        paddingRight: '12px',
-                        paddingLeft: '32px',
+                        paddingRight: '10px',
+                        paddingLeft: paddingLeft,
                       }}
                     >
                        <div className="w-full text-right overflow-hidden">
                           <span 
                             className={`text-white drop-shadow-md truncate inline-block max-w-full leading-none ${getFontSize()}`}
-                            style={{ textShadow: '0px 1px 2px rgba(0,0,0,0.5)' }}
+                            style={{ textShadow: '0px 1px 2px rgba(0,0,0,0.7)' }}
                           >
                             {student.name}
                           </span>
@@ -328,21 +331,22 @@ const Randomizer: React.FC = () => {
     if (audioCtxRef.current?.state === 'suspended') audioCtxRef.current.resume().catch(() => {});
   };
 
-  const handleStudentsLoaded = (newStudents: Student[]) => {
-    setStudents(newStudents);
+  const handleStudentsLoaded = useCallback((newStudents: Student[]) => {
+    const valid = newStudents.filter(s => s && s.name && s.name.trim().length > 0);
+    setStudents(valid);
     setRemovedIds(new Set()); 
     setRotation(0);
     setWinner(null);
     setRevealedIndices([]);
-  };
+  }, []);
 
-  const handleReset = () => {
+  const handleReset = useCallback(() => {
     setStudents([]);
     setRemovedIds(new Set());
     setRotation(0);
     setWinner(null);
     setRevealedIndices([]);
-  };
+  }, []);
 
   useEffect(() => {
     setShuffledStudents([...activeStudents].sort(() => Math.random() - 0.5));
@@ -352,13 +356,17 @@ const Randomizer: React.FC = () => {
   const spin = () => {
     if (isSpinning || !hasEnoughData) return;
     initAudio();
-    setIsSpinning(true);
+
+    const validStudents = activeStudents.filter(s => s && s.name && s.name.trim().length > 0);
+    if (validStudents.length < 2) return;
+
     setWinner(null);
 
-    const winnerIndex = Math.floor(Math.random() * activeStudents.length);
-    const selectedStudent = activeStudents[winnerIndex];
+    const winnerIndex = Math.floor(Math.random() * validStudents.length);
+    const selectedStudent = validStudents[winnerIndex];
 
-    const sliceAngle = 360 / activeStudents.length;
+    const count = validStudents.length;
+    const sliceAngle = 360 / count;
     const winnerAngle = (winnerIndex * sliceAngle) + (sliceAngle / 2);
     const fullSpins = 360 * 6; 
     const jitter = (Math.random() - 0.5) * (sliceAngle * 0.4); 
@@ -368,11 +376,15 @@ const Randomizer: React.FC = () => {
     distanceToTarget += jitter;
     const newRotation = rotation + fullSpins + distanceToTarget;
 
-    setRotation(newRotation);
+    setIsSpinning(true);
+    requestAnimationFrame(() => {
+      setRotation(newRotation);
+    });
 
     const duration = 5000;
     let elapsed = 0;
     let tickDelay = 50;
+    if (tickTimeoutRef.current) clearTimeout(tickTimeoutRef.current);
     const playTicks = () => {
        if (!soundEnabled || elapsed >= duration) return;
        if (audioCtxRef.current) playTickSound(audioCtxRef.current);
@@ -474,19 +486,19 @@ const Randomizer: React.FC = () => {
                 <div className="absolute inset-0 bg-gradient-to-br from-indigo-50 to-indigo-100/50 z-0"></div>
                 
                 <div className="relative z-10">
-                    <div className="inline-flex p-3 rounded-full bg-yellow-105 text-yellow-600 mb-4 shadow-sm animate-bounce">
+                    <div className="inline-flex p-3 rounded-full bg-amber-100 text-amber-600 mb-4 shadow-sm animate-bounce">
                        <Trophy className="w-8 h-8 fill-current text-[#1D4ED8]" />
                     </div>
                     <h3 className="text-xl font-bold text-slate-500 uppercase tracking-widest mb-1">Terpilih</h3>
                     <div className="py-4 my-2 border-y-2 border-slate-100 bg-white/60 rounded-xl">
-                       <h2 className="text-4xl font-black text-[#1D4ED8] break-words leading-tight px-2">
-                         {winner.name}
+                       <h2 className="text-3xl sm:text-4xl font-black text-[#1D4ED8] break-words leading-tight px-2">
+                         {winner.name || 'Siswa Terpilih'}
                        </h2>
                     </div>
                     <div className="mt-6 flex flex-col gap-3">
                        <button 
                          onClick={removeWinner}
-                          className="w-full py-3 bg-red-650 hover:bg-red-700 text-white rounded-full font-bold flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-transform cursor-pointer"
+                         className="w-full py-3 bg-red-600 hover:bg-red-700 text-white rounded-full font-bold flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-transform cursor-pointer"
                        >
                           <Trash2 className="w-5 h-5 text-white" /> Hapus & Tutup
                        </button>

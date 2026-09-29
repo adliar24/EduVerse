@@ -43,6 +43,11 @@ const InputSection: React.FC<InputSectionProps> = ({ onStudentsLoaded, currentCo
     border: 'border-slate-200/80'
   };
 
+  const onStudentsLoadedRef = useRef(onStudentsLoaded);
+  useEffect(() => {
+    onStudentsLoadedRef.current = onStudentsLoaded;
+  }, [onStudentsLoaded]);
+
   useEffect(() => {
     const loadClasses = async () => {
       try {
@@ -68,18 +73,26 @@ const InputSection: React.FC<InputSectionProps> = ({ onStudentsLoaded, currentCo
       try {
         const state = await getFullState();
         const filtered = (state.students || []).filter(s => {
-          const sClassId = s.classId || s.class_id;
+          const sClassId = s.classId || s.class_id || (s as any).idKelas;
           return sClassId === selectedClassId;
         });
-        const mapped: Student[] = filtered.map(s => ({
-          id: s.id || Math.random().toString(36).substr(2, 9),
-          name: s.name || s.nama || '',
-          classId: s.classId || s.class_id,
-        })).filter(s => s.name);
+        const mapped: Student[] = filtered.map((s, idx) => {
+          const rawName = s.name || s.nama || (s as any).namaSiswa || (s as any).nama_siswa || '';
+          const cleanName = String(rawName).trim();
+          const stableId = s.id || (s as any).idSiswa || (s as any).id_siswa || (s as any).student_code || s.nisn || `std_${selectedClassId}_${idx}`;
+          const mappedGender: 'M' | 'F' | undefined = s.gender === 'P' || s.gender === 'F' ? 'F' : (s.gender === 'L' || s.gender === 'M' ? 'M' : undefined);
+          return {
+            id: String(stableId),
+            name: cleanName,
+            classId: s.classId || s.class_id || (s as any).idKelas,
+            gender: mappedGender
+          };
+        }).filter(s => s.name.length > 0);
+
         setClassStudents(mapped);
         setCheckedStudentIds(new Set(mapped.map(s => s.id)));
         if (mapped.length > 0) {
-          onStudentsLoaded(mapped);
+          onStudentsLoadedRef.current(mapped);
         }
       } catch (err) {
         console.error('Gagal memuat siswa kelas:', err);
@@ -88,7 +101,7 @@ const InputSection: React.FC<InputSectionProps> = ({ onStudentsLoaded, currentCo
       }
     };
     loadStudents();
-  }, [selectedClassId, onStudentsLoaded]);
+  }, [selectedClassId]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -123,7 +136,7 @@ const InputSection: React.FC<InputSectionProps> = ({ onStudentsLoaded, currentCo
   const handleLoadFromClass = () => {
     const selected = classStudents.filter(s => checkedStudentIds.has(s.id));
     if (selected.length > 0) {
-      onStudentsLoaded(selected);
+      onStudentsLoadedRef.current(selected);
     }
   };
 
