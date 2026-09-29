@@ -21,3 +21,4 @@ nul
 !public/*.xlsx
 *.docx
 !public/*.docx
+*.psd
