@@ -5,9 +5,7 @@ import {
   Sparkles, 
   Trophy, 
   RotateCw, 
-  ChevronRight, 
   Check, 
-  Lock, 
   Zap, 
   Flame, 
   Droplets, 
@@ -428,24 +426,25 @@ export default function MyVerse() {
         <div className={`absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl ${activeCharData?.accentBg} rounded-full blur-3xl -z-0 pointer-events-none`} />
 
         <div className="relative z-10 flex flex-col md:flex-row items-center gap-6 md:gap-8">
-          {/* Pet Avatar with subtle float animation */}
+          {/* Pet Avatar - Large, Crisp, No Floating, Seamless */}
           <div className="relative shrink-0 flex flex-col items-center">
-            <motion.div
-              animate={{ y: [0, -8, 0] }}
-              transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut' }}
-              className="w-40 h-40 md:w-48 md:h-48 rounded-3xl bg-slate-50/80 border border-slate-200/80 p-4 flex items-center justify-center shadow-inner"
-            >
+            <div className="w-56 h-56 sm:w-64 sm:h-64 md:w-72 md:h-72 flex items-center justify-center relative">
+              {/* Subtle radial aura behind the transparent character */}
+              <div 
+                className="absolute inset-4 rounded-full blur-2xl opacity-20 pointer-events-none"
+                style={{ backgroundColor: activeCharData?.elementColor || '#3B66F5' }}
+              />
               {activeStageInfo && (
                 <img 
                   src={activeStageInfo.image}
                   onError={(e) => { (e.currentTarget as HTMLImageElement).src = activeStageInfo.pngImage; }}
                   alt={verse.nickname}
-                  className="w-full h-full object-contain filter drop-shadow-md"
+                  className="w-full h-full object-contain filter drop-shadow-xl relative z-10 transition-transform duration-300 hover:scale-105"
                 />
               )}
-            </motion.div>
+            </div>
 
-            <span className="mt-2.5 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold bg-slate-100 text-slate-700 border border-slate-200">
+            <span className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold bg-slate-100 text-slate-700 border border-slate-200">
               {getElementIcon(verse.element)}
               {activeStageInfo?.name} • Tahap {verse.stage}
             </span>
@@ -504,7 +503,7 @@ export default function MyVerse() {
               <div className="flex items-center justify-between text-xs font-bold mb-1.5">
                 <span className="text-slate-700">Progres Level {levelStats.currentLevel}</span>
                 <span className="text-[#3B66F5]">
-                  {levelStats.currentLevelProgress} / {levelStats.pointsNeededForNext} Poin ({levelStats.progressPercent}%)
+                  {levelStats.currentLevelProgress} / {levelStats.pointsNeededForNext} XP ({levelStats.progressPercent}%)
                 </span>
               </div>
 
@@ -517,81 +516,8 @@ export default function MyVerse() {
                   className="h-full bg-gradient-to-r from-[#3B66F5] to-indigo-500 rounded-full"
                 />
               </div>
-
-              <div className="flex items-center justify-between text-[11px] text-slate-500 font-medium mt-2">
-                <span>Total Lifetime: <strong>{totalLifetimePoints} Poin</strong></span>
-                <span>
-                  {levelStats.isMaxStage 
-                    ? 'Wujud Tertinggi (Mythic Titan)' 
-                    : `Sisa ${levelStats.pointsRemaining} poin menuju Level ${levelStats.currentLevel + 1}`}
-                </span>
-              </div>
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* Evolution Milestones (4 Tahapan Wujud) */}
-      <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h2 className="text-base font-bold text-slate-800">Jejak Wujud Evolusi</h2>
-            <p className="text-xs text-slate-500">Karakter berevolusi otomatis seiring peningkatan level belajarmu.</p>
-          </div>
-          <span className="text-xs font-bold text-[#3B66F5] bg-blue-50 px-3 py-1 rounded-full border border-blue-100">
-            {activeCharData?.species}
-          </span>
-        </div>
-
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5">
-          {activeCharData?.stages && Object.values(activeCharData.stages).map((st: any) => {
-            const isUnlocked = verse.stage >= st.stage;
-            const isCurrent = verse.stage === st.stage;
-
-            return (
-              <div
-                key={st.stage}
-                className={`relative flex flex-col items-center p-4 rounded-2xl border-2 transition-all ${
-                  isCurrent
-                    ? 'border-[#3B66F5] bg-blue-50/40 shadow-sm'
-                    : isUnlocked
-                      ? 'border-slate-200 bg-white'
-                      : 'border-slate-100 bg-slate-50/60 opacity-60'
-                }`}
-              >
-                {/* Badge Status */}
-                <div className="w-full flex items-center justify-between text-[10px] font-bold mb-2">
-                  <span className="text-slate-500">Tahap {st.stage}</span>
-                  {isCurrent ? (
-                    <span className="bg-[#3B66F5] text-white px-2 py-0.5 rounded-full">Aktif</span>
-                  ) : isUnlocked ? (
-                    <span className="text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">Terbuka</span>
-                  ) : (
-                    <span className="text-slate-400 inline-flex items-center gap-0.5">
-                      <Lock className="w-3 h-3" /> Lv. {st.minLevel}
-                    </span>
-                  )}
-                </div>
-
-                {/* Stage Image */}
-                <div className="w-24 h-24 mb-2 flex items-center justify-center">
-                  <img
-                    src={st.image}
-                    onError={(e) => { (e.currentTarget as HTMLImageElement).src = st.pngImage; }}
-                    alt={st.name}
-                    className={`w-full h-full object-contain filter ${!isUnlocked ? 'grayscale brightness-75 opacity-40' : 'drop-shadow-xs'}`}
-                  />
-                </div>
-
-                <div className="text-center w-full">
-                  <div className="text-xs font-bold text-slate-800 truncate">{st.name}</div>
-                  <div className="text-[10px] text-slate-500 font-medium">
-                    Lv. {st.minLevel} {st.maxLevel < 900 ? `- ${st.maxLevel}` : '+'}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
         </div>
       </div>
 

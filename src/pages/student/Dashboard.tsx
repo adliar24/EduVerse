@@ -7,10 +7,6 @@ import {
   TrendingUp,
   Zap,
   BookOpen,
-  Calendar,
-  Link2,
-  GraduationCap,
-  Camera,
   RotateCw,
   Sparkles,
   ArrowRight
@@ -29,9 +25,10 @@ export default function StudentDashboard() {
     avgScore: 0,
     ongoingExams: 0
   });
+  const [materialsStat, setMaterialsStat] = useState({ total: 0, newCount: 0 });
+  const [assignmentsStat, setAssignmentsStat] = useState({ total: 0, pendingCount: 0 });
+  const [allMaterialsList, setAllMaterialsList] = useState<any[]>([]);
   const [recentResults, setRecentResults] = useState<any[]>([]);
-  const [latestMaterials, setLatestMaterials] = useState<any[]>([]);
-  const [latestAssignments, setLatestAssignments] = useState<any[]>([]);
   const [activeExamSessions, setActiveExamSessions] = useState<any[]>([]);
   const [studentProfile, setStudentProfile] = useState<any>(null);
   const [startingExamId, setStartingExamId] = useState<string | null>(null);
@@ -95,7 +92,7 @@ export default function StudentDashboard() {
         className: className
       });
 
-      const [resultsRes, materialsRes, assignmentsRes, activeSessionsRes] = await Promise.all([
+      const [resultsRes, materialsRes, assignmentsRes, activeSessionsRes, submissionsRes] = await Promise.all([
         supabase
           .from('participants')
           .select(`
@@ -111,8 +108,8 @@ export default function StudentDashboard() {
           .eq('name', studentDb.name)
           .eq('class', className || '')
           .order('created_at', { ascending: false }),
-        classId ? supabase.from('materials').select('*').eq('class_id', classId).order('created_at', { ascending: false }).limit(6) : Promise.resolve({ data: [] }),
-        classId ? supabase.from('assignments').select('*').eq('class_id', classId).order('created_at', { ascending: false }).limit(6) : Promise.resolve({ data: [] }),
+        classId ? supabase.from('materials').select('*').eq('class_id', classId).order('created_at', { ascending: false }) : Promise.resolve({ data: [] }),
+        classId ? supabase.from('assignments').select('*').eq('class_id', classId).order('created_at', { ascending: false }) : Promise.resolve({ data: [] }),
         classId ? supabase.from('exam_sessions')
           .select(`
             id,
@@ -134,7 +131,8 @@ export default function StudentDashboard() {
           `)
           .eq('class_id', classId)
           .eq('is_active', true)
-          : Promise.resolve({ data: [] })
+          : Promise.resolve({ data: [] }),
+        supabase.from('assignment_submissions').select('id, assignment_id, status').eq('student_id', studentObj.id)
       ]);
 
       const results = resultsRes.data || [];
@@ -152,21 +150,29 @@ export default function StudentDashboard() {
 
       setActiveExamSessions(availableSessions);
 
-      if (materialsRes.data) {
-        const filteredM = (materialsRes.data as any[]).filter(m => 
-          m.target_type === 'class' || 
-          (m.target_type === 'students' && (m.student_ids || []).includes(studentObj.id))
-        ).slice(0, 3);
-        setLatestMaterials(filteredM);
-      }
+      const filteredM = (materialsRes.data as any[] || []).filter(m => 
+        m.target_type === 'class' || 
+        (m.target_type === 'students' && (m.student_ids || []).includes(studentObj.id))
+      );
+      setAllMaterialsList(filteredM);
 
-      if (assignmentsRes.data) {
-        const filteredA = (assignmentsRes.data as any[]).filter(a => 
-          a.target_type === 'class' || 
-          (a.target_type === 'students' && (a.student_ids || []).includes(studentObj.id))
-        ).slice(0, 3);
-        setLatestAssignments(filteredA);
-      }
+      // Track unread/new materials
+      let openedMaterials: string[] = [];
+      try {
+        const raw = localStorage.getItem(`eduverse_opened_materials_${studentObj.id}`);
+        if (raw) openedMaterials = JSON.parse(raw);
+      } catch (e) {}
+      const openedSet = new Set(openedMaterials);
+      const newMaterialsCount = filteredM.filter((m: any) => !openedSet.has(m.id)).length;
+      setMaterialsStat({ total: filteredM.length, newCount: newMaterialsCount });
+
+      const filteredA = (assignmentsRes.data as any[] || []).filter(a => 
+        a.target_type === 'class' || 
+        (a.target_type === 'students' && (a.student_ids || []).includes(studentObj.id))
+      );
+      const submittedIds = new Set((submissionsRes.data || []).map((s: any) => s.assignment_id));
+      const pendingAssignmentsCount = filteredA.filter((a: any) => !submittedIds.has(a.id)).length;
+      setAssignmentsStat({ total: filteredA.length, pendingCount: pendingAssignmentsCount });
 
       const completedResults = results?.filter(r => r.status === 'completed') || [];
       const totalTaken = completedResults.length;
@@ -295,41 +301,16 @@ export default function StudentDashboard() {
     }
   };
 
-  const statCards = [
-    { 
-      label: 'Ujian Diikuti', 
-      value: `${stats.examsTaken} Selesai`, 
-      icon: FileText, 
-      color: 'blue',
-      iconBg: 'bg-blue-500 text-white shadow-md shadow-blue-500/20',
-      badgeClass: 'bg-blue-50 text-blue-700 border-blue-200/80',
-      borderHover: 'hover:border-blue-400 hover:shadow-blue-500/10',
-      accentBg: 'from-blue-500/10 to-transparent',
-      desc: 'Riwayat ujian dikerjakan'
-    },
-    { 
-      label: 'Rata-rata Nilai', 
-      value: `${stats.avgScore}%`, 
-      icon: TrendingUp, 
-      color: 'emerald',
-      iconBg: 'bg-emerald-500 text-white shadow-md shadow-emerald-500/20',
-      badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200/80',
-      borderHover: 'hover:border-emerald-400 hover:shadow-emerald-500/10',
-      accentBg: 'from-emerald-500/10 to-transparent',
-      desc: 'Pencapaian skor'
-    },
-    { 
-      label: 'Ujian Berlangsung', 
-      value: `${stats.ongoingExams} Aktif`, 
-      icon: Clock, 
-      color: 'amber',
-      iconBg: 'bg-amber-500 text-white shadow-md shadow-amber-500/20',
-      badgeClass: 'bg-amber-50 text-amber-700 border-amber-200/80',
-      borderHover: 'hover:border-amber-400 hover:shadow-amber-500/10',
-      accentBg: 'from-amber-500/10 to-transparent',
-      desc: 'Sesi perlu dikerjakan'
-    },
-  ];
+  const handleOpenMaterials = () => {
+    if (studentProfile?.id) {
+      try {
+        const allIds = allMaterialsList.map((m: any) => m.id);
+        localStorage.setItem(`eduverse_opened_materials_${studentProfile.id}`, JSON.stringify(allIds));
+        setMaterialsStat(prev => ({ ...prev, newCount: 0 }));
+      } catch (e) {}
+    }
+    navigate('/materi-siswa');
+  };
 
   if (loading) return (
     <div className="animate-pulse space-y-6">
@@ -345,17 +326,21 @@ export default function StudentDashboard() {
     <div className="space-y-5 pb-10">
       {/* Colorful Header Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5 bg-gradient-to-r from-[#0F172A] via-[#1E3A8A] to-[#1E40AF] p-6 sm:p-8 rounded-[2.25rem] text-white shadow-xl relative overflow-hidden border border-white/10">
-        <div className="flex items-center gap-4 relative z-10">
+        <div className="flex items-center gap-4 relative z-10 min-w-0 flex-1">
           <div className="w-14 h-14 rounded-2xl bg-white/15 text-white flex items-center justify-center font-bold text-xl shadow-lg border border-white/20 shrink-0">
             <Zap className="w-7 h-7 text-amber-300 fill-amber-300" />
           </div>
-          <div>
-            <h2 className="text-2xl font-black text-white tracking-tight leading-snug">Selamat Belajar!</h2>
-            <p className="text-slate-200 text-xs sm:text-sm font-medium">Pantau ujian, tugas & presensi harian.</p>
+          <div className="min-w-0 flex-1">
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-white tracking-tight leading-snug break-words">
+              Selamat Belajar{studentProfile?.name ? `, ${studentProfile.name}` : ''}!
+            </h2>
+            <p className="text-slate-200 text-xs sm:text-sm font-medium mt-0.5">
+              Pantau materi pelajaran, tugas murid, ujian, & sahabat Verse-mu.
+            </p>
           </div>
         </div>
         
-        <div className="flex flex-wrap items-center gap-2.5 relative z-10">
+        <div className="flex flex-wrap items-center gap-2.5 relative z-10 shrink-0">
           <button
             onClick={() => fetchStudentData(true)}
             disabled={loading || refreshing}
@@ -376,12 +361,16 @@ export default function StudentDashboard() {
           return (
             <div className="relative overflow-hidden bg-white rounded-3xl border border-slate-200/90 shadow-sm p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-blue-50/80 border border-blue-100 flex items-center justify-center p-1.5 shrink-0 shadow-xs">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center p-1 shrink-0 relative">
+                  <div 
+                    className="absolute inset-1 rounded-full blur-xl opacity-20 pointer-events-none"
+                    style={{ backgroundColor: '#3B66F5' }}
+                  />
                   <img
                     src={stageInfo.image}
                     onError={(e) => { (e.currentTarget as HTMLImageElement).src = stageInfo.pngImage; }}
                     alt={studentVerse.nickname}
-                    className="w-full h-full object-contain filter drop-shadow-xs"
+                    className="w-full h-full object-contain filter drop-shadow-md relative z-10"
                   />
                 </div>
                 <div>
@@ -421,12 +410,16 @@ export default function StudentDashboard() {
       ) : (
         <div className="relative overflow-hidden bg-gradient-to-r from-amber-500/10 via-indigo-500/10 to-blue-500/10 rounded-3xl border border-amber-300/40 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-amber-100/60 border border-amber-200/60 flex items-center justify-center p-1.5 shrink-0 shadow-xs">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center p-1 shrink-0 relative">
+              <div 
+                className="absolute inset-1 rounded-full blur-xl opacity-20 pointer-events-none"
+                style={{ backgroundColor: '#F59E0B' }}
+              />
               <img
                 src={CHEST_ASSET.webp}
                 onError={(e) => { (e.currentTarget as HTMLImageElement).src = CHEST_ASSET.png; }}
                 alt="Peti Verse"
-                className="w-full h-full object-contain filter drop-shadow-xs"
+                className="w-full h-full object-contain filter drop-shadow-md relative z-10"
               />
             </div>
             <div>
@@ -563,27 +556,100 @@ export default function StudentDashboard() {
         </div>
       )}
 
-      {/* Colorful Rounded Stat Cards */}
+      {/* 3 Colorful Interactive Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {statCards.map((stat, index) => (
-          <motion.div
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.08 }}
-            key={stat.label}
-            className={`p-5 rounded-2xl bg-white border border-slate-200/90 shadow-sm flex items-center gap-4 transition-all duration-300 group hover:scale-[1.02] hover:shadow-md ${stat.borderHover} relative overflow-hidden`}
-          >
-            <div className={`absolute top-0 right-0 w-24 h-24 bg-gradient-to-br ${stat.accentBg} rounded-bl-full pointer-events-none`}></div>
-            <div className={`p-3 rounded-2xl shrink-0 transition-transform group-hover:scale-105 ${stat.iconBg}`}>
-              <stat.icon className="w-6 h-6" />
+        {/* Card 1: Rata-rata Nilai */}
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05 }}
+          className="p-5 sm:p-6 rounded-2xl bg-gradient-to-br from-emerald-600 via-teal-600 to-emerald-800 text-white shadow-lg shadow-emerald-950/20 border border-emerald-400/30 flex flex-col justify-between relative overflow-hidden transition-all duration-300 hover:scale-[1.02] hover:shadow-xl"
+        >
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-[11px] font-black uppercase tracking-wider text-emerald-100/90">
+              Rata-rata Nilai
+            </span>
+            <div className="w-10 h-10 rounded-xl bg-white/20 text-white flex items-center justify-center shrink-0 backdrop-blur-xs shadow-inner">
+              <TrendingUp className="w-5 h-5 text-emerald-100" />
             </div>
-            <div className="relative z-10 min-w-0">
-              <p className="text-slate-400 text-[10px] font-black uppercase tracking-wider">{stat.label}</p>
-              <h3 className="text-2xl font-black tracking-tight text-slate-900 mt-0.5">{stat.value}</h3>
-              <p className="text-slate-500 text-[10px] font-medium mt-0.5 truncate">{stat.desc}</p>
+          </div>
+          <div className="mt-4">
+            <h3 className="text-3xl sm:text-4xl font-black tracking-tight text-white">
+              {stats.avgScore}%
+            </h3>
+            <p className="text-xs text-emerald-100/80 font-medium mt-1">
+              Dari {stats.examsTaken} ujian CBT selesai
+            </p>
+          </div>
+        </motion.div>
+
+        {/* Card 2: Materi Pelajaran */}
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          onClick={handleOpenMaterials}
+          className="p-5 sm:p-6 rounded-2xl bg-gradient-to-br from-[#1E3A8A] via-[#1D4ED8] to-[#3B66F5] text-white shadow-lg shadow-blue-950/20 border border-blue-400/30 flex flex-col justify-between relative overflow-hidden transition-all duration-300 hover:scale-[1.02] hover:shadow-xl cursor-pointer group"
+        >
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-[11px] font-black uppercase tracking-wider text-blue-100/90">
+              Materi Pelajaran
+            </span>
+            <div className="flex items-center gap-1.5">
+              {materialsStat.newCount > 0 && (
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-400 text-slate-950 shadow-sm animate-pulse">
+                  +{materialsStat.newCount} Baru
+                </span>
+              )}
+              <div className="w-10 h-10 rounded-xl bg-white/20 text-white flex items-center justify-center shrink-0 backdrop-blur-xs shadow-inner group-hover:scale-105 transition-transform">
+                <BookOpen className="w-5 h-5 text-blue-100" />
+              </div>
             </div>
-          </motion.div>
-        ))}
+          </div>
+          <div className="mt-4">
+            <h3 className="text-3xl sm:text-4xl font-black tracking-tight text-white">
+              {materialsStat.total} Materi
+            </h3>
+            <div className="flex items-center justify-between mt-1 text-xs text-blue-100/80 font-semibold group-hover:text-white transition-colors">
+              <span>Buka bahan ajar</span>
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Card 3: Tugas Murid */}
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+          onClick={() => navigate('/tugas-siswa')}
+          className="p-5 sm:p-6 rounded-2xl bg-gradient-to-br from-purple-700 via-indigo-700 to-violet-800 text-white shadow-lg shadow-purple-950/20 border border-purple-400/30 flex flex-col justify-between relative overflow-hidden transition-all duration-300 hover:scale-[1.02] hover:shadow-xl cursor-pointer group"
+        >
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-[11px] font-black uppercase tracking-wider text-purple-100/90">
+              Tugas Murid
+            </span>
+            <div className="flex items-center gap-1.5">
+              {assignmentsStat.pendingCount > 0 && (
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-400 text-slate-950 shadow-sm animate-pulse">
+                  {assignmentsStat.pendingCount} Perlu Dikerjakan
+                </span>
+              )}
+              <div className="w-10 h-10 rounded-xl bg-white/20 text-white flex items-center justify-center shrink-0 backdrop-blur-xs shadow-inner group-hover:scale-105 transition-transform">
+                <FileText className="w-5 h-5 text-purple-100" />
+              </div>
+            </div>
+          </div>
+          <div className="mt-4">
+            <h3 className="text-3xl sm:text-4xl font-black tracking-tight text-white">
+              {assignmentsStat.total} Tugas
+            </h3>
+            <div className="flex items-center justify-between mt-1 text-xs text-purple-100/80 font-semibold group-hover:text-white transition-colors">
+              <span>Buka lembar tugas</span>
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </div>
+        </motion.div>
       </div>
 
       {/* Recent Results (Riwayat Ujian) */}
@@ -669,103 +735,6 @@ export default function StudentDashboard() {
               <Link to="/daftar-ujian-siswa" className="text-blue-600 text-xs font-bold mt-1 inline-block hover:underline">Ikuti ujian sekarang →</Link>
             </div>
           )}
-        </div>
-      </div>
-
-      {/* Materials and Assignments Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Latest Materials */}
-        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-5 flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                  <BookOpen className="w-4 h-4 text-blue-600" />
-                  Materi Pelajaran
-                </h3>
-                <p className="text-[11px] text-slate-500 font-medium">Bahan ajar aktif dari guru</p>
-              </div>
-              <Link to="/materi-siswa" className="text-xs font-bold text-blue-600 hover:underline">Lihat Semua →</Link>
-            </div>
-
-            <div className="space-y-2.5">
-              {latestMaterials.length > 0 ? latestMaterials.map((m) => {
-                return (
-                  <div key={m.id} className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 hover:border-blue-300 hover:bg-blue-50/20 transition-all space-y-1 group">
-                    <div className="flex items-center justify-between gap-2">
-                      <h4 className="font-bold text-xs truncate text-slate-900 group-hover:text-blue-600 transition-colors">{m.title}</h4>
-                      {m.link && <Link2 className="w-3.5 h-3.5 text-blue-500 shrink-0" />}
-                    </div>
-                    <p className="text-[11px] text-slate-600 line-clamp-2 leading-relaxed">{m.description}</p>
-                  </div>
-                );
-              }) : (
-                <div className="text-center py-6 bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
-                  <BookOpen className="w-5 h-5 text-slate-300 mx-auto mb-1" />
-                  <p className="text-xs text-slate-400 font-bold">Belum ada materi aktif</p>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Upcoming Assignments */}
-        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-5 flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                  <FileText className="w-4 h-4 text-indigo-600" />
-                  Tugas Murid
-                </h3>
-                <p className="text-[11px] text-slate-500 font-medium">Lembar tugas yang perlu dikerjakan</p>
-              </div>
-              <Link to="/tugas-siswa" className="text-xs font-bold text-indigo-600 hover:underline">Lihat Semua →</Link>
-            </div>
-
-            <div className="space-y-2.5">
-              {latestAssignments.length > 0 ? latestAssignments.map((a) => {
-                const deadlineDate = a.deadline ? new Date(a.deadline) : null;
-                const isOverdue = deadlineDate ? deadlineDate.getTime() < Date.now() : false;
-                return (
-                  <div key={a.id} className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/20 transition-all space-y-1.5 group">
-                    <div className="flex items-center justify-between gap-2">
-                      <h4 className="font-bold text-xs truncate text-slate-900 group-hover:text-indigo-600 transition-colors">{a.title}</h4>
-                      {a.deadline ? (
-                        <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full border ${
-                          isOverdue ? 'bg-rose-50 text-rose-700 border-rose-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                        }`}>
-                          {isOverdue ? 'Selesai' : 'Aktif'}
-                        </span>
-                      ) : (
-                        <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
-                          Tanpa Tenggat
-                        </span>
-                      )}
-                    </div>
-                    {a.deadline ? (
-                      <p className="text-[10px] flex items-center gap-1 font-semibold text-slate-600">
-                        <Calendar className="w-3.5 h-3.5 text-indigo-600" />
-                        Tenggat: <span className={isOverdue ? 'text-rose-600 font-bold' : 'text-slate-800 font-bold'}>{new Date(a.deadline).toLocaleDateString('id-ID', {
-                          month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
-                        })}</span>
-                      </p>
-                    ) : (
-                      <p className="text-[10px] flex items-center gap-1 font-semibold text-slate-500">
-                        <Calendar className="w-3.5 h-3.5 text-emerald-600" />
-                        Tenggat: <span className="font-bold text-emerald-700">Tanpa Tenggat</span>
-                      </p>
-                    )}
-                  </div>
-                );
-              }) : (
-                <div className="text-center py-6 bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
-                  <FileText className="w-5 h-5 text-slate-300 mx-auto mb-1" />
-                  <p className="text-xs text-slate-400 font-bold">Belum ada tugas aktif</p>
-                </div>
-              )}
-            </div>
-          </div>
         </div>
       </div>
     </div>
