@@ -557,97 +557,96 @@ export default function StudentDashboard() {
       )}
 
       {/* 3 Colorful Interactive Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      {/* 3 Colorful Interactive Stat Cards - Sleek & Compact */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
         {/* Card 1: Rata-rata Nilai */}
         <motion.div
-          initial={{ opacity: 0, y: 15 }}
+          initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
-          className="p-5 sm:p-6 rounded-2xl bg-gradient-to-br from-emerald-600 via-teal-600 to-emerald-800 text-white shadow-lg shadow-emerald-950/20 border border-emerald-400/30 flex flex-col justify-between relative overflow-hidden transition-all duration-300 hover:scale-[1.02] hover:shadow-xl"
+          className="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-br from-emerald-600 via-teal-600 to-emerald-800 text-white shadow-md shadow-emerald-950/15 border border-emerald-400/30 flex flex-col justify-between relative overflow-hidden transition-all duration-200 hover:scale-[1.01] hover:shadow-lg"
         >
-          <div className="flex items-center justify-between gap-3">
-            <span className="text-[11px] font-black uppercase tracking-wider text-emerald-100/90">
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-emerald-100/90">
               Rata-rata Nilai
             </span>
-            <div className="w-10 h-10 rounded-xl bg-white/20 text-white flex items-center justify-center shrink-0 backdrop-blur-xs shadow-inner">
-              <TrendingUp className="w-5 h-5 text-emerald-100" />
+            <div className="w-8 h-8 rounded-xl bg-white/20 text-white flex items-center justify-center shrink-0 backdrop-blur-xs shadow-inner">
+              <TrendingUp className="w-4 h-4 text-emerald-100" />
             </div>
           </div>
-          <div className="mt-4">
-            <h3 className="text-3xl sm:text-4xl font-black tracking-tight text-white">
+          <div className="mt-2.5 flex items-baseline justify-between gap-2">
+            <h3 className="text-2xl sm:text-3xl font-black tracking-tight text-white leading-none">
               {stats.avgScore}%
             </h3>
-            <p className="text-xs text-emerald-100/80 font-medium mt-1">
-              Dari {stats.examsTaken} ujian CBT selesai
-            </p>
+            <span className="text-[11px] text-emerald-100/80 font-medium truncate">
+              {stats.examsTaken} Ujian CBT
+            </span>
           </div>
         </motion.div>
 
         {/* Card 2: Materi Pelajaran */}
         <motion.div
-          initial={{ opacity: 0, y: 15 }}
+          initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
           onClick={handleOpenMaterials}
-          className="p-5 sm:p-6 rounded-2xl bg-gradient-to-br from-[#1E3A8A] via-[#1D4ED8] to-[#3B66F5] text-white shadow-lg shadow-blue-950/20 border border-blue-400/30 flex flex-col justify-between relative overflow-hidden transition-all duration-300 hover:scale-[1.02] hover:shadow-xl cursor-pointer group"
+          className="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-br from-[#1E3A8A] via-[#1D4ED8] to-[#3B66F5] text-white shadow-md shadow-blue-950/15 border border-blue-400/30 flex flex-col justify-between relative overflow-hidden transition-all duration-200 hover:scale-[1.01] hover:shadow-lg cursor-pointer group"
         >
           <div className="flex items-center justify-between gap-2">
-            <span className="text-[11px] font-black uppercase tracking-wider text-blue-100/90">
-              Materi Pelajaran
-            </span>
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1.5 flex-wrap min-w-0">
+              <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-blue-100/90">
+                Materi Pelajaran
+              </span>
               {materialsStat.newCount > 0 && (
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-400 text-slate-950 shadow-sm animate-pulse">
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-400 text-slate-950 shadow-xs animate-pulse">
                   +{materialsStat.newCount} Baru
                 </span>
               )}
-              <div className="w-10 h-10 rounded-xl bg-white/20 text-white flex items-center justify-center shrink-0 backdrop-blur-xs shadow-inner group-hover:scale-105 transition-transform">
-                <BookOpen className="w-5 h-5 text-blue-100" />
-              </div>
+            </div>
+            <div className="w-8 h-8 rounded-xl bg-white/20 text-white flex items-center justify-center shrink-0 backdrop-blur-xs shadow-inner group-hover:scale-105 transition-transform">
+              <BookOpen className="w-4 h-4 text-blue-100" />
             </div>
           </div>
-          <div className="mt-4">
-            <h3 className="text-3xl sm:text-4xl font-black tracking-tight text-white">
+          <div className="mt-2.5 flex items-baseline justify-between gap-2">
+            <h3 className="text-2xl sm:text-3xl font-black tracking-tight text-white leading-none">
               {materialsStat.total} Materi
             </h3>
-            <div className="flex items-center justify-between mt-1 text-xs text-blue-100/80 font-semibold group-hover:text-white transition-colors">
-              <span>Buka bahan ajar</span>
-              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-            </div>
+            <span className="text-[11px] text-blue-100/85 font-semibold flex items-center gap-1 group-hover:text-white transition-colors shrink-0">
+              Buka materi <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+            </span>
           </div>
         </motion.div>
 
         {/* Card 3: Tugas Murid */}
         <motion.div
-          initial={{ opacity: 0, y: 15 }}
+          initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15 }}
           onClick={() => navigate('/tugas-siswa')}
-          className="p-5 sm:p-6 rounded-2xl bg-gradient-to-br from-purple-700 via-indigo-700 to-violet-800 text-white shadow-lg shadow-purple-950/20 border border-purple-400/30 flex flex-col justify-between relative overflow-hidden transition-all duration-300 hover:scale-[1.02] hover:shadow-xl cursor-pointer group"
+          className="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-br from-purple-700 via-indigo-700 to-violet-800 text-white shadow-md shadow-purple-950/15 border border-purple-400/30 flex flex-col justify-between relative overflow-hidden transition-all duration-200 hover:scale-[1.01] hover:shadow-lg cursor-pointer group"
         >
           <div className="flex items-center justify-between gap-2">
-            <span className="text-[11px] font-black uppercase tracking-wider text-purple-100/90">
-              Tugas Murid
-            </span>
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1.5 flex-wrap min-w-0">
+              <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-purple-100/90">
+                Tugas Murid
+              </span>
               {assignmentsStat.pendingCount > 0 && (
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-400 text-slate-950 shadow-sm animate-pulse">
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-400 text-slate-950 shadow-xs animate-pulse">
                   {assignmentsStat.pendingCount} Perlu Dikerjakan
                 </span>
               )}
-              <div className="w-10 h-10 rounded-xl bg-white/20 text-white flex items-center justify-center shrink-0 backdrop-blur-xs shadow-inner group-hover:scale-105 transition-transform">
-                <FileText className="w-5 h-5 text-purple-100" />
-              </div>
+            </div>
+            <div className="w-8 h-8 rounded-xl bg-white/20 text-white flex items-center justify-center shrink-0 backdrop-blur-xs shadow-inner group-hover:scale-105 transition-transform">
+              <FileText className="w-4 h-4 text-purple-100" />
             </div>
           </div>
-          <div className="mt-4">
-            <h3 className="text-3xl sm:text-4xl font-black tracking-tight text-white">
+          <div className="mt-2.5 flex items-baseline justify-between gap-2">
+            <h3 className="text-2xl sm:text-3xl font-black tracking-tight text-white leading-none">
               {assignmentsStat.total} Tugas
             </h3>
-            <div className="flex items-center justify-between mt-1 text-xs text-purple-100/80 font-semibold group-hover:text-white transition-colors">
-              <span>Buka lembar tugas</span>
-              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-            </div>
+            <span className="text-[11px] text-purple-100/85 font-semibold flex items-center gap-1 group-hover:text-white transition-colors shrink-0">
+              Buka tugas <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+            </span>
           </div>
         </motion.div>
       </div>

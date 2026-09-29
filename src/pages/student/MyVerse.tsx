@@ -425,13 +425,13 @@ export default function MyVerse() {
         {/* Subtle decorative background gradient matching element */}
         <div className={`absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl ${activeCharData?.accentBg} rounded-full blur-3xl -z-0 pointer-events-none`} />
 
-        <div className="relative z-10 flex flex-col md:flex-row items-center gap-6 md:gap-8">
-          {/* Pet Avatar - Large, Crisp, No Floating, Seamless */}
-          <div className="relative shrink-0 flex flex-col items-center">
-            <div className="w-56 h-56 sm:w-64 sm:h-64 md:w-72 md:h-72 flex items-center justify-center relative">
-              {/* Subtle radial aura behind the transparent character */}
+        <div className="relative z-10 flex flex-col md:flex-row items-center gap-6 md:gap-10">
+          {/* Pet Avatar - Hero Sized, Crisp, Seamless */}
+          <div className="relative shrink-0 flex flex-col items-center w-full md:w-[380px] lg:w-[430px]">
+            <div className="w-72 h-72 sm:w-80 sm:h-80 md:w-96 md:h-96 lg:w-[420px] lg:h-[420px] flex items-center justify-center relative">
+              {/* Vibrant radial aura behind the transparent character */}
               <div 
-                className="absolute inset-4 rounded-full blur-2xl opacity-20 pointer-events-none"
+                className="absolute inset-0 rounded-full blur-3xl opacity-30 pointer-events-none"
                 style={{ backgroundColor: activeCharData?.elementColor || '#3B66F5' }}
               />
               {activeStageInfo && (
@@ -439,12 +439,12 @@ export default function MyVerse() {
                   src={activeStageInfo.image}
                   onError={(e) => { (e.currentTarget as HTMLImageElement).src = activeStageInfo.pngImage; }}
                   alt={verse.nickname}
-                  className="w-full h-full object-contain filter drop-shadow-xl relative z-10 transition-transform duration-300 hover:scale-105"
+                  className="w-full h-full object-contain filter drop-shadow-2xl relative z-10 transition-transform duration-300 hover:scale-105 select-none"
                 />
               )}
             </div>
 
-            <span className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold bg-slate-100 text-slate-700 border border-slate-200">
+            <span className="mt-3 inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-black bg-slate-100/90 text-slate-800 border border-slate-200/90 shadow-2xs">
               {getElementIcon(verse.element)}
               {activeStageInfo?.name} • Tahap {verse.stage}
             </span>
