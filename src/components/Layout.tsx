@@ -215,9 +215,7 @@ export default function Layout({ session }: LayoutProps) {
     { 
       icon: Sparkles, 
       label: 'Verse Murid', 
-      path: '/kelola-verse',
-      isSpecial: true,
-      badge: 'Pet & Level'
+      path: '/kelola-verse'
     },
     {
       icon: Wrench,

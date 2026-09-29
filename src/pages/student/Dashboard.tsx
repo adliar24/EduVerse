@@ -408,12 +408,12 @@ export default function StudentDashboard() {
           );
         })()
       ) : (
-        <div className="relative overflow-hidden bg-gradient-to-r from-amber-500/10 via-indigo-500/10 to-blue-500/10 rounded-3xl border border-amber-300/40 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="relative overflow-hidden bg-gradient-to-r from-yellow-300/25 via-amber-300/20 to-yellow-100/35 rounded-3xl border border-yellow-300/70 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs">
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center p-1 shrink-0 relative">
               <div 
-                className="absolute inset-1 rounded-full blur-xl opacity-20 pointer-events-none"
-                style={{ backgroundColor: '#F59E0B' }}
+                className="absolute inset-1 rounded-full blur-xl opacity-35 pointer-events-none"
+                style={{ backgroundColor: '#FACC15' }}
               />
               <img
                 src={CHEST_ASSET.webp}
@@ -427,7 +427,7 @@ export default function StudentDashboard() {
                 <h3 className="text-sm sm:text-base font-extrabold text-slate-800 tracking-tight">
                   Peti Misterius Verse Siap Dibuka!
                 </h3>
-                <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-amber-200/60 text-amber-800 border border-amber-300/60 uppercase">
+                <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-yellow-200 text-yellow-900 border border-yellow-300 uppercase">
                   Spesial
                 </span>
               </div>
@@ -439,9 +439,8 @@ export default function StudentDashboard() {
 
           <Link
             to="/my-verse"
-            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 text-xs font-black shadow-md shadow-amber-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer shrink-0"
+            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-300 via-yellow-300 to-yellow-400 hover:from-amber-400 hover:to-yellow-500 text-slate-950 text-xs font-black shadow-md shadow-yellow-400/25 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer shrink-0"
           >
-            <Sparkles className="w-3.5 h-3.5" />
             <span>Buka Peti Sekarang</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </Link>

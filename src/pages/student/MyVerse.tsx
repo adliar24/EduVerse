@@ -285,10 +285,9 @@ export default function MyVerse() {
                 <div className="mt-6">
                   <button 
                     onClick={() => setOnboardingStep('select_egg')}
-                    className="inline-flex items-center gap-2.5 px-6 py-3 rounded-2xl bg-gradient-to-r from-[#3B66F5] to-indigo-600 text-white font-bold text-sm shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
+                    className="inline-flex items-center justify-center px-6 py-3 rounded-2xl bg-gradient-to-r from-[#3B66F5] to-indigo-600 text-white font-bold text-sm shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
                   >
-                    <Sparkles className="w-4 h-4" />
-                    Ketuk Peti untuk Membuka
+                    <span>Ketuk Peti untuk Membuka</span>
                   </button>
                 </div>
               </div>
@@ -401,8 +400,7 @@ export default function MyVerse() {
                             onClick={handleStartEggHatching}
                             className="flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-[#3B66F5] to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-black text-xs sm:text-sm shadow-md shadow-blue-500/25 active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer"
                           >
-                            <Sparkles className="w-4 h-4 text-amber-300" />
-                            Pilih & Mulai Tetaskan Telur
+                            <span>Tetaskan Telur</span>
                           </button>
                         </div>
                       </div>
