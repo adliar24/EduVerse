@@ -179,10 +179,10 @@ export default function KelolaVerse() {
   // Metrics calculation
   const metrics = useMemo(() => {
     const totalStudents = students.length;
-    const adoptedCount = students.filter(s => !!s.verse).length;
-    const unadoptedCount = totalStudents - adoptedCount;
+    const adoptedCount = students.filter(s => !!s?.verse).length;
+    const unadoptedCount = Math.max(0, totalStudents - adoptedCount);
 
-    const adoptedList = students.filter(s => !!s.verse);
+    const adoptedList = students.filter(s => !!s?.verse);
     const avgLevel = adoptedList.length > 0 
       ? Math.round((adoptedList.reduce((acc, curr) => acc + (curr.verse?.level || 1), 0) / adoptedList.length) * 10) / 10 
       : 0;
@@ -192,21 +192,23 @@ export default function KelolaVerse() {
     adoptedList.forEach(s => {
       if ((s.verse?.level || 0) > maxLevel) {
         maxLevel = s.verse?.level || 0;
-        topStudentName = `${s.name} (${s.verse?.nickname})`;
+        topStudentName = `${s.name || 'Murid'} (${s.verse?.nickname || 'Verse'})`;
       }
     });
 
     return { totalStudents, adoptedCount, unadoptedCount, avgLevel, maxLevel, topStudentName };
   }, [students]);
 
-  // Filtered & Sorted Students
+  // Filtered & Sorted Students with complete null guards
   const filteredStudents = useMemo(() => {
     return students.filter(std => {
-      // Search
-      const q = searchQuery.toLowerCase();
-      const matchName = std.name.toLowerCase().includes(q);
-      const matchNickname = std.verse?.nickname.toLowerCase().includes(q) || false;
-      const matchSpecies = std.verse?.species.toLowerCase().includes(q) || false;
+      if (!std) return false;
+
+      // Search (Safely handle null or undefined names, nicknames, and species)
+      const q = (searchQuery || '').toLowerCase();
+      const matchName = (std.name || '').toLowerCase().includes(q);
+      const matchNickname = std.verse?.nickname ? String(std.verse.nickname).toLowerCase().includes(q) : false;
+      const matchSpecies = std.verse?.species ? String(std.verse.species).toLowerCase().includes(q) : false;
       const matchSearch = matchName || matchNickname || matchSpecies;
 
       // Class Filter
@@ -233,7 +235,7 @@ export default function KelolaVerse() {
         return (b.verse?.lifetimePoints || 0) - (a.verse?.lifetimePoints || 0);
       }
       if (sortBy === 'name_asc') {
-        return a.name.localeCompare(b.name);
+        return (a.name || '').localeCompare(b.name || '');
       }
       return 0;
     });
@@ -519,17 +521,15 @@ export default function KelolaVerse() {
                           </span>
                         )}
                       </div>
-                    </div>
-
-                    {/* Right side of item: Lv & Pet nickname or status */}
+                    </div>                      {/* Right side of item: Lv & Pet nickname or status */}
                     <div className="shrink-0 flex flex-col items-end gap-0.5">
                       {verse ? (
                         <>
                           <span className="px-1.5 py-0.5 rounded text-[9px] font-black bg-blue-100/70 text-[#3B66F5] border border-blue-200/50">
-                            Lv. {verse.level}
+                            Lv. {verse.level || 1}
                           </span>
-                          <span className="text-[10px] font-bold text-slate-600 truncate max-w-[90px]" title={verse.nickname}>
-                            {verse.nickname}
+                          <span className="text-[10px] font-bold text-slate-600 truncate max-w-[90px]" title={verse.nickname || verse.species || 'Verse'}>
+                            {verse.nickname || verse.species || 'Verse'}
                           </span>
                         </>
                       ) : (
@@ -573,11 +573,11 @@ export default function KelolaVerse() {
                           Detail Murid & Sahabat Verse
                         </span>
                         <h2 className="text-base sm:text-lg font-black text-slate-900 mt-0.5">
-                          {selectedStudent.name}
+                          {selectedStudent.name || 'Murid'}
                         </h2>
                         <div className="flex items-center gap-1.5 mt-0.5">
                           <span className="text-[10px] font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded">
-                            {selectedStudent.className}
+                            {selectedStudent.className || 'Tanpa Kelas'}
                           </span>
                           {selectedStudent.nisn && (
                             <span className="text-[10px] font-mono text-slate-400">
@@ -621,7 +621,7 @@ export default function KelolaVerse() {
                             <img 
                               src={stageInfo.image}
                               onError={(e) => { (e.currentTarget as HTMLImageElement).src = stageInfo.pngImage; }}
-                              alt={verse.nickname}
+                              alt={verse.nickname || char.species || 'Sahabat Verse'}
                               className="w-full h-full object-contain filter drop-shadow-xl relative z-10 transition-transform duration-300 hover:scale-105"
                             />
                           </div>
@@ -637,10 +637,10 @@ export default function KelolaVerse() {
 
                             <div>
                               <h3 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-                                {verse.nickname}
+                                {verse.nickname || char.species || 'Sahabat Verse'}
                               </h3>
                               <p className="text-xs font-semibold text-slate-500 mt-0.5">
-                                {stageInfo.name} — Tahap Evolusi {verse.stage}
+                                {stageInfo.name} — Tahap Evolusi {verse.stage || 1}
                               </p>
                             </div>
 
