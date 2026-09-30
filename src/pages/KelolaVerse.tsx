@@ -270,214 +270,209 @@ export default function KelolaVerse() {
 
   if (loading) {
     return (
-      <div className="space-y-6 animate-pulse">
-        <div className="h-32 bg-slate-100 rounded-3xl" />
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[1, 2, 3, 4].map(i => <div key={i} className="h-24 bg-slate-100 rounded-2xl" />)}
+      <div className="space-y-3 animate-pulse">
+        <div className="h-12 bg-slate-100 rounded-xl" />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+          {[1, 2, 3, 4].map(i => <div key={i} className="h-14 bg-slate-100 rounded-xl" />)}
         </div>
-        <div className="h-96 bg-slate-100 rounded-3xl" />
+        <div className="h-10 bg-slate-100 rounded-xl" />
+        <div className="h-[480px] bg-slate-100 rounded-2xl" />
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 pb-12">
-      {/* Header Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5 bg-gradient-to-r from-[#0F172A] via-[#1E3A8A] to-[#1E40AF] p-6 sm:p-8 rounded-[2rem] text-white shadow-xl relative overflow-hidden border border-white/10">
-        <div className="flex items-center gap-4 relative z-10 min-w-0 flex-1">
-          <div className="w-14 h-14 rounded-2xl bg-white/15 text-white flex items-center justify-center font-bold text-xl shadow-lg border border-white/20 shrink-0">
-            <Sparkles className="w-7 h-7 text-amber-300" />
+    <div className="space-y-2.5 pb-2">
+      {/* Minimalist Compact Header */}
+      <div className="flex items-center justify-between gap-3 bg-white px-4 py-2.5 rounded-xl border border-slate-200/90 shadow-2xs">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="w-8 h-8 rounded-lg bg-blue-50 text-[#3B66F5] flex items-center justify-center font-bold shadow-2xs border border-blue-100 shrink-0">
+            <Sparkles className="w-4 h-4 text-[#3B66F5]" />
           </div>
-          <div className="min-w-0 flex-1">
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-white tracking-tight leading-snug">
-              Pusat Pantau & Kelola Verse Murid
+          <div className="min-w-0 flex items-center gap-2 flex-wrap">
+            <h1 className="text-base sm:text-lg font-black text-slate-900 tracking-tight">
+              Pusat Pantau & Kelola Verse
             </h1>
-            <p className="text-slate-200 text-xs sm:text-sm font-medium mt-0.5">
-              Pantau progres level, wujud evolusi, XP seluruh murid, dan kelola status Verse.
-            </p>
+            <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full shrink-0">
+              {metrics.totalStudents} Murid
+            </span>
+            <span className="text-[11px] text-slate-400 font-medium hidden lg:inline">
+              • Pantau level, evolusi, & XP Verse seluruh siswa
+            </span>
           </div>
         </div>
 
-        <div className="flex items-center gap-2.5 relative z-10 shrink-0">
+        <div className="flex items-center gap-2 shrink-0">
           <button
             onClick={() => fetchData(true)}
             disabled={refreshing}
-            className="bg-white/10 hover:bg-white/20 text-white px-4 py-2.5 rounded-full font-bold text-xs sm:text-sm flex items-center justify-center gap-2 border border-white/20 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer disabled:opacity-50"
+            className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
             title="Segarkan data terbaru"
           >
-            <RotateCw className={`w-4 h-4 ${refreshing ? 'animate-spin text-amber-300' : 'text-white'}`} />
+            <RotateCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin text-[#3B66F5]' : 'text-slate-500'}`} />
             <span>{refreshing ? 'Sinkron...' : 'Segarkan'}</span>
           </button>
         </div>
       </div>
 
-      {/* Top Metric Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5">
-        <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-2xs">
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Verse Diadopsi</span>
-            <div className="w-8 h-8 rounded-xl bg-blue-50 text-[#3B66F5] flex items-center justify-center">
-              <Sparkles className="w-4 h-4" />
+      {/* Top Metric Cards - Compact Row */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+        <div className="px-3.5 py-2 rounded-xl bg-white border border-slate-200/90 shadow-2xs flex items-center justify-between">
+          <div>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Diadopsi</span>
+            <div className="flex items-baseline gap-1 mt-0.5">
+              <span className="text-base font-black text-slate-900">{metrics.adoptedCount}</span>
+              <span className="text-[10px] font-semibold text-slate-400">/ {metrics.totalStudents} Murid</span>
             </div>
           </div>
-          <div className="mt-2 flex items-baseline gap-1.5">
-            <h3 className="text-2xl font-black text-slate-900">{metrics.adoptedCount}</h3>
-            <span className="text-xs font-semibold text-slate-400">/ {metrics.totalStudents} Murid</span>
+          <div className="w-7 h-7 rounded-lg bg-blue-50 text-[#3B66F5] flex items-center justify-center shrink-0">
+            <Sparkles className="w-3.5 h-3.5" />
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-2xs">
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Rata-rata Level</span>
-            <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-              <Trophy className="w-4 h-4" />
+        <div className="px-3.5 py-2 rounded-xl bg-white border border-slate-200/90 shadow-2xs flex items-center justify-between">
+          <div>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Rata-rata Level</span>
+            <div className="flex items-baseline gap-1 mt-0.5">
+              <span className="text-base font-black text-slate-900">Lv. {metrics.avgLevel}</span>
+              <span className="text-[10px] font-semibold text-emerald-600">Aktif</span>
             </div>
           </div>
-          <div className="mt-2 flex items-baseline gap-1.5">
-            <h3 className="text-2xl font-black text-slate-900">Lv. {metrics.avgLevel}</h3>
-            <span className="text-xs font-semibold text-slate-400">Aktif</span>
+          <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+            <Trophy className="w-3.5 h-3.5" />
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-2xs">
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Level Tertinggi</span>
-            <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
-              <Zap className="w-4 h-4" />
+        <div className="px-3.5 py-2 rounded-xl bg-white border border-slate-200/90 shadow-2xs flex items-center justify-between">
+          <div className="min-w-0 pr-1">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Tertinggi</span>
+            <div className="flex items-baseline gap-1 mt-0.5 truncate">
+              <span className="text-base font-black text-slate-900">Lv. {metrics.maxLevel}</span>
+              <span className="text-[10px] font-semibold text-slate-400 truncate max-w-[85px]" title={metrics.topStudentName}>
+                {metrics.topStudentName}
+              </span>
             </div>
           </div>
-          <div className="mt-2 flex items-baseline gap-1.5">
-            <h3 className="text-2xl font-black text-slate-900">Lv. {metrics.maxLevel}</h3>
-            <span className="text-xs font-semibold text-slate-400 truncate max-w-[120px]" title={metrics.topStudentName}>
-              {metrics.topStudentName}
-            </span>
+          <div className="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+            <Zap className="w-3.5 h-3.5" />
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-2xs">
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Belum Memilih</span>
-            <div className="w-8 h-8 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center">
-              <Users className="w-4 h-4" />
+        <div className="px-3.5 py-2 rounded-xl bg-white border border-slate-200/90 shadow-2xs flex items-center justify-between">
+          <div>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Belum Adopsi</span>
+            <div className="flex items-baseline gap-1 mt-0.5">
+              <span className="text-base font-black text-slate-900">{metrics.unadoptedCount}</span>
+              <span className="text-[10px] font-semibold text-slate-400">Murid</span>
             </div>
           </div>
-          <div className="mt-2 flex items-baseline gap-1.5">
-            <h3 className="text-2xl font-black text-slate-900">{metrics.unadoptedCount}</h3>
-            <span className="text-xs font-semibold text-slate-400">Murid Baru</span>
+          <div className="w-7 h-7 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
+            <Users className="w-3.5 h-3.5" />
           </div>
         </div>
       </div>
 
-      {/* Filter & Search Bar */}
-      <div className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-2xs space-y-3">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3">
-          {/* Search */}
-          <div className="relative md:col-span-2">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              placeholder="Cari murid, nama Verse, atau spesies..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs sm:text-sm font-semibold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#3B66F5]/20 focus:border-[#3B66F5]"
-            />
-          </div>
-
-          {/* Class Filter */}
-          <div>
-            <select
-              value={selectedClass}
-              onChange={(e) => setSelectedClass(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs sm:text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#3B66F5]/20 focus:border-[#3B66F5]"
-            >
-              <option value="all">Semua Kelas</option>
-              {classes.map(c => (
-                <option key={c.id} value={c.id}>{c.name}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Element Filter */}
-          <div>
-            <select
-              value={selectedElement}
-              onChange={(e) => setSelectedElement(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs sm:text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#3B66F5]/20 focus:border-[#3B66F5]"
-            >
-              <option value="all">Semua Elemen</option>
-              <option value="api">Api (Pyrofox)</option>
-              <option value="air">Air (Aqualotl)</option>
-              <option value="bumi">Bumi (Pangorock)</option>
-              <option value="angin">Angin (Cirrofinch)</option>
-              <option value="petir">Petir (Voltlynx)</option>
-            </select>
-          </div>
-
-          {/* Sort By */}
-          <div>
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as any)}
-              className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs sm:text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#3B66F5]/20 focus:border-[#3B66F5]"
-            >
-              <option value="level_desc">Level Tertinggi</option>
-              <option value="points_desc">Poin Terbanyak</option>
-              <option value="name_asc">Nama Murid (A-Z)</option>
-            </select>
-          </div>
+      {/* Filter & Search Bar - Single Compact Toolbar */}
+      <div className="bg-white rounded-xl border border-slate-200/90 p-2 px-3 shadow-2xs flex flex-col md:flex-row items-stretch md:items-center gap-2">
+        {/* Search */}
+        <div className="relative flex-1 min-w-[180px]">
+          <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+          <input
+            type="text"
+            placeholder="Cari murid, nama Verse, atau spesies..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-8 pr-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-[#3B66F5]"
+          />
         </div>
 
-        {/* Status Pill Tabs */}
-        <div className="flex items-center gap-2 pt-1 border-t border-slate-100 overflow-x-auto text-xs font-bold">
-          <span className="text-slate-400 shrink-0">Status:</span>
+        {/* Status Pills */}
+        <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg shrink-0 overflow-x-auto text-[11px] font-bold">
           <button
             onClick={() => setSelectedStatus('all')}
-            className={`px-3 py-1 rounded-lg transition-colors cursor-pointer shrink-0 ${
+            className={`px-2 py-1 rounded-md transition-colors cursor-pointer shrink-0 ${
               selectedStatus === 'all' 
-                ? 'bg-[#3B66F5] text-white shadow-2xs' 
-                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                ? 'bg-white text-[#3B66F5] shadow-2xs font-black' 
+                : 'text-slate-500 hover:text-slate-800'
             }`}
           >
             Semua ({students.length})
           </button>
           <button
             onClick={() => setSelectedStatus('adopted')}
-            className={`px-3 py-1 rounded-lg transition-colors cursor-pointer shrink-0 ${
+            className={`px-2 py-1 rounded-md transition-colors cursor-pointer shrink-0 ${
               selectedStatus === 'adopted' 
-                ? 'bg-[#3B66F5] text-white shadow-2xs' 
-                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                ? 'bg-white text-[#3B66F5] shadow-2xs font-black' 
+                : 'text-slate-500 hover:text-slate-800'
             }`}
           >
-            Sudah Adopsi ({metrics.adoptedCount})
+            Adopsi ({metrics.adoptedCount})
           </button>
           <button
             onClick={() => setSelectedStatus('unadopted')}
-            className={`px-3 py-1 rounded-lg transition-colors cursor-pointer shrink-0 ${
+            className={`px-2 py-1 rounded-md transition-colors cursor-pointer shrink-0 ${
               selectedStatus === 'unadopted' 
-                ? 'bg-[#3B66F5] text-white shadow-2xs' 
-                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                ? 'bg-white text-[#3B66F5] shadow-2xs font-black' 
+                : 'text-slate-500 hover:text-slate-800'
             }`}
           >
-            Belum Memilih ({metrics.unadoptedCount})
+            Belum ({metrics.unadoptedCount})
           </button>
+        </div>
+
+        {/* Dropdowns */}
+        <div className="flex items-center gap-1.5 shrink-0 flex-wrap">
+          <select
+            value={selectedClass}
+            onChange={(e) => setSelectedClass(e.target.value)}
+            className="px-2.5 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-xs font-bold text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#3B66F5]"
+          >
+            <option value="all">Semua Kelas</option>
+            {classes.map(c => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
+          </select>
+
+          <select
+            value={selectedElement}
+            onChange={(e) => setSelectedElement(e.target.value)}
+            className="px-2.5 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-xs font-bold text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#3B66F5]"
+          >
+            <option value="all">Semua Elemen</option>
+            <option value="api">Api</option>
+            <option value="air">Air</option>
+            <option value="bumi">Bumi</option>
+            <option value="angin">Angin</option>
+            <option value="petir">Petir</option>
+          </select>
+
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as any)}
+            className="px-2.5 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-xs font-bold text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#3B66F5]"
+          >
+            <option value="level_desc">Level Tertinggi</option>
+            <option value="points_desc">Poin Terbanyak</option>
+            <option value="name_asc">Nama (A-Z)</option>
+          </select>
         </div>
       </div>
 
       {/* Student Verse Split View Layout */}
       {filteredStudents.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-slate-200/90 p-12 text-center text-slate-400 text-sm font-medium">
+        <div className="bg-white rounded-xl border border-slate-200/90 p-8 text-center text-slate-400 text-xs font-medium">
           Tidak ada data murid yang cocok dengan filter atau kata kunci pencarian.
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 items-start">
           {/* LEFT COLUMN: Scrollable Master List */}
-          <div className="lg:col-span-5 xl:col-span-4 space-y-2.5">
+          <div className="lg:col-span-5 xl:col-span-4 flex flex-col h-[calc(100vh-215px)] min-h-[440px] max-h-[640px]">
             {/* List Header & Counter */}
-            <div className="bg-white rounded-2xl border border-slate-200/90 p-3.5 shadow-2xs flex items-center justify-between">
+            <div className="bg-white rounded-t-xl border border-b-0 border-slate-200/90 px-3 py-2 shadow-2xs flex items-center justify-between shrink-0">
               <span className="text-xs font-bold text-slate-700">
                 Daftar Murid
               </span>
-              <span className="text-[11px] font-semibold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full">
+              <span className="text-[10px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
                 {filteredStudents.length} Murid
               </span>
             </div>
@@ -485,7 +480,7 @@ export default function KelolaVerse() {
             {/* Scrollable Container with custom scrollbar */}
             <div 
               onScroll={handleListScroll}
-              className="h-[640px] overflow-y-auto space-y-2 pr-1.5 focus:outline-none"
+              className="flex-1 overflow-y-auto space-y-1.5 p-2 bg-slate-50/50 rounded-b-xl border border-slate-200/90 focus:outline-none"
               style={{ scrollbarWidth: 'thin' }}
             >
               {visibleStudents.map((item) => {
@@ -501,25 +496,25 @@ export default function KelolaVerse() {
                         detailRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                       }
                     }}
-                    style={{ contentVisibility: 'auto', containIntrinsicSize: '68px' }}
-                    className={`p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between gap-3 text-left ${
+                    style={{ contentVisibility: 'auto', containIntrinsicSize: '54px' }}
+                    className={`p-2.5 rounded-lg border transition-all cursor-pointer flex items-center justify-between gap-2.5 text-left ${
                       isSelected 
                         ? 'bg-blue-50/90 border-[#3B66F5] shadow-xs ring-1 ring-[#3B66F5]/25' 
-                        : 'bg-white hover:bg-slate-50/80 border-slate-200/80 shadow-2xs'
+                        : 'bg-white hover:bg-slate-50/90 border-slate-200/80 shadow-2xs'
                     }`}
                   >
                     <div className="min-w-0 flex-1">
-                      <h4 className={`text-xs sm:text-sm font-bold truncate ${
+                      <h4 className={`text-xs font-bold truncate ${
                         isSelected ? 'text-[#3B66F5]' : 'text-slate-800'
                       }`}>
                         {item.name}
                       </h4>
                       <div className="flex items-center gap-1.5 mt-0.5">
-                        <span className="text-[10px] font-semibold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">
+                        <span className="text-[9px] font-semibold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">
                           {item.className}
                         </span>
                         {item.nisn && (
-                          <span className="text-[10px] font-mono text-slate-400 truncate">
+                          <span className="text-[9px] font-mono text-slate-400 truncate">
                             {item.nisn}
                           </span>
                         )}
@@ -530,15 +525,15 @@ export default function KelolaVerse() {
                     <div className="shrink-0 flex flex-col items-end gap-0.5">
                       {verse ? (
                         <>
-                          <span className="px-2 py-0.5 rounded-md text-[10px] font-black bg-blue-100/70 text-[#3B66F5] border border-blue-200/50">
+                          <span className="px-1.5 py-0.5 rounded text-[9px] font-black bg-blue-100/70 text-[#3B66F5] border border-blue-200/50">
                             Lv. {verse.level}
                           </span>
-                          <span className="text-[11px] font-bold text-slate-600 truncate max-w-[95px]" title={verse.nickname}>
+                          <span className="text-[10px] font-bold text-slate-600 truncate max-w-[90px]" title={verse.nickname}>
                             {verse.nickname}
                           </span>
                         </>
                       ) : (
-                        <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 text-slate-400">
+                        <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-slate-100 text-slate-400">
                           Belum Memilih
                         </span>
                       )}
@@ -549,15 +544,19 @@ export default function KelolaVerse() {
 
               {/* Load more hint on scroll */}
               {visibleCount < filteredStudents.length && (
-                <div className="py-2 text-center text-[11px] font-semibold text-slate-400">
-                  Scroll ke bawah untuk memuat murid berikutnya...
+                <div className="py-1.5 text-center text-[10px] font-semibold text-slate-400">
+                  Scroll ke bawah untuk memuat lagi...
                 </div>
               )}
             </div>
           </div>
 
           {/* RIGHT COLUMN: Detail & Visual Pet Panel */}
-          <div ref={detailRef} className="lg:col-span-7 xl:col-span-8">
+          <div 
+            ref={detailRef} 
+            className="lg:col-span-7 xl:col-span-8 h-[calc(100vh-215px)] min-h-[440px] max-h-[640px] overflow-y-auto"
+            style={{ scrollbarWidth: 'thin' }}
+          >
             {selectedStudent ? (
               (() => {
                 const verse = selectedStudent.verse;
@@ -566,22 +565,22 @@ export default function KelolaVerse() {
                 const vStats = verse ? calculateLevelAndProgress(verse.lifetimePoints) : null;
 
                 return (
-                  <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-5 sm:p-6 space-y-6 lg:sticky lg:top-6">
+                  <div className="bg-white rounded-xl border border-slate-200/90 shadow-2xs p-3.5 sm:p-4 space-y-3">
                     {/* Student Header Info */}
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2.5 border-b border-slate-100">
                       <div>
-                        <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                           Detail Murid & Sahabat Verse
                         </span>
-                        <h2 className="text-xl font-black text-slate-900 mt-0.5">
+                        <h2 className="text-base sm:text-lg font-black text-slate-900 mt-0.5">
                           {selectedStudent.name}
                         </h2>
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className="text-xs font-semibold text-slate-600 bg-slate-100 px-2.5 py-0.5 rounded-md">
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          <span className="text-[10px] font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded">
                             {selectedStudent.className}
                           </span>
                           {selectedStudent.nisn && (
-                            <span className="text-xs font-mono text-slate-400">
+                            <span className="text-[10px] font-mono text-slate-400">
                               NISN: {selectedStudent.nisn}
                             </span>
                           )}
@@ -592,10 +591,10 @@ export default function KelolaVerse() {
                         <div className="flex items-center gap-2">
                           <button
                             onClick={() => setResettingStudent(selectedStudent)}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-rose-200 bg-rose-50/60 hover:bg-rose-100 text-rose-700 text-xs font-bold transition-all cursor-pointer shadow-2xs hover:scale-[1.02] active:scale-[0.98]"
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-rose-200 bg-rose-50/60 hover:bg-rose-100 text-rose-700 text-[11px] font-bold transition-all cursor-pointer shadow-2xs hover:scale-[1.02] active:scale-[0.98]"
                             title="Reset Verse murid agar bisa memilih ulang"
                           >
-                            <RotateCcw className="w-3.5 h-3.5" />
+                            <RotateCcw className="w-3 h-3" />
                             <span>Reset Verse</span>
                           </button>
                         </div>
@@ -604,32 +603,32 @@ export default function KelolaVerse() {
 
                     {/* Verse Content */}
                     {verse && char && stageInfo && vStats ? (
-                      <div className="space-y-6">
+                      <div className="space-y-3">
                         {/* Visual Showcase Card */}
-                        <div className="relative rounded-2xl bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 border border-slate-200/80 p-6 flex flex-col sm:flex-row items-center gap-6 overflow-hidden">
+                        <div className="relative rounded-xl bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 border border-slate-200/80 p-3 sm:p-4 flex flex-col sm:flex-row items-center gap-4 overflow-hidden">
                           {/* Element Glow Effect */}
                           <div 
-                            className="absolute -top-12 -left-12 w-48 h-48 rounded-full blur-3xl opacity-20 pointer-events-none"
+                            className="absolute -top-10 -left-10 w-36 h-36 rounded-full blur-2xl opacity-20 pointer-events-none"
                             style={{ backgroundColor: char.elementColor || '#3B66F5' }}
                           />
 
                           {/* Visual Pet Image */}
-                          <div className="w-36 h-36 sm:w-44 sm:h-44 rounded-2xl relative flex items-center justify-center p-2 shrink-0">
+                          <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-xl relative flex items-center justify-center p-1.5 shrink-0">
                             <div 
-                              className="absolute inset-4 rounded-full blur-xl opacity-30"
+                              className="absolute inset-3 rounded-full blur-lg opacity-30"
                               style={{ backgroundColor: char.elementColor || '#3B66F5' }}
                             />
                             <img 
                               src={stageInfo.image}
                               onError={(e) => { (e.currentTarget as HTMLImageElement).src = stageInfo.pngImage; }}
                               alt={verse.nickname}
-                              className="w-full h-full object-contain filter drop-shadow-xl relative z-10 transition-transform duration-300 hover:scale-105"
+                              className="w-full h-full object-contain filter drop-shadow-md relative z-10 transition-transform duration-300 hover:scale-105"
                             />
                           </div>
 
                           {/* Pet Description & Identity */}
-                          <div className="min-w-0 flex-1 text-center sm:text-left space-y-2">
-                            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white border border-slate-200/80 shadow-2xs text-xs font-bold text-slate-700">
+                          <div className="min-w-0 flex-1 text-center sm:text-left space-y-1">
+                            <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-white border border-slate-200/80 shadow-2xs text-[10px] font-bold text-slate-700">
                               {getElementIcon(verse.element)}
                               <span className="capitalize">{char.elementName}</span>
                               <span className="text-slate-300">•</span>
@@ -637,38 +636,38 @@ export default function KelolaVerse() {
                             </div>
 
                             <div>
-                              <h3 className="text-2xl font-black text-slate-900 tracking-tight">
+                              <h3 className="text-lg font-black text-slate-900 tracking-tight">
                                 {verse.nickname}
                               </h3>
-                              <p className="text-xs font-semibold text-slate-500 mt-0.5">
+                              <p className="text-[11px] font-semibold text-slate-500">
                                 {stageInfo.name} — Tahap Evolusi {verse.stage}
                               </p>
                             </div>
 
-                            <p className="text-xs text-slate-600 font-medium line-clamp-2 pt-1">
+                            <p className="text-[11px] text-slate-600 font-medium line-clamp-2">
                               {stageInfo.description || char.philosophy}
                             </p>
                           </div>
                         </div>
 
                         {/* EXP & Level Details Card */}
-                        <div className="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-2xs space-y-4">
+                        <div className="p-3 sm:p-3.5 rounded-xl bg-white border border-slate-200/90 shadow-2xs space-y-2.5">
                           <div className="flex items-center justify-between">
-                            <span className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">
+                            <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">
                               Progres Level & Perolehan EXP
                             </span>
-                            <span className="px-3 py-1 rounded-full text-xs font-black bg-[#3B66F5] text-white shadow-2xs">
+                            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-[#3B66F5] text-white shadow-2xs">
                               Level {verse.level}
                             </span>
                           </div>
 
                           {/* Progress Bar */}
                           <div>
-                            <div className="flex items-center justify-between text-xs font-bold text-slate-700 mb-1.5">
-                              <span>Progres Menuju Level {vStats.currentLevel + 1}</span>
+                            <div className="flex items-center justify-between text-[11px] font-bold text-slate-700 mb-1">
+                              <span>Menuju Level {vStats.currentLevel + 1}</span>
                               <span className="text-[#3B66F5] font-extrabold">{vStats.progressPercent}%</span>
                             </div>
-                            <div className="w-full h-3 rounded-full bg-slate-100 overflow-hidden p-0.5 border border-slate-200/60">
+                            <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden p-0.5 border border-slate-200/60">
                               <motion.div 
                                 initial={{ width: 0 }}
                                 animate={{ width: `${vStats.progressPercent}%` }}
@@ -679,32 +678,32 @@ export default function KelolaVerse() {
                           </div>
 
                           {/* EXP Metric Chips (4 Columns) */}
-                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-2">
-                            <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                              <span className="text-[10px] font-bold text-slate-400 block uppercase">EXP Level Ini</span>
-                              <span className="text-sm font-black text-slate-800 mt-0.5 block truncate">
-                                {vStats.currentLevelProgress} <span className="text-[10px] text-slate-400 font-normal">/ {vStats.pointsNeededForNext}</span>
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
+                            <div className="p-2 rounded-lg bg-slate-50 border border-slate-100">
+                              <span className="text-[9px] font-bold text-slate-400 block uppercase">EXP Level Ini</span>
+                              <span className="text-xs font-black text-slate-800 mt-0.5 block truncate">
+                                {vStats.currentLevelProgress} <span className="text-[9px] text-slate-400 font-normal">/ {vStats.pointsNeededForNext}</span>
                               </span>
                             </div>
 
-                            <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                              <span className="text-[10px] font-bold text-slate-400 block uppercase">Sisa Kebutuhan</span>
-                              <span className="text-sm font-black text-blue-600 mt-0.5 block truncate">
-                                {vStats.pointsRemaining} <span className="text-[10px] text-slate-400 font-normal">XP</span>
+                            <div className="p-2 rounded-lg bg-slate-50 border border-slate-100">
+                              <span className="text-[9px] font-bold text-slate-400 block uppercase">Sisa Kebutuhan</span>
+                              <span className="text-xs font-black text-blue-600 mt-0.5 block truncate">
+                                {vStats.pointsRemaining} <span className="text-[9px] text-slate-400 font-normal">XP</span>
                               </span>
                             </div>
 
-                            <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                              <span className="text-[10px] font-bold text-slate-400 block uppercase">Tahap Evolusi</span>
-                              <span className="text-sm font-black text-slate-800 mt-0.5 block truncate">
+                            <div className="p-2 rounded-lg bg-slate-50 border border-slate-100">
+                              <span className="text-[9px] font-bold text-slate-400 block uppercase">Tahap Evolusi</span>
+                              <span className="text-xs font-black text-slate-800 mt-0.5 block truncate">
                                 Tahap {verse.stage}
                               </span>
                             </div>
 
-                            <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                              <span className="text-[10px] font-bold text-slate-400 block uppercase">Total EXP (Lifetime)</span>
-                              <span className="text-sm font-black text-emerald-600 mt-0.5 block truncate">
-                                {verse.lifetimePoints} <span className="text-[10px] text-slate-400 font-normal">XP</span>
+                            <div className="p-2 rounded-lg bg-slate-50 border border-slate-100">
+                              <span className="text-[9px] font-bold text-slate-400 block uppercase">Total EXP (Lifetime)</span>
+                              <span className="text-xs font-black text-emerald-600 mt-0.5 block truncate">
+                                {verse.lifetimePoints} <span className="text-[9px] text-slate-400 font-normal">XP</span>
                               </span>
                             </div>
                           </div>
@@ -712,8 +711,8 @@ export default function KelolaVerse() {
                       </div>
                     ) : (
                       /* Unadopted State */
-                      <div className="p-8 sm:p-12 text-center rounded-2xl bg-slate-50/60 border border-dashed border-slate-200 flex flex-col items-center justify-center space-y-4">
-                        <div className="w-24 h-24 rounded-2xl flex items-center justify-center p-2">
+                      <div className="p-6 text-center rounded-xl bg-slate-50/60 border border-dashed border-slate-200 flex flex-col items-center justify-center space-y-2.5">
+                        <div className="w-16 h-16 rounded-xl flex items-center justify-center p-1.5">
                           <img 
                             src={CHEST_ASSET.webp}
                             onError={(e) => { (e.currentTarget as HTMLImageElement).src = CHEST_ASSET.png; }}
@@ -722,10 +721,10 @@ export default function KelolaVerse() {
                           />
                         </div>
                         <div className="max-w-md space-y-1">
-                          <h3 className="text-base font-extrabold text-slate-800">
+                          <h3 className="text-sm font-extrabold text-slate-800">
                             Belum Mengadopsi Sahabat Verse
                           </h3>
-                          <p className="text-xs text-slate-500 font-medium leading-relaxed">
+                          <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
                             Murid ini belum membuka peti misterius untuk mengadopsi Verse pertamanya. Status akan otomatis diperbarui begitu murid memilih telur di menu My Verse.
                           </p>
                         </div>
@@ -735,7 +734,7 @@ export default function KelolaVerse() {
                 );
               })()
             ) : (
-              <div className="bg-white rounded-2xl border border-slate-200/90 p-12 text-center text-slate-400 text-sm font-medium">
+              <div className="bg-white rounded-xl border border-slate-200/90 p-8 text-center text-slate-400 text-xs font-medium">
                 Pilih salah satu murid di sisi kiri untuk melihat detail visual & progres EXP.
               </div>
             )}
