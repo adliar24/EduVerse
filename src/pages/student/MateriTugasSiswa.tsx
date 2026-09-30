@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { 
   BookOpen, 
@@ -17,7 +18,8 @@ import {
   Award,
   ArrowUpRight,
   Sparkles,
-  Camera
+  Camera,
+  ArrowLeft
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Material, Assignment, AssignmentSubmission } from '../../types';
@@ -31,6 +33,7 @@ interface MateriTugasSiswaProps {
 }
 
 export default function MateriTugasSiswa({ defaultTab = 'materials', fixedTab = false }: MateriTugasSiswaProps = {}) {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -230,19 +233,29 @@ export default function MateriTugasSiswa({ defaultTab = 'materials', fixedTab = 
     <div className="space-y-6 pb-10 font-sans">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-3xl font-bold text-indigo-950 tracking-tight">
-            {fixedTab 
-              ? (activeTab === 'assignments' ? 'Tugas Murid' : 'Materi Pelajaran') 
-              : 'Materi & Tugas Saya'}
-          </h2>
-          <p className="text-slate-500 mt-1 font-medium">
-            {fixedTab
-              ? (activeTab === 'assignments' 
-                  ? 'Periksa daftar penugasan kelas, kumpulkan lembar jawaban, dan lihat evaluasi nilai Anda.' 
-                  : 'Akses bahan ajar, modul pembelajaran, dan tautan materi dari guru Anda.')
-              : 'Akses materi belajar dan periksa daftar tugas Anda.'}
-          </p>
+        <div className="flex items-start sm:items-center gap-3">
+          <button
+            type="button"
+            onClick={() => navigate('/dashboard')}
+            className="p-2 sm:p-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 hover:text-indigo-950 transition-all shadow-xs shrink-0 cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
+            title="Kembali ke Dashboard"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <div>
+            <h2 className="text-2xl sm:text-3xl font-bold text-indigo-950 tracking-tight">
+              {fixedTab 
+                ? (activeTab === 'assignments' ? 'Tugas Murid' : 'Materi Pelajaran') 
+                : 'Materi & Tugas Saya'}
+            </h2>
+            <p className="text-slate-500 mt-1 font-medium text-xs sm:text-sm">
+              {fixedTab
+                ? (activeTab === 'assignments' 
+                    ? 'Periksa daftar penugasan kelas, kumpulkan lembar jawaban, dan lihat evaluasi nilai Anda.' 
+                    : 'Akses bahan ajar, modul pembelajaran, dan tautan materi dari guru Anda.')
+                : 'Akses materi belajar dan periksa daftar tugas Anda.'}
+            </p>
+          </div>
         </div>
         <button
           onClick={() => fetchStudentData(true)}

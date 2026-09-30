@@ -276,9 +276,19 @@ export default function StudentJoin({ isDashboardView = false }: { isDashboardVi
     if (loading) {
       return (
         <div className="space-y-8 pb-10 font-sans">
-          <div>
-            <h2 className="text-3xl font-bold text-slate-900 tracking-tight">Ujian Aktif Saya</h2>
-            <p className="text-slate-500 mt-1 font-medium">Lihat dan kerjakan ujian yang sedang aktif untuk kelas Anda.</p>
+          <div className="flex items-start sm:items-center gap-3">
+            <button
+              type="button"
+              onClick={() => navigate('/dashboard')}
+              className="p-2 sm:p-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 hover:text-slate-900 transition-all shadow-xs shrink-0 cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
+              title="Kembali ke Dashboard"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <div>
+              <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Ujian Aktif Saya</h2>
+              <p className="text-slate-500 mt-0.5 sm:mt-1 font-medium text-xs sm:text-sm">Lihat dan kerjakan ujian yang sedang aktif untuk kelas Anda.</p>
+            </div>
           </div>
           <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-12 text-center max-w-4xl">
             <Loader2 className="w-8 h-8 text-indigo-600 animate-spin mx-auto" />
@@ -291,9 +301,19 @@ export default function StudentJoin({ isDashboardView = false }: { isDashboardVi
     if (!studentInfo) {
       return (
         <div className="space-y-8 pb-10 font-sans">
-          <div>
-            <h2 className="text-3xl font-bold text-slate-900 tracking-tight">Ujian Aktif Saya</h2>
-            <p className="text-slate-500 mt-1 font-medium">Lihat dan kerjakan ujian yang sedang aktif untuk kelas Anda.</p>
+          <div className="flex items-start sm:items-center gap-3">
+            <button
+              type="button"
+              onClick={() => navigate('/dashboard')}
+              className="p-2 sm:p-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 hover:text-slate-900 transition-all shadow-xs shrink-0 cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
+              title="Kembali ke Dashboard"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <div>
+              <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Ujian Aktif Saya</h2>
+              <p className="text-slate-500 mt-0.5 sm:mt-1 font-medium text-xs sm:text-sm">Lihat dan kerjakan ujian yang sedang aktif untuk kelas Anda.</p>
+            </div>
           </div>
           <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-12 text-center max-w-4xl">
             <p className="text-rose-600 font-bold text-sm">Identitas siswa tidak ditemukan atau sesi telah berakhir.</p>
@@ -306,9 +326,19 @@ export default function StudentJoin({ isDashboardView = false }: { isDashboardVi
     return (
       <div className="space-y-8 pb-10 font-sans">
         {/* Header */}
-        <div>
-          <h2 className="text-3xl font-bold text-slate-900 tracking-tight">Ujian Aktif Saya</h2>
-          <p className="text-slate-500 mt-1 font-medium">Lihat dan kerjakan ujian yang sedang aktif untuk kelas Anda.</p>
+        <div className="flex items-start sm:items-center gap-3">
+          <button
+            type="button"
+            onClick={() => navigate('/dashboard')}
+            className="p-2 sm:p-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 hover:text-slate-900 transition-all shadow-xs shrink-0 cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
+            title="Kembali ke Dashboard"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          <div>
+            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Ujian Aktif Saya</h2>
+            <p className="text-slate-500 mt-0.5 sm:mt-1 font-medium text-xs sm:text-sm">Lihat dan kerjakan ujian yang sedang aktif untuk kelas Anda.</p>
+          </div>
         </div>
 
         {/* Student Info Card */}

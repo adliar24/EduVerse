@@ -251,10 +251,10 @@ export default function StudentResult() {
           </div>
 
           <Link 
-            to="/exam"
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-3 bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white px-10 sm:px-16 py-4 sm:py-6 rounded-full font-black text-base sm:text-lg hover:brightness-110 active:scale-[0.98] transition-all border border-white/10 shadow-2xl shadow-[#3B66F5]/25 group"
+            to={localStorage.getItem('student_session') ? "/dashboard" : "/exam"}
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-3 bg-gradient-to-r from-[#3B66F5] via-[#2563EB] to-[#1D4ED8] text-white px-10 sm:px-16 py-4 sm:py-6 rounded-full font-black text-base sm:text-lg hover:brightness-110 active:scale-[0.98] transition-all border border-white/10 shadow-2xl shadow-[#3B66F5]/25 group cursor-pointer"
           >
-            Keluar Halaman
+            {localStorage.getItem('student_session') ? 'Kembali ke Dashboard' : 'Keluar Halaman'}
             <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>

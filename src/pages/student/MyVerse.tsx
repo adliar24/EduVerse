@@ -11,7 +11,8 @@ import {
   Mountain, 
   Wind,
   Edit2,
-  ArrowRight
+  ArrowRight,
+  ArrowLeft
 } from 'lucide-react';
 import { capitalizeEachWord } from '../../lib/utils';
 import { StudentVerse, VerseSpecies } from '../../types';
@@ -446,7 +447,20 @@ export default function MyVerse() {
   // --------------------------------------------------------------------------
   if (!verse) {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-8">
+      <div className="max-w-4xl mx-auto px-4 py-6 sm:py-8 space-y-4">
+        {/* Top Navigation Back */}
+        <div className="flex items-center justify-start">
+          <button
+            type="button"
+            onClick={() => navigate('/dashboard')}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 text-xs font-bold transition-all shadow-xs shrink-0 cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
+            title="Kembali ke Dashboard"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Kembali ke Dashboard</span>
+          </button>
+        </div>
+
         <AnimatePresence mode="wait">
           {/* STEP 1: MYSTERIOUS CHEST */}
           {onboardingStep === 'chest' && (
@@ -871,31 +885,43 @@ export default function MyVerse() {
         
         {/* 1. BAGIAN ATAS: Teks Tahap, Elemen, Level, Nama, & Sinkron Poin */}
         <div className="w-full flex flex-col items-center gap-3">
-          {/* Header Row: Pet Nickname & Sinkron Poin Button */}
+          {/* Header Row: Back to Dashboard & Pet Nickname & Sinkron Poin Button */}
           <div className={`w-full flex items-center justify-between gap-2 border-b pb-3 ${elementTheme.divider}`}>
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl sm:text-2xl font-black text-slate-800 tracking-tight">
-                {verse.nickname}
-              </h1>
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
               <button
-                onClick={() => {
-                  setEditNameInput(verse.nickname);
-                  setIsEditingName(true);
-                }}
-                title="Ubah Nama Panggilan"
-                className="p-1.5 rounded-lg text-slate-400 hover:text-[#3B66F5] hover:bg-white/80 transition-colors cursor-pointer"
+                type="button"
+                onClick={() => navigate('/dashboard')}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200/90 bg-white/90 hover:bg-white text-slate-700 hover:text-slate-900 text-xs font-bold transition-all shadow-xs shrink-0 cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
+                title="Kembali ke Dashboard"
               >
-                <Edit2 className="w-3.5 h-3.5" />
+                <ArrowLeft className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Dashboard</span>
               </button>
+
+              <div className="flex items-center gap-1.5 min-w-0">
+                <h1 className="text-xl sm:text-2xl font-black text-slate-800 tracking-tight truncate">
+                  {verse.nickname}
+                </h1>
+                <button
+                  onClick={() => {
+                    setEditNameInput(verse.nickname);
+                    setIsEditingName(true);
+                  }}
+                  title="Ubah Nama Panggilan"
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-[#3B66F5] hover:bg-white/80 transition-colors cursor-pointer shrink-0"
+                >
+                  <Edit2 className="w-3.5 h-3.5" />
+                </button>
+              </div>
             </div>
 
             <button
               onClick={() => loadData(true)}
               disabled={refreshing}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200/90 bg-white/85 text-slate-700 text-xs font-bold hover:bg-white transition-colors cursor-pointer shrink-0 disabled:opacity-50 shadow-2xs"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200/90 bg-white/85 text-slate-700 text-xs font-bold hover:bg-white transition-colors cursor-pointer shrink-0 disabled:opacity-50 shadow-xs"
             >
-              <RotateCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin text-[#3B66F5]' : 'text-slate-500'}`} />
-              <span>Sinkron Poin</span>
+              <RotateCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin text-[#3B66F5]' : 'text-slate-400'}`} />
+              <span>{refreshing ? 'Sinkron...' : 'Sinkron Poin'}</span>
             </button>
           </div>
 

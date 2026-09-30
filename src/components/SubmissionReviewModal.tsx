@@ -22,7 +22,8 @@ import {
   School,
   Sparkles,
   MapPin,
-  Compass
+  Compass,
+  ArrowLeft
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Assignment, AssignmentSubmission, Student, ClassEntity } from '../types';
@@ -466,32 +467,44 @@ export default function SubmissionReviewModal({
         exit={{ opacity: 0, scale: 0.97 }}
         className="bg-white w-full max-w-4xl rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-200 flex flex-col h-[85vh] max-h-[640px] my-auto overflow-hidden"
       >
-        {/* Compact Header */}
+        {/* Compact Header with Back Button */}
         <div className="px-4 py-2.5 sm:px-5 sm:py-3 border-b border-slate-100 flex items-center justify-between gap-3 bg-gradient-to-r from-indigo-50/70 via-white to-blue-50/70 shrink-0">
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2 flex-wrap mb-0.5">
-              {mobileView === 'detail' && (
-                <button
-                  type="button"
-                  onClick={() => setMobileView('list')}
-                  className="md:hidden p-1 rounded-lg bg-indigo-100 text-indigo-700 hover:bg-indigo-200 transition-colors cursor-pointer mr-0.5"
-                  title="Kembali ke Daftar Murid"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
-              )}
-              <span className="bg-gradient-to-r from-[#1D4ED8] to-[#3B66F5] text-white text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full shadow-2xs">
-                Pemeriksaan Tugas Murid
-              </span>
-              {activeClassObj && (
-                <span className="bg-blue-50 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-blue-200/80">
-                  {activeClassObj.name}
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
+            <button
+              type="button"
+              onClick={onClose}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 text-xs font-bold transition-all shadow-xs shrink-0 cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
+              title="Kembali ke Kelola Tugas"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Kembali</span>
+            </button>
+
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                {mobileView === 'detail' && (
+                  <button
+                    type="button"
+                    onClick={() => setMobileView('list')}
+                    className="md:hidden p-1 rounded-lg bg-indigo-100 text-indigo-700 hover:bg-indigo-200 transition-colors cursor-pointer mr-0.5"
+                    title="Kembali ke Daftar Murid"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                )}
+                <span className="bg-gradient-to-r from-[#1D4ED8] to-[#3B66F5] text-white text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full shadow-2xs">
+                  Pemeriksaan Tugas Murid
                 </span>
-              )}
+                {activeClassObj && (
+                  <span className="bg-blue-50 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-blue-200/80">
+                    {activeClassObj.name}
+                  </span>
+                )}
+              </div>
+              <h3 className="text-sm sm:text-base font-bold text-slate-900 truncate">
+                {assignment.title}
+              </h3>
             </div>
-            <h3 className="text-sm sm:text-base font-bold text-slate-900 truncate">
-              {assignment.title}
-            </h3>
           </div>
           <button 
             onClick={onClose}

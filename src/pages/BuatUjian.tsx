@@ -280,10 +280,20 @@ export default function BuatUjian() {
   ];
 
   return (
-    <div className="space-y-10 pb-20">
-      <div>
-        <h2 className="text-3xl font-bold text-[#1D4ED8] tracking-tight">Buat Ujian Baru</h2>
-        <p className="text-slate-500 font-medium mt-1">Konfigurasi ujian Anda dan pilih soal terbaik.</p>
+    <div className="space-y-8 pb-20">
+      <div className="flex items-start sm:items-center gap-3">
+        <button
+          type="button"
+          onClick={() => navigate('/daftar-ujian')}
+          className="p-2 sm:p-2.5 bg-white border border-slate-200 rounded-xl text-slate-500 hover:text-[#1D4ED8] hover:bg-slate-50 transition-all shadow-xs shrink-0 cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
+          title="Kembali ke Daftar Ujian"
+        >
+          <ChevronLeft className="w-5 h-5" />
+        </button>
+        <div>
+          <h2 className="text-2xl sm:text-3xl font-bold text-[#1D4ED8] tracking-tight">Buat Ujian Baru</h2>
+          <p className="text-slate-500 font-medium text-xs sm:text-sm mt-0.5">Konfigurasi ujian Anda dan pilih soal terbaik.</p>
+        </div>
       </div>
 
       {/* Stepper */}
