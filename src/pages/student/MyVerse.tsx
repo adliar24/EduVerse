@@ -326,14 +326,15 @@ export default function MyVerse() {
     setIsEditingName(false);
   };
 
-  const getElementIcon = (element: string) => {
+  const getElementIcon = (element: string, className?: string) => {
+    const baseClass = className || "w-3.5 h-3.5";
     switch (element) {
-      case 'api': return <Flame className="w-3.5 h-3.5 text-red-500" />;
-      case 'air': return <Droplets className="w-3.5 h-3.5 text-cyan-500" />;
-      case 'bumi': return <Mountain className="w-3.5 h-3.5 text-emerald-500" />;
-      case 'angin': return <Wind className="w-3.5 h-3.5 text-sky-500" />;
-      case 'petir': return <Zap className="w-3.5 h-3.5 text-amber-500" />;
-      default: return <Sparkles className="w-3.5 h-3.5 text-[#3B66F5]" />;
+      case 'api': return <Flame className={`${baseClass} ${!className?.includes('text-') ? 'text-red-500' : ''}`} />;
+      case 'air': return <Droplets className={`${baseClass} ${!className?.includes('text-') ? 'text-cyan-500' : ''}`} />;
+      case 'bumi': return <Mountain className={`${baseClass} ${!className?.includes('text-') ? 'text-emerald-500' : ''}`} />;
+      case 'angin': return <Wind className={`${baseClass} ${!className?.includes('text-') ? 'text-sky-500' : ''}`} />;
+      case 'petir': return <Zap className={`${baseClass} ${!className?.includes('text-') ? 'text-amber-500' : ''}`} />;
+      default: return <Sparkles className={`${baseClass} ${!className?.includes('text-') ? 'text-[#3B66F5]' : ''}`} />;
     }
   };
 
@@ -1032,132 +1033,235 @@ export default function MyVerse() {
 
       {/* Spectacular Evolution Celebration Modal (Lebih Wah) */}
       <AnimatePresence>
-        {evolutionCelebration && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-md overflow-hidden">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              className="relative max-w-lg w-full text-center p-6 sm:p-8 rounded-3xl bg-gradient-to-b from-slate-900 via-slate-900/95 to-slate-950 border border-amber-500/40 shadow-2xl overflow-hidden"
-            >
-              {/* Cosmic background glows */}
-              <div className="absolute -top-24 -left-24 w-72 h-72 rounded-full bg-amber-500/25 blur-3xl pointer-events-none animate-pulse" />
-              <div className="absolute -bottom-24 -right-24 w-72 h-72 rounded-full bg-blue-500/25 blur-3xl pointer-events-none animate-pulse" />
+        {evolutionCelebration && (() => {
+          const evoChar = getVerseCharacter(evolutionCelebration.species);
+          const stageInfo = getStageInfo(evolutionCelebration.species, evolutionCelebration.newStage);
+          return (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-md overflow-hidden">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                className="relative max-w-lg w-full text-center p-6 sm:p-8 rounded-3xl bg-gradient-to-b from-slate-900 via-slate-900/95 to-slate-950 border border-amber-500/40 shadow-2xl overflow-hidden"
+              >
+                {/* Cosmic background glows */}
+                <div className="absolute -top-24 -left-24 w-72 h-72 rounded-full bg-amber-500/25 blur-3xl pointer-events-none animate-pulse" />
+                <div className="absolute -bottom-24 -right-24 w-72 h-72 rounded-full bg-blue-500/25 blur-3xl pointer-events-none animate-pulse" />
 
-              {evolutionPhase === 'transforming' ? (
-                <div className="py-8 space-y-6">
-                  <div className="w-28 h-28 mx-auto rounded-full bg-amber-400/20 flex items-center justify-center border-2 border-amber-400/60 shadow-xl shadow-amber-400/30 animate-pulse">
-                    <Sparkles className="w-14 h-14 text-amber-300 animate-spin" />
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-black text-white tracking-wide uppercase drop-shadow-md">
-                      Sensasi Misterius...
-                    </h2>
-                    <p className="text-amber-300 text-sm font-bold mt-2 animate-pulse">
-                      Sahabat Verse {evolutionCelebration.nickname} sedang ber-evolusi!
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-6">
-                  {/* Header */}
-                  <div>
-                    <span className="inline-block px-3 py-1 rounded-full bg-amber-400/20 border border-amber-400/50 text-amber-300 text-xs font-black uppercase tracking-widest mb-2 shadow-sm">
-                      🌟 EVOLUSI SPEKTAKULER!
-                    </span>
-                    <h2 className="text-3xl font-black text-white tracking-tight drop-shadow-lg">
-                      Wujud Baru Terbuka!
-                    </h2>
-                    <p className="text-slate-300 text-xs mt-1">
-                      <strong className="text-amber-300">{evolutionCelebration.nickname}</strong> telah berevolusi dari Tahap {evolutionCelebration.oldStage} ke Tahap {evolutionCelebration.newStage}!
-                    </p>
-                  </div>
+                <AnimatePresence mode="wait">
+                  {evolutionPhase === 'transforming' ? (
+                    <motion.div 
+                      key="transforming"
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 1.05 }}
+                      transition={{ duration: 0.3 }}
+                      className="py-8 space-y-6"
+                    >
+                      <div className="w-28 h-28 mx-auto rounded-full bg-amber-400/20 flex items-center justify-center border-2 border-amber-400/60 shadow-xl shadow-amber-400/30 animate-pulse relative">
+                        <div 
+                          className="absolute inset-0 rounded-full blur-md opacity-40 pointer-events-none"
+                          style={{ backgroundColor: evoChar.elementColor || '#F59E0B' }}
+                        />
+                        <div className="relative z-10 animate-bounce">
+                          {getElementIcon(evoChar.element, "w-14 h-14")}
+                        </div>
+                      </div>
+                      <div>
+                        <h2 className="text-2xl font-black text-white tracking-wide uppercase drop-shadow-md">
+                          Sensasi Misterius...
+                        </h2>
+                        <p className="text-amber-300 text-sm font-bold mt-2 animate-pulse">
+                          Sahabat Verse {evolutionCelebration.nickname} sedang ber-evolusi!
+                        </p>
+                      </div>
+                    </motion.div>
+                  ) : (
+                    <motion.div 
+                      key="revealed"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.4 }}
+                      className="space-y-6"
+                    >
+                      {/* Header */}
+                      <div>
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-400/20 border border-amber-400/50 text-amber-300 text-xs font-black uppercase tracking-widest mb-2 shadow-sm">
+                          {getElementIcon(evoChar.element, "w-3.5 h-3.5")}
+                          <span>EVOLUSI SPEKTAKULER!</span>
+                        </span>
+                        <h2 className="text-3xl font-black text-white tracking-tight drop-shadow-lg">
+                          Wujud Baru Terbuka!
+                        </h2>
+                        <p className="text-slate-300 text-xs mt-1">
+                          <strong className="text-amber-300">{evolutionCelebration.nickname}</strong> telah berevolusi dari Tahap {evolutionCelebration.oldStage} ke Tahap {evolutionCelebration.newStage}!
+                        </p>
+                      </div>
 
-                  {/* Character Showcase - Extra Large & Crystal Clear */}
-                  <div className="relative py-2 flex items-center justify-center">
-                    <div className="w-64 h-64 sm:w-72 sm:h-72 relative flex items-center justify-center">
-                      <img 
-                        src={getStageInfo(evolutionCelebration.species, evolutionCelebration.newStage).image}
-                        onError={(e) => { (e.currentTarget as HTMLImageElement).src = getStageInfo(evolutionCelebration.species, evolutionCelebration.newStage).pngImage; }}
-                        alt={evolutionCelebration.nickname}
-                        className="w-full h-full object-contain filter drop-shadow-2xl relative z-10 transition-transform duration-300 hover:scale-105 select-none"
-                      />
-                    </div>
-                  </div>
+                      {/* Character Showcase with Golden-White Radiant Flare & Spring Zoom */}
+                      <div className="relative py-4 flex items-center justify-center min-h-[290px] overflow-visible">
+                        {/* Expanding warm golden-white burst flare (cahaya putih kekuning-kuningan) */}
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.15 }}
+                          animate={{ 
+                            opacity: [0, 1, 0.85, 0.45], 
+                            scale: [0.15, 1.4, 2.0, 2.3] 
+                          }}
+                          transition={{ 
+                            duration: 1.5, 
+                            times: [0, 0.25, 0.65, 1],
+                            ease: "easeOut" 
+                          }}
+                          className="absolute inset-0 m-auto w-64 h-64 rounded-full bg-gradient-to-r from-amber-200 via-white to-yellow-300 blur-3xl pointer-events-none z-0"
+                        />
 
-                  {/* Stage description & stats */}
-                  <div className="p-4 rounded-2xl bg-white/10 border border-white/15 backdrop-blur-sm text-left">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-black text-amber-300">
-                        {getStageInfo(evolutionCelebration.species, evolutionCelebration.newStage).name}
-                      </span>
-                      <span className="text-xs font-bold text-slate-300">
-                        Level {evolutionCelebration.newLevel}
-                      </span>
-                    </div>
-                    <p className="text-xs text-slate-200 mt-1.5 font-medium leading-relaxed">
-                      {getStageInfo(evolutionCelebration.species, evolutionCelebration.newStage).description}
-                    </p>
-                  </div>
+                        {/* Intense White-Golden Core Flash (Luminous Radial Glow) */}
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.3 }}
+                          animate={{ 
+                            opacity: [0, 1, 0.8, 0], 
+                            scale: [0.3, 1.3, 1.8, 2.2] 
+                          }}
+                          transition={{ 
+                            duration: 1.1, 
+                            times: [0, 0.2, 0.6, 1],
+                            ease: "easeOut" 
+                          }}
+                          style={{
+                            background: 'radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(254,240,138,0.95) 35%, rgba(251,191,36,0.3) 70%, transparent 100%)'
+                          }}
+                          className="absolute inset-0 m-auto w-60 h-60 rounded-full blur-xl pointer-events-none z-0"
+                        />
 
-                  <button
-                    onClick={() => setEvolutionCelebration(null)}
-                    className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-600 hover:to-orange-600 text-white font-black text-sm uppercase tracking-wider shadow-lg shadow-orange-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
-                  >
-                    Luar Biasa!
-                  </button>
-                </div>
-              )}
-            </motion.div>
-          </div>
-        )}
+                        {/* Expanding Light Shockwave Ring */}
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.2 }}
+                          animate={{ 
+                            opacity: [0, 0.95, 0], 
+                            scale: [0.2, 2.0, 2.8] 
+                          }}
+                          transition={{ 
+                            duration: 1.2, 
+                            times: [0, 0.25, 1],
+                            ease: "easeOut",
+                            delay: 0.1
+                          }}
+                          className="absolute inset-0 m-auto w-48 h-48 rounded-full border-2 border-yellow-200/90 blur-xs pointer-events-none z-0"
+                        />
+
+                        {/* Evolved Character Mascot with Zoom-in Spring Animation */}
+                        <motion.div
+                          initial={{ scale: 0.1, opacity: 0, rotate: -8 }}
+                          animate={{ scale: 1, opacity: 1, rotate: 0 }}
+                          transition={{ 
+                            type: 'spring', 
+                            stiffness: 90, 
+                            damping: 12, 
+                            mass: 0.85,
+                            delay: 0.15 
+                          }}
+                          className="w-64 h-64 sm:w-72 sm:h-72 relative flex items-center justify-center z-10"
+                        >
+                          <img 
+                            src={stageInfo.image}
+                            onError={(e) => { (e.currentTarget as HTMLImageElement).src = stageInfo.pngImage; }}
+                            alt={evolutionCelebration.nickname}
+                            className="w-full h-full object-contain filter drop-shadow-[0_20px_50px_rgba(0,0,0,0.85)] relative z-10 transition-transform duration-300 hover:scale-105 select-none"
+                          />
+                        </motion.div>
+                      </div>
+
+                      {/* Stage description & stats */}
+                      <div className="p-4 rounded-2xl bg-white/10 border border-white/15 backdrop-blur-sm text-left">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-black text-amber-300">
+                            {stageInfo.name}
+                          </span>
+                          <span className="text-xs font-bold text-slate-300">
+                            Level {evolutionCelebration.newLevel}
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-200 mt-1.5 font-medium leading-relaxed">
+                          {stageInfo.description}
+                        </p>
+                      </div>
+
+                      <button
+                        onClick={() => setEvolutionCelebration(null)}
+                        className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-600 hover:to-orange-600 text-white font-black text-sm uppercase tracking-wider shadow-lg shadow-orange-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
+                      >
+                        Luar Biasa!
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
+            </div>
+          );
+        })()}
       </AnimatePresence>
 
       {/* Level Up Celebration Modal */}
       <AnimatePresence>
-        {levelUpCelebration && !evolutionCelebration && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              className="relative max-w-sm w-full text-center p-6 sm:p-7 rounded-3xl bg-white border border-slate-200 shadow-2xl overflow-hidden"
-            >
-              <div className="w-16 h-16 mx-auto rounded-2xl bg-blue-50 border border-blue-200/80 text-[#3B66F5] flex items-center justify-center shadow-md mb-4">
-                <Sparkles className="w-8 h-8 text-amber-400" />
-              </div>
-
-              <span className="inline-block px-3 py-1 rounded-full bg-blue-50 text-[#3B66F5] text-xs font-black uppercase tracking-wider mb-2">
-                Level Up!
-              </span>
-
-              <h3 className="text-2xl font-black text-slate-900 tracking-tight">
-                Level {levelUpCelebration.newLevel} Dicapai!
-              </h3>
-
-              <p className="text-xs text-slate-500 font-medium mt-2 leading-relaxed">
-                Hebat! Sahabat Verse <strong className="text-slate-800">{levelUpCelebration.nickname}</strong> bertambah kuat dari perolehan EXP belajarmu!
-              </p>
-
-              <div className="my-5 p-3 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center gap-3">
-                <span className="text-sm font-bold text-slate-400 line-through">
-                  Level {levelUpCelebration.oldLevel}
-                </span>
-                <span className="text-xs font-bold text-slate-400">➔</span>
-                <span className="text-lg font-black text-[#3B66F5]">
-                  Level {levelUpCelebration.newLevel}
-                </span>
-              </div>
-
-              <button
-                onClick={() => setLevelUpCelebration(null)}
-                className="w-full py-3 rounded-xl bg-[#3B66F5] hover:bg-blue-600 text-white font-black text-xs uppercase tracking-wider shadow-md shadow-blue-500/25 active:scale-95 transition-all cursor-pointer"
+        {levelUpCelebration && !evolutionCelebration && (() => {
+          const lvlChar = getVerseCharacter(levelUpCelebration.species);
+          return (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                className="relative max-w-sm w-full text-center p-6 sm:p-7 rounded-3xl bg-white border border-slate-200 shadow-2xl overflow-hidden"
               >
-                Keren, Lanjutkan!
-              </button>
-            </motion.div>
-          </div>
-        )}
+                {/* Element icon badge with spring zoom animation (no generic sparkle) */}
+                <motion.div 
+                  initial={{ scale: 0.5, rotate: -12 }}
+                  animate={{ scale: [0.5, 1.15, 1], rotate: [-12, 6, 0] }}
+                  transition={{ type: "spring", stiffness: 220, damping: 12 }}
+                  className="w-16 h-16 mx-auto rounded-2xl bg-slate-50 border border-slate-200/90 flex items-center justify-center shadow-md mb-4 relative"
+                >
+                  <div 
+                    className="absolute inset-0 rounded-2xl blur-xs opacity-25 pointer-events-none"
+                    style={{ backgroundColor: lvlChar.elementColor || '#3B66F5' }}
+                  />
+                  <div className="relative z-10 flex items-center justify-center">
+                    {getElementIcon(lvlChar.element, "w-8 h-8")}
+                  </div>
+                </motion.div>
+
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 text-[#3B66F5] text-xs font-black uppercase tracking-wider mb-2">
+                  {getElementIcon(lvlChar.element, "w-3 h-3")}
+                  <span>Level Up!</span>
+                </span>
+
+                <h3 className="text-2xl font-black text-slate-900 tracking-tight">
+                  Level {levelUpCelebration.newLevel} Dicapai!
+                </h3>
+
+                <p className="text-xs text-slate-500 font-medium mt-2 leading-relaxed">
+                  Hebat! Sahabat Verse <strong className="text-slate-800">{levelUpCelebration.nickname}</strong> bertambah kuat dari perolehan EXP belajarmu!
+                </p>
+
+                <div className="my-5 p-3 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center gap-3">
+                  <span className="text-sm font-bold text-slate-400 line-through">
+                    Level {levelUpCelebration.oldLevel}
+                  </span>
+                  <span className="text-xs font-bold text-slate-400">➔</span>
+                  <span className="text-lg font-black text-[#3B66F5]">
+                    Level {levelUpCelebration.newLevel}
+                  </span>
+                </div>
+
+                <button
+                  onClick={() => setLevelUpCelebration(null)}
+                  className="w-full py-3 rounded-xl bg-[#3B66F5] hover:bg-blue-600 text-white font-black text-xs uppercase tracking-wider shadow-md shadow-blue-500/25 active:scale-95 transition-all cursor-pointer"
+                >
+                  Keren, Lanjutkan!
+                </button>
+              </motion.div>
+            </div>
+          );
+        })()}
       </AnimatePresence>
     </div>
   );
