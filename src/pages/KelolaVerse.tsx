@@ -605,30 +605,30 @@ export default function KelolaVerse() {
                     {verse && char && stageInfo && vStats ? (
                       <div className="space-y-3">
                         {/* Visual Showcase Card */}
-                        <div className="relative rounded-xl bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 border border-slate-200/80 p-3 sm:p-4 flex flex-col sm:flex-row items-center gap-4 overflow-hidden">
+                        <div className="relative rounded-xl bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 border border-slate-200/80 p-4 sm:p-5 flex flex-col sm:flex-row items-center gap-5 sm:gap-6 overflow-hidden">
                           {/* Element Glow Effect */}
                           <div 
-                            className="absolute -top-10 -left-10 w-36 h-36 rounded-full blur-2xl opacity-20 pointer-events-none"
+                            className="absolute -top-12 -left-12 w-52 h-52 rounded-full blur-3xl opacity-25 pointer-events-none"
                             style={{ backgroundColor: char.elementColor || '#3B66F5' }}
                           />
 
-                          {/* Visual Pet Image */}
-                          <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-xl relative flex items-center justify-center p-1.5 shrink-0">
+                          {/* Visual Pet Image - Enlarged */}
+                          <div className="w-36 h-36 sm:w-44 sm:h-44 md:w-48 md:h-48 rounded-2xl relative flex items-center justify-center p-2 shrink-0">
                             <div 
-                              className="absolute inset-3 rounded-full blur-lg opacity-30"
+                              className="absolute inset-2 rounded-full blur-xl opacity-35"
                               style={{ backgroundColor: char.elementColor || '#3B66F5' }}
                             />
                             <img 
                               src={stageInfo.image}
                               onError={(e) => { (e.currentTarget as HTMLImageElement).src = stageInfo.pngImage; }}
                               alt={verse.nickname}
-                              className="w-full h-full object-contain filter drop-shadow-md relative z-10 transition-transform duration-300 hover:scale-105"
+                              className="w-full h-full object-contain filter drop-shadow-xl relative z-10 transition-transform duration-300 hover:scale-105"
                             />
                           </div>
 
                           {/* Pet Description & Identity */}
-                          <div className="min-w-0 flex-1 text-center sm:text-left space-y-1">
-                            <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-white border border-slate-200/80 shadow-2xs text-[10px] font-bold text-slate-700">
+                          <div className="min-w-0 flex-1 text-center sm:text-left space-y-1.5">
+                            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white border border-slate-200/80 shadow-2xs text-[11px] font-bold text-slate-700">
                               {getElementIcon(verse.element)}
                               <span className="capitalize">{char.elementName}</span>
                               <span className="text-slate-300">•</span>
@@ -636,15 +636,15 @@ export default function KelolaVerse() {
                             </div>
 
                             <div>
-                              <h3 className="text-lg font-black text-slate-900 tracking-tight">
+                              <h3 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
                                 {verse.nickname}
                               </h3>
-                              <p className="text-[11px] font-semibold text-slate-500">
+                              <p className="text-xs font-semibold text-slate-500 mt-0.5">
                                 {stageInfo.name} — Tahap Evolusi {verse.stage}
                               </p>
                             </div>
 
-                            <p className="text-[11px] text-slate-600 font-medium line-clamp-2">
+                            <p className="text-xs text-slate-600 font-medium line-clamp-3 leading-relaxed">
                               {stageInfo.description || char.philosophy}
                             </p>
                           </div>
@@ -711,20 +711,20 @@ export default function KelolaVerse() {
                       </div>
                     ) : (
                       /* Unadopted State */
-                      <div className="p-6 text-center rounded-xl bg-slate-50/60 border border-dashed border-slate-200 flex flex-col items-center justify-center space-y-2.5">
-                        <div className="w-16 h-16 rounded-xl flex items-center justify-center p-1.5">
+                      <div className="p-8 text-center rounded-xl bg-slate-50/60 border border-dashed border-slate-200 flex flex-col items-center justify-center space-y-3">
+                        <div className="w-24 h-24 rounded-2xl flex items-center justify-center p-2">
                           <img 
                             src={CHEST_ASSET.webp}
                             onError={(e) => { (e.currentTarget as HTMLImageElement).src = CHEST_ASSET.png; }}
                             alt="Peti Verse"
-                            className="w-full h-full object-contain opacity-70"
+                            className="w-full h-full object-contain opacity-75 drop-shadow-md"
                           />
                         </div>
                         <div className="max-w-md space-y-1">
-                          <h3 className="text-sm font-extrabold text-slate-800">
+                          <h3 className="text-base font-extrabold text-slate-800">
                             Belum Mengadopsi Sahabat Verse
                           </h3>
-                          <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
+                          <p className="text-xs text-slate-500 font-medium leading-relaxed">
                             Murid ini belum membuka peti misterius untuk mengadopsi Verse pertamanya. Status akan otomatis diperbarui begitu murid memilih telur di menu My Verse.
                           </p>
                         </div>
