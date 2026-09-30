@@ -766,26 +766,18 @@ export default function MyVerse() {
   // --------------------------------------------------------------------------
   return (
     <div className="max-w-6xl mx-auto px-4 py-6 space-y-6">
-      {/* Top Banner: Verse Identity & Live Mascot */}
+      {/* Top Banner: Verse Identity & Live Mascot - Clean Backdrop */}
       <div className="relative overflow-hidden bg-white rounded-3xl border border-slate-200/90 shadow-sm p-6 md:p-8">
-        {/* Subtle decorative background gradient matching element */}
-        <div className={`absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl ${activeCharData?.accentBg} rounded-full blur-3xl -z-0 pointer-events-none`} />
-
         <div className="relative z-10 flex flex-col md:flex-row items-center gap-6 md:gap-10">
-          {/* Pet Avatar - Hero Sized, Crisp, Seamless */}
-          <div className="relative shrink-0 flex flex-col items-center w-full md:w-[460px] lg:w-[520px]">
-            <div className="w-80 h-80 sm:w-96 sm:h-96 md:w-[460px] md:h-[460px] lg:w-[500px] lg:h-[500px] xl:w-[520px] xl:h-[520px] flex items-center justify-center relative">
-              {/* Vibrant radial aura behind the transparent character */}
-              <div 
-                className="absolute inset-0 rounded-full blur-3xl opacity-35 pointer-events-none"
-                style={{ backgroundColor: activeCharData?.elementColor || '#3B66F5' }}
-              />
+          {/* Pet Avatar - Extra Large, Crystal Clear on Pure White */}
+          <div className="relative shrink-0 flex flex-col items-center w-full md:w-[480px] lg:w-[540px]">
+            <div className="w-80 h-80 sm:w-96 sm:h-96 md:w-[480px] md:h-[480px] lg:w-[520px] lg:h-[520px] xl:w-[540px] xl:h-[540px] flex items-center justify-center relative">
               {activeStageInfo && (
                 <img 
                   src={activeStageInfo.image}
                   onError={(e) => { (e.currentTarget as HTMLImageElement).src = activeStageInfo.pngImage; }}
                   alt={verse.nickname}
-                  className="w-full h-full object-contain filter drop-shadow-2xl relative z-10 transition-transform duration-300 hover:scale-105 select-none"
+                  className="w-full h-full object-contain filter drop-shadow-xl relative z-10 transition-transform duration-300 hover:scale-105 select-none"
                 />
               )}
             </div>
@@ -1002,15 +994,14 @@ export default function MyVerse() {
                     </p>
                   </div>
 
-                  {/* Character Showcase */}
+                  {/* Character Showcase - Extra Large & Crystal Clear */}
                   <div className="relative py-2 flex items-center justify-center">
-                    <div className="w-48 h-48 sm:w-56 sm:h-56 relative flex items-center justify-center">
-                      <div className="absolute inset-0 rounded-full bg-gradient-to-r from-amber-400/30 via-orange-500/20 to-blue-500/30 blur-2xl animate-pulse" />
+                    <div className="w-64 h-64 sm:w-72 sm:h-72 relative flex items-center justify-center">
                       <img 
                         src={getStageInfo(evolutionCelebration.species, evolutionCelebration.newStage).image}
                         onError={(e) => { (e.currentTarget as HTMLImageElement).src = getStageInfo(evolutionCelebration.species, evolutionCelebration.newStage).pngImage; }}
                         alt={evolutionCelebration.nickname}
-                        className="w-full h-full object-contain filter drop-shadow-2xl relative z-10 transition-transform duration-300 hover:scale-105"
+                        className="w-full h-full object-contain filter drop-shadow-2xl relative z-10 transition-transform duration-300 hover:scale-105 select-none"
                       />
                     </div>
                   </div>

@@ -360,16 +360,12 @@ export default function StudentDashboard() {
           return (
             <div className="relative overflow-hidden bg-white rounded-3xl border border-slate-200/90 shadow-sm p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex items-center gap-4">
-                <div className="w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center p-1 shrink-0 relative">
-                  <div 
-                    className="absolute inset-1 rounded-full blur-xl opacity-20 pointer-events-none"
-                    style={{ backgroundColor: '#3B66F5' }}
-                  />
+                <div className="w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center p-1 shrink-0 relative bg-slate-50/70 rounded-2xl border border-slate-100">
                   <img
                     src={stageInfo.image}
                     onError={(e) => { (e.currentTarget as HTMLImageElement).src = stageInfo.pngImage; }}
                     alt={studentVerse.nickname}
-                    className="w-full h-full object-contain filter drop-shadow-md relative z-10"
+                    className="w-full h-full object-contain filter drop-shadow-md relative z-10 transition-transform hover:scale-105 select-none"
                   />
                 </div>
                 <div>

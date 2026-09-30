@@ -604,31 +604,21 @@ export default function KelolaVerse() {
                     {/* Verse Content */}
                     {verse && char && stageInfo && vStats ? (
                       <div className="space-y-3">
-                        {/* Visual Showcase Card */}
-                        <div className="relative rounded-xl bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 border border-slate-200/80 p-4 sm:p-5 flex flex-col sm:flex-row items-center gap-5 sm:gap-6 overflow-hidden">
-                          {/* Element Glow Effect */}
-                          <div 
-                            className="absolute -top-12 -left-12 w-52 h-52 rounded-full blur-3xl opacity-25 pointer-events-none"
-                            style={{ backgroundColor: char.elementColor || '#3B66F5' }}
-                          />
-
-                          {/* Visual Pet Image - Enlarged */}
-                          <div className="w-36 h-36 sm:w-44 sm:h-44 md:w-48 md:h-48 rounded-2xl relative flex items-center justify-center p-2 shrink-0">
-                            <div 
-                              className="absolute inset-2 rounded-full blur-xl opacity-35"
-                              style={{ backgroundColor: char.elementColor || '#3B66F5' }}
-                            />
+                        {/* Visual Showcase Card - Clean White Backdrop, No Blurry Background */}
+                        <div className="relative rounded-xl bg-white border border-slate-200/90 p-4 sm:p-5 flex flex-col sm:flex-row items-center gap-5 sm:gap-6 shadow-2xs">
+                          {/* Visual Pet Image - Significantly Enlarged, Crystal Clear */}
+                          <div className="w-52 h-52 sm:w-60 sm:h-60 md:w-64 md:h-64 rounded-2xl relative flex items-center justify-center p-2 shrink-0 bg-slate-50/60 border border-slate-100">
                             <img 
                               src={stageInfo.image}
                               onError={(e) => { (e.currentTarget as HTMLImageElement).src = stageInfo.pngImage; }}
                               alt={verse.nickname || char.species || 'Sahabat Verse'}
-                              className="w-full h-full object-contain filter drop-shadow-xl relative z-10 transition-transform duration-300 hover:scale-105"
+                              className="w-full h-full object-contain filter drop-shadow-md relative z-10 transition-transform duration-300 hover:scale-105 select-none"
                             />
                           </div>
 
                           {/* Pet Description & Identity */}
                           <div className="min-w-0 flex-1 text-center sm:text-left space-y-1.5">
-                            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white border border-slate-200/80 shadow-2xs text-[11px] font-bold text-slate-700">
+                            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-50 border border-slate-200/80 shadow-2xs text-[11px] font-bold text-slate-700">
                               {getElementIcon(verse.element)}
                               <span className="capitalize">{char.elementName}</span>
                               <span className="text-slate-300">•</span>

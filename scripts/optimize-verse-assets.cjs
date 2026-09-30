@@ -27,26 +27,42 @@ async function main() {
       const destDir = path.join(destRoot, item);
       if (!fs.existsSync(destDir)) fs.mkdirSync(destDir, { recursive: true });
 
-      const files = fs.readdirSync(srcPath);
-      for (const file of files) {
-        if (!file.endsWith('.png')) continue;
-        const srcFile = path.join(srcPath, file);
+      // Check if there is a 'fix' subfolder with updated images
+      const fixDir = path.join(srcPath, 'fix');
+      let filesToProcess = fs.readdirSync(srcPath)
+        .filter(f => f.endsWith('.png'))
+        .map(f => ({ file: f, fullPath: path.join(srcPath, f) }));
+
+      if (fs.existsSync(fixDir)) {
+        const fixFiles = fs.readdirSync(fixDir).filter(f => f.endsWith('.png'));
+        for (const ff of fixFiles) {
+          // Replace or add
+          const existingIdx = filesToProcess.findIndex(x => x.file === ff);
+          if (existingIdx >= 0) {
+            filesToProcess[existingIdx] = { file: ff, fullPath: path.join(fixDir, ff) };
+          } else {
+            filesToProcess.push({ file: ff, fullPath: path.join(fixDir, ff) });
+          }
+        }
+      }
+
+      for (const { file, fullPath } of filesToProcess) {
         const baseName = path.parse(file).name;
         
         // Always copy PNG as reliable fallback
         const destPng = path.join(destDir, file);
-        fs.copyFileSync(srcFile, destPng);
+        fs.copyFileSync(fullPath, destPng);
 
         // Also convert to WebP if sharp is available
         if (sharp) {
           const destWebp = path.join(destDir, `${baseName}.webp`);
-          await sharp(srcFile)
-            .webp({ quality: 85, alphaQuality: 100, lossless: false })
+          await sharp(fullPath)
+            .webp({ quality: 90, alphaQuality: 100, lossless: false })
             .toFile(destWebp);
           
-          const oldSize = (fs.statSync(srcFile).size / 1024).toFixed(1);
+          const oldSize = (fs.statSync(fullPath).size / 1024).toFixed(1);
           const newSize = (fs.statSync(destWebp).size / 1024).toFixed(1);
-          console.log(`[Optimized] ${item}/${baseName}.webp: ${oldSize}KB -> ${newSize}KB`);
+          console.log(`[Optimized] ${item}/${baseName}.webp: ${oldSize}KB -> ${newSize}KB (from ${fullPath.includes('fix') ? 'fix/' : ''}${file})`);
         } else {
           console.log(`[Copied] ${item}/${file}`);
         }
