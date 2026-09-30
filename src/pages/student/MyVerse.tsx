@@ -159,7 +159,9 @@ export default function MyVerse() {
         getStudentPointsHistory(studentObj.id, studentObj.name, studentObj.className || '')
       ]);
 
-      const effectiveLifetimePoints = Math.max(existingVerse?.lifetimePoints || 0, pointsData.totalPoints || 0);
+      const effectiveLifetimePoints = existingVerse !== null && existingVerse.lifetimePoints !== undefined
+        ? existingVerse.lifetimePoints
+        : (pointsData.totalPoints || 0);
       setPointsHistory(pointsData.items);
       setTotalLifetimePoints(effectiveLifetimePoints);
 

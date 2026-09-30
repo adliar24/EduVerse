@@ -13,7 +13,11 @@ import {
   Wind, 
   Zap, 
   Users,
-  X
+  X,
+  Plus,
+  Minus,
+  TrendingUp,
+  TrendingDown
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useSchool } from '../context/SchoolContext';
@@ -25,7 +29,7 @@ import {
   calculateLevelAndProgress, 
   CHEST_ASSET 
 } from '../utils/verseEngine';
-import { resetStudentVerse } from '../services/verseService';
+import { resetStudentVerse, adjustStudentVerseExp } from '../services/verseService';
 
 interface StudentWithVerse {
   id: string;
@@ -67,6 +71,45 @@ export default function KelolaVerse() {
   // Reset Modal State
   const [resettingStudent, setResettingStudent] = useState<StudentWithVerse | null>(null);
   const [isProcessingReset, setIsProcessingReset] = useState(false);
+
+  // Adjust EXP Modal State
+  const [adjustExpStudent, setAdjustExpStudent] = useState<StudentWithVerse | null>(null);
+  const [expMode, setExpMode] = useState<'add' | 'subtract' | 'set'>('add');
+  const [expAmount, setExpAmount] = useState<number>(50);
+  const [isSubmittingExp, setIsSubmittingExp] = useState(false);
+
+  // Calculated EXP Preview
+  const expPreview = useMemo(() => {
+    if (!adjustExpStudent?.verse) return null;
+    const currentExp = Number(adjustExpStudent.verse.lifetimePoints) || 0;
+    const amt = Math.max(0, Number(expAmount) || 0);
+    let targetTotal = currentExp;
+
+    if (expMode === 'add') {
+      targetTotal = currentExp + amt;
+    } else if (expMode === 'subtract') {
+      targetTotal = Math.max(0, currentExp - amt);
+    } else {
+      targetTotal = amt;
+    }
+
+    const currentStats = calculateLevelAndProgress(currentExp);
+    const newStats = calculateLevelAndProgress(targetTotal);
+    const delta = targetTotal - currentExp;
+
+    return {
+      currentExp,
+      targetTotal,
+      delta,
+      currentLevel: currentStats.currentLevel,
+      newLevel: newStats.currentLevel,
+      currentStage: currentStats.currentStage,
+      newStage: newStats.currentStage,
+      levelDiff: newStats.currentLevel - currentStats.currentLevel,
+      stageDiff: newStats.currentStage - currentStats.currentStage,
+      progressPercent: newStats.progressPercent
+    };
+  }, [adjustExpStudent, expMode, expAmount]);
 
   // Fetch all students, classes, and their verses
   const fetchData = useCallback(async (isSilent = false) => {
@@ -163,6 +206,49 @@ export default function KelolaVerse() {
     } finally {
       setIsProcessingReset(false);
       setResettingStudent(null);
+    }
+  };
+
+  // Handle Adjust Verse EXP Action (Add or Subtract EXP without touching student_points)
+  const handleConfirmAdjustExp = async () => {
+    if (!adjustExpStudent?.verse || !expPreview) return;
+    setIsSubmittingExp(true);
+    try {
+      const res = await adjustStudentVerseExp({
+        studentId: adjustExpStudent.id,
+        targetExp: expPreview.targetTotal
+      });
+
+      if (res.success && res.verse) {
+        const newVerse = res.verse;
+        const levelMsg = res.oldLevel !== res.newLevel 
+          ? ` (Lv. ${res.oldLevel} ➔ Lv. ${res.newLevel})`
+          : '';
+        showToast(
+          `EXP Verse ${adjustExpStudent.name} berhasil diperbarui${levelMsg}!`,
+          'success'
+        );
+
+        setStudents(prev => prev.map(s => {
+          if (s.id === adjustExpStudent.id) {
+            return {
+              ...s,
+              verse: newVerse,
+              lifetimePoints: newVerse.lifetimePoints
+            };
+          }
+          return s;
+        }));
+
+        setAdjustExpStudent(null);
+      } else {
+        showToast(res.error || 'Gagal mengubah EXP Verse', 'error');
+      }
+    } catch (err) {
+      console.error('[KelolaVerse] Error adjusting EXP:', err);
+      showToast('Terjadi kesalahan saat menyimpan penyesuaian EXP', 'error');
+    } finally {
+      setIsSubmittingExp(false);
     }
   };
 
@@ -305,6 +391,20 @@ export default function KelolaVerse() {
           <div className="flex items-center gap-1.5">
             {verse && (
               <button
+                onClick={() => {
+                  setAdjustExpStudent(student);
+                  setExpMode('add');
+                  setExpAmount(50);
+                }}
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-blue-200 bg-blue-50/80 hover:bg-blue-100 text-[#3B66F5] text-[11px] font-bold transition-all cursor-pointer shadow-2xs hover:scale-[1.02] active:scale-[0.98]"
+                title="Sesuaikan EXP Verse murid (tambah atau kurangi)"
+              >
+                <Zap className="w-3 h-3 text-amber-500 fill-amber-400" />
+                <span>Ubah EXP</span>
+              </button>
+            )}
+            {verse && (
+              <button
                 onClick={() => setResettingStudent(student)}
                 className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-rose-200 bg-rose-50/60 hover:bg-rose-100 text-rose-700 text-[11px] font-bold transition-all cursor-pointer shadow-2xs hover:scale-[1.02] active:scale-[0.98]"
                 title="Reset Verse murid agar bisa memilih ulang"
@@ -370,9 +470,22 @@ export default function KelolaVerse() {
                 <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">
                   Progres Level & Perolehan EXP
                 </span>
-                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-[#3B66F5] text-white shadow-2xs">
-                  Level {verse.level}
-                </span>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => {
+                      setAdjustExpStudent(student);
+                      setExpMode('add');
+                      setExpAmount(50);
+                    }}
+                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md border border-blue-200 bg-blue-50 text-[#3B66F5] hover:bg-blue-100 text-[10px] font-bold transition-colors cursor-pointer"
+                  >
+                    <Plus className="w-2.5 h-2.5" />
+                    <span>Ubah EXP</span>
+                  </button>
+                  <span className="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-[#3B66F5] text-white shadow-2xs">
+                    Level {verse.level}
+                  </span>
+                </div>
               </div>
 
               {/* Progress Bar */}
@@ -827,6 +940,251 @@ export default function KelolaVerse() {
             </motion.div>
           </div>
         )}
+      </AnimatePresence>
+
+      {/* Modal: Sesuaikan EXP Verse Murid (Tambah / Kurang EXP Tanpa Sentuh Nilai Rapor) */}
+      <AnimatePresence>
+        {adjustExpStudent && adjustExpStudent.verse && expPreview && (() => {
+          const v = adjustExpStudent.verse;
+          const char = getVerseCharacter(v.species);
+          return (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                className="bg-white rounded-3xl border border-slate-200 shadow-2xl p-5 sm:p-7 w-full max-w-lg relative overflow-hidden space-y-4"
+              >
+                {/* Header */}
+                <div className="flex items-start justify-between gap-3 border-b border-slate-100 pb-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-2xl bg-blue-50 border border-blue-200/80 text-[#3B66F5] flex items-center justify-center shrink-0">
+                      <Zap className="w-5 h-5 text-amber-500 fill-amber-400" />
+                    </div>
+                    <div>
+                      <h3 className="text-base sm:text-lg font-black text-slate-900 tracking-tight leading-snug">
+                        Sesuaikan EXP Verse
+                      </h3>
+                      <p className="text-xs text-slate-500 font-medium">
+                        {adjustExpStudent.name} • <strong className="text-slate-800">{v.nickname}</strong> ({char.species})
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => setAdjustExpStudent(null)}
+                    disabled={isSubmittingExp}
+                    className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                {/* Mode Selector Tabs */}
+                <div className="grid grid-cols-3 gap-1 bg-slate-100 p-1 rounded-xl text-xs font-bold">
+                  <button
+                    type="button"
+                    onClick={() => setExpMode('add')}
+                    className={`py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                      expMode === 'add'
+                        ? 'bg-white text-emerald-600 shadow-2xs font-black'
+                        : 'text-slate-500 hover:text-slate-800'
+                    }`}
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Tambah EXP</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setExpMode('subtract')}
+                    className={`py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                      expMode === 'subtract'
+                        ? 'bg-white text-rose-600 shadow-2xs font-black'
+                        : 'text-slate-500 hover:text-slate-800'
+                    }`}
+                  >
+                    <Minus className="w-3.5 h-3.5" />
+                    <span>Kurangi EXP</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setExpMode('set');
+                      setExpAmount(expPreview.currentExp);
+                    }}
+                    className={`py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                      expMode === 'set'
+                        ? 'bg-white text-[#3B66F5] shadow-2xs font-black'
+                        : 'text-slate-500 hover:text-slate-800'
+                    }`}
+                  >
+                    <span>Set Langsung</span>
+                  </button>
+                </div>
+
+                {/* Amount Input & Preset Chips */}
+                <div className="space-y-2">
+                  <label className="block text-xs font-bold text-slate-700">
+                    {expMode === 'add' && 'Jumlah EXP yang Ingin Ditambahkan:'}
+                    {expMode === 'subtract' && 'Jumlah EXP yang Ingin Dikurangi:'}
+                    {expMode === 'set' && 'Total EXP Baru yang Ditetapkan:'}
+                  </label>
+
+                  <div className="relative">
+                    <input
+                      type="number"
+                      min="0"
+                      max="100000"
+                      value={expAmount}
+                      onChange={(e) => setExpAmount(Math.max(0, parseInt(e.target.value, 10) || 0))}
+                      className="w-full pl-4 pr-14 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-base font-black text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#3B66F5]"
+                      placeholder="0"
+                    />
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-black text-slate-400">
+                      XP
+                    </span>
+                  </div>
+
+                  {/* Preset Pills */}
+                  <div className="flex items-center gap-1.5 flex-wrap pt-1">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mr-1">Cepat:</span>
+                    {expMode === 'add' && [25, 50, 100, 250, 500].map(val => (
+                      <button
+                        key={val}
+                        type="button"
+                        onClick={() => setExpAmount(val)}
+                        className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                          expAmount === val 
+                            ? 'bg-emerald-600 text-white shadow-2xs' 
+                            : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                        }`}
+                      >
+                        +{val}
+                      </button>
+                    ))}
+                    {expMode === 'subtract' && [25, 50, 100, 250, 500].map(val => (
+                      <button
+                        key={val}
+                        type="button"
+                        onClick={() => setExpAmount(val)}
+                        className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                          expAmount === val 
+                            ? 'bg-rose-600 text-white shadow-2xs' 
+                            : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                        }`}
+                      >
+                        -{val}
+                      </button>
+                    ))}
+                    {expMode === 'set' && [0, 100, 250, 500, 1000].map(val => (
+                      <button
+                        key={val}
+                        type="button"
+                        onClick={() => setExpAmount(val)}
+                        className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                          expAmount === val 
+                            ? 'bg-[#3B66F5] text-white shadow-2xs' 
+                            : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                        }`}
+                      >
+                        {val} XP
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Live Preview Box */}
+                <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/90 space-y-2">
+                  <div className="flex items-center justify-between text-[11px] font-bold text-slate-500">
+                    <span>Pratinjau Hasil Perubahan:</span>
+                    {expPreview.levelDiff > 0 && (
+                      <span className="inline-flex items-center gap-1 text-emerald-600 font-black">
+                        <TrendingUp className="w-3.5 h-3.5" />
+                        Naik +{expPreview.levelDiff} Level!
+                      </span>
+                    )}
+                    {expPreview.levelDiff < 0 && (
+                      <span className="inline-flex items-center gap-1 text-rose-600 font-black">
+                        <TrendingDown className="w-3.5 h-3.5" />
+                        Turun {expPreview.levelDiff} Level
+                      </span>
+                    )}
+                    {expPreview.levelDiff === 0 && (
+                      <span className="text-slate-600 font-black">
+                        Level Tetap
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 text-center">
+                    <div className="p-2.5 rounded-xl bg-white border border-slate-200/80">
+                      <span className="text-[10px] font-bold text-slate-400 block uppercase">Sebelumnya</span>
+                      <div className="text-sm font-black text-slate-700 mt-0.5">
+                        Level {expPreview.currentLevel} <span className="text-[10px] text-slate-400 font-bold">(Tahap {expPreview.currentStage})</span>
+                      </div>
+                      <span className="text-[11px] font-semibold text-slate-500">
+                        {expPreview.currentExp} XP
+                      </span>
+                    </div>
+
+                    <div className={`p-2.5 rounded-xl border ${
+                      expPreview.levelDiff > 0 ? 'bg-emerald-50/60 border-emerald-200 text-emerald-900' :
+                      expPreview.levelDiff < 0 ? 'bg-rose-50/60 border-rose-200 text-rose-900' :
+                      'bg-blue-50/60 border-blue-200 text-blue-900'
+                    }`}>
+                      <span className="text-[10px] font-bold text-slate-400 block uppercase">Menjadi</span>
+                      <div className="text-sm font-black mt-0.5">
+                        Level {expPreview.newLevel} <span className="text-[10px] opacity-75 font-bold">(Tahap {expPreview.newStage})</span>
+                      </div>
+                      <span className="text-[11px] font-extrabold">
+                        {expPreview.targetTotal} XP ({expPreview.delta >= 0 ? `+${expPreview.delta}` : expPreview.delta})
+                      </span>
+                    </div>
+                  </div>
+
+                  {expPreview.stageDiff > 0 && (
+                    <div className="p-2 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-[11px] font-bold text-center flex items-center justify-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                      <span>Verse akan ber-evolusi ke wujud Tahap {expPreview.newStage}!</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Safe Academic Guarantee Callout */}
+                <p className="text-[11px] text-slate-500 leading-relaxed font-medium bg-slate-100/70 p-2.5 rounded-xl border border-slate-200/60">
+                  🛡️ <strong>Aman:</strong> Penyesuaian ini hanya mengubah EXP & Level Verse secara langsung, <strong>tanpa mempengaruhi nilai ujian atau poin prestasi</strong> yang sudah diraih murid.
+                </p>
+
+                {/* Footer Buttons */}
+                <div className="flex items-center justify-end gap-2.5 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setAdjustExpStudent(null)}
+                    disabled={isSubmittingExp}
+                    className="px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer disabled:opacity-50"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleConfirmAdjustExp}
+                    disabled={isSubmittingExp || expPreview.delta === 0}
+                    className="px-5 py-2.5 rounded-xl bg-[#3B66F5] hover:bg-blue-600 text-white text-xs font-black shadow-md shadow-blue-500/25 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                  >
+                    {isSubmittingExp ? (
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    ) : (
+                      <>
+                        <Zap className="w-3.5 h-3.5" />
+                        <span>Simpan Perubahan EXP</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </motion.div>
+            </div>
+          );
+        })()}
       </AnimatePresence>
     </div>
   );

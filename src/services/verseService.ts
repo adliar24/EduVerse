@@ -446,3 +446,70 @@ export async function awardVerseExpAndPoints({
     return { success: false };
   }
 }
+
+/**
+ * Adjust a student's Verse EXP directly (add, subtract, or set) without affecting academic/prestige points
+ */
+export async function adjustStudentVerseExp({
+  studentId,
+  expDelta,
+  targetExp
+}: {
+  studentId: string;
+  expDelta?: number;
+  targetExp?: number;
+}): Promise<{
+  success: boolean;
+  oldLevel?: number;
+  newLevel?: number;
+  oldStage?: number;
+  newStage?: number;
+  newExp?: number;
+  verse?: StudentVerse | null;
+  error?: string;
+}> {
+  if (!studentId) return { success: false, error: 'ID Murid tidak valid' };
+
+  try {
+    const currentVerse = await getStudentVerse(studentId);
+    if (!currentVerse) {
+      return { success: false, error: 'Murid belum mengadopsi Verse' };
+    }
+
+    const currentPoints = Number(currentVerse.lifetimePoints) || 0;
+    let newExp = currentPoints;
+
+    if (targetExp !== undefined) {
+      newExp = Math.max(0, targetExp);
+    } else if (expDelta !== undefined) {
+      newExp = Math.max(0, currentPoints + expDelta);
+    }
+
+    const oldLevel = currentVerse.level || 1;
+    const oldStage = currentVerse.stage || 1;
+    const { currentLevel, currentStage } = calculateLevelAndProgress(newExp);
+
+    const updatedVerse: StudentVerse = {
+      ...currentVerse,
+      lifetimePoints: newExp,
+      level: currentLevel,
+      stage: currentStage,
+      updatedAt: new Date().toISOString()
+    };
+
+    const savedVerse = await saveStudentVerse(updatedVerse);
+
+    return {
+      success: true,
+      oldLevel,
+      newLevel: currentLevel,
+      oldStage,
+      newStage: currentStage,
+      newExp,
+      verse: savedVerse
+    };
+  } catch (err: any) {
+    console.error('[verseService] Error adjusting Verse EXP:', err);
+    return { success: false, error: err?.message || 'Gagal menyesuaikan EXP Verse' };
+  }
+}
