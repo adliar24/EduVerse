@@ -848,8 +848,13 @@ export default function MyVerse() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
-      {/* Top Banner: Verse Identity & Mascot - Stacked Vertical Layout with Soft Elemental Theme */}
-      <div className={`relative overflow-hidden rounded-3xl border shadow-xs p-5 sm:p-7 flex flex-col items-center text-center space-y-5 transition-all duration-300 ${elementTheme.cardBg} ${elementTheme.border}`}>
+      {/* Top Banner: Verse Identity & Mascot - Stacked Vertical Layout with Clean Fade Entrance */}
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.35, ease: 'easeOut' }}
+        className={`relative overflow-hidden rounded-3xl border shadow-xs p-5 sm:p-7 flex flex-col items-center text-center space-y-5 ${elementTheme.cardBg} ${elementTheme.border}`}
+      >
         
         {/* 1. BAGIAN ATAS: Teks Tahap, Elemen, Level, Nama, & Sinkron Poin */}
         <div className="w-full flex flex-col items-center gap-3">
@@ -922,11 +927,9 @@ export default function MyVerse() {
           </div>
 
           <div className="w-full h-2.5 rounded-full bg-slate-200/80 overflow-hidden relative">
-            <motion.div 
-              initial={{ width: 0 }}
-              animate={{ width: `${levelStats.progressPercent}%` }}
-              transition={{ duration: 0.8, ease: 'easeOut' }}
-              className={`h-full rounded-full ${elementTheme.progressBar}`}
+            <div 
+              style={{ width: `${levelStats.progressPercent}%` }}
+              className={`h-full rounded-full transition-all duration-500 ${elementTheme.progressBar}`}
             />
           </div>
         </div>
@@ -937,7 +940,7 @@ export default function MyVerse() {
             💬 "{quote}"
           </div>
         )}
-      </div>
+      </motion.div>
 
       {/* Point Activity History (Bersih tanpa aturan poin) */}
       <div className="bg-white rounded-3xl border border-slate-200/90 p-6 shadow-sm space-y-4">
@@ -1031,172 +1034,217 @@ export default function MyVerse() {
         )}
       </AnimatePresence>
 
-      {/* Spectacular Evolution Celebration Modal (Lebih Wah) */}
+      {/* Full-Screen Spectacular Evolution Celebration (Menutupi Seluruh Layar Seperti Menetas Telur) */}
       <AnimatePresence>
         {evolutionCelebration && (() => {
           const evoChar = getVerseCharacter(evolutionCelebration.species);
           const stageInfo = getStageInfo(evolutionCelebration.species, evolutionCelebration.newStage);
           return (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-md overflow-hidden">
-              <motion.div
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.8 }}
-                className="relative max-w-lg w-full text-center p-6 sm:p-8 rounded-3xl bg-gradient-to-b from-slate-900 via-slate-900/95 to-slate-950 border border-amber-500/40 shadow-2xl overflow-hidden"
-              >
-                {/* Cosmic background glows */}
-                <div className="absolute -top-24 -left-24 w-72 h-72 rounded-full bg-amber-500/25 blur-3xl pointer-events-none animate-pulse" />
-                <div className="absolute -bottom-24 -right-24 w-72 h-72 rounded-full bg-blue-500/25 blur-3xl pointer-events-none animate-pulse" />
+            <motion.div
+              key="evolution_fullscreen"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 bg-[#060810] flex flex-col items-center justify-center p-4 sm:p-6 select-none overflow-y-auto text-white"
+            >
+              {/* Massive Ambient Elemental Aura */}
+              <div 
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[450px] sm:w-[600px] md:w-[750px] h-[450px] sm:h-[600px] md:h-[750px] rounded-full blur-[140px] pointer-events-none transition-all duration-700"
+                style={{ 
+                  backgroundColor: evoChar.elementColor || '#F59E0B',
+                  opacity: evolutionPhase === 'transforming' ? 0.35 : 0.55
+                }}
+              />
 
-                <AnimatePresence mode="wait">
-                  {evolutionPhase === 'transforming' ? (
-                    <motion.div 
-                      key="transforming"
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 1.05 }}
-                      transition={{ duration: 0.3 }}
-                      className="py-8 space-y-6"
+              <AnimatePresence mode="wait">
+                {evolutionPhase === 'transforming' ? (
+                  <motion.div 
+                    key="transforming"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 1.05 }}
+                    transition={{ duration: 0.35 }}
+                    className="relative flex flex-col items-center text-center max-w-md w-full py-8 space-y-6 z-10"
+                  >
+                    {/* Elemental Badge */}
+                    <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-black bg-white/10 text-white border border-white/20 uppercase tracking-widest backdrop-blur-md shadow-lg">
+                      {getElementIcon(evoChar.element, "w-3.5 h-3.5")}
+                      <span>{evoChar.species} • Elemen {evoChar.elementName}</span>
+                    </span>
+
+                    <div className="space-y-2">
+                      <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-white tracking-tight drop-shadow-lg">
+                        Sensasi Misterius Terjadi...
+                      </h2>
+                      <p className="text-amber-300 text-xs sm:text-sm font-bold animate-pulse">
+                        Sahabat Verse {evolutionCelebration.nickname} sedang ber-evolusi!
+                      </p>
+                    </div>
+
+                    {/* Center Elemental Portal Orb */}
+                    <div className="relative my-8 flex items-center justify-center">
+                      <motion.div 
+                        animate={{ scale: [1, 1.3, 1], opacity: [0.35, 0.75, 0.35] }}
+                        transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+                        className="absolute w-48 h-48 rounded-full blur-2xl"
+                        style={{ backgroundColor: evoChar.elementColor || '#F59E0B' }}
+                      />
+                      <motion.div 
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 7, repeat: Infinity, ease: "linear" }}
+                        className="w-36 h-36 rounded-full border-2 border-dashed border-amber-400/60 absolute"
+                      />
+                      <div className="w-28 h-28 rounded-full bg-white/10 border-2 border-amber-400/80 shadow-2xl shadow-amber-400/40 flex items-center justify-center backdrop-blur-md relative z-10">
+                        {getElementIcon(evoChar.element, "w-14 h-14 animate-pulse")}
+                      </div>
+                    </div>
+
+                    <p className="text-slate-400 text-xs tracking-widest uppercase font-bold animate-pulse">
+                      Mempersiapkan Wujud Baru...
+                    </p>
+                  </motion.div>
+                ) : (
+                  <motion.div 
+                    key="revealed"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.4 }}
+                    className="relative flex flex-col items-center text-center max-w-lg w-full py-6 z-10"
+                  >
+                    {/* Celebration Badge */}
+                    <motion.div
+                      initial={{ y: -20, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      transition={{ delay: 0.1 }}
+                      className="relative z-10 mb-2"
                     >
-                      <div className="w-28 h-28 mx-auto rounded-full bg-amber-400/20 flex items-center justify-center border-2 border-amber-400/60 shadow-xl shadow-amber-400/30 animate-pulse relative">
-                        <div 
-                          className="absolute inset-0 rounded-full blur-md opacity-40 pointer-events-none"
-                          style={{ backgroundColor: evoChar.elementColor || '#F59E0B' }}
-                        />
-                        <div className="relative z-10 animate-bounce">
-                          {getElementIcon(evoChar.element, "w-14 h-14")}
-                        </div>
-                      </div>
-                      <div>
-                        <h2 className="text-2xl font-black text-white tracking-wide uppercase drop-shadow-md">
-                          Sensasi Misterius...
-                        </h2>
-                        <p className="text-amber-300 text-sm font-bold mt-2 animate-pulse">
-                          Sahabat Verse {evolutionCelebration.nickname} sedang ber-evolusi!
-                        </p>
-                      </div>
+                      <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-black bg-white/10 text-white border border-white/20 uppercase tracking-widest backdrop-blur-md shadow-lg">
+                        {getElementIcon(evoChar.element, "w-3.5 h-3.5")}
+                        <span>Evolusi Spektakuler!</span>
+                      </span>
                     </motion.div>
-                  ) : (
-                    <motion.div 
-                      key="revealed"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ duration: 0.4 }}
-                      className="space-y-6"
+
+                    {/* Title */}
+                    <motion.h2
+                      initial={{ y: -15, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      transition={{ delay: 0.15 }}
+                      className="relative z-10 text-2xl sm:text-3xl md:text-4xl font-black text-white tracking-tight drop-shadow-lg"
                     >
-                      {/* Header */}
-                      <div>
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-400/20 border border-amber-400/50 text-amber-300 text-xs font-black uppercase tracking-widest mb-2 shadow-sm">
-                          {getElementIcon(evoChar.element, "w-3.5 h-3.5")}
-                          <span>EVOLUSI SPEKTAKULER!</span>
+                      Wujud Baru Terbuka!
+                    </motion.h2>
+                    <motion.p
+                      initial={{ y: -10, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      transition={{ delay: 0.2 }}
+                      className="relative z-10 text-slate-300 text-xs sm:text-sm mt-1 max-w-sm"
+                    >
+                      <strong className="text-amber-300">{evolutionCelebration.nickname}</strong> telah berevolusi dari Tahap {evolutionCelebration.oldStage} ke Tahap {evolutionCelebration.newStage}!
+                    </motion.p>
+
+                    {/* Hero Mascot Showcase with White-Yellow Burst Flare & Spring Zoom */}
+                    <div className="relative my-4 sm:my-6 w-64 h-64 sm:w-72 sm:h-72 md:w-80 md:h-80 flex items-center justify-center">
+                      {/* Expanding warm golden-white burst flare (cahaya putih kekuning-kuningan) */}
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.15 }}
+                        animate={{ 
+                          opacity: [0, 1, 0.85, 0.4], 
+                          scale: [0.15, 1.4, 2.0, 2.4] 
+                        }}
+                        transition={{ 
+                          duration: 1.5, 
+                          times: [0, 0.25, 0.65, 1],
+                          ease: "easeOut" 
+                        }}
+                        className="absolute inset-0 m-auto w-72 h-72 rounded-full bg-gradient-to-r from-amber-200 via-white to-yellow-300 blur-3xl pointer-events-none z-0"
+                      />
+
+                      {/* Intense White-Golden Core Flash (Luminous Radial Glow) */}
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.3 }}
+                        animate={{ 
+                          opacity: [0, 1, 0.8, 0], 
+                          scale: [0.3, 1.3, 1.8, 2.3] 
+                        }}
+                        transition={{ 
+                          duration: 1.1, 
+                          times: [0, 0.2, 0.6, 1],
+                          ease: "easeOut" 
+                        }}
+                        style={{
+                          background: 'radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(254,240,138,0.95) 35%, rgba(251,191,36,0.3) 70%, transparent 100%)'
+                        }}
+                        className="absolute inset-0 m-auto w-64 h-64 rounded-full blur-xl pointer-events-none z-0"
+                      />
+
+                      {/* Expanding Light Shockwave Ring */}
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.2 }}
+                        animate={{ 
+                          opacity: [0, 0.95, 0], 
+                          scale: [0.2, 2.0, 3.0] 
+                        }}
+                        transition={{ 
+                          duration: 1.2, 
+                          times: [0, 0.25, 1],
+                          ease: "easeOut",
+                          delay: 0.1
+                        }}
+                        className="absolute inset-0 m-auto w-52 h-52 rounded-full border-2 border-yellow-200/90 blur-xs pointer-events-none z-0"
+                      />
+
+                      {/* Evolved Character Mascot with Zoom-in Spring Animation */}
+                      <motion.div
+                        initial={{ scale: 0.1, opacity: 0, rotate: -8 }}
+                        animate={{ scale: 1, opacity: 1, rotate: 0 }}
+                        transition={{ 
+                          type: 'spring', 
+                          stiffness: 90, 
+                          damping: 12, 
+                          mass: 0.85,
+                          delay: 0.15 
+                        }}
+                        className="w-full h-full relative flex items-center justify-center z-10"
+                      >
+                        <img 
+                          src={stageInfo.image}
+                          onError={(e) => { (e.currentTarget as HTMLImageElement).src = stageInfo.pngImage; }}
+                          alt={evolutionCelebration.nickname}
+                          className="w-full h-full object-contain filter drop-shadow-[0_25px_60px_rgba(0,0,0,0.85)] relative z-10 select-none pointer-events-none"
+                        />
+                      </motion.div>
+                    </div>
+
+                    {/* Stage description & stats card */}
+                    <motion.div
+                      initial={{ y: 25, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      transition={{ delay: 0.35 }}
+                      className="relative z-10 w-full max-w-md bg-white/10 backdrop-blur-xl border border-white/20 p-5 rounded-2xl text-left space-y-4 shadow-2xl"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-base font-black text-amber-300">
+                          {stageInfo.name}
                         </span>
-                        <h2 className="text-3xl font-black text-white tracking-tight drop-shadow-lg">
-                          Wujud Baru Terbuka!
-                        </h2>
-                        <p className="text-slate-300 text-xs mt-1">
-                          <strong className="text-amber-300">{evolutionCelebration.nickname}</strong> telah berevolusi dari Tahap {evolutionCelebration.oldStage} ke Tahap {evolutionCelebration.newStage}!
-                        </p>
+                        <span className="text-xs font-bold text-slate-300">
+                          Level {evolutionCelebration.newLevel}
+                        </span>
                       </div>
-
-                      {/* Character Showcase with Golden-White Radiant Flare & Spring Zoom */}
-                      <div className="relative py-4 flex items-center justify-center min-h-[290px] overflow-visible">
-                        {/* Expanding warm golden-white burst flare (cahaya putih kekuning-kuningan) */}
-                        <motion.div
-                          initial={{ opacity: 0, scale: 0.15 }}
-                          animate={{ 
-                            opacity: [0, 1, 0.85, 0.45], 
-                            scale: [0.15, 1.4, 2.0, 2.3] 
-                          }}
-                          transition={{ 
-                            duration: 1.5, 
-                            times: [0, 0.25, 0.65, 1],
-                            ease: "easeOut" 
-                          }}
-                          className="absolute inset-0 m-auto w-64 h-64 rounded-full bg-gradient-to-r from-amber-200 via-white to-yellow-300 blur-3xl pointer-events-none z-0"
-                        />
-
-                        {/* Intense White-Golden Core Flash (Luminous Radial Glow) */}
-                        <motion.div
-                          initial={{ opacity: 0, scale: 0.3 }}
-                          animate={{ 
-                            opacity: [0, 1, 0.8, 0], 
-                            scale: [0.3, 1.3, 1.8, 2.2] 
-                          }}
-                          transition={{ 
-                            duration: 1.1, 
-                            times: [0, 0.2, 0.6, 1],
-                            ease: "easeOut" 
-                          }}
-                          style={{
-                            background: 'radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(254,240,138,0.95) 35%, rgba(251,191,36,0.3) 70%, transparent 100%)'
-                          }}
-                          className="absolute inset-0 m-auto w-60 h-60 rounded-full blur-xl pointer-events-none z-0"
-                        />
-
-                        {/* Expanding Light Shockwave Ring */}
-                        <motion.div
-                          initial={{ opacity: 0, scale: 0.2 }}
-                          animate={{ 
-                            opacity: [0, 0.95, 0], 
-                            scale: [0.2, 2.0, 2.8] 
-                          }}
-                          transition={{ 
-                            duration: 1.2, 
-                            times: [0, 0.25, 1],
-                            ease: "easeOut",
-                            delay: 0.1
-                          }}
-                          className="absolute inset-0 m-auto w-48 h-48 rounded-full border-2 border-yellow-200/90 blur-xs pointer-events-none z-0"
-                        />
-
-                        {/* Evolved Character Mascot with Zoom-in Spring Animation */}
-                        <motion.div
-                          initial={{ scale: 0.1, opacity: 0, rotate: -8 }}
-                          animate={{ scale: 1, opacity: 1, rotate: 0 }}
-                          transition={{ 
-                            type: 'spring', 
-                            stiffness: 90, 
-                            damping: 12, 
-                            mass: 0.85,
-                            delay: 0.15 
-                          }}
-                          className="w-64 h-64 sm:w-72 sm:h-72 relative flex items-center justify-center z-10"
-                        >
-                          <img 
-                            src={stageInfo.image}
-                            onError={(e) => { (e.currentTarget as HTMLImageElement).src = stageInfo.pngImage; }}
-                            alt={evolutionCelebration.nickname}
-                            className="w-full h-full object-contain filter drop-shadow-[0_20px_50px_rgba(0,0,0,0.85)] relative z-10 transition-transform duration-300 hover:scale-105 select-none"
-                          />
-                        </motion.div>
-                      </div>
-
-                      {/* Stage description & stats */}
-                      <div className="p-4 rounded-2xl bg-white/10 border border-white/15 backdrop-blur-sm text-left">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-black text-amber-300">
-                            {stageInfo.name}
-                          </span>
-                          <span className="text-xs font-bold text-slate-300">
-                            Level {evolutionCelebration.newLevel}
-                          </span>
-                        </div>
-                        <p className="text-xs text-slate-200 mt-1.5 font-medium leading-relaxed">
-                          {stageInfo.description}
-                        </p>
-                      </div>
+                      <p className="text-xs text-slate-200 font-medium leading-relaxed">
+                        {stageInfo.description}
+                      </p>
 
                       <button
                         onClick={() => setEvolutionCelebration(null)}
-                        className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-600 hover:to-orange-600 text-white font-black text-sm uppercase tracking-wider shadow-lg shadow-orange-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
+                        className="w-full py-3.5 rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-600 hover:to-orange-600 text-white font-black text-xs sm:text-sm uppercase tracking-wider shadow-lg shadow-orange-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
                       >
                         Luar Biasa!
                       </button>
                     </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.div>
-            </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
           );
         })()}
       </AnimatePresence>
