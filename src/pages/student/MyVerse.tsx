@@ -182,6 +182,17 @@ export default function MyVerse() {
           const lastStage = parseInt(rawLastStage, 10);
 
           if (syncedVerse.stage > lastStage) {
+            // Preload new evolved image immediately so browser caches it before reveal
+            try {
+              const stageData = getStageInfo(syncedVerse.species, syncedVerse.stage);
+              const evoImg = new Image();
+              evoImg.src = stageData.image;
+              if (stageData.pngImage) {
+                const evoPng = new Image();
+                evoPng.src = stageData.pngImage;
+              }
+            } catch (e) {}
+
             setEvolutionPhase('transforming');
             setEvolutionCelebration({
               oldStage: lastStage,
@@ -1047,7 +1058,7 @@ export default function MyVerse() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50 bg-[#060810] flex flex-col items-center justify-center p-4 sm:p-6 select-none overflow-y-auto text-white"
+              className="fixed inset-0 z-50 bg-[#060810] flex flex-col items-center justify-center p-4 sm:p-6 select-none overflow-hidden text-white"
             >
               {/* Massive Ambient Elemental Aura */}
               <div 
@@ -1065,7 +1076,7 @@ export default function MyVerse() {
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 1.05 }}
-                    transition={{ duration: 0.35 }}
+                    transition={{ duration: 0.25 }}
                     className="relative flex flex-col items-center text-center max-w-md w-full py-8 space-y-6 z-10"
                   >
                     {/* Elemental Badge */}
@@ -1088,13 +1099,13 @@ export default function MyVerse() {
                       <motion.div 
                         animate={{ scale: [1, 1.3, 1], opacity: [0.35, 0.75, 0.35] }}
                         transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
-                        className="absolute w-48 h-48 rounded-full blur-2xl"
+                        className="absolute w-48 h-48 rounded-full blur-2xl pointer-events-none"
                         style={{ backgroundColor: evoChar.elementColor || '#F59E0B' }}
                       />
                       <motion.div 
                         animate={{ rotate: 360 }}
                         transition={{ duration: 7, repeat: Infinity, ease: "linear" }}
-                        className="w-36 h-36 rounded-full border-2 border-dashed border-amber-400/60 absolute"
+                        className="w-36 h-36 rounded-full border-2 border-dashed border-amber-400/60 absolute pointer-events-none"
                       />
                       <div className="w-28 h-28 rounded-full bg-white/10 border-2 border-amber-400/80 shadow-2xl shadow-amber-400/40 flex items-center justify-center backdrop-blur-md relative z-10">
                         {getElementIcon(evoChar.element, "w-14 h-14 animate-pulse")}
@@ -1110,103 +1121,59 @@ export default function MyVerse() {
                     key="revealed"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    transition={{ duration: 0.4 }}
-                    className="relative flex flex-col items-center text-center max-w-lg w-full py-6 z-10"
+                    transition={{ duration: 0.3 }}
+                    className="relative flex flex-col items-center text-center max-w-lg w-full py-4 z-10 max-h-screen overflow-y-auto"
+                    style={{ scrollbarWidth: 'none' }}
                   >
                     {/* Celebration Badge */}
-                    <motion.div
-                      initial={{ y: -20, opacity: 0 }}
-                      animate={{ y: 0, opacity: 1 }}
-                      transition={{ delay: 0.1 }}
-                      className="relative z-10 mb-2"
-                    >
+                    <div className="relative z-10 mb-2">
                       <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-black bg-white/10 text-white border border-white/20 uppercase tracking-widest backdrop-blur-md shadow-lg">
                         {getElementIcon(evoChar.element, "w-3.5 h-3.5")}
                         <span>Evolusi Spektakuler!</span>
                       </span>
-                    </motion.div>
+                    </div>
 
                     {/* Title */}
-                    <motion.h2
-                      initial={{ y: -15, opacity: 0 }}
-                      animate={{ y: 0, opacity: 1 }}
-                      transition={{ delay: 0.15 }}
-                      className="relative z-10 text-2xl sm:text-3xl md:text-4xl font-black text-white tracking-tight drop-shadow-lg"
-                    >
+                    <h2 className="relative z-10 text-2xl sm:text-3xl md:text-4xl font-black text-white tracking-tight drop-shadow-lg">
                       Wujud Baru Terbuka!
-                    </motion.h2>
-                    <motion.p
-                      initial={{ y: -10, opacity: 0 }}
-                      animate={{ y: 0, opacity: 1 }}
-                      transition={{ delay: 0.2 }}
-                      className="relative z-10 text-slate-300 text-xs sm:text-sm mt-1 max-w-sm"
-                    >
+                    </h2>
+                    <p className="relative z-10 text-slate-300 text-xs sm:text-sm mt-1 max-w-sm">
                       <strong className="text-amber-300">{evolutionCelebration.nickname}</strong> telah berevolusi dari Tahap {evolutionCelebration.oldStage} ke Tahap {evolutionCelebration.newStage}!
-                    </motion.p>
+                    </p>
 
-                    {/* Hero Mascot Showcase with White-Yellow Burst Flare & Spring Zoom */}
-                    <div className="relative my-4 sm:my-6 w-64 h-64 sm:w-72 sm:h-72 md:w-80 md:h-80 flex items-center justify-center">
-                      {/* Expanding warm golden-white burst flare (cahaya putih kekuning-kuningan) */}
+                    {/* Hero Mascot Showcase with Seamless White-Golden Burst & Zoom */}
+                    <div className="relative my-3 sm:my-5 w-64 h-64 sm:w-72 sm:h-72 md:w-80 md:h-80 flex items-center justify-center">
+                      {/* Outer Golden-White Ambient Flare */}
                       <motion.div
-                        initial={{ opacity: 0, scale: 0.15 }}
-                        animate={{ 
-                          opacity: [0, 1, 0.85, 0.4], 
-                          scale: [0.15, 1.4, 2.0, 2.4] 
-                        }}
-                        transition={{ 
-                          duration: 1.5, 
-                          times: [0, 0.25, 0.65, 1],
-                          ease: "easeOut" 
-                        }}
-                        className="absolute inset-0 m-auto w-72 h-72 rounded-full bg-gradient-to-r from-amber-200 via-white to-yellow-300 blur-3xl pointer-events-none z-0"
+                        initial={{ scale: 0.3, opacity: 0 }}
+                        animate={{ scale: [0.3, 1.4, 1.15], opacity: [0, 0.95, 0.5] }}
+                        transition={{ duration: 1.0, ease: "easeOut" }}
+                        className="absolute inset-0 m-auto w-64 h-64 rounded-full bg-gradient-to-r from-amber-200 via-white to-yellow-300 blur-3xl pointer-events-none z-0"
                       />
 
                       {/* Intense White-Golden Core Flash (Luminous Radial Glow) */}
                       <motion.div
-                        initial={{ opacity: 0, scale: 0.3 }}
-                        animate={{ 
-                          opacity: [0, 1, 0.8, 0], 
-                          scale: [0.3, 1.3, 1.8, 2.3] 
-                        }}
-                        transition={{ 
-                          duration: 1.1, 
-                          times: [0, 0.2, 0.6, 1],
-                          ease: "easeOut" 
-                        }}
+                        initial={{ scale: 0.2, opacity: 0 }}
+                        animate={{ scale: [0.2, 1.5, 1.25], opacity: [0, 1, 0.35] }}
+                        transition={{ duration: 0.85, ease: "easeOut" }}
                         style={{
-                          background: 'radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(254,240,138,0.95) 35%, rgba(251,191,36,0.3) 70%, transparent 100%)'
+                          background: 'radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(254,240,138,0.9) 40%, rgba(251,191,36,0) 70%)'
                         }}
-                        className="absolute inset-0 m-auto w-64 h-64 rounded-full blur-xl pointer-events-none z-0"
+                        className="absolute inset-0 m-auto w-56 h-56 rounded-full blur-2xl pointer-events-none z-0"
                       />
 
-                      {/* Expanding Light Shockwave Ring */}
+                      {/* Evolved Character Mascot with Pure Center Spring Zoom - Clean, Straight & Glitch-Free */}
                       <motion.div
-                        initial={{ opacity: 0, scale: 0.2 }}
-                        animate={{ 
-                          opacity: [0, 0.95, 0], 
-                          scale: [0.2, 2.0, 3.0] 
-                        }}
-                        transition={{ 
-                          duration: 1.2, 
-                          times: [0, 0.25, 1],
-                          ease: "easeOut",
-                          delay: 0.1
-                        }}
-                        className="absolute inset-0 m-auto w-52 h-52 rounded-full border-2 border-yellow-200/90 blur-xs pointer-events-none z-0"
-                      />
-
-                      {/* Evolved Character Mascot with Zoom-in Spring Animation */}
-                      <motion.div
-                        initial={{ scale: 0.1, opacity: 0, rotate: -8 }}
-                        animate={{ scale: 1, opacity: 1, rotate: 0 }}
+                        initial={{ scale: 0.2, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
                         transition={{ 
                           type: 'spring', 
-                          stiffness: 90, 
-                          damping: 12, 
-                          mass: 0.85,
-                          delay: 0.15 
+                          stiffness: 110, 
+                          damping: 14, 
+                          mass: 0.8
                         }}
-                        className="w-full h-full relative flex items-center justify-center z-10"
+                        style={{ willChange: 'transform, opacity' }}
+                        className="w-full h-full relative flex items-center justify-center z-10 pointer-events-none"
                       >
                         <img 
                           src={stageInfo.image}
@@ -1219,9 +1186,9 @@ export default function MyVerse() {
 
                     {/* Stage description & stats card */}
                     <motion.div
-                      initial={{ y: 25, opacity: 0 }}
+                      initial={{ y: 15, opacity: 0 }}
                       animate={{ y: 0, opacity: 1 }}
-                      transition={{ delay: 0.35 }}
+                      transition={{ duration: 0.35, delay: 0.08 }}
                       className="relative z-10 w-full max-w-md bg-white/10 backdrop-blur-xl border border-white/20 p-5 rounded-2xl text-left space-y-4 shadow-2xl"
                     >
                       <div className="flex items-center justify-between">
