@@ -197,7 +197,7 @@ export async function getStudentPointsHistory(
 }> {
   const items: PointHistoryItem[] = [];
 
-  // 1. Fetch teacher-granted points from Supabase & IndexedDB
+  // 1. Fetch teacher-granted points from Supabase & IndexedDB (deduplicated by point ID)
   try {
     const client = supabaseAnon || supabase;
     const { data: dbPoints } = await client
@@ -205,8 +205,12 @@ export async function getStudentPointsHistory(
       .select('*')
       .eq('id_siswa', studentId);
 
+    const seenIds = new Set<string>();
+
     if (dbPoints && dbPoints.length > 0) {
       dbPoints.forEach((p: any) => {
+        const pId = String(p.id);
+        seenIds.add(pId);
         const pts = Number(p.poin) || 0;
         const isPresensi = p.tipe === 'presensi' || (p.keterangan && p.keterangan.toLowerCase().includes('presensi'));
         const isTugas = p.tipe === 'tugas' || (p.keterangan && p.keterangan.toLowerCase().includes('tugas'));
@@ -219,24 +223,32 @@ export async function getStudentPointsHistory(
           type: pts >= 0 ? 'positive' : 'negative'
         });
       });
-    } else {
-      // Local IndexedDB fallback
+    }
+
+    // Also include any local points from IndexedDB not yet synced to Supabase (deduped by ID)
+    try {
       const localPts = await dbGrading.getStudentPoints();
       const filtered = localPts.filter(p => p.idSiswa === studentId);
       filtered.forEach(p => {
-        const pts = Number(p.poin) || 0;
-        const rawTipe = (p as any).tipe;
-        const isPresensi = rawTipe === 'presensi' || (p.keterangan && p.keterangan.toLowerCase().includes('presensi'));
-        const isTugas = rawTipe === 'tugas' || (p.keterangan && p.keterangan.toLowerCase().includes('tugas'));
-        items.push({
-          id: `local_sp_${p.id}`,
-          source: isPresensi ? 'presensi' : (isTugas ? 'tugas' : 'guru'),
-          title: p.keterangan || (isPresensi ? 'Kehadiran Presensi (+10 Poin)' : 'Poin Apresiasi Guru'),
-          date: p.tanggal || new Date().toISOString(),
-          points: pts,
-          type: pts >= 0 ? 'positive' : 'negative'
-        });
+        const pId = String(p.id);
+        if (!seenIds.has(pId)) {
+          seenIds.add(pId);
+          const pts = Number(p.poin) || 0;
+          const rawTipe = (p as any).tipe;
+          const isPresensi = rawTipe === 'presensi' || (p.keterangan && p.keterangan.toLowerCase().includes('presensi'));
+          const isTugas = rawTipe === 'tugas' || (p.keterangan && p.keterangan.toLowerCase().includes('tugas'));
+          items.push({
+            id: `sp_${p.id}`,
+            source: isPresensi ? 'presensi' : (isTugas ? 'tugas' : 'guru'),
+            title: p.keterangan || (isPresensi ? 'Kehadiran Presensi (+10 Poin)' : 'Poin Apresiasi Guru'),
+            date: p.tanggal || new Date().toISOString(),
+            points: pts,
+            type: pts >= 0 ? 'positive' : 'negative'
+          });
+        }
       });
+    } catch (localErr) {
+      console.debug('[verseService] Local points fallback skipped:', localErr);
     }
   } catch (err) {
     console.warn('[verseService] Error fetching student_points:', err);
@@ -381,7 +393,7 @@ export async function awardVerseExpAndPoints({
     // 1. Record point in student_points (IndexedDB & Supabase)
     const pointId = typeof crypto !== 'undefined' && crypto.randomUUID 
       ? crypto.randomUUID() 
-      : `pt_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+      : '00000000-0000-4000-8000-' + Date.now().toString(16).padStart(12, '0');
 
     await dbGrading.saveStudentPoint({
       id: pointId,

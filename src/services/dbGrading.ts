@@ -873,12 +873,24 @@ export const getStudentPoints = async (idKelas?: string, schoolId?: string): Pro
 export const saveStudentPoint = async (point: StudentPoint): Promise<void> => {
   await putOne('studentPoints', point);
   if (supabase) {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session) {
-      supabase.from('student_points').upsert({
-        id: point.id, user_id: session.user.id, school_id: point.schoolId, id_siswa: point.idSiswa, id_kelas: point.idKelas,
-        tanggal: point.tanggal, poin: point.poin, keterangan: point.keterangan, tipe: point.tipe
-      }).then(({ error }) => { if (error) console.warn("Background sync failed:", error); });
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const userId = session?.user?.id || null;
+      const validId = cleanUUID(point.id) || (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : point.id);
+      const { error } = await supabase.from('student_points').upsert({
+        id: validId, 
+        user_id: userId, 
+        school_id: cleanUUID(point.schoolId), 
+        id_siswa: point.idSiswa, 
+        id_kelas: cleanUUID(point.idKelas),
+        tanggal: point.tanggal || new Date().toISOString(), 
+        poin: point.poin, 
+        keterangan: point.keterangan || '', 
+        tipe: point.tipe || 'manual'
+      });
+      if (error) console.warn("[dbGrading] Background sync failed for student_points:", error);
+    } catch (err) {
+      console.warn("[dbGrading] Error in saveStudentPoint sync:", err);
     }
   }
 };
@@ -889,9 +901,11 @@ export const deleteStudentPoint = async (id: string): Promise<void> => {
   tx.objectStore('studentPoints').delete(id);
   
   if (supabase) {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) supabase.from('student_points').delete().eq('id', id).then(({ error }) => { if (error) console.warn(error); });
-    });
+    try {
+      await supabase.from('student_points').delete().eq('id', id);
+    } catch (err) {
+      console.warn("Delete student point sync failed:", err);
+    }
   }
 
   return new Promise((resolve, reject) => {

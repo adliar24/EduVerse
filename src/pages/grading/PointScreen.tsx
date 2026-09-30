@@ -116,40 +116,30 @@ export const PointScreen: React.FC = () => {
     }
     const finalPoint = pointForm.mode === 'add' ? amount : -amount;
     const studentsToUpdate = Array.from(selectedStudentIds);
-    const promises = studentsToUpdate.map((sid: string) => {
+    const promises = studentsToUpdate.map(async (sid: string) => {
         const student = allStudents.find(s => s.idSiswa === sid);
-        if(!student) return Promise.resolve();
+        if (!student) return;
         
         const classId = student.idKelas as string;
         const note = pointForm.note || (pointForm.mode === 'add' ? 'Tambahan Poin' : 'Pengurangan Poin');
 
-        // Also award and sync Verse companion EXP
-        awardVerseExpAndPoints({
+        // Unified point & Verse EXP award (writes once to student_points & student_verses)
+        await awardVerseExpAndPoints({
           studentId: sid,
           points: finalPoint,
           source: 'guru',
           title: note,
           schoolId: teacherProfile?.activeSchoolId || undefined,
           classId: classId || undefined
-        }).catch(err => console.debug('Verse sync skipped in PointScreen:', err));
-
-        return db.saveStudentPoint({
-            id: crypto.randomUUID(),
-            schoolId: teacherProfile?.activeSchoolId || '',
-            idSiswa: sid,
-            idKelas: classId,
-            tanggal: new Date().toISOString(),
-            poin: finalPoint,
-            keterangan: note,
-            tipe: pointForm.source
         });
     });
     await Promise.all(promises);
     showToast("Poin berhasil diperbarui");
+    setPointForm({ amount: '', note: '', mode: 'add', source: 'manual' });
     await fetchData();
     setShowModal(false);
     setSelectedStudentIds(new Set());
-    if(isScanning) setIsScanning(false);
+    if (isScanning) setIsScanning(false);
   };
 
   const handleQrSubmit = (val: string) => {

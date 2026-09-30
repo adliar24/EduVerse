@@ -159,12 +159,13 @@ export default function MyVerse() {
         getStudentPointsHistory(studentObj.id, studentObj.name, studentObj.className || '')
       ]);
 
+      const effectiveLifetimePoints = Math.max(existingVerse?.lifetimePoints || 0, pointsData.totalPoints || 0);
       setPointsHistory(pointsData.items);
-      setTotalLifetimePoints(pointsData.totalPoints);
+      setTotalLifetimePoints(effectiveLifetimePoints);
 
       if (existingVerse) {
         // Sync level & stage based on lifetime points
-        const { verse: syncedVerse } = await syncVerseWithPoints(existingVerse, pointsData.totalPoints);
+        const { verse: syncedVerse } = await syncVerseWithPoints(existingVerse, effectiveLifetimePoints);
         setVerse(syncedVerse);
         setQuote(getRandomMotivationQuote(syncedVerse.species, syncedVerse.nickname));
 
