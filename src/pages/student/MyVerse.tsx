@@ -337,6 +337,84 @@ export default function MyVerse() {
     }
   };
 
+  // Helper for elemental card themes (soft, bright pastel wash to keep pet artwork crystal clear)
+  const getElementCardTheme = (element?: string) => {
+    switch (element) {
+      case 'api':
+        return {
+          cardBg: 'bg-gradient-to-b from-orange-50/80 via-rose-50/40 to-white',
+          border: 'border-orange-200/80',
+          divider: 'border-orange-100/90',
+          progressBox: 'bg-white/85 border border-orange-100/90 shadow-2xs',
+          progressBar: 'bg-gradient-to-r from-orange-500 to-rose-500',
+          progressText: 'text-orange-600',
+          quoteBubble: 'bg-orange-50/70 border border-orange-200/70 text-orange-950',
+          stageBadge: 'bg-orange-100/80 text-orange-700 border-orange-200/80',
+          levelBadge: 'bg-rose-100/80 text-rose-700 border-rose-200/80',
+        };
+      case 'air':
+        return {
+          cardBg: 'bg-gradient-to-b from-cyan-50/80 via-sky-50/40 to-white',
+          border: 'border-cyan-200/80',
+          divider: 'border-cyan-100/90',
+          progressBox: 'bg-white/85 border border-cyan-100/90 shadow-2xs',
+          progressBar: 'bg-gradient-to-r from-cyan-500 to-blue-500',
+          progressText: 'text-cyan-600',
+          quoteBubble: 'bg-cyan-50/70 border border-cyan-200/70 text-cyan-950',
+          stageBadge: 'bg-cyan-100/80 text-cyan-700 border-cyan-200/80',
+          levelBadge: 'bg-blue-100/80 text-blue-700 border-blue-200/80',
+        };
+      case 'bumi':
+        return {
+          cardBg: 'bg-gradient-to-b from-emerald-50/80 via-teal-50/40 to-white',
+          border: 'border-emerald-200/80',
+          divider: 'border-emerald-100/90',
+          progressBox: 'bg-white/85 border border-emerald-100/90 shadow-2xs',
+          progressBar: 'bg-gradient-to-r from-emerald-500 to-teal-600',
+          progressText: 'text-emerald-600',
+          quoteBubble: 'bg-emerald-50/70 border border-emerald-200/70 text-emerald-950',
+          stageBadge: 'bg-emerald-100/80 text-emerald-700 border-emerald-200/80',
+          levelBadge: 'bg-teal-100/80 text-teal-700 border-teal-200/80',
+        };
+      case 'angin':
+        return {
+          cardBg: 'bg-gradient-to-b from-sky-50/80 via-indigo-50/40 to-white',
+          border: 'border-sky-200/80',
+          divider: 'border-sky-100/90',
+          progressBox: 'bg-white/85 border border-sky-100/90 shadow-2xs',
+          progressBar: 'bg-gradient-to-r from-sky-500 to-indigo-500',
+          progressText: 'text-sky-600',
+          quoteBubble: 'bg-sky-50/70 border border-sky-200/70 text-sky-950',
+          stageBadge: 'bg-sky-100/80 text-sky-700 border-sky-200/80',
+          levelBadge: 'bg-indigo-100/80 text-indigo-700 border-indigo-200/80',
+        };
+      case 'petir':
+        return {
+          cardBg: 'bg-gradient-to-b from-amber-50/80 via-yellow-50/40 to-white',
+          border: 'border-amber-200/80',
+          divider: 'border-amber-100/90',
+          progressBox: 'bg-white/85 border border-amber-100/90 shadow-2xs',
+          progressBar: 'bg-gradient-to-r from-amber-500 to-orange-500',
+          progressText: 'text-amber-600',
+          quoteBubble: 'bg-amber-50/70 border border-amber-200/70 text-amber-950',
+          stageBadge: 'bg-amber-100/80 text-amber-700 border-amber-200/80',
+          levelBadge: 'bg-yellow-100/80 text-yellow-800 border-yellow-200/80',
+        };
+      default:
+        return {
+          cardBg: 'bg-gradient-to-b from-blue-50/80 via-indigo-50/40 to-white',
+          border: 'border-blue-200/80',
+          divider: 'border-blue-100/90',
+          progressBox: 'bg-white/85 border border-blue-100/90 shadow-2xs',
+          progressBar: 'bg-gradient-to-r from-[#3B66F5] to-indigo-600',
+          progressText: 'text-[#3B66F5]',
+          quoteBubble: 'bg-blue-50/70 border border-blue-200/70 text-slate-800',
+          stageBadge: 'bg-blue-100/80 text-[#3B66F5] border-blue-200/80',
+          levelBadge: 'bg-indigo-100/80 text-indigo-700 border-indigo-200/80',
+        };
+    }
+  };
+
   // --------------------------------------------------------------------------
   // LOADING STATE
   // --------------------------------------------------------------------------
@@ -765,15 +843,17 @@ export default function MyVerse() {
   // --------------------------------------------------------------------------
   // ACTIVE PET HUB: VERSE HAS BEEN ADOPTED
   // --------------------------------------------------------------------------
+  const elementTheme = getElementCardTheme(verse.element);
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
-      {/* Top Banner: Verse Identity & Mascot - Stacked Vertical Layout */}
-      <div className="relative overflow-hidden bg-white rounded-3xl border border-slate-200/90 shadow-2xs p-5 sm:p-7 flex flex-col items-center text-center space-y-5">
+      {/* Top Banner: Verse Identity & Mascot - Stacked Vertical Layout with Soft Elemental Theme */}
+      <div className={`relative overflow-hidden rounded-3xl border shadow-xs p-5 sm:p-7 flex flex-col items-center text-center space-y-5 transition-all duration-300 ${elementTheme.cardBg} ${elementTheme.border}`}>
         
         {/* 1. BAGIAN ATAS: Teks Tahap, Elemen, Level, Nama, & Sinkron Poin */}
         <div className="w-full flex flex-col items-center gap-3">
           {/* Header Row: Pet Nickname & Sinkron Poin Button */}
-          <div className="w-full flex items-center justify-between gap-2 border-b border-slate-100 pb-3">
+          <div className={`w-full flex items-center justify-between gap-2 border-b pb-3 ${elementTheme.divider}`}>
             <div className="flex items-center gap-2">
               <h1 className="text-xl sm:text-2xl font-black text-slate-800 tracking-tight">
                 {verse.nickname}
@@ -784,7 +864,7 @@ export default function MyVerse() {
                   setIsEditingName(true);
                 }}
                 title="Ubah Nama Panggilan"
-                className="p-1.5 rounded-lg text-slate-400 hover:text-[#3B66F5] hover:bg-blue-50 transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-[#3B66F5] hover:bg-white/80 transition-colors cursor-pointer"
               >
                 <Edit2 className="w-3.5 h-3.5" />
               </button>
@@ -793,7 +873,7 @@ export default function MyVerse() {
             <button
               onClick={() => loadData(true)}
               disabled={refreshing}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 text-slate-600 text-xs font-bold hover:bg-slate-50 transition-colors cursor-pointer shrink-0 disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200/90 bg-white/85 text-slate-700 text-xs font-bold hover:bg-white transition-colors cursor-pointer shrink-0 disabled:opacity-50 shadow-2xs"
             >
               <RotateCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin text-[#3B66F5]' : 'text-slate-500'}`} />
               <span>Sinkron Poin</span>
@@ -802,18 +882,18 @@ export default function MyVerse() {
 
           {/* Badges: Tahap, Elemen, Level, Spesies */}
           <div className="flex items-center justify-center flex-wrap gap-2 text-xs font-bold">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100/90 text-slate-700 border border-slate-200/80 shadow-2xs">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/85 text-slate-700 border border-slate-200/80 shadow-2xs">
               {getElementIcon(verse.element)}
               <span className="capitalize">{activeCharData?.elementName}</span>
               <span className="text-slate-300">•</span>
               <span>Spesies {activeCharData?.species}</span>
             </span>
 
-            <span className="px-3 py-1 rounded-full bg-blue-50 text-[#3B66F5] border border-blue-100 shadow-2xs font-black">
+            <span className={`px-3 py-1 rounded-full border shadow-2xs font-black ${elementTheme.stageBadge}`}>
               {activeStageInfo?.name} • Tahap {verse.stage}
             </span>
 
-            <span className="px-3 py-1 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-100 shadow-2xs font-black">
+            <span className={`px-3 py-1 rounded-full border shadow-2xs font-black ${elementTheme.levelBadge}`}>
               Level {levelStats.currentLevel}
             </span>
           </div>
@@ -832,27 +912,27 @@ export default function MyVerse() {
         </div>
 
         {/* 3. BAGIAN DI BAWAH KARAKTER: Progres Bar Level */}
-        <div className="w-full max-w-xl bg-slate-50/80 border border-slate-200/80 rounded-2xl p-4 text-left space-y-2">
+        <div className={`w-full max-w-xl rounded-2xl p-4 text-left space-y-2 transition-all ${elementTheme.progressBox}`}>
           <div className="flex items-center justify-between text-xs font-bold">
             <span className="text-slate-700">Progres Level {levelStats.currentLevel}</span>
-            <span className="text-[#3B66F5] font-extrabold">
+            <span className={`font-extrabold ${elementTheme.progressText}`}>
               {levelStats.currentLevelProgress} / {levelStats.pointsNeededForNext} XP ({levelStats.progressPercent}%)
             </span>
           </div>
 
-          <div className="w-full h-2.5 rounded-full bg-slate-200 overflow-hidden relative">
+          <div className="w-full h-2.5 rounded-full bg-slate-200/80 overflow-hidden relative">
             <motion.div 
               initial={{ width: 0 }}
               animate={{ width: `${levelStats.progressPercent}%` }}
               transition={{ duration: 0.8, ease: 'easeOut' }}
-              className="h-full bg-gradient-to-r from-[#3B66F5] to-indigo-600 rounded-full"
+              className={`h-full rounded-full ${elementTheme.progressBar}`}
             />
           </div>
         </div>
 
         {/* 4. BAWAHNYA LAGI: Teks Motivasi */}
         {quote && (
-          <div className="w-full max-w-xl p-3 sm:p-3.5 rounded-2xl bg-blue-50/70 border border-blue-100 text-slate-700 text-xs font-medium leading-relaxed text-center sm:text-left">
+          <div className={`w-full max-w-xl p-3 sm:p-3.5 rounded-2xl text-xs font-medium leading-relaxed text-center sm:text-left transition-all ${elementTheme.quoteBubble}`}>
             💬 "{quote}"
           </div>
         )}
