@@ -699,12 +699,12 @@ export default function MyVerse() {
                       {selChar.philosophy}
                     </motion.p>
 
-                    {/* HERO-SCALE MASCOT IN THE CENTER (EXTRA LARGE) */}
+                    {/* HERO-SCALE MASCOT IN THE CENTER (CRISP RESOLUTION) */}
                     <motion.div
                       initial={{ scale: 0.5, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}
                       transition={{ type: 'spring', damping: 14, stiffness: 90, delay: 0.25 }}
-                      className="relative z-10 my-3 sm:my-5 w-80 h-80 sm:w-96 sm:h-96 md:w-[480px] md:h-[480px] lg:w-[540px] lg:h-[540px] xl:w-[580px] xl:h-[580px] flex items-center justify-center"
+                      className="relative z-10 my-3 sm:my-5 w-56 h-56 sm:w-64 sm:h-64 md:w-72 md:h-72 flex items-center justify-center"
                     >
                       <img 
                         src={stage1Info.image} 
@@ -765,98 +765,96 @@ export default function MyVerse() {
   // ACTIVE PET HUB: VERSE HAS BEEN ADOPTED
   // --------------------------------------------------------------------------
   return (
-    <div className="max-w-6xl mx-auto px-4 py-6 space-y-6">
-      {/* Top Banner: Verse Identity & Live Mascot - Clean Backdrop */}
-      <div className="relative overflow-hidden bg-white rounded-3xl border border-slate-200/90 shadow-sm p-6 md:p-8">
-        <div className="relative z-10 flex flex-col md:flex-row items-center gap-6 md:gap-10">
-          {/* Pet Avatar - Extra Large, Crystal Clear on Pure White */}
-          <div className="relative shrink-0 flex flex-col items-center w-full md:w-[480px] lg:w-[540px]">
-            <div className="w-80 h-80 sm:w-96 sm:h-96 md:w-[480px] md:h-[480px] lg:w-[520px] lg:h-[520px] xl:w-[540px] xl:h-[540px] flex items-center justify-center relative">
-              {activeStageInfo && (
-                <img 
-                  src={activeStageInfo.image}
-                  onError={(e) => { (e.currentTarget as HTMLImageElement).src = activeStageInfo.pngImage; }}
-                  alt={verse.nickname}
-                  className="w-full h-full object-contain filter drop-shadow-xl relative z-10 transition-transform duration-300 hover:scale-105 select-none"
-                />
-              )}
+    <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
+      {/* Top Banner: Verse Identity & Mascot - Stacked Vertical Layout */}
+      <div className="relative overflow-hidden bg-white rounded-3xl border border-slate-200/90 shadow-2xs p-5 sm:p-7 flex flex-col items-center text-center space-y-5">
+        
+        {/* 1. BAGIAN ATAS: Teks Tahap, Elemen, Level, Nama, & Sinkron Poin */}
+        <div className="w-full flex flex-col items-center gap-3">
+          {/* Header Row: Pet Nickname & Sinkron Poin Button */}
+          <div className="w-full flex items-center justify-between gap-2 border-b border-slate-100 pb-3">
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl sm:text-2xl font-black text-slate-800 tracking-tight">
+                {verse.nickname}
+              </h1>
+              <button
+                onClick={() => {
+                  setEditNameInput(verse.nickname);
+                  setIsEditingName(true);
+                }}
+                title="Ubah Nama Panggilan"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-[#3B66F5] hover:bg-blue-50 transition-colors cursor-pointer"
+              >
+                <Edit2 className="w-3.5 h-3.5" />
+              </button>
             </div>
 
-            <span className="mt-3 inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-black bg-slate-100/90 text-slate-800 border border-slate-200/90 shadow-2xs">
+            <button
+              onClick={() => loadData(true)}
+              disabled={refreshing}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 text-slate-600 text-xs font-bold hover:bg-slate-50 transition-colors cursor-pointer shrink-0 disabled:opacity-50"
+            >
+              <RotateCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin text-[#3B66F5]' : 'text-slate-500'}`} />
+              <span>Sinkron Poin</span>
+            </button>
+          </div>
+
+          {/* Badges: Tahap, Elemen, Level, Spesies */}
+          <div className="flex items-center justify-center flex-wrap gap-2 text-xs font-bold">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100/90 text-slate-700 border border-slate-200/80 shadow-2xs">
               {getElementIcon(verse.element)}
+              <span className="capitalize">{activeCharData?.elementName}</span>
+              <span className="text-slate-300">•</span>
+              <span>Spesies {activeCharData?.species}</span>
+            </span>
+
+            <span className="px-3 py-1 rounded-full bg-blue-50 text-[#3B66F5] border border-blue-100 shadow-2xs font-black">
               {activeStageInfo?.name} • Tahap {verse.stage}
+            </span>
+
+            <span className="px-3 py-1 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-100 shadow-2xs font-black">
+              Level {levelStats.currentLevel}
+            </span>
+          </div>
+        </div>
+
+        {/* 2. BAGIAN TENGAH: Gambar Karakter Verse (Dikecilkan Agar Super Tajam & Tidak Pecah) */}
+        <div className="w-56 h-56 sm:w-64 sm:h-64 md:w-72 md:h-72 flex items-center justify-center relative my-1 select-none">
+          {activeStageInfo && (
+            <img 
+              src={activeStageInfo.image}
+              onError={(e) => { (e.currentTarget as HTMLImageElement).src = activeStageInfo.pngImage; }}
+              alt={verse.nickname}
+              className="w-full h-full object-contain filter drop-shadow-md relative z-10 transition-transform duration-300 hover:scale-105"
+            />
+          )}
+        </div>
+
+        {/* 3. BAGIAN DI BAWAH KARAKTER: Progres Bar Level */}
+        <div className="w-full max-w-xl bg-slate-50/80 border border-slate-200/80 rounded-2xl p-4 text-left space-y-2">
+          <div className="flex items-center justify-between text-xs font-bold">
+            <span className="text-slate-700">Progres Level {levelStats.currentLevel}</span>
+            <span className="text-[#3B66F5] font-extrabold">
+              {levelStats.currentLevelProgress} / {levelStats.pointsNeededForNext} XP ({levelStats.progressPercent}%)
             </span>
           </div>
 
-          {/* Verse Info & Progress Bar */}
-          <div className="flex-1 w-full text-center md:text-left space-y-4">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-2">
-              <div>
-                <div className="flex items-center justify-center md:justify-start gap-2">
-                  <h1 className="text-2xl md:text-3xl font-extrabold text-slate-800 tracking-tight">
-                    {verse.nickname}
-                  </h1>
-                  <button
-                    onClick={() => {
-                      setEditNameInput(verse.nickname);
-                      setIsEditingName(true);
-                    }}
-                    title="Ubah Nama Panggilan"
-                    className="p-1 rounded-lg text-slate-400 hover:text-[#3B66F5] hover:bg-blue-50 transition-colors cursor-pointer"
-                  >
-                    <Edit2 className="w-4 h-4" />
-                  </button>
-                </div>
-                <div className="flex items-center justify-center md:justify-start gap-2 text-xs font-semibold text-slate-500 mt-1">
-                  <span>{activeCharData?.species}</span>
-                  <span>•</span>
-                  <span>Elemen {activeCharData?.elementName}</span>
-                  <span>•</span>
-                  <span className="text-[#3B66F5] font-bold">Level {levelStats.currentLevel}</span>
-                </div>
-              </div>
-
-              {/* Refresh button */}
-              <div className="flex items-center justify-center gap-2">
-                <button
-                  onClick={() => loadData(true)}
-                  disabled={refreshing}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 text-slate-600 text-xs font-bold hover:bg-slate-50 transition-colors cursor-pointer"
-                >
-                  <RotateCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
-                  Sinkron Poin
-                </button>
-              </div>
-            </div>
-
-            {/* Motivation Quote Bubble */}
-            {quote && (
-              <div className="inline-block p-3 rounded-2xl bg-blue-50/70 border border-blue-100 text-slate-700 text-xs font-medium text-left">
-                💬 "{quote}"
-              </div>
-            )}
-
-            {/* EXP Progress Bar */}
-            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4">
-              <div className="flex items-center justify-between text-xs font-bold mb-1.5">
-                <span className="text-slate-700">Progres Level {levelStats.currentLevel}</span>
-                <span className="text-[#3B66F5]">
-                  {levelStats.currentLevelProgress} / {levelStats.pointsNeededForNext} XP ({levelStats.progressPercent}%)
-                </span>
-              </div>
-
-              {/* Bar */}
-              <div className="w-full h-3 rounded-full bg-slate-200 overflow-hidden relative">
-                <motion.div 
-                  initial={{ width: 0 }}
-                  animate={{ width: `${levelStats.progressPercent}%` }}
-                  transition={{ duration: 1, ease: 'easeOut' }}
-                  className="h-full bg-gradient-to-r from-[#3B66F5] to-indigo-500 rounded-full"
-                />
-              </div>
-            </div>
+          <div className="w-full h-2.5 rounded-full bg-slate-200 overflow-hidden relative">
+            <motion.div 
+              initial={{ width: 0 }}
+              animate={{ width: `${levelStats.progressPercent}%` }}
+              transition={{ duration: 0.8, ease: 'easeOut' }}
+              className="h-full bg-gradient-to-r from-[#3B66F5] to-indigo-600 rounded-full"
+            />
           </div>
         </div>
+
+        {/* 4. BAWAHNYA LAGI: Teks Motivasi */}
+        {quote && (
+          <div className="w-full max-w-xl p-3 sm:p-3.5 rounded-2xl bg-blue-50/70 border border-blue-100 text-slate-700 text-xs font-medium leading-relaxed text-center sm:text-left">
+            💬 "{quote}"
+          </div>
+        )}
       </div>
 
       {/* Point Activity History (Bersih tanpa aturan poin) */}

@@ -12,7 +12,8 @@ import {
   Mountain, 
   Wind, 
   Zap, 
-  Users
+  Users,
+  X
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useSchool } from '../context/SchoolContext';
@@ -54,6 +55,7 @@ export default function KelolaVerse() {
 
   // Split View & Scrollable State (Ultra lightweight scrolling)
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
+  const [isMobileDetailOpen, setIsMobileDetailOpen] = useState(false);
   const [visibleCount, setVisibleCount] = useState<number>(40);
   const detailRef = useRef<HTMLDivElement>(null);
 
@@ -270,6 +272,182 @@ export default function KelolaVerse() {
     }
   };
 
+  // Helper to render student verse detail card (both for desktop panel & mobile pop-up modal)
+  const renderStudentDetailCard = (student: StudentWithVerse, isModal = false) => {
+    const verse = student.verse;
+    const char = verse ? getVerseCharacter(verse.species) : null;
+    const stageInfo = verse ? getStageInfo(verse.species, verse.stage) : null;
+    const vStats = verse ? calculateLevelAndProgress(verse.lifetimePoints) : null;
+
+    return (
+      <div className={`bg-white rounded-2xl border border-slate-200/90 p-3.5 sm:p-4 space-y-3 ${isModal ? 'shadow-2xl' : 'shadow-2xs'}`}>
+        {/* Student Header Info */}
+        <div className="flex items-start justify-between gap-2 pb-2.5 border-b border-slate-100">
+          <div>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+              Detail Murid & Sahabat Verse
+            </span>
+            <h2 className="text-base sm:text-lg font-black text-slate-900 mt-0.5">
+              {student.name || 'Murid'}
+            </h2>
+            <div className="flex items-center gap-1.5 mt-0.5">
+              <span className="text-[10px] font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded">
+                {student.className || 'Tanpa Kelas'}
+              </span>
+              {student.nisn && (
+                <span className="text-[10px] font-mono text-slate-400">
+                  NISN: {student.nisn}
+                </span>
+              )}
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            {verse && (
+              <button
+                onClick={() => setResettingStudent(student)}
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-rose-200 bg-rose-50/60 hover:bg-rose-100 text-rose-700 text-[11px] font-bold transition-all cursor-pointer shadow-2xs hover:scale-[1.02] active:scale-[0.98]"
+                title="Reset Verse murid agar bisa memilih ulang"
+              >
+                <RotateCcw className="w-3 h-3" />
+                <span>Reset</span>
+              </button>
+            )}
+            {isModal && (
+              <button
+                onClick={() => setIsMobileDetailOpen(false)}
+                className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors cursor-pointer"
+                title="Tutup"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Verse Content */}
+        {verse && char && stageInfo && vStats ? (
+          <div className="space-y-3">
+            {/* Visual Showcase Card - Clean White Backdrop, No Blurry Background */}
+            <div className="relative rounded-xl bg-white border border-slate-200/90 p-4 sm:p-5 flex flex-col sm:flex-row items-center gap-5 sm:gap-6 shadow-2xs">
+              {/* Visual Pet Image - Crystal Clear */}
+              <div className="w-48 h-48 sm:w-56 sm:h-56 md:w-60 md:h-60 rounded-2xl relative flex items-center justify-center p-2 shrink-0 bg-slate-50/60 border border-slate-100">
+                <img 
+                  src={stageInfo.image}
+                  onError={(e) => { (e.currentTarget as HTMLImageElement).src = stageInfo.pngImage; }}
+                  alt={verse.nickname || char.species || 'Sahabat Verse'}
+                  className="w-full h-full object-contain filter drop-shadow-md relative z-10 transition-transform duration-300 hover:scale-105 select-none"
+                />
+              </div>
+
+              {/* Pet Description & Identity */}
+              <div className="min-w-0 flex-1 text-center sm:text-left space-y-1.5">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-50 border border-slate-200/80 shadow-2xs text-[11px] font-bold text-slate-700">
+                  {getElementIcon(verse.element)}
+                  <span className="capitalize">{char.elementName}</span>
+                  <span className="text-slate-300">•</span>
+                  <span>Spesies {char.species}</span>
+                </div>
+
+                <div>
+                  <h3 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+                    {verse.nickname || char.species || 'Sahabat Verse'}
+                  </h3>
+                  <p className="text-xs font-semibold text-slate-500 mt-0.5">
+                    {stageInfo.name} — Tahap Evolusi {verse.stage || 1}
+                  </p>
+                </div>
+
+                <p className="text-xs text-slate-600 font-medium line-clamp-3 leading-relaxed">
+                  {stageInfo.description || char.philosophy}
+                </p>
+              </div>
+            </div>
+
+            {/* EXP & Level Details Card */}
+            <div className="p-3 sm:p-3.5 rounded-xl bg-white border border-slate-200/90 shadow-2xs space-y-2.5">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">
+                  Progres Level & Perolehan EXP
+                </span>
+                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-[#3B66F5] text-white shadow-2xs">
+                  Level {verse.level}
+                </span>
+              </div>
+
+              {/* Progress Bar */}
+              <div>
+                <div className="flex items-center justify-between text-[11px] font-bold text-slate-700 mb-1">
+                  <span>Menuju Level {vStats.currentLevel + 1}</span>
+                  <span className="text-[#3B66F5] font-extrabold">{vStats.progressPercent}%</span>
+                </div>
+                <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden p-0.5 border border-slate-200/60">
+                  <motion.div 
+                    initial={{ width: 0 }}
+                    animate={{ width: `${vStats.progressPercent}%` }}
+                    transition={{ duration: 0.5, ease: 'easeOut' }}
+                    className="h-full bg-gradient-to-r from-[#3B66F5] to-indigo-600 rounded-full"
+                  />
+                </div>
+              </div>
+
+              {/* EXP Metric Chips (4 Columns) */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
+                <div className="p-2 rounded-lg bg-slate-50 border border-slate-100">
+                  <span className="text-[9px] font-bold text-slate-400 block uppercase">EXP Level Ini</span>
+                  <span className="text-xs font-black text-slate-800 mt-0.5 block truncate">
+                    {vStats.currentLevelProgress} <span className="text-[9px] text-slate-400 font-normal">/ {vStats.pointsNeededForNext}</span>
+                  </span>
+                </div>
+
+                <div className="p-2 rounded-lg bg-slate-50 border border-slate-100">
+                  <span className="text-[9px] font-bold text-slate-400 block uppercase">Sisa Kebutuhan</span>
+                  <span className="text-xs font-black text-blue-600 mt-0.5 block truncate">
+                    {vStats.pointsRemaining} <span className="text-[9px] text-slate-400 font-normal">XP</span>
+                  </span>
+                </div>
+
+                <div className="p-2 rounded-lg bg-slate-50 border border-slate-100">
+                  <span className="text-[9px] font-bold text-slate-400 block uppercase">Tahap Evolusi</span>
+                  <span className="text-xs font-black text-slate-800 mt-0.5 block truncate">
+                    Tahap {verse.stage}
+                  </span>
+                </div>
+
+                <div className="p-2 rounded-lg bg-slate-50 border border-slate-100">
+                  <span className="text-[9px] font-bold text-slate-400 block uppercase">Total EXP (Lifetime)</span>
+                  <span className="text-xs font-black text-emerald-600 mt-0.5 block truncate">
+                    {verse.lifetimePoints} <span className="text-[9px] text-slate-400 font-normal">XP</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          /* Unadopted State */
+          <div className="p-8 text-center rounded-xl bg-slate-50/60 border border-dashed border-slate-200 flex flex-col items-center justify-center space-y-3">
+            <div className="w-24 h-24 rounded-2xl flex items-center justify-center p-2">
+              <img 
+                src={CHEST_ASSET.webp}
+                onError={(e) => { (e.currentTarget as HTMLImageElement).src = CHEST_ASSET.png; }}
+                alt="Peti Verse"
+                className="w-full h-full object-contain opacity-75 drop-shadow-md"
+              />
+            </div>
+            <div className="max-w-md space-y-1">
+              <h3 className="text-base font-extrabold text-slate-800">
+                Belum Mengadopsi Sahabat Verse
+              </h3>
+              <p className="text-xs text-slate-500 font-medium leading-relaxed">
+                Murid ini belum membuka peti misterius untuk mengadopsi Verse pertamanya. Status akan otomatis diperbarui begitu murid memilih telur di menu My Verse.
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   if (loading) {
     return (
       <div className="space-y-3 animate-pulse">
@@ -467,8 +645,8 @@ export default function KelolaVerse() {
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 items-start">
-          {/* LEFT COLUMN: Scrollable Master List */}
-          <div className="lg:col-span-5 xl:col-span-4 flex flex-col h-[calc(100vh-215px)] min-h-[440px] max-h-[640px]">
+          {/* LEFT COLUMN: Scrollable Master List (Full width on mobile, 5 cols on lg) */}
+          <div className="w-full lg:col-span-5 xl:col-span-4 flex flex-col h-[calc(100vh-215px)] min-h-[440px] max-h-[640px]">
             {/* List Header & Counter */}
             <div className="bg-white rounded-t-xl border border-b-0 border-slate-200/90 px-3 py-2 shadow-2xs flex items-center justify-between shrink-0">
               <span className="text-xs font-bold text-slate-700">
@@ -494,8 +672,9 @@ export default function KelolaVerse() {
                     key={item.id}
                     onClick={() => {
                       setSelectedStudentId(item.id);
-                      if (window.innerWidth < 1024) {
-                        detailRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                      setIsMobileDetailOpen(true);
+                      if (window.innerWidth >= 1024) {
+                        detailRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                       }
                     }}
                     style={{ contentVisibility: 'auto', containIntrinsicSize: '54px' }}
@@ -521,7 +700,9 @@ export default function KelolaVerse() {
                           </span>
                         )}
                       </div>
-                    </div>                      {/* Right side of item: Lv & Pet nickname or status */}
+                    </div>
+
+                    {/* Right side of item: Lv & Pet nickname or status */}
                     <div className="shrink-0 flex flex-col items-end gap-0.5">
                       {verse ? (
                         <>
@@ -551,178 +732,14 @@ export default function KelolaVerse() {
             </div>
           </div>
 
-          {/* RIGHT COLUMN: Detail & Visual Pet Panel */}
+          {/* RIGHT COLUMN: Detail & Visual Pet Panel (Desktop Only, hidden on mobile) */}
           <div 
             ref={detailRef} 
-            className="lg:col-span-7 xl:col-span-8 h-[calc(100vh-215px)] min-h-[440px] max-h-[640px] overflow-y-auto"
+            className="hidden lg:block lg:col-span-7 xl:col-span-8 h-[calc(100vh-215px)] min-h-[440px] max-h-[640px] overflow-y-auto"
             style={{ scrollbarWidth: 'thin' }}
           >
             {selectedStudent ? (
-              (() => {
-                const verse = selectedStudent.verse;
-                const char = verse ? getVerseCharacter(verse.species) : null;
-                const stageInfo = verse ? getStageInfo(verse.species, verse.stage) : null;
-                const vStats = verse ? calculateLevelAndProgress(verse.lifetimePoints) : null;
-
-                return (
-                  <div className="bg-white rounded-xl border border-slate-200/90 shadow-2xs p-3.5 sm:p-4 space-y-3">
-                    {/* Student Header Info */}
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2.5 border-b border-slate-100">
-                      <div>
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                          Detail Murid & Sahabat Verse
-                        </span>
-                        <h2 className="text-base sm:text-lg font-black text-slate-900 mt-0.5">
-                          {selectedStudent.name || 'Murid'}
-                        </h2>
-                        <div className="flex items-center gap-1.5 mt-0.5">
-                          <span className="text-[10px] font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded">
-                            {selectedStudent.className || 'Tanpa Kelas'}
-                          </span>
-                          {selectedStudent.nisn && (
-                            <span className="text-[10px] font-mono text-slate-400">
-                              NISN: {selectedStudent.nisn}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-
-                      {verse && (
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => setResettingStudent(selectedStudent)}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-rose-200 bg-rose-50/60 hover:bg-rose-100 text-rose-700 text-[11px] font-bold transition-all cursor-pointer shadow-2xs hover:scale-[1.02] active:scale-[0.98]"
-                            title="Reset Verse murid agar bisa memilih ulang"
-                          >
-                            <RotateCcw className="w-3 h-3" />
-                            <span>Reset Verse</span>
-                          </button>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Verse Content */}
-                    {verse && char && stageInfo && vStats ? (
-                      <div className="space-y-3">
-                        {/* Visual Showcase Card - Clean White Backdrop, No Blurry Background */}
-                        <div className="relative rounded-xl bg-white border border-slate-200/90 p-4 sm:p-5 flex flex-col sm:flex-row items-center gap-5 sm:gap-6 shadow-2xs">
-                          {/* Visual Pet Image - Significantly Enlarged, Crystal Clear */}
-                          <div className="w-52 h-52 sm:w-60 sm:h-60 md:w-64 md:h-64 rounded-2xl relative flex items-center justify-center p-2 shrink-0 bg-slate-50/60 border border-slate-100">
-                            <img 
-                              src={stageInfo.image}
-                              onError={(e) => { (e.currentTarget as HTMLImageElement).src = stageInfo.pngImage; }}
-                              alt={verse.nickname || char.species || 'Sahabat Verse'}
-                              className="w-full h-full object-contain filter drop-shadow-md relative z-10 transition-transform duration-300 hover:scale-105 select-none"
-                            />
-                          </div>
-
-                          {/* Pet Description & Identity */}
-                          <div className="min-w-0 flex-1 text-center sm:text-left space-y-1.5">
-                            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-50 border border-slate-200/80 shadow-2xs text-[11px] font-bold text-slate-700">
-                              {getElementIcon(verse.element)}
-                              <span className="capitalize">{char.elementName}</span>
-                              <span className="text-slate-300">•</span>
-                              <span>Spesies {char.species}</span>
-                            </div>
-
-                            <div>
-                              <h3 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-                                {verse.nickname || char.species || 'Sahabat Verse'}
-                              </h3>
-                              <p className="text-xs font-semibold text-slate-500 mt-0.5">
-                                {stageInfo.name} — Tahap Evolusi {verse.stage || 1}
-                              </p>
-                            </div>
-
-                            <p className="text-xs text-slate-600 font-medium line-clamp-3 leading-relaxed">
-                              {stageInfo.description || char.philosophy}
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* EXP & Level Details Card */}
-                        <div className="p-3 sm:p-3.5 rounded-xl bg-white border border-slate-200/90 shadow-2xs space-y-2.5">
-                          <div className="flex items-center justify-between">
-                            <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">
-                              Progres Level & Perolehan EXP
-                            </span>
-                            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-[#3B66F5] text-white shadow-2xs">
-                              Level {verse.level}
-                            </span>
-                          </div>
-
-                          {/* Progress Bar */}
-                          <div>
-                            <div className="flex items-center justify-between text-[11px] font-bold text-slate-700 mb-1">
-                              <span>Menuju Level {vStats.currentLevel + 1}</span>
-                              <span className="text-[#3B66F5] font-extrabold">{vStats.progressPercent}%</span>
-                            </div>
-                            <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden p-0.5 border border-slate-200/60">
-                              <motion.div 
-                                initial={{ width: 0 }}
-                                animate={{ width: `${vStats.progressPercent}%` }}
-                                transition={{ duration: 0.5, ease: 'easeOut' }}
-                                className="h-full bg-gradient-to-r from-[#3B66F5] to-indigo-600 rounded-full"
-                              />
-                            </div>
-                          </div>
-
-                          {/* EXP Metric Chips (4 Columns) */}
-                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
-                            <div className="p-2 rounded-lg bg-slate-50 border border-slate-100">
-                              <span className="text-[9px] font-bold text-slate-400 block uppercase">EXP Level Ini</span>
-                              <span className="text-xs font-black text-slate-800 mt-0.5 block truncate">
-                                {vStats.currentLevelProgress} <span className="text-[9px] text-slate-400 font-normal">/ {vStats.pointsNeededForNext}</span>
-                              </span>
-                            </div>
-
-                            <div className="p-2 rounded-lg bg-slate-50 border border-slate-100">
-                              <span className="text-[9px] font-bold text-slate-400 block uppercase">Sisa Kebutuhan</span>
-                              <span className="text-xs font-black text-blue-600 mt-0.5 block truncate">
-                                {vStats.pointsRemaining} <span className="text-[9px] text-slate-400 font-normal">XP</span>
-                              </span>
-                            </div>
-
-                            <div className="p-2 rounded-lg bg-slate-50 border border-slate-100">
-                              <span className="text-[9px] font-bold text-slate-400 block uppercase">Tahap Evolusi</span>
-                              <span className="text-xs font-black text-slate-800 mt-0.5 block truncate">
-                                Tahap {verse.stage}
-                              </span>
-                            </div>
-
-                            <div className="p-2 rounded-lg bg-slate-50 border border-slate-100">
-                              <span className="text-[9px] font-bold text-slate-400 block uppercase">Total EXP (Lifetime)</span>
-                              <span className="text-xs font-black text-emerald-600 mt-0.5 block truncate">
-                                {verse.lifetimePoints} <span className="text-[9px] text-slate-400 font-normal">XP</span>
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      /* Unadopted State */
-                      <div className="p-8 text-center rounded-xl bg-slate-50/60 border border-dashed border-slate-200 flex flex-col items-center justify-center space-y-3">
-                        <div className="w-24 h-24 rounded-2xl flex items-center justify-center p-2">
-                          <img 
-                            src={CHEST_ASSET.webp}
-                            onError={(e) => { (e.currentTarget as HTMLImageElement).src = CHEST_ASSET.png; }}
-                            alt="Peti Verse"
-                            className="w-full h-full object-contain opacity-75 drop-shadow-md"
-                          />
-                        </div>
-                        <div className="max-w-md space-y-1">
-                          <h3 className="text-base font-extrabold text-slate-800">
-                            Belum Mengadopsi Sahabat Verse
-                          </h3>
-                          <p className="text-xs text-slate-500 font-medium leading-relaxed">
-                            Murid ini belum membuka peti misterius untuk mengadopsi Verse pertamanya. Status akan otomatis diperbarui begitu murid memilih telur di menu My Verse.
-                          </p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                );
-              })()
+              renderStudentDetailCard(selectedStudent, false)
             ) : (
               <div className="bg-white rounded-xl border border-slate-200/90 p-8 text-center text-slate-400 text-xs font-medium">
                 Pilih salah satu murid di sisi kiri untuk melihat detail visual & progres EXP.
@@ -731,6 +748,30 @@ export default function KelolaVerse() {
           </div>
         </div>
       )}
+
+      {/* Mobile Pop-up Modal: Student Verse Detail */}
+      <AnimatePresence>
+        {isMobileDetailOpen && selectedStudent && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs lg:hidden">
+            {/* Backdrop click dismiss */}
+            <div 
+              className="absolute inset-0" 
+              onClick={() => setIsMobileDetailOpen(false)} 
+            />
+
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              transition={{ duration: 0.2 }}
+              className="relative z-10 w-full max-w-lg max-h-[88vh] overflow-y-auto"
+              style={{ scrollbarWidth: 'thin' }}
+            >
+              {renderStudentDetailCard(selectedStudent, true)}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* Confirmation Modal: Reset Verse */}
       <AnimatePresence>
