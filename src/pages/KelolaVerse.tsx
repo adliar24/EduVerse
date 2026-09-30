@@ -1,9 +1,8 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Sparkles, 
   Search, 
-  Filter, 
   RotateCw, 
   RotateCcw, 
   Trophy, 
@@ -13,8 +12,6 @@ import {
   Mountain, 
   Wind, 
   Zap, 
-  Check, 
-  X,
   Users
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
@@ -54,6 +51,16 @@ export default function KelolaVerse() {
   const [selectedElement, setSelectedElement] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<'all' | 'adopted' | 'unadopted'>('all');
   const [sortBy, setSortBy] = useState<'level_desc' | 'points_desc' | 'name_asc'>('level_desc');
+
+  // Split View & Scrollable State (Ultra lightweight scrolling)
+  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
+  const [visibleCount, setVisibleCount] = useState<number>(40);
+  const detailRef = useRef<HTMLDivElement>(null);
+
+  // Reset visible limit when filters change
+  useEffect(() => {
+    setVisibleCount(40);
+  }, [searchQuery, selectedClass, selectedElement, selectedStatus, sortBy]);
 
   // Reset Modal State
   const [resettingStudent, setResettingStudent] = useState<StudentWithVerse | null>(null);
@@ -231,6 +238,35 @@ export default function KelolaVerse() {
       return 0;
     });
   }, [students, searchQuery, selectedClass, selectedElement, selectedStatus, sortBy]);
+
+  // Keep selected student synced with filtered results
+  useEffect(() => {
+    if (filteredStudents.length > 0) {
+      const exists = filteredStudents.some(s => s.id === selectedStudentId);
+      if (!exists) {
+        setSelectedStudentId(filteredStudents[0].id);
+      }
+    } else {
+      setSelectedStudentId(null);
+    }
+  }, [filteredStudents, selectedStudentId]);
+
+  const selectedStudent = useMemo(() => {
+    if (!selectedStudentId) return filteredStudents[0] || null;
+    return students.find(s => s.id === selectedStudentId) || filteredStudents[0] || null;
+  }, [students, selectedStudentId, filteredStudents]);
+
+  // Lightweight visible list for high-performance scrolling
+  const visibleStudents = useMemo(() => {
+    return filteredStudents.slice(0, visibleCount);
+  }, [filteredStudents, visibleCount]);
+
+  const handleListScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
+    if (scrollHeight - scrollTop - clientHeight < 120) {
+      setVisibleCount(prev => Math.min(prev + 30, filteredStudents.length));
+    }
+  };
 
   if (loading) {
     return (
@@ -427,137 +463,283 @@ export default function KelolaVerse() {
         </div>
       </div>
 
-      {/* Student Verse Card Grid */}
+      {/* Student Verse Split View Layout */}
       {filteredStudents.length === 0 ? (
         <div className="bg-white rounded-2xl border border-slate-200/90 p-12 text-center text-slate-400 text-sm font-medium">
           Tidak ada data murid yang cocok dengan filter atau kata kunci pencarian.
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredStudents.map((item) => {
-            const verse = item.verse;
-            const char = verse ? getVerseCharacter(verse.species) : null;
-            const stageInfo = verse ? getStageInfo(verse.species, verse.stage) : null;
-            const vStats = verse ? calculateLevelAndProgress(verse.lifetimePoints) : null;
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+          {/* LEFT COLUMN: Scrollable Master List */}
+          <div className="lg:col-span-5 xl:col-span-4 space-y-2.5">
+            {/* List Header & Counter */}
+            <div className="bg-white rounded-2xl border border-slate-200/90 p-3.5 shadow-2xs flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-700">
+                Daftar Murid
+              </span>
+              <span className="text-[11px] font-semibold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full">
+                {filteredStudents.length} Murid
+              </span>
+            </div>
 
-            return (
-              <motion.div
-                key={item.id}
-                layout
-                className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md transition-all p-4.5 flex flex-col justify-between relative overflow-hidden"
-              >
-                {/* Upper Content */}
-                <div>
-                  {/* Student Header */}
-                  <div className="flex items-start justify-between gap-2 mb-3">
+            {/* Scrollable Container with custom scrollbar */}
+            <div 
+              onScroll={handleListScroll}
+              className="h-[640px] overflow-y-auto space-y-2 pr-1.5 focus:outline-none"
+              style={{ scrollbarWidth: 'thin' }}
+            >
+              {visibleStudents.map((item) => {
+                const isSelected = selectedStudent?.id === item.id;
+                const verse = item.verse;
+
+                return (
+                  <div
+                    key={item.id}
+                    onClick={() => {
+                      setSelectedStudentId(item.id);
+                      if (window.innerWidth < 1024) {
+                        detailRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                      }
+                    }}
+                    style={{ contentVisibility: 'auto', containIntrinsicSize: '68px' }}
+                    className={`p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between gap-3 text-left ${
+                      isSelected 
+                        ? 'bg-blue-50/90 border-[#3B66F5] shadow-xs ring-1 ring-[#3B66F5]/25' 
+                        : 'bg-white hover:bg-slate-50/80 border-slate-200/80 shadow-2xs'
+                    }`}
+                  >
                     <div className="min-w-0 flex-1">
-                      <h3 className="font-extrabold text-sm sm:text-base text-slate-800 truncate" title={item.name}>
+                      <h4 className={`text-xs sm:text-sm font-bold truncate ${
+                        isSelected ? 'text-[#3B66F5]' : 'text-slate-800'
+                      }`}>
                         {item.name}
-                      </h3>
+                      </h4>
                       <div className="flex items-center gap-1.5 mt-0.5">
-                        <span className="text-[11px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
+                        <span className="text-[10px] font-semibold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">
                           {item.className}
                         </span>
                         {item.nisn && (
-                          <span className="text-[10px] font-mono text-slate-400">
-                            NISN: {item.nisn}
+                          <span className="text-[10px] font-mono text-slate-400 truncate">
+                            {item.nisn}
                           </span>
                         )}
                       </div>
                     </div>
 
-                    {verse ? (
-                      <span className="px-2.5 py-1 rounded-full text-xs font-black bg-blue-50 text-[#3B66F5] border border-blue-200/60 shrink-0">
-                        Lv. {verse.level}
-                      </span>
-                    ) : (
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-400 border border-slate-200 shrink-0">
-                        Belum Adopsi
-                      </span>
-                    )}
+                    {/* Right side of item: Lv & Pet nickname or status */}
+                    <div className="shrink-0 flex flex-col items-end gap-0.5">
+                      {verse ? (
+                        <>
+                          <span className="px-2 py-0.5 rounded-md text-[10px] font-black bg-blue-100/70 text-[#3B66F5] border border-blue-200/50">
+                            Lv. {verse.level}
+                          </span>
+                          <span className="text-[11px] font-bold text-slate-600 truncate max-w-[95px]" title={verse.nickname}>
+                            {verse.nickname}
+                          </span>
+                        </>
+                      ) : (
+                        <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 text-slate-400">
+                          Belum Memilih
+                        </span>
+                      )}
+                    </div>
                   </div>
+                );
+              })}
 
-                  {/* Verse Body Preview */}
-                  {verse && char && stageInfo && vStats ? (
-                    <div className="flex items-center gap-3.5 p-3 rounded-xl bg-slate-50/80 border border-slate-100 mb-3">
-                      {/* Character Avatar */}
-                      <div className="w-16 h-16 rounded-xl relative flex items-center justify-center p-1 shrink-0 overflow-hidden">
-                        <div 
-                          className="absolute inset-0 rounded-full blur-md opacity-25"
-                          style={{ backgroundColor: char.elementColor || '#3B66F5' }}
-                        />
-                        <img 
-                          src={stageInfo.image}
-                          onError={(e) => { (e.currentTarget as HTMLImageElement).src = stageInfo.pngImage; }}
-                          alt={verse.nickname}
-                          className="w-full h-full object-contain filter drop-shadow-md relative z-10"
-                        />
+              {/* Load more hint on scroll */}
+              {visibleCount < filteredStudents.length && (
+                <div className="py-2 text-center text-[11px] font-semibold text-slate-400">
+                  Scroll ke bawah untuk memuat murid berikutnya...
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* RIGHT COLUMN: Detail & Visual Pet Panel */}
+          <div ref={detailRef} className="lg:col-span-7 xl:col-span-8">
+            {selectedStudent ? (
+              (() => {
+                const verse = selectedStudent.verse;
+                const char = verse ? getVerseCharacter(verse.species) : null;
+                const stageInfo = verse ? getStageInfo(verse.species, verse.stage) : null;
+                const vStats = verse ? calculateLevelAndProgress(verse.lifetimePoints) : null;
+
+                return (
+                  <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-5 sm:p-6 space-y-6 lg:sticky lg:top-6">
+                    {/* Student Header Info */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
+                      <div>
+                        <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                          Detail Murid & Sahabat Verse
+                        </span>
+                        <h2 className="text-xl font-black text-slate-900 mt-0.5">
+                          {selectedStudent.name}
+                        </h2>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-xs font-semibold text-slate-600 bg-slate-100 px-2.5 py-0.5 rounded-md">
+                            {selectedStudent.className}
+                          </span>
+                          {selectedStudent.nisn && (
+                            <span className="text-xs font-mono text-slate-400">
+                              NISN: {selectedStudent.nisn}
+                            </span>
+                          )}
+                        </div>
                       </div>
 
-                      {/* Character Info */}
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-1.5">
-                          <h4 className="text-sm font-extrabold text-slate-800 truncate">
-                            {verse.nickname}
-                          </h4>
-                          {getElementIcon(verse.element)}
+                      {verse && (
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => setResettingStudent(selectedStudent)}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-rose-200 bg-rose-50/60 hover:bg-rose-100 text-rose-700 text-xs font-bold transition-all cursor-pointer shadow-2xs hover:scale-[1.02] active:scale-[0.98]"
+                            title="Reset Verse murid agar bisa memilih ulang"
+                          >
+                            <RotateCcw className="w-3.5 h-3.5" />
+                            <span>Reset Verse</span>
+                          </button>
                         </div>
-                        <p className="text-[11px] font-bold text-slate-500 truncate mt-0.5">
-                          {stageInfo.name} • Tahap {verse.stage}
-                        </p>
-                        
-                        {/* XP Progress */}
-                        <div className="mt-1.5">
-                          <div className="w-full h-1.5 rounded-full bg-slate-200 overflow-hidden">
+                      )}
+                    </div>
+
+                    {/* Verse Content */}
+                    {verse && char && stageInfo && vStats ? (
+                      <div className="space-y-6">
+                        {/* Visual Showcase Card */}
+                        <div className="relative rounded-2xl bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 border border-slate-200/80 p-6 flex flex-col sm:flex-row items-center gap-6 overflow-hidden">
+                          {/* Element Glow Effect */}
+                          <div 
+                            className="absolute -top-12 -left-12 w-48 h-48 rounded-full blur-3xl opacity-20 pointer-events-none"
+                            style={{ backgroundColor: char.elementColor || '#3B66F5' }}
+                          />
+
+                          {/* Visual Pet Image */}
+                          <div className="w-36 h-36 sm:w-44 sm:h-44 rounded-2xl relative flex items-center justify-center p-2 shrink-0">
                             <div 
-                              className="h-full bg-gradient-to-r from-[#3B66F5] to-indigo-500 rounded-full"
-                              style={{ width: `${vStats.progressPercent}%` }}
+                              className="absolute inset-4 rounded-full blur-xl opacity-30"
+                              style={{ backgroundColor: char.elementColor || '#3B66F5' }}
+                            />
+                            <img 
+                              src={stageInfo.image}
+                              onError={(e) => { (e.currentTarget as HTMLImageElement).src = stageInfo.pngImage; }}
+                              alt={verse.nickname}
+                              className="w-full h-full object-contain filter drop-shadow-xl relative z-10 transition-transform duration-300 hover:scale-105"
                             />
                           </div>
-                          <div className="flex items-center justify-between text-[10px] text-slate-400 font-semibold mt-0.5">
-                            <span>{vStats.currentLevelProgress}/{vStats.pointsNeededForNext} XP</span>
-                            <span>{verse.lifetimePoints} Total XP</span>
+
+                          {/* Pet Description & Identity */}
+                          <div className="min-w-0 flex-1 text-center sm:text-left space-y-2">
+                            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white border border-slate-200/80 shadow-2xs text-xs font-bold text-slate-700">
+                              {getElementIcon(verse.element)}
+                              <span className="capitalize">{char.elementName}</span>
+                              <span className="text-slate-300">•</span>
+                              <span>Spesies {char.species}</span>
+                            </div>
+
+                            <div>
+                              <h3 className="text-2xl font-black text-slate-900 tracking-tight">
+                                {verse.nickname}
+                              </h3>
+                              <p className="text-xs font-semibold text-slate-500 mt-0.5">
+                                {stageInfo.name} — Tahap Evolusi {verse.stage}
+                              </p>
+                            </div>
+
+                            <p className="text-xs text-slate-600 font-medium line-clamp-2 pt-1">
+                              {stageInfo.description || char.philosophy}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* EXP & Level Details Card */}
+                        <div className="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-2xs space-y-4">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">
+                              Progres Level & Perolehan EXP
+                            </span>
+                            <span className="px-3 py-1 rounded-full text-xs font-black bg-[#3B66F5] text-white shadow-2xs">
+                              Level {verse.level}
+                            </span>
+                          </div>
+
+                          {/* Progress Bar */}
+                          <div>
+                            <div className="flex items-center justify-between text-xs font-bold text-slate-700 mb-1.5">
+                              <span>Progres Menuju Level {vStats.currentLevel + 1}</span>
+                              <span className="text-[#3B66F5] font-extrabold">{vStats.progressPercent}%</span>
+                            </div>
+                            <div className="w-full h-3 rounded-full bg-slate-100 overflow-hidden p-0.5 border border-slate-200/60">
+                              <motion.div 
+                                initial={{ width: 0 }}
+                                animate={{ width: `${vStats.progressPercent}%` }}
+                                transition={{ duration: 0.5, ease: 'easeOut' }}
+                                className="h-full bg-gradient-to-r from-[#3B66F5] to-indigo-600 rounded-full"
+                              />
+                            </div>
+                          </div>
+
+                          {/* EXP Metric Chips (4 Columns) */}
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-2">
+                            <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                              <span className="text-[10px] font-bold text-slate-400 block uppercase">EXP Level Ini</span>
+                              <span className="text-sm font-black text-slate-800 mt-0.5 block truncate">
+                                {vStats.currentLevelProgress} <span className="text-[10px] text-slate-400 font-normal">/ {vStats.pointsNeededForNext}</span>
+                              </span>
+                            </div>
+
+                            <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                              <span className="text-[10px] font-bold text-slate-400 block uppercase">Sisa Kebutuhan</span>
+                              <span className="text-sm font-black text-blue-600 mt-0.5 block truncate">
+                                {vStats.pointsRemaining} <span className="text-[10px] text-slate-400 font-normal">XP</span>
+                              </span>
+                            </div>
+
+                            <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                              <span className="text-[10px] font-bold text-slate-400 block uppercase">Tahap Evolusi</span>
+                              <span className="text-sm font-black text-slate-800 mt-0.5 block truncate">
+                                Tahap {verse.stage}
+                              </span>
+                            </div>
+
+                            <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                              <span className="text-[10px] font-bold text-slate-400 block uppercase">Total EXP (Lifetime)</span>
+                              <span className="text-sm font-black text-emerald-600 mt-0.5 block truncate">
+                                {verse.lifetimePoints} <span className="text-[10px] text-slate-400 font-normal">XP</span>
+                              </span>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50/50 border border-slate-100 mb-3">
-                      <div className="w-14 h-14 rounded-xl flex items-center justify-center p-1 shrink-0">
-                        <img 
-                          src={CHEST_ASSET.webp}
-                          onError={(e) => { (e.currentTarget as HTMLImageElement).src = CHEST_ASSET.png; }}
-                          alt="Peti Verse"
-                          className="w-full h-full object-contain opacity-60"
-                        />
+                    ) : (
+                      /* Unadopted State */
+                      <div className="p-8 sm:p-12 text-center rounded-2xl bg-slate-50/60 border border-dashed border-slate-200 flex flex-col items-center justify-center space-y-4">
+                        <div className="w-24 h-24 rounded-2xl flex items-center justify-center p-2">
+                          <img 
+                            src={CHEST_ASSET.webp}
+                            onError={(e) => { (e.currentTarget as HTMLImageElement).src = CHEST_ASSET.png; }}
+                            alt="Peti Verse"
+                            className="w-full h-full object-contain opacity-70"
+                          />
+                        </div>
+                        <div className="max-w-md space-y-1">
+                          <h3 className="text-base font-extrabold text-slate-800">
+                            Belum Mengadopsi Sahabat Verse
+                          </h3>
+                          <p className="text-xs text-slate-500 font-medium leading-relaxed">
+                            Murid ini belum membuka peti misterius untuk mengadopsi Verse pertamanya. Status akan otomatis diperbarui begitu murid memilih telur di menu My Verse.
+                          </p>
+                        </div>
                       </div>
-                      <p className="text-xs text-slate-400 font-medium">
-                        Murid belum membuka peti misterius untuk mengadopsi Verse.
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-                {/* Card Actions */}
-                <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
-                  <span className="text-[11px] font-semibold text-slate-400">
-                    {verse ? `Spesies: ${verse.species}` : 'Status: Telur Kosong'}
-                  </span>
-
-                  {verse && (
-                    <button
-                      onClick={() => setResettingStudent(item)}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-rose-200 bg-rose-50/50 hover:bg-rose-100 text-rose-700 text-xs font-bold transition-all cursor-pointer shadow-2xs hover:scale-[1.02] active:scale-[0.98]"
-                      title="Reset Verse murid agar bisa memilih ulang dari awal"
-                    >
-                      <RotateCcw className="w-3.5 h-3.5" />
-                      <span>Reset Verse</span>
-                    </button>
-                  )}
-                </div>
-              </motion.div>
-            );
-          })}
+                    )}
+                  </div>
+                );
+              })()
+            ) : (
+              <div className="bg-white rounded-2xl border border-slate-200/90 p-12 text-center text-slate-400 text-sm font-medium">
+                Pilih salah satu murid di sisi kiri untuk melihat detail visual & progres EXP.
+              </div>
+            )}
+          </div>
         </div>
       )}
 

@@ -16,6 +16,7 @@ import {
 } from '../Layout';
 import { useTeacherProfile, useClasses } from '../../services/hooks';
 import { capitalizeEachWord } from '../../lib/utils';
+import { awardVerseExpAndPoints } from '../../services/verseService';
 
 // --- POINT SCREEN ---
 
@@ -120,6 +121,17 @@ export const PointScreen: React.FC = () => {
         if(!student) return Promise.resolve();
         
         const classId = student.idKelas as string;
+        const note = pointForm.note || (pointForm.mode === 'add' ? 'Tambahan Poin' : 'Pengurangan Poin');
+
+        // Also award and sync Verse companion EXP
+        awardVerseExpAndPoints({
+          studentId: sid,
+          points: finalPoint,
+          source: 'guru',
+          title: note,
+          schoolId: teacherProfile?.activeSchoolId || undefined,
+          classId: classId || undefined
+        }).catch(err => console.debug('Verse sync skipped in PointScreen:', err));
 
         return db.saveStudentPoint({
             id: crypto.randomUUID(),
@@ -128,7 +140,7 @@ export const PointScreen: React.FC = () => {
             idKelas: classId,
             tanggal: new Date().toISOString(),
             poin: finalPoint,
-            keterangan: pointForm.note || (pointForm.mode === 'add' ? 'Tambahan Poin' : 'Pengurangan Poin'),
+            keterangan: note,
             tipe: pointForm.source
         });
     });

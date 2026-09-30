@@ -193,6 +193,7 @@ export const FinalGradeRecapScreen: React.FC = () => {
          const students = await db.getStudents(selectedClass, schoolId || undefined);
          let meetings = await db.getMeetings(selectedClass, schoolId || undefined);
          let scores = await db.getAllScores(schoolId || undefined);
+         const studentPoints = await db.getStudentPoints(selectedClass, schoolId || undefined);
 
          if (meetings.length === 0) {
             meetings = await db.getMeetings(selectedClass);
@@ -203,6 +204,8 @@ export const FinalGradeRecapScreen: React.FC = () => {
 
         const data = students.map(std => {
            const stdScores = scores.filter(s => s.idSiswa === std.idSiswa);
+           const stdPoints = studentPoints.filter(p => p.idSiswa === std.idSiswa);
+           const totalAccumulatedPoints = stdPoints.reduce((acc, p) => acc + (Number(p.poin) || 0), 0);
            
            const getAvg = (category: string) => {
                const filtered = stdScores.filter(s => {
@@ -257,6 +260,7 @@ export const FinalGradeRecapScreen: React.FC = () => {
              avgFormatif: avgFormatif.toFixed(1),
              avgSumatif: avgSumatif.toFixed(1),
              finalScore: finalScore.toFixed(0),
+             totalPoints: totalAccumulatedPoints,
              description
            };
         });
@@ -678,7 +682,14 @@ export const FinalGradeRecapScreen: React.FC = () => {
                   <div className="flex gap-2 mb-2 md:mb-0" data-html2canvas-ignore>
                       <Button variant="secondary" onClick={async () => {
                           const XLSX = await import('xlsx');
-                          const data = recapData.map((r, i) => ({ No: i + 1, Nama: r.nama, Formatif: r.avgFormatif, Sumatif: r.avgSumatif, Final: r.finalScore }));
+                          const data = recapData.map((r, i) => ({ 
+                            No: i + 1, 
+                            Nama: r.nama, 
+                            Formatif: r.avgFormatif, 
+                            Sumatif: r.avgSumatif, 
+                            Nilai_RataRata: r.finalScore, 
+                            TotalPoin_Akumulasi: r.totalPoints || 0 
+                          }));
                           const ws = XLSX.utils.json_to_sheet(data);
                           const wb = XLSX.utils.book_new();
                           XLSX.utils.book_append_sheet(wb, ws, 'eRapor');
@@ -742,11 +753,12 @@ export const FinalGradeRecapScreen: React.FC = () => {
                    </div>
              </div>
              <div className="overflow-x-auto">
-                <table className="w-full min-w-[800px]">
+                 <table className="w-full min-w-[850px]">
                     <thead className="bg-white border-b border-slate-100">
                         <tr>
                             <th className="px-8 py-5 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Nama Siswa</th>
-                            <th className="px-6 py-5 text-center text-[10px] font-black uppercase tracking-widest text-slate-400">Nilai Rapor</th>
+                            <th className="px-5 py-5 text-center text-[10px] font-black uppercase tracking-widest text-slate-400">Nilai Rapor (Rata-rata)</th>
+                            <th className="px-5 py-5 text-center text-[10px] font-black uppercase tracking-widest text-slate-400">Total Poin (Akumulasi)</th>
                             <th className="px-8 py-5 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Analisis Capaian</th>
                         </tr>
                     </thead>
@@ -757,10 +769,17 @@ export const FinalGradeRecapScreen: React.FC = () => {
                                     <div className="font-black text-slate-700 uppercase text-sm">{row.nama}</div>
                                     <div className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">NISN: {row.nisn || '-'}</div>
                                 </td>
-                                <td className="px-6 py-5 text-center">
-                                    <div className="inline-block px-4 py-2 rounded-xl bg-slate-100 font-black text-lg text-slate-700 border border-slate-200 min-w-[60px]">
+                                <td className="px-5 py-5 text-center">
+                                    <div className="inline-block px-3.5 py-1.5 rounded-xl bg-blue-50 font-black text-base text-[#1D4ED8] border border-blue-200/60 min-w-[55px]">
                                         {row.finalScore}
                                     </div>
+                                    <span className="block text-[9px] font-bold text-slate-400 uppercase mt-0.5">Rata-rata</span>
+                                </td>
+                                <td className="px-5 py-5 text-center">
+                                    <div className="inline-block px-3.5 py-1.5 rounded-xl bg-emerald-50 font-black text-base text-emerald-700 border border-emerald-200/60 min-w-[55px]">
+                                        {row.totalPoints || 0}
+                                    </div>
+                                    <span className="block text-[9px] font-bold text-emerald-600 uppercase mt-0.5">Akumulasi Poin</span>
                                 </td>
                                 <td className="px-8 py-5">
                                     <div className="flex items-center justify-between gap-4">

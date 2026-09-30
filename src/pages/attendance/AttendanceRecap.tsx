@@ -9,6 +9,7 @@ import { REKAP_AKHIR_TEMPLATE_B64, REKAP_PERTEMUAN_TEMPLATE_B64 } from '../../as
 import { motion, AnimatePresence } from 'framer-motion';
 import { deterministicId } from '../../lib/utils';
 import { Header } from '../Layout';
+import { awardVerseExpAndPoints } from '../../services/verseService';
 
 
 const formatExportDate = (d: Date) => {
@@ -784,11 +785,34 @@ const saveSessionChanges = async (sessionId: string) => {
       note: 'Diedit Manual'
     };
     await upsertRecord(record);
+
+    // Award +10 points if changed to Hadir, or -10 if changed from Hadir to other status
+    if (status === 'Hadir' || status === 'Terlambat') {
+      if (!existing || (existing.status !== 'Hadir' && existing.status !== 'Terlambat')) {
+        awardVerseExpAndPoints({
+          studentId,
+          points: 10,
+          source: 'presensi',
+          title: 'Presensi Hadir (Rekap)',
+          schoolId: state.teacher?.activeSchoolId || undefined,
+          classId: selectedClassId !== 'all' ? selectedClassId : undefined
+        }).catch(e => console.debug('Verse sync skipped in recap:', e));
+      }
+    } else if (existing && (existing.status === 'Hadir' || existing.status === 'Terlambat')) {
+      awardVerseExpAndPoints({
+        studentId,
+        points: -10,
+        source: 'presensi',
+        title: 'Koreksi Batal Hadir (Rekap)',
+        schoolId: state.teacher?.activeSchoolId || undefined,
+        classId: selectedClassId !== 'all' ? selectedClassId : undefined
+      }).catch(e => console.debug('Verse sync skipped in recap:', e));
+    }
   }
 
   await refresh();
   setEditedStatuses({});
-  notify('Perubahan data absensi berhasil disimpan');
+  notify('Perubahan data absensi & poin Verse berhasil disimpan');
 };
 
 

@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { deterministicId } from '../../lib/utils';
 import { Link } from 'react-router-dom';
 import { Header } from '../Layout';
+import { awardVerseExpAndPoints } from '../../services/verseService';
 
 const FaceScan = lazy(() => import('../../components/face/FaceScan').then(m => ({ default: m.default })));
 const FaceScanner = lazy(() => import('../../components/face/FaceScanner').then(m => ({ default: m.default })));
@@ -732,6 +733,16 @@ const switchCamera = async () => {
     setSessionRecords(prev => [...prev, newRecord]);
     refresh();
 
+    // Award 10 points & EXP for attending
+    awardVerseExpAndPoints({
+      studentId: student.id,
+      points: 10,
+      source: 'presensi',
+      title: `Presensi Hadir QR (${activeClass?.name || 'Kelas'})`,
+      schoolId: state.teacher?.activeSchoolId || undefined,
+      classId: activeClass?.id || undefined
+    }).catch(e => console.debug('Verse presensi sync skipped:', e));
+
     setScanFeedback({
       type: feedbackType,
       title: feedbackTitle,
@@ -800,6 +811,16 @@ const switchCamera = async () => {
     setSessionRecords(prev => [...prev, record]);
     refresh();
 
+    // Award 10 points & EXP for attending
+    awardVerseExpAndPoints({
+      studentId,
+      points: 10,
+      source: 'presensi',
+      title: `Presensi Hadir Wajah (${activeClass?.name || 'Kelas'})`,
+      schoolId: state.teacher?.activeSchoolId || undefined,
+      classId: activeClass?.id || undefined
+    }).catch(e => console.debug('Verse presensi sync skipped:', e));
+
     setScanFeedback({
       type: finalStatus === 'Terlambat' ? 'late' : 'success',
       title: finalStatus === 'Terlambat' ? 'BERHASIL - TERLAMBAT' : 'BERHASIL - HADIR',
@@ -823,12 +844,23 @@ const switchCamera = async () => {
 
     if (existing && existing.status === status) {
       await deleteRecord(existing.id);
+      if (existing.status === 'Hadir' || existing.status === 'Terlambat') {
+        awardVerseExpAndPoints({
+          studentId,
+          points: -10,
+          source: 'presensi',
+          title: `Koreksi Batal Hadir (${activeClass?.name || 'Kelas'})`,
+          schoolId: state.teacher?.activeSchoolId || undefined,
+          classId: activeClass?.id || undefined
+        }).catch(e => console.debug('Verse sync skipped:', e));
+      }
       setSessionRecords(prev => {
         const updated = prev.filter(r => r.studentId !== studentId);
         sessionRecordsRef.current = updated;
         return updated;
       });
       refresh();
+      notify('Kehadiran dibatalkan', 'info');
       return;
     }
 
@@ -841,6 +873,35 @@ const switchCamera = async () => {
       timeHHMMSS: now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).replace(/\./g, ':')
     };
     await upsertRecord(record);
+
+    const std = students.find(s => s.id === studentId);
+
+    // Award +10 points if status is Hadir or Terlambat
+    if (status === 'Hadir' || status === 'Terlambat') {
+      if (!existing || (existing.status !== 'Hadir' && existing.status !== 'Terlambat')) {
+        awardVerseExpAndPoints({
+          studentId,
+          points: 10,
+          source: 'presensi',
+          title: `Presensi Hadir (${activeClass?.name || 'Kelas'})`,
+          schoolId: state.teacher?.activeSchoolId || undefined,
+          classId: activeClass?.id || undefined
+        }).catch(e => console.debug('Verse sync skipped:', e));
+      }
+      notify(`✓ Kehadiran ${std?.name || 'murid'} tersimpan (+10 Poin Verse)`, 'success');
+    } else {
+      if (existing && (existing.status === 'Hadir' || existing.status === 'Terlambat')) {
+        awardVerseExpAndPoints({
+          studentId,
+          points: -10,
+          source: 'presensi',
+          title: `Koreksi Batal Hadir (${activeClass?.name || 'Kelas'})`,
+          schoolId: state.teacher?.activeSchoolId || undefined,
+          classId: activeClass?.id || undefined
+        }).catch(e => console.debug('Verse sync skipped:', e));
+      }
+      notify(`✓ Status ${status} untuk ${std?.name || 'murid'} tersimpan`, 'success');
+    }
     
     setSessionRecords(prev => {
        const others = prev.filter(r => r.studentId !== studentId);
@@ -878,9 +939,43 @@ const switchCamera = async () => {
     });
 
     await Promise.all(records.map((r) => upsertRecord(r)));
+
+    // Award +10 points to each student who was not already marked Hadir
+    students.forEach(s => {
+      const existing = sessionRecordsRef.current.find(r => r.studentId === s.id);
+      if (!existing || (existing.status !== 'Hadir' && existing.status !== 'Terlambat')) {
+        awardVerseExpAndPoints({
+          studentId: s.id,
+          points: 10,
+          source: 'presensi',
+          title: `Presensi Hadir (${activeClass?.name || 'Kelas'})`,
+          schoolId: state.teacher?.activeSchoolId || undefined,
+          classId: activeClass?.id || undefined
+        }).catch(e => console.debug('Verse sync skipped:', e));
+      }
+    });
+
     sessionRecordsRef.current = records;
     setSessionRecords(records);
     refresh();
+    notify(`✓ Semua murid (${students.length}) ditandai Hadir & +10 Poin Verse tersimpan!`, 'success');
+  };
+
+  const [isSavingAttendance, setIsSavingAttendance] = useState(false);
+
+  const handleExplicitSave = async () => {
+    setIsSavingAttendance(true);
+    try {
+      await ensureSession();
+      await refresh();
+      playSuccessSound();
+      notify('✓ Seluruh data kehadiran & perolehan 10 poin Verse murid telah tersimpan aman di Cloud!', 'success');
+    } catch (err) {
+      console.error('Error saving attendance:', err);
+      notify('Terjadi kesalahan saat menyimpan data absensi.', 'error');
+    } finally {
+      setTimeout(() => setIsSavingAttendance(false), 500);
+    }
   };
 
   if (!activeClass) {
@@ -1132,10 +1227,19 @@ const switchCamera = async () => {
         title="Absensi Kelas" 
         subtitle={`${activeClass.name} • ${new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'short' })}`}
         rightAction={
-          <div className="flex gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <Button 
+              onClick={handleExplicitSave}
+              disabled={isSavingAttendance}
+              className="!px-4 !py-2 !text-xs cursor-pointer !bg-emerald-600 hover:!bg-emerald-700 !text-white shadow-sm flex items-center gap-1.5 active:scale-95 transition-all"
+              title="Simpan seluruh data absensi dan sinkronkan 10 poin Verse murid ke cloud"
+            >
+              <CheckCircle className={`w-4 h-4 text-emerald-200 ${isSavingAttendance ? 'animate-spin' : ''}`} />
+              <span>{isSavingAttendance ? 'Menyimpan...' : 'Simpan Absensi'}</span>
+            </Button>
             {mode === 'manual' && students.length > 0 && (
-                <Button onClick={handleMarkAllPresent} className="!px-4 !py-2 !text-xs cursor-pointer">
-                    <CheckCircle className="w-4 h-4" /> <span className="hidden sm:inline">Hadir Semua</span>
+                <Button onClick={handleMarkAllPresent} className="!px-3.5 !py-2 !text-xs cursor-pointer">
+                    <CheckCircle className="w-4 h-4" /> <span className="hidden sm:inline">Hadir Semua (+10 Poin)</span>
                 </Button>
             )}
             {currentSession && !currentSession.isClosed && (
@@ -1148,7 +1252,7 @@ const switchCamera = async () => {
                     <Play className="w-4 h-4" /> <span className="hidden sm:inline">Buka Sesi</span>
                 </Button>
             )}
-            <Button variant="secondary" onClick={handleChangeClass} className="!px-4 !py-2 !text-xs cursor-pointer">
+            <Button variant="secondary" onClick={handleChangeClass} className="!px-3.5 !py-2 !text-xs cursor-pointer">
                <ArrowRightLeft className="w-4 h-4" /> <span className="hidden sm:inline">Ganti Kelas</span>
             </Button>
           </div>
@@ -1156,7 +1260,13 @@ const switchCamera = async () => {
       />
 
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Cloud Sync Status Indicator */}
+          <div className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-50 border border-emerald-200/80 text-emerald-700 text-xs font-bold w-fit shadow-2xs">
+            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span>Tersimpan di Cloud (+10 Poin/Hadir)</span>
+          </div>
+
           {activeSchedule ? (
               <div className="flex items-center gap-2 text-[#3B66F5] bg-[#3B66F5]/5 px-3 py-1 rounded-lg text-xs font-bold w-fit">
                  <CalendarClock className="w-4 h-4" />

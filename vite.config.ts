@@ -42,7 +42,7 @@ export default defineConfig(({mode}) => {
           maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
           // Exclude html from precache to ensure users always receive latest index.html
           globPatterns: [
-            '**/*.{js,css,ico,png,svg,webmanifest}'
+            '**/*.{js,css,ico,png,svg,webp,webmanifest}'
           ],
           navigateFallback: '/index.html',
           navigateFallbackDenylist: [/^\/api/, /version\.json$/],

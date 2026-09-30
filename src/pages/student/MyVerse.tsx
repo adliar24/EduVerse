@@ -66,6 +66,80 @@ export default function MyVerse() {
   // Daily quote
   const [quote, setQuote] = useState('');
 
+  // Level Up & Evolution Celebrations
+  const [levelUpCelebration, setLevelUpCelebration] = useState<{
+    oldLevel: number;
+    newLevel: number;
+    species: VerseSpecies;
+    nickname: string;
+  } | null>(null);
+
+  const [evolutionCelebration, setEvolutionCelebration] = useState<{
+    oldStage: number;
+    newStage: number;
+    species: VerseSpecies;
+    nickname: string;
+    oldLevel: number;
+    newLevel: number;
+  } | null>(null);
+
+  const [evolutionPhase, setEvolutionPhase] = useState<'transforming' | 'revealed'>('transforming');
+
+  const playLevelUpSound = () => {
+    try {
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      const notes = [523.25, 659.25, 783.99, 1046.50];
+      notes.forEach((freq, idx) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.2, ctx.currentTime + idx * 0.12);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + idx * 0.12 + 0.35);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(ctx.currentTime + idx * 0.12);
+        osc.stop(ctx.currentTime + idx * 0.12 + 0.4);
+      });
+    } catch (e) {}
+  };
+
+  const playEvolutionSound = () => {
+    try {
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(220, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 1.2);
+      gain.gain.setValueAtTime(0.08, ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.25, ctx.currentTime + 1.0);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.3);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 1.4);
+
+      const fanfareNotes = [523.25, 659.25, 783.99, 1046.50, 1318.51];
+      fanfareNotes.forEach((freq, idx) => {
+        const fOsc = ctx.createOscillator();
+        const fGain = ctx.createGain();
+        fOsc.type = 'triangle';
+        fOsc.frequency.value = freq;
+        fGain.gain.setValueAtTime(0.25, ctx.currentTime + 1.4 + idx * 0.15);
+        fGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.4 + idx * 0.15 + 0.6);
+        fOsc.connect(fGain);
+        fGain.connect(ctx.destination);
+        fOsc.start(ctx.currentTime + 1.4 + idx * 0.15);
+        fOsc.stop(ctx.currentTime + 1.4 + idx * 0.15 + 0.7);
+      });
+    } catch (e) {}
+  };
+
   const loadData = useCallback(async (isSilent = false) => {
     try {
       if (!isSilent) setLoading(true);
@@ -93,6 +167,43 @@ export default function MyVerse() {
         const { verse: syncedVerse } = await syncVerseWithPoints(existingVerse, pointsData.totalPoints);
         setVerse(syncedVerse);
         setQuote(getRandomMotivationQuote(syncedVerse.species, syncedVerse.nickname));
+
+        // Check for level up or evolution celebration
+        const lastSeenLevelKey = `eduverse_last_level_${studentObj.id}`;
+        const lastSeenStageKey = `eduverse_last_stage_${studentObj.id}`;
+        const rawLastLevel = localStorage.getItem(lastSeenLevelKey);
+        const rawLastStage = localStorage.getItem(lastSeenStageKey);
+
+        if (rawLastLevel !== null && rawLastStage !== null) {
+          const lastLevel = parseInt(rawLastLevel, 10);
+          const lastStage = parseInt(rawLastStage, 10);
+
+          if (syncedVerse.stage > lastStage) {
+            setEvolutionPhase('transforming');
+            setEvolutionCelebration({
+              oldStage: lastStage,
+              newStage: syncedVerse.stage,
+              species: syncedVerse.species,
+              nickname: syncedVerse.nickname,
+              oldLevel: lastLevel,
+              newLevel: syncedVerse.level
+            });
+            playEvolutionSound();
+            setTimeout(() => setEvolutionPhase('revealed'), 2200);
+          } else if (syncedVerse.level > lastLevel) {
+            setLevelUpCelebration({
+              oldLevel: lastLevel,
+              newLevel: syncedVerse.level,
+              species: syncedVerse.species,
+              nickname: syncedVerse.nickname
+            });
+            playLevelUpSound();
+          }
+        }
+
+        // Cache latest seen level and stage
+        localStorage.setItem(lastSeenLevelKey, String(syncedVerse.level));
+        localStorage.setItem(lastSeenStageKey, String(syncedVerse.stage));
       } else {
         setVerse(null);
       }
@@ -132,34 +243,37 @@ export default function MyVerse() {
     setOnboardingStep('hatching');
   };
 
-  // Handle each interactive tap on the egg
+  // Handle each interactive tap on the egg (Target: 12 taps)
+  const TOTAL_HATCH_TAPS = 12;
+
   const handleTapEgg = () => {
     if (isCracking) return;
     const nextCount = tapCount + 1;
     setTapCount(nextCount);
 
-    // Vibration feedback on mobile devices if supported
+    // Vibration feedback on mobile devices if supported (intensifies as it approaches 12)
     if (typeof navigator !== 'undefined' && navigator.vibrate) {
-      navigator.vibrate(35);
+      navigator.vibrate(25 + Math.min(nextCount * 4, 50));
     }
 
     // Trigger fluid wobble
     setIsWobbling(true);
-    setTimeout(() => setIsWobbling(false), 280);
+    setTimeout(() => setIsWobbling(false), 260);
 
-    // Spawn colorful element sparkles around the egg
+    // Spawn colorful element sparkles around the egg (more sparkles on higher taps)
     const char = getVerseCharacter(selectedSpecies);
-    const newSparkles = Array.from({ length: 7 }).map((_, i) => ({
+    const sparkleAmount = 6 + Math.min(Math.floor(nextCount * 0.8), 8);
+    const newSparkles = Array.from({ length: sparkleAmount }).map((_, i) => ({
       id: Date.now() + i + Math.random(),
-      x: (Math.random() - 0.5) * 190,
-      y: (Math.random() - 0.5) * 190,
+      x: (Math.random() - 0.5) * (180 + nextCount * 6),
+      y: (Math.random() - 0.5) * (180 + nextCount * 6),
       color: char.elementColor || '#F59E0B',
       size: Math.floor(Math.random() * 8) + 8
     }));
-    setSparkles(prev => [...prev.slice(-21), ...newSparkles]);
+    setSparkles(prev => [...prev.slice(-28), ...newSparkles]);
 
-    // Check if reached 5 taps -> crack egg and reveal character
-    if (nextCount >= 5) {
+    // Check if reached 12 taps -> crack egg and reveal character
+    if (nextCount >= TOTAL_HATCH_TAPS) {
       setIsCracking(true);
       setTimeout(() => {
         setIsCracking(false);
@@ -438,7 +552,11 @@ export default function MyVerse() {
                         Ketuk Telur untuk Menetaskannya!
                       </h2>
                       <p className="text-slate-400 text-xs sm:text-sm max-w-xs mx-auto">
-                        Tekan telur berulang kali sampai sahabat Verse-mu keluar!
+                        {tapCount === 0 && 'Ketuk telur berulang kali untuk membangunkannya!'}
+                        {tapCount > 0 && tapCount <= 3 && 'Telur mulai bergetar pelan... Terus ketuk!'}
+                        {tapCount > 3 && tapCount <= 7 && 'Retakan cangkang mulai terlihat jelas!'}
+                        {tapCount > 7 && tapCount < TOTAL_HATCH_TAPS && 'Pancaran aura elemen semakin menyilaukan!'}
+                        {tapCount >= TOTAL_HATCH_TAPS && 'Cangkang terbelah sempurna!'}
                       </p>
                     </div>
 
@@ -469,8 +587,8 @@ export default function MyVerse() {
                         animate={
                           isWobbling 
                             ? { 
-                                rotate: [-10 - tapCount * 2.5, 10 + tapCount * 2.5, -6, 6, 0], 
-                                scale: [1, 1.14 + tapCount * 0.02, 0.96, 1],
+                                rotate: [-10 - tapCount * 1.5, 10 + tapCount * 1.5, -6, 6, 0], 
+                                scale: [1, 1.12 + tapCount * 0.012, 0.96, 1],
                                 y: [-4, 4, 0]
                               } 
                             : { 
@@ -480,7 +598,7 @@ export default function MyVerse() {
                         }
                         transition={
                           isWobbling 
-                            ? { duration: 0.3, ease: 'easeOut' } 
+                            ? { duration: 0.26, ease: 'easeOut' } 
                             : { duration: 2.2, repeat: Infinity, ease: 'easeInOut' }
                         }
                         className="w-56 h-56 sm:w-64 sm:h-64 flex items-center justify-center relative active:scale-95 transition-transform"
@@ -504,30 +622,21 @@ export default function MyVerse() {
                       )}
                     </div>
 
-                    {/* Tap Progress Counter (5 Dots) */}
-                    <div className="relative z-10 mt-6 sm:mt-8 flex flex-col items-center gap-3">
-                      <div className="flex items-center gap-2">
-                        {[1, 2, 3, 4, 5].map((step) => {
-                          const isFilled = tapCount >= step;
-                          return (
-                            <div 
-                              key={step}
-                              className={`h-2.5 rounded-full transition-all duration-300 ${
-                                isFilled 
-                                  ? 'w-7 bg-gradient-to-r from-amber-400 to-amber-500 shadow-sm shadow-amber-500/50' 
-                                  : 'w-2.5 bg-slate-800 border border-slate-700'
-                              }`}
-                            />
-                          );
-                        })}
+                    {/* Tap Progress Counter (Progress Bar for 12 taps) */}
+                    <div className="relative z-10 mt-6 sm:mt-8 flex flex-col items-center gap-3 w-full max-w-xs px-4">
+                      <div className="w-full h-2 rounded-full bg-slate-800 border border-slate-700/80 overflow-hidden">
+                        <div 
+                          className="h-full rounded-full bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 shadow-sm shadow-amber-500/50 transition-all duration-200"
+                          style={{ width: `${Math.min(100, Math.round((tapCount / TOTAL_HATCH_TAPS) * 100))}%` }}
+                        />
                       </div>
 
                       <button
                         onClick={handleTapEgg}
-                        className="px-5 py-2 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 border border-white/20 text-xs font-black text-amber-300 flex items-center gap-2 transition-all cursor-pointer shadow-md"
+                        className="px-5 py-2.5 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 border border-white/20 text-xs font-black text-amber-300 flex items-center gap-2 transition-all cursor-pointer shadow-md"
                       >
                         <Sparkles className="w-3.5 h-3.5" />
-                        <span>Ketuk telur! ({Math.min(tapCount, 5)} / 5)</span>
+                        <span>Ketuk Telur! ({Math.min(tapCount, TOTAL_HATCH_TAPS)} / {TOTAL_HATCH_TAPS})</span>
                       </button>
                     </div>
                   </div>
@@ -845,6 +954,137 @@ export default function MyVerse() {
                   Simpan Nama
                 </button>
               </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Spectacular Evolution Celebration Modal (Lebih Wah) */}
+      <AnimatePresence>
+        {evolutionCelebration && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-md overflow-hidden">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              className="relative max-w-lg w-full text-center p-6 sm:p-8 rounded-3xl bg-gradient-to-b from-slate-900 via-slate-900/95 to-slate-950 border border-amber-500/40 shadow-2xl overflow-hidden"
+            >
+              {/* Cosmic background glows */}
+              <div className="absolute -top-24 -left-24 w-72 h-72 rounded-full bg-amber-500/25 blur-3xl pointer-events-none animate-pulse" />
+              <div className="absolute -bottom-24 -right-24 w-72 h-72 rounded-full bg-blue-500/25 blur-3xl pointer-events-none animate-pulse" />
+
+              {evolutionPhase === 'transforming' ? (
+                <div className="py-8 space-y-6">
+                  <div className="w-28 h-28 mx-auto rounded-full bg-amber-400/20 flex items-center justify-center border-2 border-amber-400/60 shadow-xl shadow-amber-400/30 animate-pulse">
+                    <Sparkles className="w-14 h-14 text-amber-300 animate-spin" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-black text-white tracking-wide uppercase drop-shadow-md">
+                      Sensasi Misterius...
+                    </h2>
+                    <p className="text-amber-300 text-sm font-bold mt-2 animate-pulse">
+                      Sahabat Verse {evolutionCelebration.nickname} sedang ber-evolusi!
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {/* Header */}
+                  <div>
+                    <span className="inline-block px-3 py-1 rounded-full bg-amber-400/20 border border-amber-400/50 text-amber-300 text-xs font-black uppercase tracking-widest mb-2 shadow-sm">
+                      🌟 EVOLUSI SPEKTAKULER!
+                    </span>
+                    <h2 className="text-3xl font-black text-white tracking-tight drop-shadow-lg">
+                      Wujud Baru Terbuka!
+                    </h2>
+                    <p className="text-slate-300 text-xs mt-1">
+                      <strong className="text-amber-300">{evolutionCelebration.nickname}</strong> telah berevolusi dari Tahap {evolutionCelebration.oldStage} ke Tahap {evolutionCelebration.newStage}!
+                    </p>
+                  </div>
+
+                  {/* Character Showcase */}
+                  <div className="relative py-2 flex items-center justify-center">
+                    <div className="w-48 h-48 sm:w-56 sm:h-56 relative flex items-center justify-center">
+                      <div className="absolute inset-0 rounded-full bg-gradient-to-r from-amber-400/30 via-orange-500/20 to-blue-500/30 blur-2xl animate-pulse" />
+                      <img 
+                        src={getStageInfo(evolutionCelebration.species, evolutionCelebration.newStage).image}
+                        onError={(e) => { (e.currentTarget as HTMLImageElement).src = getStageInfo(evolutionCelebration.species, evolutionCelebration.newStage).pngImage; }}
+                        alt={evolutionCelebration.nickname}
+                        className="w-full h-full object-contain filter drop-shadow-2xl relative z-10 transition-transform duration-300 hover:scale-105"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Stage description & stats */}
+                  <div className="p-4 rounded-2xl bg-white/10 border border-white/15 backdrop-blur-sm text-left">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-black text-amber-300">
+                        {getStageInfo(evolutionCelebration.species, evolutionCelebration.newStage).name}
+                      </span>
+                      <span className="text-xs font-bold text-slate-300">
+                        Level {evolutionCelebration.newLevel}
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-200 mt-1.5 font-medium leading-relaxed">
+                      {getStageInfo(evolutionCelebration.species, evolutionCelebration.newStage).description}
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={() => setEvolutionCelebration(null)}
+                    className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-600 hover:to-orange-600 text-white font-black text-sm uppercase tracking-wider shadow-lg shadow-orange-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
+                  >
+                    Luar Biasa!
+                  </button>
+                </div>
+              )}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Level Up Celebration Modal */}
+      <AnimatePresence>
+        {levelUpCelebration && !evolutionCelebration && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="relative max-w-sm w-full text-center p-6 sm:p-7 rounded-3xl bg-white border border-slate-200 shadow-2xl overflow-hidden"
+            >
+              <div className="w-16 h-16 mx-auto rounded-2xl bg-blue-50 border border-blue-200/80 text-[#3B66F5] flex items-center justify-center shadow-md mb-4">
+                <Sparkles className="w-8 h-8 text-amber-400" />
+              </div>
+
+              <span className="inline-block px-3 py-1 rounded-full bg-blue-50 text-[#3B66F5] text-xs font-black uppercase tracking-wider mb-2">
+                Level Up!
+              </span>
+
+              <h3 className="text-2xl font-black text-slate-900 tracking-tight">
+                Level {levelUpCelebration.newLevel} Dicapai!
+              </h3>
+
+              <p className="text-xs text-slate-500 font-medium mt-2 leading-relaxed">
+                Hebat! Sahabat Verse <strong className="text-slate-800">{levelUpCelebration.nickname}</strong> bertambah kuat dari perolehan EXP belajarmu!
+              </p>
+
+              <div className="my-5 p-3 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center gap-3">
+                <span className="text-sm font-bold text-slate-400 line-through">
+                  Level {levelUpCelebration.oldLevel}
+                </span>
+                <span className="text-xs font-bold text-slate-400">➔</span>
+                <span className="text-lg font-black text-[#3B66F5]">
+                  Level {levelUpCelebration.newLevel}
+                </span>
+              </div>
+
+              <button
+                onClick={() => setLevelUpCelebration(null)}
+                className="w-full py-3 rounded-xl bg-[#3B66F5] hover:bg-blue-600 text-white font-black text-xs uppercase tracking-wider shadow-md shadow-blue-500/25 active:scale-95 transition-all cursor-pointer"
+              >
+                Keren, Lanjutkan!
+              </button>
             </motion.div>
           </div>
         )}

@@ -8,7 +8,6 @@ import {
   Zap,
   BookOpen,
   RotateCw,
-  Sparkles,
   ArrowRight
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -400,7 +399,6 @@ export default function StudentDashboard() {
                 to="/my-verse"
                 className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#3B66F5] to-indigo-600 text-white text-xs font-bold shadow-md shadow-blue-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer shrink-0"
               >
-                <Sparkles className="w-3.5 h-3.5" />
                 <span>Buka My Verse</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </Link>

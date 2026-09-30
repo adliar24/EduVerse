@@ -208,10 +208,12 @@ export async function getStudentPointsHistory(
     if (dbPoints && dbPoints.length > 0) {
       dbPoints.forEach((p: any) => {
         const pts = Number(p.poin) || 0;
+        const isPresensi = p.tipe === 'presensi' || (p.keterangan && p.keterangan.toLowerCase().includes('presensi'));
+        const isTugas = p.tipe === 'tugas' || (p.keterangan && p.keterangan.toLowerCase().includes('tugas'));
         items.push({
           id: `sp_${p.id}`,
-          source: 'guru',
-          title: p.keterangan || 'Poin Apresiasi Guru',
+          source: isPresensi ? 'presensi' : (isTugas ? 'tugas' : 'guru'),
+          title: p.keterangan || (isPresensi ? 'Kehadiran Presensi (+10 Poin)' : 'Poin Apresiasi Guru'),
           date: p.tanggal || p.created_at || new Date().toISOString(),
           points: pts,
           type: pts >= 0 ? 'positive' : 'negative'
@@ -223,10 +225,13 @@ export async function getStudentPointsHistory(
       const filtered = localPts.filter(p => p.idSiswa === studentId);
       filtered.forEach(p => {
         const pts = Number(p.poin) || 0;
+        const rawTipe = (p as any).tipe;
+        const isPresensi = rawTipe === 'presensi' || (p.keterangan && p.keterangan.toLowerCase().includes('presensi'));
+        const isTugas = rawTipe === 'tugas' || (p.keterangan && p.keterangan.toLowerCase().includes('tugas'));
         items.push({
           id: `local_sp_${p.id}`,
-          source: 'guru',
-          title: p.keterangan || 'Poin Apresiasi Guru',
+          source: isPresensi ? 'presensi' : (isTugas ? 'tugas' : 'guru'),
+          title: p.keterangan || (isPresensi ? 'Kehadiran Presensi (+10 Poin)' : 'Poin Apresiasi Guru'),
           date: p.tanggal || new Date().toISOString(),
           points: pts,
           type: pts >= 0 ? 'positive' : 'negative'
@@ -342,4 +347,90 @@ export async function syncVerseWithPoints(
 
   const saved = await saveStudentVerse(updated);
   return { verse: saved, hasEvolved };
+}
+
+/**
+ * Award EXP and points to a student, immediately syncing with their Verse companion
+ */
+export async function awardVerseExpAndPoints({
+  studentId,
+  points,
+  source = 'guru',
+  title,
+  schoolId,
+  classId
+}: {
+  studentId: string;
+  points: number;
+  source?: 'presensi' | 'tugas' | 'ujian' | 'guru' | 'bonus';
+  title: string;
+  schoolId?: string;
+  classId?: string;
+}): Promise<{
+  success: boolean;
+  newLifetimePoints?: number;
+  newLevel?: number;
+  newStage?: number;
+  hasLevelUp?: boolean;
+  hasEvolved?: boolean;
+  verse?: StudentVerse | null;
+}> {
+  if (!studentId || points === 0) return { success: false };
+
+  try {
+    // 1. Record point in student_points (IndexedDB & Supabase)
+    const pointId = typeof crypto !== 'undefined' && crypto.randomUUID 
+      ? crypto.randomUUID() 
+      : `pt_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+
+    await dbGrading.saveStudentPoint({
+      id: pointId,
+      schoolId: schoolId || '',
+      idSiswa: studentId,
+      idKelas: classId || '',
+      tanggal: new Date().toISOString(),
+      poin: points,
+      keterangan: title,
+      tipe: (source === 'presensi' || source === 'tugas' ? 'manual' : (source as any))
+    });
+
+    // 2. Fetch or get current student verse
+    const currentVerse = await getStudentVerse(studentId);
+    if (!currentVerse) {
+      // Student hasn't adopted a verse yet, but points are safely stored in student_points
+      return { success: true };
+    }
+
+    // 3. Update lifetime points and calculate new level & stage
+    const oldLevel = currentVerse.level || 1;
+    const oldStage = currentVerse.stage || 1;
+    const newLifetimePoints = Math.max(0, (currentVerse.lifetimePoints || 0) + points);
+    
+    const { currentLevel, currentStage } = calculateLevelAndProgress(newLifetimePoints);
+    const hasLevelUp = currentLevel > oldLevel;
+    const hasEvolved = currentStage > oldStage;
+
+    const updatedVerse: StudentVerse = {
+      ...currentVerse,
+      lifetimePoints: newLifetimePoints,
+      level: currentLevel,
+      stage: currentStage,
+      updatedAt: new Date().toISOString()
+    };
+
+    const savedVerse = await saveStudentVerse(updatedVerse);
+
+    return {
+      success: true,
+      newLifetimePoints,
+      newLevel: currentLevel,
+      newStage: currentStage,
+      hasLevelUp,
+      hasEvolved,
+      verse: savedVerse
+    };
+  } catch (err) {
+    console.error('[verseService] Error awarding EXP and points:', err);
+    return { success: false };
+  }
 }

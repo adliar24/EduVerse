@@ -171,10 +171,10 @@ export const VERSE_SPECIES_CONFIG: Record<VerseSpecies, VerseSpeciesConfig> = {
     eggDescription: 'Membawa energi hangat keberanian dan ketangkasan beraksi.',
     trait: 'Berani & Semangat',
     stages: makeStages('Pyrofox', [
-      { name: 'Emberkit', title: 'Rubah Kerdil Bayi', minLevel: 1, maxLevel: 5, desc: 'Rubah kerdil mungil berujung ekor bara api yang hangat dan ceria.' },
-      { name: 'Pyrofox', title: 'Rubah Remaja Lincah', minLevel: 6, maxLevel: 15, desc: 'Rubah muda gesit bertelinga api dengan syal petualang pemberani.' },
-      { name: 'Flametail', title: 'Penjaga Api Abadi', minLevel: 16, maxLevel: 30, desc: 'Rubah anggun berekor tiga berkobar dengan cakar obsidian bercahaya.' },
-      { name: 'Solaris Kyubi', title: 'Dewa Surya Surgawi', minLevel: 31, maxLevel: 999, desc: 'Rubah agung sembilan ekor surya bermahkota api matahari abadi.' }
+      { name: 'Emberkit', title: 'Rubah Kerdil Bayi', minLevel: 1, maxLevel: 4, desc: 'Rubah kerdil mungil berujung ekor bara api yang hangat dan ceria.' },
+      { name: 'Pyrofox', title: 'Rubah Remaja Lincah', minLevel: 5, maxLevel: 14, desc: 'Rubah muda gesit bertelinga api dengan syal petualang pemberani.' },
+      { name: 'Flametail', title: 'Penjaga Api Abadi', minLevel: 15, maxLevel: 24, desc: 'Rubah anggun berekor tiga berkobar dengan cakar obsidian bercahaya.' },
+      { name: 'Solaris Kyubi', title: 'Dewa Surya Surgawi', minLevel: 25, maxLevel: 999, desc: 'Rubah agung sembilan ekor surya bermahkota api matahari abadi.' }
     ])
   },
 
@@ -196,10 +196,10 @@ export const VERSE_SPECIES_CONFIG: Record<VerseSpecies, VerseSpeciesConfig> = {
     eggDescription: 'Membawa kejernihan berpikir, empati mendalam, dan kedamaian.',
     trait: 'Tenang & Jernih',
     stages: makeStages('Aquaxolt', [
-      { name: 'Dewlotl', title: 'Bayi Gelembung Embun', minLevel: 1, maxLevel: 5, desc: 'Bayi axolotl transparan yang melayang anggun di dalam gelembung air.' },
-      { name: 'Aqualotl', title: 'Axolotl Melayang', minLevel: 6, maxLevel: 15, desc: 'Axolotl bersirip gelombang dengan antena kristal penyejuk suasana.' },
-      { name: 'Tidestride', title: 'Pengelana Samudra', minLevel: 16, maxLevel: 30, desc: 'Axolotl anggun berjubah kabut air dengan kemampuan memanggil gelombang.' },
-      { name: 'Leviathan Levi', title: 'Naga Air Celestial', minLevel: 31, maxLevel: 999, desc: 'Wujud naga laut mistis bermutiara kosmik penguasa kedalaman ilmu.' }
+      { name: 'Dewlotl', title: 'Bayi Gelembung Embun', minLevel: 1, maxLevel: 4, desc: 'Bayi axolotl transparan yang melayang anggun di dalam gelembung air.' },
+      { name: 'Aqualotl', title: 'Axolotl Melayang', minLevel: 5, maxLevel: 14, desc: 'Axolotl bersirip gelombang dengan antena kristal penyejuk suasana.' },
+      { name: 'Tidestride', title: 'Pengelana Samudra', minLevel: 15, maxLevel: 24, desc: 'Axolotl anggun berjubah kabut air dengan kemampuan memanggil gelombang.' },
+      { name: 'Leviathan Levi', title: 'Naga Air Celestial', minLevel: 25, maxLevel: 999, desc: 'Wujud naga laut mistis bermutiara kosmik penguasa kedalaman ilmu.' }
     ])
   },
 
@@ -221,10 +221,10 @@ export const VERSE_SPECIES_CONFIG: Record<VerseSpecies, VerseSpeciesConfig> = {
     eggDescription: 'Membawa ketekunan baja, kedisiplinan, dan daya tahan belajar.',
     trait: 'Teguh & Konsisten',
     stages: makeStages('Pangorock', [
-      { name: 'Pebbleling', title: 'Trenggiling Kerikil', minLevel: 1, maxLevel: 5, desc: 'Trenggiling mini berkulit kerikil halus yang bisa membulat lucu.' },
-      { name: 'Pangorock', title: 'Trenggiling Berbatu', minLevel: 6, maxLevel: 15, desc: 'Trenggiling berzirah lempeng granit kokoh pelindung kawan belajar.' },
-      { name: 'Geoshield', title: 'Benteng Kristal Bumi', minLevel: 16, maxLevel: 30, desc: 'Trenggiling berzirah lempeng zamrud dengan cakar pembelah rintangan.' },
-      { name: 'Titanscale', title: 'Titan Lempeng Jagat', minLevel: 31, maxLevel: 999, desc: 'Titan bebatuan purba berurat kristal zamrud bercahaya tak tergoyahkan.' }
+      { name: 'Pebbleling', title: 'Trenggiling Kerikil', minLevel: 1, maxLevel: 4, desc: 'Trenggiling mini berkulit kerikil halus yang bisa membulat lucu.' },
+      { name: 'Pangorock', title: 'Trenggiling Berbatu', minLevel: 5, maxLevel: 14, desc: 'Trenggiling berzirah lempeng granit kokoh pelindung kawan belajar.' },
+      { name: 'Geoshield', title: 'Benteng Kristal Bumi', minLevel: 15, maxLevel: 24, desc: 'Trenggiling berzirah lempeng zamrud dengan cakar pembelah rintangan.' },
+      { name: 'Titanscale', title: 'Titan Lempeng Jagat', minLevel: 25, maxLevel: 999, desc: 'Titan bebatuan purba berurat kristal zamrud bercahaya tak tergoyahkan.' }
     ])
   },
 
@@ -246,10 +246,10 @@ export const VERSE_SPECIES_CONFIG: Record<VerseSpecies, VerseSpeciesConfig> = {
     eggDescription: 'Membawa kebebasan daya cipta, eksplorasi tanpa batas, dan imajinasi.',
     trait: 'Kreatif & Eksploratif',
     stages: makeStages('Cirrofinch', [
-      { name: 'Breezeling', title: 'Anak Burung Awan', minLevel: 1, maxLevel: 5, desc: 'Anak burung mungil berbulu kapas halus seperti gumpalan awan pagi.' },
-      { name: 'Cirrofinch', title: 'Burung Angin Fajar', minLevel: 6, maxLevel: 15, desc: 'Burung awan bersayap semilir fajar dengan jambul meliuk elegan.' },
-      { name: 'Stormwing', title: 'Rajawali Stratus', minLevel: 16, maxLevel: 30, desc: 'Rajawali awan penyibak kabut dengan bentang sayap aerodinamis.' },
-      { name: 'Aero Tempest', title: 'Garuda Angkasa Raya', minLevel: 31, maxLevel: 999, desc: 'Garuda surgawi bermahkota pelangi pelindung cakrawala cita-cita.' }
+      { name: 'Breezeling', title: 'Anak Burung Awan', minLevel: 1, maxLevel: 4, desc: 'Anak burung mungil berbulu kapas halus seperti gumpalan awan pagi.' },
+      { name: 'Cirrofinch', title: 'Burung Angin Fajar', minLevel: 5, maxLevel: 14, desc: 'Burung awan bersayap semilir fajar dengan jambul meliuk elegan.' },
+      { name: 'Stormwing', title: 'Rajawali Stratus', minLevel: 15, maxLevel: 24, desc: 'Rajawali awan penyibak kabut dengan bentang sayap aerodinamis.' },
+      { name: 'Aero Tempest', title: 'Garuda Angkasa Raya', minLevel: 25, maxLevel: 999, desc: 'Garuda surgawi bermahkota pelangi pelindung cakrawala cita-cita.' }
     ])
   },
 
@@ -271,10 +271,10 @@ export const VERSE_SPECIES_CONFIG: Record<VerseSpecies, VerseSpeciesConfig> = {
     eggDescription: 'Membawa kecerdikan taktis, refleks kilat, dan ketajaman logika.',
     trait: 'Cerdas & Refleks Kilat',
     stages: makeStages('Voltlynx', [
-      { name: 'Sparkitten', title: 'Anak Kucing Kilat', minLevel: 1, maxLevel: 5, desc: 'Anak musang/kucing bertelinga kilat dengan percikan listrik statis lucu.' },
-      { name: 'Voltlynx', title: 'Musang Kilat Neon', minLevel: 6, maxLevel: 15, desc: 'Kucing musang lincah bergaris neon kuning berkecepatan kilat.' },
-      { name: 'Thundershade', title: 'Pemburu Petir Supersonik', minLevel: 16, maxLevel: 30, desc: 'Lynx pemburu bermata biru neon yang mampu melesat secepat petir.' },
-      { name: 'Raijin Lynx', title: 'Kucing Dewa Halilintar', minLevel: 31, maxLevel: 999, desc: 'Kucing dewa halilintar agung berzirah plasma emas berkekuatan penuh.' }
+      { name: 'Sparkitten', title: 'Anak Kucing Kilat', minLevel: 1, maxLevel: 4, desc: 'Anak musang/kucing bertelinga kilat dengan percikan listrik statis lucu.' },
+      { name: 'Voltlynx', title: 'Musang Kilat Neon', minLevel: 5, maxLevel: 14, desc: 'Kucing musang lincah bergaris neon kuning berkecepatan kilat.' },
+      { name: 'Thundershade', title: 'Pemburu Petir Supersonik', minLevel: 15, maxLevel: 24, desc: 'Lynx pemburu bermata biru neon yang mampu melesat secepat petir.' },
+      { name: 'Raijin Lynx', title: 'Kucing Dewa Halilintar', minLevel: 25, maxLevel: 999, desc: 'Kucing dewa halilintar agung berzirah plasma emas berkekuatan penuh.' }
     ])
   }
 };
@@ -295,32 +295,56 @@ export const getVerseCharacter = (species: VerseSpecies | string): VerseSpeciesC
 // 3. FORMULA LEVEL & KALKULASI PROGRES
 // ------------------------------------------------------------
 export const STAGE_THRESHOLDS = [
-  { stage: 1 as VerseStage, minLevel: 1, title: 'Tahap 1: Hatchling' },
-  { stage: 2 as VerseStage, minLevel: 6, title: 'Tahap 2: Junior' },
-  { stage: 3 as VerseStage, minLevel: 16, title: 'Tahap 3: Guardian' },
-  { stage: 4 as VerseStage, minLevel: 31, title: 'Tahap 4: Mythic' },
+  { stage: 1 as VerseStage, minLevel: 1, title: 'Tahap 1: Baby' },
+  { stage: 2 as VerseStage, minLevel: 5, title: 'Tahap 2: Trainee' },
+  { stage: 3 as VerseStage, minLevel: 15, title: 'Tahap 3: Warrior' },
+  { stage: 4 as VerseStage, minLevel: 25, title: 'Tahap 4: Master' },
 ];
 
 export function getStageTitle(stage: VerseStage): string {
   switch (stage) {
-    case 1: return 'Tahap 1: Hatchling';
-    case 2: return 'Tahap 2: Junior';
-    case 3: return 'Tahap 3: Guardian';
-    case 4: return 'Tahap 4: Mythic';
+    case 1: return 'Tahap 1: Baby';
+    case 2: return 'Tahap 2: Trainee';
+    case 3: return 'Tahap 3: Warrior';
+    case 4: return 'Tahap 4: Master';
   }
 }
 
 /**
  * Menghitung tahapan evolusi (1 - 4) berdasarkan level.
+ * Level 1-4 = Stage 1 (Baby)
+ * Level 5-14 = Stage 2 (Trainee)
+ * Level 15-24 = Stage 3 (Warrior)
+ * Level 25+ = Stage 4 (Master)
  */
 export function getStageForLevel(level: number): VerseStage {
-  if (level >= 31) return 4;
-  if (level >= 16) return 3;
-  if (level >= 6) return 2;
+  if (level >= 25) return 4;
+  if (level >= 15) return 3;
+  if (level >= 5) return 2;
   return 1;
 }
 
 export const getEvolutionStage = getStageForLevel;
+
+/**
+ * Kebutuhan EXP untuk naik dari level saat ini ke level berikutnya.
+ * Level 1 -> 2: 50 XP (Early dopamine)
+ * Level 2 -> 3: 100 XP
+ * Level 3 -> 4: 150 XP
+ * Level 4 -> 5: 200 XP (Total kumulatif tepat 500 XP untuk evolusi pertama ke Level 5)
+ * Level 5-14 (Tahap 2): 160 XP per level (Total 1.600 XP untuk 10 level -> capai Level 15 di 2.100 XP)
+ * Level 15-24 (Tahap 3): 210 XP per level (Total 2.100 XP untuk 10 level -> capai Level 25 di 4.200 XP)
+ * Level 25+ (Tahap 4 - Master): 250 XP per level
+ */
+export function getExpRequiredForLevel(level: number): number {
+  if (level <= 1) return 50;
+  if (level === 2) return 100;
+  if (level === 3) return 150;
+  if (level === 4) return 200;
+  if (level < 15) return 160;
+  if (level < 25) return 210;
+  return 250;
+}
 
 /**
  * Menghitung total lifetime points yang dibutuhkan untuk mencapai level tertentu.
@@ -328,21 +352,20 @@ export const getEvolutionStage = getStageForLevel;
 export function getTotalPointsForLevel(targetLevel: number): number {
   let total = 0;
   for (let l = 1; l < targetLevel; l++) {
-    total += l * 50 + 20;
+    total += getExpRequiredForLevel(l);
   }
   return total;
 }
 
 /**
  * Menghitung level, EXP saat ini, dan target EXP berikutnya dari total lifetime points.
- * Rumus EXP level berikutnya: Level * 50 + 20
  */
 export function calculateLevelAndProgress(lifetimePoints: number): LevelProgress {
   let pts = Math.max(0, Number(lifetimePoints) || 0);
   let level = 1;
 
   while (true) {
-    const requiredForNext = level * 50 + 20;
+    const requiredForNext = getExpRequiredForLevel(level);
     if (pts >= requiredForNext) {
       pts -= requiredForNext;
       level++;
@@ -351,7 +374,7 @@ export function calculateLevelAndProgress(lifetimePoints: number): LevelProgress
     }
   }
 
-  const requiredForNext = level * 50 + 20;
+  const requiredForNext = getExpRequiredForLevel(level);
   const currentExp = pts;
   const progressPercent = Math.min(100, Math.max(0, Math.round((currentExp / requiredForNext) * 100)));
   const currentStage = getStageForLevel(level);
@@ -359,9 +382,9 @@ export function calculateLevelAndProgress(lifetimePoints: number): LevelProgress
   let nextStageLevel: number | null = null;
   let pointsToNextStage: number | null = null;
 
-  if (currentStage === 1) nextStageLevel = 6;
-  else if (currentStage === 2) nextStageLevel = 16;
-  else if (currentStage === 3) nextStageLevel = 31;
+  if (currentStage === 1) nextStageLevel = 5;
+  else if (currentStage === 2) nextStageLevel = 15;
+  else if (currentStage === 3) nextStageLevel = 25;
   else nextStageLevel = null;
 
   if (nextStageLevel) {

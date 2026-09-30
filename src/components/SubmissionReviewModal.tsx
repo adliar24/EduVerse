@@ -36,6 +36,7 @@ import {
   extractUrlsFromText,
   LkpdBlock
 } from '../utils/lkpdPresets';
+import { awardVerseExpAndPoints } from '../services/verseService';
 
 interface SubmissionReviewModalProps {
   isOpen: boolean;
@@ -411,6 +412,18 @@ export default function SubmissionReviewModal({
         }
 
         setGradeSuccessMsg('Nilai & catatan murid berhasil disimpan ke Cloud Supabase!');
+      }
+
+      // Convert task grade into Verse EXP & points
+      if (numScore > 0) {
+        awardVerseExpAndPoints({
+          studentId: selectedStudent.id,
+          points: numScore,
+          source: 'tugas',
+          title: `Nilai Tugas: ${assignment.title || 'Tugas'} (Nilai ${numScore})`,
+          schoolId: assignment.school_id || undefined,
+          classId: selectedClassId || selectedStudent.class_id || undefined
+        }).catch(err => console.debug('Verse EXP award skipped:', err));
       }
 
       // 2. Immediately update in-memory state

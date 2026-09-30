@@ -28,6 +28,7 @@ import {
   extractUrlsFromText,
   LkpdBlock
 } from '../utils/lkpdPresets';
+import { awardVerseExpAndPoints } from '../services/verseService';
 
 interface SubmissionReviewViewProps {
   assignment: (Assignment & {
@@ -458,6 +459,18 @@ export default function SubmissionReviewView({
         setGradeErrorMsg(`Gagal menyimpan: ${error.message}`);
       } else {
         setGradeSuccessMsg('Nilai & umpan balik berhasil disimpan!');
+      }
+
+      // Convert task grade into Verse EXP & points
+      if (numScore > 0) {
+        awardVerseExpAndPoints({
+          studentId: selectedStudent.id,
+          points: numScore,
+          source: 'tugas',
+          title: `Nilai Tugas: ${assignment?.title || 'Tugas'} (Nilai ${numScore})`,
+          schoolId: assignment?.school_id || undefined,
+          classId: selectedClassId || selectedStudent.class_id || undefined
+        }).catch(err => console.debug('Verse EXP award skipped:', err));
       }
 
       setSubmissions(prev => {
