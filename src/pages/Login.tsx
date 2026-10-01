@@ -165,7 +165,7 @@ export default function Login() {
                 <h3 className="text-2xl font-black tracking-tight text-white mb-2">Menyiapkan Ruang Belajar...</h3>
                 <p className="text-slate-200 text-sm font-medium">Menghubungkan ke server EduVerse...</p>
               </div>
-              <Loader2 className="w-8 h-8 text-sky-400 animate-spin" />
+              <Loader2 className="w-8 h-8 text-white animate-spin" />
             </motion.div>
           </motion.div>
         )}
@@ -185,7 +185,7 @@ export default function Login() {
               transition={{ delay: 0.1, duration: 0.3 }}
               className="flex flex-col items-center text-center space-y-6 max-w-sm"
             >
-              <div className="w-20 h-20 bg-gradient-to-tr from-sky-500 via-blue-600 to-indigo-600 rounded-3xl flex items-center justify-center shadow-2xl shadow-sky-500/40 border border-white/20">
+              <div className="w-20 h-20 bg-white/15 backdrop-blur-md rounded-3xl flex items-center justify-center shadow-2xl shadow-black/20 border border-white/20">
                 <RefreshCw className="w-10 h-10 text-white animate-spin" />
               </div>
               <div>
@@ -194,7 +194,7 @@ export default function Login() {
                   Menghapus cache dan data lama, kemudian memuat versi terbaru EduVerse.
                 </p>
               </div>
-              <Loader2 className="w-8 h-8 text-sky-400 animate-spin" />
+              <Loader2 className="w-8 h-8 text-white animate-spin" />
             </motion.div>
           </motion.div>
         )}

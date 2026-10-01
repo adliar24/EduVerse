@@ -323,12 +323,12 @@ export default function Layout({ session }: LayoutProps) {
               transition={{ delay: 0.1, duration: 0.4 }}
               className="flex flex-col items-center text-center space-y-6 relative z-10"
             >
-              <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-5 rounded-full shadow-2xl shadow-indigo-600/30 border border-white/20">
+              <div className="bg-white/15 backdrop-blur-md p-5 rounded-full shadow-2xl shadow-black/25 border border-white/25">
                 <Loader2 className="w-12 h-12 text-white animate-spin" />
               </div>
               <div className="space-y-1">
-                <h3 className="text-2xl font-black tracking-tight">Mengamankan Sesi</h3>
-                <p className="text-indigo-200 text-xs font-bold uppercase tracking-widest">Sampai jumpa kembali...</p>
+                <h3 className="text-2xl font-black tracking-tight text-white">Mengamankan Sesi</h3>
+                <p className="text-white/80 text-xs font-bold uppercase tracking-widest">Sampai jumpa kembali...</p>
               </div>
             </motion.div>
           </motion.div>

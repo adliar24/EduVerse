@@ -486,14 +486,14 @@ export default function Dashboard() {
 
           <Link
             to="/buat-ujian"
-            className="flex items-center gap-3.5 p-4 rounded-2xl bg-gradient-to-br from-purple-600 via-indigo-600 to-purple-800 text-white border border-purple-400/30 shadow-md shadow-purple-950/15 hover:shadow-lg hover:scale-[1.01] transition-all group cursor-pointer"
+            className="flex items-center gap-3.5 p-4 rounded-2xl bg-gradient-to-br from-amber-500 via-amber-600 to-orange-600 text-white border border-amber-400/30 shadow-md shadow-amber-950/15 hover:shadow-lg hover:scale-[1.01] transition-all group cursor-pointer"
           >
             <div className="bg-white/20 text-white p-2.5 rounded-xl backdrop-blur-xs shadow-inner group-hover:scale-105 transition-transform shrink-0">
-              <FileText className="w-5 h-5 text-purple-100" />
+              <FileText className="w-5 h-5 text-amber-100" />
             </div>
             <div>
-              <h4 className="font-bold text-white text-xs uppercase tracking-tight group-hover:text-purple-100 transition-colors">Ujian Baru</h4>
-              <p className="text-[11px] text-purple-100/85 font-medium">Susun naskah ujian online</p>
+              <h4 className="font-bold text-white text-xs uppercase tracking-tight group-hover:text-amber-100 transition-colors">Ujian Baru</h4>
+              <p className="text-[11px] text-amber-100/85 font-medium">Susun naskah ujian online</p>
             </div>
           </Link>
         </div>

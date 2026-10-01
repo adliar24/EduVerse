@@ -18,7 +18,7 @@ export default function ModernLoader() {
             scale: { duration: 3, repeat: Infinity, ease: "easeInOut" }
           }}
           style={{ transform: 'translateZ(0)', willChange: 'transform' }}
-          className="absolute inset-0 rounded-[2.5rem] border-2 border-indigo-400/40 bg-indigo-500/10 shadow-[0_0_30px_rgba(99,102,241,0.25)]"
+          className="absolute inset-0 rounded-[2.5rem] border-2 border-white/30 bg-white/5 shadow-[0_0_30px_rgba(255,255,255,0.15)]"
         />
 
         {/* Middle reverse-rotating morphing ring */}
@@ -32,7 +32,7 @@ export default function ModernLoader() {
             scale: { duration: 2.5, repeat: Infinity, ease: "easeInOut" }
           }}
           style={{ transform: 'translateZ(0)', willChange: 'transform' }}
-          className="absolute w-[75%] h-[75%] rounded-3xl border-2 border-blue-400/40 bg-blue-500/10 shadow-[0_0_20px_rgba(59,130,246,0.2)]"
+          className="absolute w-[75%] h-[75%] rounded-3xl border-2 border-white/40 bg-white/10 shadow-[0_0_20px_rgba(255,255,255,0.2)]"
         />
 
         {/* Inner solid glowing fluid ball */}
@@ -47,11 +47,11 @@ export default function ModernLoader() {
           className="absolute w-[40%] h-[40%] rounded-2xl bg-white shadow-[0_0_20px_rgba(255,255,255,0.7)] flex items-center justify-center"
         >
           {/* A tiny accent circle in the center */}
-          <div className="w-2.5 h-2.5 rounded-full bg-indigo-600 animate-pulse" />
+          <div className="w-2.5 h-2.5 rounded-full bg-slate-900 animate-pulse" />
         </motion.div>
       </div>
 
-      <p className="mt-8 text-slate-300 font-bold text-xs tracking-wider uppercase animate-pulse">Memuat EduVerse...</p>
+      <p className="mt-8 text-white/90 font-bold text-xs tracking-wider uppercase animate-pulse">Memuat EduVerse...</p>
     </div>
   );
 }
