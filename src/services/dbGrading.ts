@@ -880,7 +880,7 @@ export const saveStudentPoint = async (point: StudentPoint): Promise<void> => {
       const { error } = await supabase.from('student_points').upsert({
         id: validId, 
         user_id: userId, 
-        school_id: cleanUUID(point.schoolId), 
+        school_id: cleanSchoolUUID(point.schoolId), 
         id_siswa: point.idSiswa, 
         id_kelas: cleanUUID(point.idKelas),
         tanggal: point.tanggal || new Date().toISOString(), 

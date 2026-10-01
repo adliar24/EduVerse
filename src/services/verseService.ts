@@ -119,10 +119,11 @@ export async function saveStudentVerse(verse: StudentVerse): Promise<StudentVers
   // Try saving to Supabase
   try {
     const client = supabaseAnon || supabase;
+    const effectiveSchoolId = dbGrading.cleanSchoolUUID(updatedVerse.schoolId);
     const payload = {
       id: updatedVerse.id,
       student_id: updatedVerse.studentId,
-      school_id: updatedVerse.schoolId || null,
+      school_id: effectiveSchoolId,
       species: updatedVerse.species,
       element: updatedVerse.element,
       nickname: updatedVerse.nickname,
@@ -390,6 +391,9 @@ export async function awardVerseExpAndPoints({
   if (!studentId || points === 0) return { success: false };
 
   try {
+    const effectiveSchoolId = dbGrading.cleanSchoolUUID(schoolId);
+    const effectiveClassId = dbGrading.cleanUUID(classId) || '';
+
     // 1. Record point in student_points (IndexedDB & Supabase)
     const pointId = typeof crypto !== 'undefined' && crypto.randomUUID 
       ? crypto.randomUUID() 
@@ -397,9 +401,9 @@ export async function awardVerseExpAndPoints({
 
     await dbGrading.saveStudentPoint({
       id: pointId,
-      schoolId: schoolId || '',
+      schoolId: effectiveSchoolId,
       idSiswa: studentId,
-      idKelas: classId || '',
+      idKelas: effectiveClassId,
       tanggal: new Date().toISOString(),
       poin: points,
       keterangan: title,
@@ -424,6 +428,7 @@ export async function awardVerseExpAndPoints({
 
     const updatedVerse: StudentVerse = {
       ...currentVerse,
+      schoolId: currentVerse.schoolId || effectiveSchoolId,
       lifetimePoints: newLifetimePoints,
       level: currentLevel,
       stage: currentStage,

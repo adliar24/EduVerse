@@ -141,9 +141,23 @@ export default function KelolaVerse() {
       const { data: versesData } = await verseQuery;
       const verseMap = new Map((versesData || []).map((v: any) => [v.student_id, v]));
 
-      // 4. Combine data
+      // 4. Fetch student_points so all points (presensi, tugas, manual) are counted
+      let pointsQuery = supabase.from('student_points').select('id_siswa, poin');
+      if (schoolId) pointsQuery = pointsQuery.eq('school_id', schoolId);
+      const { data: pointsData } = await pointsQuery;
+      const pointsMap = new Map<string, number>();
+      (pointsData || []).forEach((p: any) => {
+        const sid = String(p.id_siswa);
+        pointsMap.set(sid, (pointsMap.get(sid) || 0) + (Number(p.poin) || 0));
+      });
+
+      // 5. Combine data
       const combined: StudentWithVerse[] = (studentsData || []).map((std: any) => {
         const rawVerse = verseMap.get(std.id);
+        const accumulatedPoints = pointsMap.get(std.id) || 0;
+        const rawVersePoints = rawVerse ? (Number(rawVerse.lifetime_points) || 0) : 0;
+        const effectivePoints = Math.max(rawVersePoints, accumulatedPoints);
+
         const verseObj: StudentVerse | null = rawVerse ? {
           id: rawVerse.id,
           studentId: rawVerse.student_id,
@@ -151,7 +165,7 @@ export default function KelolaVerse() {
           species: rawVerse.species as VerseSpecies,
           element: rawVerse.element,
           nickname: rawVerse.nickname,
-          lifetimePoints: rawVerse.lifetime_points || 0,
+          lifetimePoints: effectivePoints,
           level: rawVerse.level || 1,
           stage: rawVerse.stage || 1,
           createdAt: rawVerse.created_at,
@@ -165,7 +179,7 @@ export default function KelolaVerse() {
           class_id: std.class_id,
           className: std.class_id ? classMap.get(std.class_id) || 'Tanpa Kelas' : 'Tanpa Kelas',
           verse: verseObj,
-          lifetimePoints: verseObj ? verseObj.lifetimePoints : 0
+          lifetimePoints: effectivePoints
         };
       });
 
@@ -547,13 +561,25 @@ export default function KelolaVerse() {
                 className="w-full h-full object-contain opacity-75 drop-shadow-md"
               />
             </div>
-            <div className="max-w-md space-y-1">
+            <div className="max-w-md space-y-2">
               <h3 className="text-base font-extrabold text-slate-800">
-                Belum Mengadopsi Sahabat Verse
+                Belum Menetaskan Telur Verse
               </h3>
               <p className="text-xs text-slate-500 font-medium leading-relaxed">
-                Murid ini belum membuka peti misterius untuk mengadopsi Verse pertamanya. Status akan otomatis diperbarui begitu murid memilih telur di menu My Verse.
+                Murid ini belum membuka peti misterius untuk mengadopsi Verse pertamanya. Begitu murid memilih telur di menu My Verse, status pet akan otomatis aktif.
               </p>
+              {selectedStudent.lifetimePoints > 0 ? (
+                <div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                  <span>Tabungan EXP:</span>
+                  <span className="text-emerald-600 font-black">+{selectedStudent.lifetimePoints} XP</span>
+                  <span className="text-[10px] text-slate-400 font-normal">(dari presensi & aktivitas)</span>
+                </div>
+              ) : (
+                <div className="mt-2 inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 text-slate-500 text-[11px] font-medium">
+                  Belum ada EXP terkumpul
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -827,9 +853,18 @@ export default function KelolaVerse() {
                           </span>
                         </>
                       ) : (
-                        <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-slate-100 text-slate-400">
-                          Belum Memilih
-                        </span>
+                        <div className="flex flex-col items-end">
+                          <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${
+                            item.lifetimePoints > 0 
+                              ? 'bg-amber-50 text-amber-600 border border-amber-200/60' 
+                              : 'bg-slate-100 text-slate-400'
+                          }`}>
+                            {item.lifetimePoints > 0 ? `${item.lifetimePoints} XP` : 'Belum Adopsi'}
+                          </span>
+                          {item.lifetimePoints > 0 && (
+                            <span className="text-[8px] text-slate-400 font-medium">Tersimpan</span>
+                          )}
+                        </div>
                       )}
                     </div>
                   </div>

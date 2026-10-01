@@ -739,7 +739,7 @@ const switchCamera = async () => {
       points: 10,
       source: 'presensi',
       title: `Presensi Hadir QR (${activeClass?.name || 'Kelas'})`,
-      schoolId: state.teacher?.activeSchoolId || undefined,
+      schoolId: activeClass?.schoolId || (activeClass as any)?.school_id || state.teacher?.activeSchoolId || undefined,
       classId: activeClass?.id || undefined
     }).catch(e => console.debug('Verse presensi sync skipped:', e));
 
@@ -817,7 +817,7 @@ const switchCamera = async () => {
       points: 10,
       source: 'presensi',
       title: `Presensi Hadir Wajah (${activeClass?.name || 'Kelas'})`,
-      schoolId: state.teacher?.activeSchoolId || undefined,
+      schoolId: activeClass?.schoolId || (activeClass as any)?.school_id || state.teacher?.activeSchoolId || undefined,
       classId: activeClass?.id || undefined
     }).catch(e => console.debug('Verse presensi sync skipped:', e));
 
@@ -850,7 +850,7 @@ const switchCamera = async () => {
           points: -10,
           source: 'presensi',
           title: `Koreksi Batal Hadir (${activeClass?.name || 'Kelas'})`,
-          schoolId: state.teacher?.activeSchoolId || undefined,
+          schoolId: activeClass?.schoolId || (activeClass as any)?.school_id || state.teacher?.activeSchoolId || undefined,
           classId: activeClass?.id || undefined
         }).catch(e => console.debug('Verse sync skipped:', e));
       }
@@ -884,7 +884,7 @@ const switchCamera = async () => {
           points: 10,
           source: 'presensi',
           title: `Presensi Hadir (${activeClass?.name || 'Kelas'})`,
-          schoolId: state.teacher?.activeSchoolId || undefined,
+          schoolId: activeClass?.schoolId || (activeClass as any)?.school_id || state.teacher?.activeSchoolId || undefined,
           classId: activeClass?.id || undefined
         }).catch(e => console.debug('Verse sync skipped:', e));
       }
@@ -896,7 +896,7 @@ const switchCamera = async () => {
           points: -10,
           source: 'presensi',
           title: `Koreksi Batal Hadir (${activeClass?.name || 'Kelas'})`,
-          schoolId: state.teacher?.activeSchoolId || undefined,
+          schoolId: activeClass?.schoolId || (activeClass as any)?.school_id || state.teacher?.activeSchoolId || undefined,
           classId: activeClass?.id || undefined
         }).catch(e => console.debug('Verse sync skipped:', e));
       }
@@ -949,7 +949,7 @@ const switchCamera = async () => {
           points: 10,
           source: 'presensi',
           title: `Presensi Hadir (${activeClass?.name || 'Kelas'})`,
-          schoolId: state.teacher?.activeSchoolId || undefined,
+          schoolId: activeClass?.schoolId || (activeClass as any)?.school_id || state.teacher?.activeSchoolId || undefined,
           classId: activeClass?.id || undefined
         }).catch(e => console.debug('Verse sync skipped:', e));
       }
