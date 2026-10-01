@@ -966,10 +966,27 @@ const switchCamera = async () => {
   const handleExplicitSave = async () => {
     setIsSavingAttendance(true);
     try {
-      await ensureSession();
+      const sessionId = await ensureSession();
+      const defaultSchoolId = activeClass?.schoolId || (activeClass as any)?.school_id || state.teacher?.activeSchoolId || undefined;
+      
+      // Ensure all students marked Hadir or Terlambat in this session have their 10 Verse points awarded
+      const presentRecords = (sessionRecordsRef.current || []).filter(r => r.status === 'Hadir' || r.status === 'Terlambat');
+      if (presentRecords.length > 0) {
+        await Promise.all(presentRecords.map(r => 
+          awardVerseExpAndPoints({
+            studentId: r.studentId,
+            points: 10,
+            source: 'presensi',
+            title: `Presensi Hadir (${activeClass?.name || 'Kelas'})`,
+            schoolId: defaultSchoolId,
+            classId: activeClass?.id || undefined
+          }).catch(e => console.debug('Sync skipped for student:', r.studentId, e))
+        ));
+      }
+
       await refresh();
       playSuccessSound();
-      notify('✓ Seluruh data kehadiran & perolehan 10 poin Verse murid telah tersimpan aman di Cloud!', 'success');
+      notify(`✓ Seluruh data kehadiran (${presentRecords.length} Hadir) & poin Verse murid tersimpan aman!`, 'success');
     } catch (err) {
       console.error('Error saving attendance:', err);
       notify('Terjadi kesalahan saat menyimpan data absensi.', 'error');

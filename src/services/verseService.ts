@@ -255,6 +255,38 @@ export async function getStudentPointsHistory(
     console.warn('[verseService] Error fetching student_points:', err);
   }
 
+  // 1b. Check attendance_records as fallback to ensure all Hadir/Terlambat attendances grant +10 points
+  try {
+    const client = supabaseAnon || supabase;
+    const { data: attRecs } = await client
+      .from('attendance_records')
+      .select('id, session_id, status, time_iso, created_at')
+      .eq('student_id', studentId)
+      .in('status', ['Hadir', 'Terlambat']);
+
+    if (attRecs && attRecs.length > 0) {
+      attRecs.forEach((ar: any) => {
+        const arDate = (ar.time_iso || ar.created_at || '').split('T')[0];
+        const alreadyCounted = items.some(it => 
+          it.source === 'presensi' && 
+          it.date.startsWith(arDate)
+        );
+        if (!alreadyCounted) {
+          items.push({
+            id: `att_${ar.id}`,
+            source: 'presensi',
+            title: `Presensi Hadir (+10 Poin)`,
+            date: ar.time_iso || ar.created_at || new Date().toISOString(),
+            points: 10,
+            type: 'positive'
+          });
+        }
+      });
+    }
+  } catch (attErr) {
+    console.debug('[verseService] Attendance fallback check skipped:', attErr);
+  }
+
   // 2. Fetch completed CBT exams for this student
   if (studentName) {
     try {
