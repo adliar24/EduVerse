@@ -454,99 +454,46 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Quick Action Launcher - Vibrant Colorful Boards (Like Student Dashboard) */}
+      {/* Quick Action Launcher - 3 Vibrant Colorful Cards (Matching Student Dashboard Style & Previous Layout) */}
       <div className="space-y-2">
         <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Aksi Cepat</h3>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3.5">
-          {/* Card 1: Presensi Kelas (Emerald) */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <Link
             to="/attendance/scan"
-            className="p-3 sm:p-4 rounded-2xl bg-gradient-to-br from-emerald-600 via-teal-600 to-emerald-800 text-white shadow-md shadow-emerald-950/15 border border-emerald-400/30 flex flex-col justify-between relative overflow-hidden transition-all duration-200 hover:scale-[1.01] hover:shadow-lg cursor-pointer group"
+            className="flex items-center gap-3.5 p-4 rounded-2xl bg-gradient-to-br from-emerald-600 via-teal-600 to-emerald-800 text-white border border-emerald-400/30 shadow-md shadow-emerald-950/15 hover:shadow-lg hover:scale-[1.01] transition-all group cursor-pointer"
           >
-            <div className="flex items-center justify-between gap-1.5 sm:gap-2">
-              <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-emerald-100/90 truncate">
-                Presensi Siswa
-              </span>
-              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-white/20 text-white flex items-center justify-center shrink-0 backdrop-blur-xs shadow-inner group-hover:scale-105 transition-transform">
-                <ClipboardCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-100" />
-              </div>
+            <div className="bg-white/20 text-white p-2.5 rounded-xl backdrop-blur-xs shadow-inner group-hover:scale-105 transition-transform shrink-0">
+              <ClipboardCheck className="w-5 h-5 text-emerald-100" />
             </div>
-            <div className="mt-2.5 sm:mt-3 flex flex-col sm:flex-row sm:items-baseline justify-between gap-1 sm:gap-2">
-              <h4 className="text-sm sm:text-base font-black tracking-tight text-white leading-tight">
-                Scan Presensi
-              </h4>
-              <span className="text-[10px] sm:text-[11px] text-emerald-100/85 font-semibold flex items-center gap-1 group-hover:text-white transition-colors shrink-0">
-                Buka kamera <ArrowRight className="w-2.5 h-2.5 sm:w-3 sm:h-3 group-hover:translate-x-0.5 transition-transform" />
-              </span>
+            <div>
+              <h4 className="font-bold text-white text-xs uppercase tracking-tight group-hover:text-emerald-100 transition-colors">Presensi Kelas</h4>
+              <p className="text-[11px] text-emerald-100/85 font-medium">Buka kamera scan kehadiran</p>
             </div>
           </Link>
 
-          {/* Card 2: Kelola Verse (Amber / Orange) */}
-          <Link
-            to="/kelola-verse"
-            className="p-3 sm:p-4 rounded-2xl bg-gradient-to-br from-amber-500 via-amber-600 to-orange-600 text-white shadow-md shadow-amber-950/15 border border-amber-400/30 flex flex-col justify-between relative overflow-hidden transition-all duration-200 hover:scale-[1.01] hover:shadow-lg cursor-pointer group"
-          >
-            <div className="flex items-center justify-between gap-1.5 sm:gap-2">
-              <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-amber-100/90 truncate">
-                EduVerse & EXP
-              </span>
-              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-white/20 text-white flex items-center justify-center shrink-0 backdrop-blur-xs shadow-inner group-hover:scale-105 transition-transform">
-                <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-100" />
-              </div>
-            </div>
-            <div className="mt-2.5 sm:mt-3 flex flex-col sm:flex-row sm:items-baseline justify-between gap-1 sm:gap-2">
-              <h4 className="text-sm sm:text-base font-black tracking-tight text-white leading-tight">
-                Kelola Verse
-              </h4>
-              <span className="text-[10px] sm:text-[11px] text-amber-100/85 font-semibold flex items-center gap-1 group-hover:text-white transition-colors shrink-0">
-                Pantau murid <ArrowRight className="w-2.5 h-2.5 sm:w-3 sm:h-3 group-hover:translate-x-0.5 transition-transform" />
-              </span>
-            </div>
-          </Link>
-
-          {/* Card 3: Input Nilai (Blue) */}
           <Link
             to="/grading"
-            className="p-3 sm:p-4 rounded-2xl bg-gradient-to-br from-blue-600 via-indigo-600 to-blue-800 text-white shadow-md shadow-blue-950/15 border border-blue-400/30 flex flex-col justify-between relative overflow-hidden transition-all duration-200 hover:scale-[1.01] hover:shadow-lg cursor-pointer group"
+            className="flex items-center gap-3.5 p-4 rounded-2xl bg-gradient-to-br from-[#1E3A8A] via-[#1D4ED8] to-[#3B66F5] text-white border border-blue-400/30 shadow-md shadow-blue-950/15 hover:shadow-lg hover:scale-[1.01] transition-all group cursor-pointer"
           >
-            <div className="flex items-center justify-between gap-1.5 sm:gap-2">
-              <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-blue-100/90 truncate">
-                Penilaian Siswa
-              </span>
-              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-white/20 text-white flex items-center justify-center shrink-0 backdrop-blur-xs shadow-inner group-hover:scale-105 transition-transform">
-                <Activity className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-100" />
-              </div>
+            <div className="bg-white/20 text-white p-2.5 rounded-xl backdrop-blur-xs shadow-inner group-hover:scale-105 transition-transform shrink-0">
+              <Activity className="w-5 h-5 text-blue-100" />
             </div>
-            <div className="mt-2.5 sm:mt-3 flex flex-col sm:flex-row sm:items-baseline justify-between gap-1 sm:gap-2">
-              <h4 className="text-sm sm:text-base font-black tracking-tight text-white leading-tight">
-                Input Nilai
-              </h4>
-              <span className="text-[10px] sm:text-[11px] text-blue-100/85 font-semibold flex items-center gap-1 group-hover:text-white transition-colors shrink-0">
-                Rekap kelas <ArrowRight className="w-2.5 h-2.5 sm:w-3 sm:h-3 group-hover:translate-x-0.5 transition-transform" />
-              </span>
+            <div>
+              <h4 className="font-bold text-white text-xs uppercase tracking-tight group-hover:text-blue-100 transition-colors">Input Nilai</h4>
+              <p className="text-[11px] text-blue-100/85 font-medium">Rekap formatif & sumatif</p>
             </div>
           </Link>
 
-          {/* Card 4: Ujian Digital (Purple) */}
           <Link
             to="/buat-ujian"
-            className="p-3 sm:p-4 rounded-2xl bg-gradient-to-br from-purple-600 via-indigo-600 to-purple-800 text-white shadow-md shadow-purple-950/15 border border-purple-400/30 flex flex-col justify-between relative overflow-hidden transition-all duration-200 hover:scale-[1.01] hover:shadow-lg cursor-pointer group"
+            className="flex items-center gap-3.5 p-4 rounded-2xl bg-gradient-to-br from-purple-600 via-indigo-600 to-purple-800 text-white border border-purple-400/30 shadow-md shadow-purple-950/15 hover:shadow-lg hover:scale-[1.01] transition-all group cursor-pointer"
           >
-            <div className="flex items-center justify-between gap-1.5 sm:gap-2">
-              <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-purple-100/90 truncate">
-                CBT & Evaluasi
-              </span>
-              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-white/20 text-white flex items-center justify-center shrink-0 backdrop-blur-xs shadow-inner group-hover:scale-105 transition-transform">
-                <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-100" />
-              </div>
+            <div className="bg-white/20 text-white p-2.5 rounded-xl backdrop-blur-xs shadow-inner group-hover:scale-105 transition-transform shrink-0">
+              <FileText className="w-5 h-5 text-purple-100" />
             </div>
-            <div className="mt-2.5 sm:mt-3 flex flex-col sm:flex-row sm:items-baseline justify-between gap-1 sm:gap-2">
-              <h4 className="text-sm sm:text-base font-black tracking-tight text-white leading-tight">
-                Ujian Baru
-              </h4>
-              <span className="text-[10px] sm:text-[11px] text-purple-100/85 font-semibold flex items-center gap-1 group-hover:text-white transition-colors shrink-0">
-                Susun naskah <ArrowRight className="w-2.5 h-2.5 sm:w-3 sm:h-3 group-hover:translate-x-0.5 transition-transform" />
-              </span>
+            <div>
+              <h4 className="font-bold text-white text-xs uppercase tracking-tight group-hover:text-purple-100 transition-colors">Ujian Baru</h4>
+              <p className="text-[11px] text-purple-100/85 font-medium">Susun naskah ujian online</p>
             </div>
           </Link>
         </div>
