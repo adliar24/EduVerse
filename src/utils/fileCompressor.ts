@@ -1,4 +1,5 @@
 import { supabase, supabaseAnon } from '../lib/supabase';
+import { isR2Configured, uploadFileToR2 } from '../lib/r2';
 import { isAppwriteConfigured, uploadFileToAppwrite } from '../lib/appwrite';
 
 export interface CompressionResult {
@@ -185,7 +186,24 @@ export async function uploadSubmissionFile(
   file: File,
   folderPath: string
 ): Promise<string> {
-  // Tier 1: Try Appwrite Storage Bucket if configured (Dedicated file storage with generous limits)
+  // Tier 1: Try Cloudflare R2 Storage (10 GB free & zero egress fee)
+  if (isR2Configured()) {
+    try {
+      console.log('Uploading student assignment file to Cloudflare R2 Storage...');
+      const sanitize = (name: string) => name.replace(/[^a-zA-Z0-9._-]/g, '_');
+      const cleanFolder = (folderPath || 'submissions').replace(/[^a-zA-Z0-9/_-]/g, '_');
+      const key = `${cleanFolder}/${Date.now()}_${sanitize(file.name)}`;
+      const r2Res = await uploadFileToR2(file, key);
+      if (r2Res.url) {
+        console.log('Successfully uploaded file to Cloudflare R2 Storage:', r2Res.url);
+        return r2Res.url;
+      }
+    } catch (r2Err: any) {
+      console.warn('Cloudflare R2 upload attempt failed, continuing to Appwrite/Supabase fallback:', r2Err?.message || r2Err);
+    }
+  }
+
+  // Tier 2: Try Appwrite Storage Bucket fallback if configured
   if (isAppwriteConfigured()) {
     try {
       console.log('Uploading student assignment file to Appwrite Storage...');

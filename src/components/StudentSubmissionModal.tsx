@@ -27,6 +27,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { Assignment, AssignmentSubmission } from '../types';
 import { supabase, supabaseAnon } from '../lib/supabase';
+import { deleteFileFromR2 } from '../lib/r2';
 import { deleteFileFromAppwrite } from '../lib/appwrite';
 import { compressImageFile, formatFileSize, uploadSubmissionFile, CompressionResult } from '../utils/fileCompressor';
 
@@ -213,9 +214,13 @@ export default function StudentSubmissionModal({
 
       // If student selected a new file, upload it (with automatic Base64 Data URL fallback)
       if (selectedFile) {
-        // Automatically delete previous file from Appwrite to keep storage quota clean
-        if (existingSubmission?.file_url && existingSubmission.file_url.includes('appwrite')) {
-          deleteFileFromAppwrite(existingSubmission.file_url).catch(() => {});
+        // Automatically delete previous file from storage to keep quota clean
+        if (existingSubmission?.file_url) {
+          if (existingSubmission.file_url.includes('r2.dev')) {
+            deleteFileFromR2(existingSubmission.file_url).catch(() => {});
+          } else if (existingSubmission.file_url.includes('appwrite')) {
+            deleteFileFromAppwrite(existingSubmission.file_url).catch(() => {});
+          }
         }
 
         const schoolFolder = studentInfo.school_id || assignment.school_id || 'school';
@@ -225,8 +230,10 @@ export default function StudentSubmissionModal({
         finalFileType = selectedFile.type;
         finalFileSize = selectedFile.size;
       } else if (isExistingFileRemoved && existingSubmission?.file_url) {
-        // If student removed old file without choosing a new one, clean up from Appwrite
-        if (existingSubmission.file_url.includes('appwrite')) {
+        // If student removed old file without choosing a new one, clean up from storage
+        if (existingSubmission.file_url.includes('r2.dev')) {
+          deleteFileFromR2(existingSubmission.file_url).catch(() => {});
+        } else if (existingSubmission.file_url.includes('appwrite')) {
           deleteFileFromAppwrite(existingSubmission.file_url).catch(() => {});
         }
       }

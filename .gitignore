@@ -10,6 +10,8 @@ coverage/
 # Large archives and backups
 *.zip
 *Backup*.json
+backup_eduverse/
+KUNCI_DAN_KREDENSIAL_PENTING.md
 
 # Dev build and temporary folders
 dev-dist/
