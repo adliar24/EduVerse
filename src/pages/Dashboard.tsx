@@ -405,38 +405,51 @@ export default function Dashboard() {
 
   if (loading) return (
     <div className="animate-pulse space-y-4 pb-2">
-      {/* Banner Skeleton */}
-      <div className="h-44 sm:h-40 bg-slate-200/80 rounded-[2.25rem] w-full p-6 sm:p-8 flex flex-col justify-center">
-        <div className="w-44 h-5 bg-slate-300/80 rounded-full mb-3"></div>
-        <div className="w-64 sm:w-80 h-8 bg-slate-300/80 rounded-xl mb-2"></div>
-        <div className="w-56 h-4 bg-slate-300/60 rounded-lg"></div>
+      {/* Banner Skeleton - 1:1 match with real banner */}
+      <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 rounded-[2.25rem] p-6 sm:p-8 relative overflow-hidden shadow-xl border border-white/10 min-h-[134px] sm:min-h-[158px] flex flex-col justify-center">
+        <div className="w-56 sm:w-64 h-6 bg-white/15 rounded-full mb-2.5 border border-white/10"></div>
+        <div className="w-64 sm:w-80 h-8 sm:h-9 bg-white/20 rounded-xl mb-1"></div>
+        <div className="w-72 sm:w-96 h-4 sm:h-5 bg-white/10 rounded-lg mt-1"></div>
       </div>
       
-      {/* Quick Action Launcher Skeleton - 3 Cards */}
+      {/* Quick Action Launcher Skeleton - 3 Cards with 1:1 matching height (72px) & subtle themes */}
       <div className="space-y-2">
-        <div className="w-20 h-3 bg-slate-200 rounded-md ml-1"></div>
+        <div className="w-16 h-3 bg-slate-200 rounded-md ml-1"></div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          {[1, 2, 3].map(i => (
-            <div key={i} className="h-[74px] p-4 rounded-2xl bg-slate-100 border border-slate-200/60 flex items-center gap-3.5">
-              <div className="w-10 h-10 rounded-xl bg-slate-200 shrink-0"></div>
-              <div className="space-y-1.5 flex-1">
-                <div className="w-24 h-3.5 bg-slate-200 rounded-md"></div>
-                <div className="w-36 h-3 bg-slate-200/70 rounded-md"></div>
+          {[
+            { bg: 'bg-emerald-700/80', iconBg: 'bg-emerald-600/60', titleW: 'w-24', descW: 'w-36' },
+            { bg: 'bg-blue-800/80', iconBg: 'bg-blue-700/60', titleW: 'w-20', descW: 'w-32' },
+            { bg: 'bg-amber-600/80', iconBg: 'bg-amber-500/60', titleW: 'w-20', descW: 'w-36' },
+          ].map((item, i) => (
+            <div key={i} className={`flex items-center gap-3.5 p-4 rounded-2xl ${item.bg} border border-white/10 shadow-sm h-[72px]`}>
+              <div className={`w-10 h-10 rounded-xl ${item.iconBg} shrink-0`}></div>
+              <div className="space-y-1.5 flex-1 min-w-0">
+                <div className={`${item.titleW} h-3.5 bg-white/40 rounded-md`}></div>
+                <div className={`${item.descW} h-3 bg-white/20 rounded-md`}></div>
               </div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Stats Grid Skeleton - 6 Cards */}
+      {/* Stats Grid Skeleton - 6 Cards with exact locked height (132px) */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-        {[1, 2, 3, 4, 5, 6].map(i => (
-          <div key={i} className="h-[116px] rounded-2xl p-4 bg-white border border-slate-200/90 shadow-xs flex flex-col justify-between">
-            <div className="w-8 h-8 rounded-xl bg-slate-100"></div>
-            <div className="space-y-1.5">
-              <div className="w-16 h-2.5 bg-slate-100 rounded-md"></div>
-              <div className="w-12 h-6 bg-slate-200 rounded-md"></div>
-              <div className="w-20 h-2 bg-slate-100 rounded-md"></div>
+        {[
+          { labelW: 'w-18', valW: 'w-12', descW: 'w-24', iconColor: 'bg-indigo-50 border-indigo-100' },
+          { labelW: 'w-20', valW: 'w-10', descW: 'w-22', iconColor: 'bg-blue-50 border-blue-100' },
+          { labelW: 'w-18', valW: 'w-14', descW: 'w-22', iconColor: 'bg-sky-50 border-sky-100' },
+          { labelW: 'w-16', valW: 'w-14', descW: 'w-24', iconColor: 'bg-emerald-50 border-emerald-100' },
+          { labelW: 'w-20', valW: 'w-12', descW: 'w-26', iconColor: 'bg-violet-50 border-violet-100' },
+          { labelW: 'w-20', valW: 'w-12', descW: 'w-22', iconColor: 'bg-amber-50 border-amber-100' },
+        ].map((item, i) => (
+          <div key={i} className="rounded-2xl p-4 bg-white border border-slate-200/90 shadow-sm flex flex-col justify-between h-[132px]">
+            <div className="flex items-center mb-3">
+              <div className={`w-8 h-8 rounded-xl ${item.iconColor} border`}></div>
+            </div>
+            <div>
+              <div className={`${item.labelW} h-2.5 bg-slate-200/80 rounded-md`}></div>
+              <div className={`${item.valW} h-6 bg-slate-300/80 rounded-md mt-1`}></div>
+              <div className={`${item.descW} h-2.5 bg-slate-100 rounded-md mt-1`}></div>
             </div>
           </div>
         ))}
@@ -444,29 +457,72 @@ export default function Dashboard() {
 
       {/* Main Bento Grid Skeleton - 2 Columns */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="lg:col-span-2 h-[380px] bg-white border border-slate-200/90 rounded-2xl p-5 flex flex-col justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-slate-100"></div>
-            <div className="space-y-1">
-              <div className="w-36 h-4 bg-slate-200 rounded-md"></div>
-              <div className="w-48 h-3 bg-slate-100 rounded-md"></div>
+        {/* Chart Card Skeleton - matching Recharts layout with 5 days & locked min-h-[300px] */}
+        <div className="lg:col-span-2 bg-white border border-slate-200/90 shadow-sm rounded-2xl p-4.5 min-h-[300px]">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-indigo-50 border border-indigo-100"></div>
+              <div className="space-y-1">
+                <div className="w-36 h-4 bg-slate-200 rounded-md"></div>
+                <div className="w-28 h-2.5 bg-slate-100 rounded-md"></div>
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-1.5">
+                <div className="w-2.5 h-2.5 rounded-full bg-blue-100"></div>
+                <div className="w-16 h-2.5 bg-slate-100 rounded-md"></div>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="w-2.5 h-2.5 rounded-full bg-indigo-100"></div>
+                <div className="w-16 h-2.5 bg-slate-100 rounded-md"></div>
+              </div>
             </div>
           </div>
-          <div className="h-56 bg-slate-50 rounded-xl flex items-center justify-center">
-            <div className="w-3/4 h-32 bg-slate-100/60 rounded-lg"></div>
+          {/* Chart area matching h-52 with 5 day columns & dashed grid lines */}
+          <div className="h-52 w-full pt-4 pb-1 flex flex-col justify-between border-t border-slate-100">
+            <div className="flex-1 flex items-end justify-between px-4 sm:px-8 gap-3 sm:gap-6 border-b border-dashed border-slate-200 pb-2">
+              {[
+                { h1: '65%', h2: '50%' },
+                { h1: '75%', h2: '60%' },
+                { h1: '80%', h2: '70%' },
+                { h1: '85%', h2: '75%' },
+                { h1: '90%', h2: '80%' },
+              ].map((bar, idx) => (
+                <div key={idx} className="flex-1 flex items-end justify-center gap-1.5 sm:gap-2 h-full">
+                  <div className="w-3.5 sm:w-5 bg-blue-100/90 rounded-t" style={{ height: bar.h1 }}></div>
+                  <div className="w-3.5 sm:w-5 bg-indigo-100/90 rounded-t" style={{ height: bar.h2 }}></div>
+                </div>
+              ))}
+            </div>
+            {/* 5 Day label placeholders */}
+            <div className="flex items-center justify-between px-4 sm:px-8 pt-2">
+              {['Sen', 'Sel', 'Rab', 'Kam', 'Jum'].map((_, idx) => (
+                <div key={idx} className="flex-1 flex justify-center">
+                  <div className="w-8 h-2 bg-slate-100 rounded-full"></div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
-        <div className="h-[380px] bg-white border border-slate-200/90 rounded-2xl p-5 flex flex-col justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-slate-100"></div>
+
+        {/* Schedule Card Skeleton - matching 1:1 min-h-[300px] */}
+        <div className="bg-white border border-slate-200/90 shadow-sm rounded-2xl p-4.5 flex flex-col min-h-[300px]">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-9 h-9 rounded-xl bg-blue-50 border border-blue-100"></div>
             <div className="space-y-1">
-              <div className="w-32 h-4 bg-slate-200 rounded-md"></div>
-              <div className="w-24 h-3 bg-slate-100 rounded-md"></div>
+              <div className="w-28 h-4 bg-slate-200 rounded-md"></div>
+              <div className="w-36 h-2.5 bg-slate-100 rounded-md"></div>
             </div>
           </div>
-          <div className="space-y-2 mt-4 flex-1">
+          <div className="flex-1 space-y-2.5 max-h-[220px] overflow-hidden">
             {[1, 2, 3].map(j => (
-              <div key={j} className="h-14 bg-slate-50 rounded-xl border border-slate-100"></div>
+              <div key={j} className="p-3 rounded-xl border border-slate-100 bg-slate-50/50 flex items-center justify-between h-[52px]">
+                <div className="space-y-1.5">
+                  <div className="w-28 h-3 bg-slate-200 rounded-md"></div>
+                  <div className="w-36 h-2 bg-slate-100 rounded-md"></div>
+                </div>
+                <div className="w-14 h-5 bg-slate-200/70 rounded-full"></div>
+              </div>
             ))}
           </div>
         </div>
@@ -483,7 +539,7 @@ export default function Dashboard() {
       className="space-y-4 pb-2"
     >
       {/* Modern Colorful Banner Sambutan Guru */}
-      <div className="bg-gradient-to-r from-[#0F172A] via-[#1E3A8A] to-[#1E40AF] text-white rounded-[2.25rem] p-6 sm:p-8 relative overflow-hidden shadow-xl border border-white/10">
+      <div className="bg-gradient-to-r from-[#0F172A] via-[#1E3A8A] to-[#1E40AF] text-white rounded-[2.25rem] p-6 sm:p-8 relative overflow-hidden shadow-xl border border-white/10 min-h-[134px] sm:min-h-[158px] flex flex-col justify-center">
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <div className="inline-flex items-center gap-1.5 px-3.5 py-1 bg-white/15 rounded-full text-xs font-bold tracking-wide text-blue-100 mb-2.5 border border-white/20">
@@ -505,7 +561,7 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <Link
             to="/attendance/scan"
-            className="flex items-center gap-3.5 p-4 rounded-2xl bg-gradient-to-br from-emerald-600 via-teal-600 to-emerald-800 text-white border border-emerald-400/30 shadow-md shadow-emerald-950/15 hover:shadow-lg hover:scale-[1.01] transition-all group cursor-pointer"
+            className="flex items-center gap-3.5 p-4 rounded-2xl bg-gradient-to-br from-emerald-600 via-teal-600 to-emerald-800 text-white border border-emerald-400/30 shadow-md shadow-emerald-950/15 hover:shadow-lg hover:scale-[1.01] transition-all group cursor-pointer h-[72px]"
           >
             <div className="bg-white/20 text-white p-2.5 rounded-xl backdrop-blur-xs shadow-inner group-hover:scale-105 transition-transform shrink-0">
               <ClipboardCheck className="w-5 h-5 text-emerald-100" />
@@ -518,7 +574,7 @@ export default function Dashboard() {
 
           <Link
             to="/grading"
-            className="flex items-center gap-3.5 p-4 rounded-2xl bg-gradient-to-br from-[#1E3A8A] via-[#1D4ED8] to-[#3B66F5] text-white border border-blue-400/30 shadow-md shadow-blue-950/15 hover:shadow-lg hover:scale-[1.01] transition-all group cursor-pointer"
+            className="flex items-center gap-3.5 p-4 rounded-2xl bg-gradient-to-br from-[#1E3A8A] via-[#1D4ED8] to-[#3B66F5] text-white border border-blue-400/30 shadow-md shadow-blue-950/15 hover:shadow-lg hover:scale-[1.01] transition-all group cursor-pointer h-[72px]"
           >
             <div className="bg-white/20 text-white p-2.5 rounded-xl backdrop-blur-xs shadow-inner group-hover:scale-105 transition-transform shrink-0">
               <Activity className="w-5 h-5 text-blue-100" />
@@ -531,7 +587,7 @@ export default function Dashboard() {
 
           <Link
             to="/buat-ujian"
-            className="flex items-center gap-3.5 p-4 rounded-2xl bg-gradient-to-br from-amber-500 via-amber-600 to-orange-600 text-white border border-amber-400/30 shadow-md shadow-amber-950/15 hover:shadow-lg hover:scale-[1.01] transition-all group cursor-pointer"
+            className="flex items-center gap-3.5 p-4 rounded-2xl bg-gradient-to-br from-amber-500 via-amber-600 to-orange-600 text-white border border-amber-400/30 shadow-md shadow-amber-950/15 hover:shadow-lg hover:scale-[1.01] transition-all group cursor-pointer h-[72px]"
           >
             <div className="bg-white/20 text-white p-2.5 rounded-xl backdrop-blur-xs shadow-inner group-hover:scale-105 transition-transform shrink-0">
               <FileText className="w-5 h-5 text-amber-100" />
@@ -552,7 +608,7 @@ export default function Dashboard() {
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.04, duration: 0.25 }}
-            className={`rounded-2xl p-4 bg-white border border-slate-200/90 shadow-sm hover:shadow-md ${stat.borderHover} transition-all flex flex-col justify-between group relative overflow-hidden`}
+            className={`rounded-2xl p-4 bg-white border border-slate-200/90 shadow-sm hover:shadow-md ${stat.borderHover} transition-all flex flex-col justify-between group relative overflow-hidden h-[132px]`}
           >
             <div className={`absolute top-0 right-0 w-24 h-24 bg-gradient-to-br ${stat.accentBg} rounded-bl-full pointer-events-none`}></div>
             <div className="flex items-center mb-3 relative z-10">
@@ -572,7 +628,7 @@ export default function Dashboard() {
       {/* Main Bento Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Chart Card */}
-        <div className="lg:col-span-2 bg-white border border-slate-200/90 shadow-sm rounded-2xl p-4.5 hover:shadow-md transition-all duration-300">
+        <div className="lg:col-span-2 bg-white border border-slate-200/90 shadow-sm rounded-2xl p-4.5 hover:shadow-md transition-all duration-300 min-h-[300px]">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 gap-4">
             <div className="flex items-center gap-3">
               <div className="bg-indigo-600 text-white p-2 rounded-xl shadow-sm shadow-indigo-600/20">

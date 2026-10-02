@@ -357,12 +357,54 @@ export default function StudentDashboard() {
   };
 
   if (loading) return (
-    <div className="animate-pulse space-y-6">
-      <div className="h-24 bg-slate-100 rounded-3xl"></div>
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {[1,2,3].map(i => <div key={i} className="h-28 bg-slate-100 rounded-3xl"></div>)}
+    <div className="animate-pulse space-y-5 pb-10">
+      {/* Student Banner Skeleton */}
+      <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 p-6 sm:p-8 rounded-[2.25rem] border border-white/10 shadow-xl flex items-center justify-between gap-5 min-h-[120px] sm:min-h-[140px]">
+        <div className="flex items-center gap-4 flex-1">
+          <div className="w-14 h-14 rounded-2xl bg-white/15 shrink-0"></div>
+          <div className="space-y-2 flex-1">
+            <div className="w-48 sm:w-64 h-7 bg-white/20 rounded-xl"></div>
+            <div className="w-64 sm:w-96 h-4 bg-white/10 rounded-lg"></div>
+          </div>
+        </div>
+        <div className="hidden sm:block w-28 h-10 bg-white/10 rounded-full"></div>
       </div>
-      <div className="h-64 bg-slate-100 rounded-3xl"></div>
+
+      {/* Verse Pet Widget Skeleton */}
+      <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-slate-100 shrink-0"></div>
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <div className="w-28 h-5 bg-slate-200 rounded-md"></div>
+              <div className="w-24 h-4 bg-slate-100 rounded-full"></div>
+            </div>
+            <div className="w-40 sm:w-56 h-2 bg-slate-100 rounded-full"></div>
+          </div>
+        </div>
+        <div className="w-32 h-9 bg-slate-100 rounded-xl"></div>
+      </div>
+
+      {/* 4 Stat Cards Skeleton - 2 Columns */}
+      <div className="grid grid-cols-2 gap-2.5 sm:gap-3.5">
+        {[
+          { bg: 'bg-emerald-700/80', iconBg: 'bg-emerald-600/60' },
+          { bg: 'bg-amber-600/80', iconBg: 'bg-amber-500/60' },
+          { bg: 'bg-blue-800/80', iconBg: 'bg-blue-700/60' },
+          { bg: 'bg-violet-800/80', iconBg: 'bg-violet-700/60' },
+        ].map((item, i) => (
+          <div key={i} className={`p-3 sm:p-4 rounded-2xl ${item.bg} border border-white/10 shadow-sm flex flex-col justify-between h-[86px] sm:h-[96px]`}>
+            <div className="flex items-center justify-between">
+              <div className="w-20 h-3 bg-white/40 rounded-md"></div>
+              <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-xl ${item.iconBg}`}></div>
+            </div>
+            <div className="flex items-baseline justify-between mt-2">
+              <div className="w-14 sm:w-18 h-6 bg-white/40 rounded-md"></div>
+              <div className="w-16 h-3 bg-white/20 rounded-md"></div>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 
