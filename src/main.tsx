@@ -106,23 +106,18 @@ const handleChunkError = (err: any) => {
 window.addEventListener('error', handleChunkError, true);
 window.addEventListener('unhandledrejection', handleChunkError);
 
-// Clean up service workers in dev mode to prevent hot reload loops
-if (typeof window !== 'undefined' && import.meta.env.DEV && 'serviceWorker' in navigator) {
-  navigator.serviceWorker.getRegistrations().then(registrations => {
-    for (const reg of registrations) {
-      reg.unregister().catch(() => {});
-    }
-  }).catch(() => {});
-}
+import { registerSW } from 'virtual:pwa-register';
 
-// Background SW update check in production only (without disruptive auto-reloads)
-if (typeof window !== 'undefined' && !import.meta.env.DEV && 'serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.getRegistrations().then(registrations => {
-      for (const reg of registrations) {
-        reg.update().catch(() => {});
-      }
-    }).catch(() => {});
+// Register Service Worker for PWA offline support and direct Chrome installability
+if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+  registerSW({
+    immediate: true,
+    onNeedRefresh() {
+      console.log('[PWA] New content available');
+    },
+    onOfflineReady() {
+      console.log('[PWA] App ready for offline work');
+    },
   });
 }
 
