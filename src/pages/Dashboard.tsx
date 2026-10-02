@@ -404,21 +404,72 @@ export default function Dashboard() {
   ];
 
   if (loading) return (
-    <div className="animate-pulse space-y-8">
+    <div className="animate-pulse space-y-4 pb-2">
       {/* Banner Skeleton */}
-      <div className="h-44 bg-slate-100 rounded-3xl w-full"></div>
+      <div className="h-44 sm:h-40 bg-slate-200/80 rounded-[2.25rem] w-full p-6 sm:p-8 flex flex-col justify-center">
+        <div className="w-44 h-5 bg-slate-300/80 rounded-full mb-3"></div>
+        <div className="w-64 sm:w-80 h-8 bg-slate-300/80 rounded-xl mb-2"></div>
+        <div className="w-56 h-4 bg-slate-300/60 rounded-lg"></div>
+      </div>
       
-      {/* Cards Skeleton */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        {[1,2,3,4,5,6].map(i => (
-          <div key={i} className="h-32 bg-slate-100 rounded-3xl"></div>
+      {/* Quick Action Launcher Skeleton - 3 Cards */}
+      <div className="space-y-2">
+        <div className="w-20 h-3 bg-slate-200 rounded-md ml-1"></div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="h-[74px] p-4 rounded-2xl bg-slate-100 border border-slate-200/60 flex items-center gap-3.5">
+              <div className="w-10 h-10 rounded-xl bg-slate-200 shrink-0"></div>
+              <div className="space-y-1.5 flex-1">
+                <div className="w-24 h-3.5 bg-slate-200 rounded-md"></div>
+                <div className="w-36 h-3 bg-slate-200/70 rounded-md"></div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Stats Grid Skeleton - 6 Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+        {[1, 2, 3, 4, 5, 6].map(i => (
+          <div key={i} className="h-[116px] rounded-2xl p-4 bg-white border border-slate-200/90 shadow-xs flex flex-col justify-between">
+            <div className="w-8 h-8 rounded-xl bg-slate-100"></div>
+            <div className="space-y-1.5">
+              <div className="w-16 h-2.5 bg-slate-100 rounded-md"></div>
+              <div className="w-12 h-6 bg-slate-200 rounded-md"></div>
+              <div className="w-20 h-2 bg-slate-100 rounded-md"></div>
+            </div>
+          </div>
         ))}
       </div>
 
-      {/* Grid Content Skeleton */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 h-80 bg-slate-100 rounded-3xl"></div>
-        <div className="h-80 bg-slate-100 rounded-3xl"></div>
+      {/* Main Bento Grid Skeleton - 2 Columns */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="lg:col-span-2 h-[380px] bg-white border border-slate-200/90 rounded-2xl p-5 flex flex-col justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-slate-100"></div>
+            <div className="space-y-1">
+              <div className="w-36 h-4 bg-slate-200 rounded-md"></div>
+              <div className="w-48 h-3 bg-slate-100 rounded-md"></div>
+            </div>
+          </div>
+          <div className="h-56 bg-slate-50 rounded-xl flex items-center justify-center">
+            <div className="w-3/4 h-32 bg-slate-100/60 rounded-lg"></div>
+          </div>
+        </div>
+        <div className="h-[380px] bg-white border border-slate-200/90 rounded-2xl p-5 flex flex-col justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-slate-100"></div>
+            <div className="space-y-1">
+              <div className="w-32 h-4 bg-slate-200 rounded-md"></div>
+              <div className="w-24 h-3 bg-slate-100 rounded-md"></div>
+            </div>
+          </div>
+          <div className="space-y-2 mt-4 flex-1">
+            {[1, 2, 3].map(j => (
+              <div key={j} className="h-14 bg-slate-50 rounded-xl border border-slate-100"></div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );

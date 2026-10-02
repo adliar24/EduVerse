@@ -9,7 +9,7 @@
 declare const __APP_BUILD_ID__: string;
 
 const RUNNING_BUILD_ID = typeof __APP_BUILD_ID__ !== 'undefined' ? __APP_BUILD_ID__ : '';
-const CHECK_INTERVAL_MS = 2 * 60 * 1000; // Check every 2 minutes in background
+const CHECK_INTERVAL_MS = 60 * 1000; // Check every 1 minute in background
 const MIN_RELOAD_INTERVAL_MS = 15 * 1000; // 15 seconds debounce to prevent reload loop
 
 // Clean up browser CacheStorage while preserving heavy AI models
@@ -106,10 +106,12 @@ export async function checkForAppUpdate(): Promise<boolean> {
       }
     }
 
-    // 3. Reload application cleanly with cache busting query
-    const currentUrl = new URL(window.location.href);
-    currentUrl.searchParams.set('_v', String(now));
-    window.location.replace(currentUrl.toString());
+    // 3. Short pause to let the new Service Worker activate and take control, then reload
+    setTimeout(() => {
+      const currentUrl = new URL(window.location.href);
+      currentUrl.searchParams.set('_v', String(now));
+      window.location.replace(currentUrl.toString());
+    }, 500);
     return true;
   } catch (error) {
     console.warn('[EduVerse Version] Failed to check for app update:', error);
@@ -144,7 +146,15 @@ export function initVersionManager(): void {
     }
   });
 
-  // Periodic interval check
+  window.addEventListener('focus', () => {
+    checkForAppUpdate();
+  });
+
+  window.addEventListener('online', () => {
+    checkForAppUpdate();
+  });
+
+  // Periodic interval check (every 1 minute)
   setInterval(() => {
     checkForAppUpdate();
   }, CHECK_INTERVAL_MS);

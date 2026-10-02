@@ -110,14 +110,43 @@ import { registerSW } from 'virtual:pwa-register';
 
 // Register Service Worker for PWA offline support and direct Chrome installability
 if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
-  registerSW({
+  let isRefreshing = false;
+
+  // 1. Listen for new Service Worker activation (reloads the page cleanly with new code)
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (isRefreshing) return;
+    if (isUserInExam()) {
+      console.warn('[EduVerse SW] User in exam, deferring reload');
+      return;
+    }
+    isRefreshing = true;
+    console.log('[EduVerse SW] New service worker active, reloading for instant update...');
+    window.location.reload();
+  });
+
+  // 2. Register SW and activate immediately on update
+  const updateSW = registerSW({
     immediate: true,
     onNeedRefresh() {
-      console.log('[PWA] New content available');
+      console.log('[PWA] New version detected by SW, activating immediately...');
+      if (!isUserInExam()) {
+        updateSW(true);
+      }
     },
     onOfflineReady() {
       console.log('[PWA] App ready for offline work');
     },
+  });
+
+  // 3. Smart check whenever user switches back to this tab or reconnects
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      updateSW();
+    }
+  });
+
+  window.addEventListener('online', () => {
+    updateSW();
   });
 }
 
