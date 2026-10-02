@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { deleteFileFromR2 } from '../lib/r2';
-import { deleteFileFromAppwrite } from '../lib/appwrite';
 import { 
   BookOpen, 
   FileText, 
@@ -813,16 +812,12 @@ export default function KelolaMateriTugas({ defaultTab = 'materials', fixedTab =
             }
           }
 
-          // 3. Clean up any associated submission files from Cloudflare R2 & legacy Appwrite
+          // 3. Clean up any associated submission files from Cloudflare R2
           if (activeTab === 'assignments') {
             const subsToDelete = allSubmissions.filter(s => dbIdsToDelete.includes(s.assignment_id));
             subsToDelete.forEach(s => {
-              if (s.file_url) {
-                if (s.file_url.includes('r2.dev')) {
-                  deleteFileFromR2(s.file_url).catch(() => {});
-                } else if (s.file_url.includes('appwrite')) {
-                  deleteFileFromAppwrite(s.file_url).catch(() => {});
-                }
+              if (s.file_url && s.file_url.includes('r2.dev')) {
+                deleteFileFromR2(s.file_url).catch(() => {});
               }
             });
           }

@@ -1,6 +1,5 @@
 import { supabase, supabaseAnon } from '../lib/supabase';
 import { isR2Configured, uploadFileToR2 } from '../lib/r2';
-import { isAppwriteConfigured, uploadFileToAppwrite } from '../lib/appwrite';
 
 export interface CompressionResult {
   file: File;
@@ -22,8 +21,8 @@ export function formatFileSize(bytes: number): string {
 }
 
 /**
- * Resolves media URL with high-speed CDN proxy for external storages (like Appwrite)
- * to bypass browser origin restrictions (HTTP 403 Invalid Origin).
+ * Resolves media URL with high-speed CDN proxy for external storages
+ * to bypass browser origin restrictions if needed.
  */
 export function getOptimizedMediaUrl(url?: string | null, fileType?: string | null, fileName?: string | null): string {
   if (!url) return '';
@@ -34,8 +33,8 @@ export function getOptimizedMediaUrl(url?: string | null, fileType?: string | nu
     url.match(/\.(jpeg|jpg|png|webp|gif)/i) || 
     fileName?.match(/\.(jpeg|jpg|png|webp|gif)/i);
 
-  // If Appwrite Storage URL and is an image, proxy via weserv CDN to guarantee 100% display
-  if (isImg && (url.includes('appwrite.io') || url.includes('/storage/buckets/'))) {
+  // If external storage URL requires CORS proxy, apply weserv
+  if (isImg && url.includes('/storage/buckets/')) {
     return `https://images.weserv.nl/?url=${encodeURIComponent(url)}&default=${encodeURIComponent(url)}`;
   }
 
@@ -199,21 +198,7 @@ export async function uploadSubmissionFile(
         return r2Res.url;
       }
     } catch (r2Err: any) {
-      console.warn('Cloudflare R2 upload attempt failed, continuing to Appwrite/Supabase fallback:', r2Err?.message || r2Err);
-    }
-  }
-
-  // Tier 2: Try Appwrite Storage Bucket fallback if configured
-  if (isAppwriteConfigured()) {
-    try {
-      console.log('Uploading student assignment file to Appwrite Storage...');
-      const appwriteRes = await uploadFileToAppwrite(file);
-      if (appwriteRes.url) {
-        console.log('Successfully uploaded file to Appwrite Storage:', appwriteRes.url);
-        return appwriteRes.url;
-      }
-    } catch (appwriteErr: any) {
-      console.warn('Appwrite upload attempt failed, continuing to Supabase/DataURL fallback:', appwriteErr?.message || appwriteErr);
+      console.warn('Cloudflare R2 upload attempt failed, continuing to Supabase/DataURL fallback:', r2Err?.message || r2Err);
     }
   }
 
