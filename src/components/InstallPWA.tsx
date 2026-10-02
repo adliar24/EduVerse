@@ -36,15 +36,21 @@ export function usePWA() {
     const iosDevice = /iphone|ipad|ipod/.test(userAgent);
     setIsIOS(iosDevice);
 
-    // 3. Catch Chrome/Edge beforeinstallprompt event
+    // 3. Check early captured beforeinstallprompt or attach listener
+    if ((window as any).deferredPWAInstallPrompt) {
+      setDeferredPrompt((window as any).deferredPWAInstallPrompt);
+    }
+
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
+      (window as any).deferredPWAInstallPrompt = e;
       setDeferredPrompt(e);
     };
 
     const handleAppInstalled = () => {
       setIsInstalled(true);
       setDeferredPrompt(null);
+      (window as any).deferredPWAInstallPrompt = null;
       localStorage.setItem('pwa_is_installed', 'true');
     };
 
@@ -63,19 +69,22 @@ export function usePWA() {
       return;
     }
 
-    if (!deferredPrompt) {
-      // Fallback instruction if browser doesn't support direct trigger
-      alert('Untuk memasang EduVerse di Chrome/Edge: Klik menu browser (titik tiga ⋮) lalu pilih "Instal EduVerse" atau "Tambahkan ke Layar Utama".');
+    const promptToUse = deferredPrompt || (window as any).deferredPWAInstallPrompt;
+
+    if (!promptToUse) {
+      // Fallback instruction if browser hasn't fired beforeinstallprompt yet
+      alert('Untuk memasang EduVerse di Chrome/Edge: Klik menu browser (titik tiga ⋮ di pojok kanan atas browser) lalu pilih "Instal EduVerse" atau "Tambahkan ke Layar Utama".');
       return;
     }
 
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
+    promptToUse.prompt();
+    const { outcome } = await promptToUse.userChoice;
     if (outcome === 'accepted') {
       setIsInstalled(true);
       localStorage.setItem('pwa_is_installed', 'true');
     }
     setDeferredPrompt(null);
+    (window as any).deferredPWAInstallPrompt = null;
   };
 
   return {

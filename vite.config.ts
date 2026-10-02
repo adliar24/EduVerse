@@ -33,7 +33,7 @@ export default defineConfig(({mode}) => {
       VitePWA({
         registerType: 'autoUpdate',
         devOptions: {
-          enabled: false
+          enabled: true
         },
         workbox: {
           skipWaiting: true,
@@ -72,16 +72,29 @@ export default defineConfig(({mode}) => {
           name: 'EduVerse - Digitalisasi Pendidikan',
           short_name: 'EduVerse',
           description: 'Platform pendidikan all-in-one: Ujian online, Absensi digital, dan Penilaian terintegrasi untuk guru dan siswa.',
-          theme_color: '#1e1b4b',
+          theme_color: '#3B66F5',
           background_color: '#ffffff',
           display: 'standalone',
           orientation: 'portrait',
+          start_url: '/',
           icons: [
             {
-              src: '/logo.svg',
-              sizes: '192x192 512x512',
-              type: 'image/svg+xml',
+              src: '/pwa-192x192.png',
+              sizes: '192x192',
+              type: 'image/png',
+              purpose: 'any'
+            },
+            {
+              src: '/pwa-512x512.png',
+              sizes: '512x512',
+              type: 'image/png',
               purpose: 'any maskable'
+            },
+            {
+              src: '/logo.svg',
+              sizes: '512x512',
+              type: 'image/svg+xml',
+              purpose: 'any'
             }
           ]
         }
