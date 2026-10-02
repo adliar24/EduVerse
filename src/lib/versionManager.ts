@@ -19,8 +19,8 @@ export async function clearStaleCaches(): Promise<void> {
     const cacheKeys = await window.caches.keys();
     await Promise.all(
       cacheKeys.map(key => {
-        // Preserve face-api-models so users don't have to re-download heavy model weights
-        if (!key.includes('face-api-models')) {
+        // Preserve face-api-models and active workbox-precache so offline PWA is not broken
+        if (!key.includes('face-api-models') && !key.includes('workbox-precache')) {
           return window.caches.delete(key);
         }
         return Promise.resolve(true);
