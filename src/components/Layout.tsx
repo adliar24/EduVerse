@@ -34,7 +34,7 @@ import { useAlert } from '../context/AlertContext';
 import { useSchool } from '../context/SchoolContext';
 import { useTheme } from '../context/ThemeContext';
 import FluidCanvas from './FluidCanvas';
-import { InstallPWA } from './InstallPWA';
+import { InstallPWA, InstallPWAButton } from './InstallPWA';
 
 const prefetchMap: Record<string, () => Promise<any>> = {
   '/dashboard': () => import('../pages/Dashboard'),
@@ -459,7 +459,8 @@ export default function Layout({ session }: LayoutProps) {
             })}
           </nav>
 
-          <div className="px-4 mb-6 pb-2 relative z-10">
+          <div className="px-4 mb-6 pb-2 relative z-10 space-y-2">
+            <InstallPWAButton variant="sidebar" />
             <button
               onClick={() => showAlert({
                 title: 'Yakin Ingin Keluar?', message: 'Anda harus login kembali untuk mengakses data ujian.',
@@ -616,7 +617,8 @@ export default function Layout({ session }: LayoutProps) {
                   );
                 })}
               </nav>
-              <div className="px-4 mb-6 pb-2 mt-auto">
+              <div className="px-4 mb-6 pb-2 mt-auto space-y-2">
+                <InstallPWAButton variant="sidebar" />
                 <button
                   onClick={() => showAlert({
                     title: 'Yakin Ingin Keluar?', message: 'Anda harus login kembali untuk mengakses data ujian.',
@@ -724,6 +726,9 @@ export default function Layout({ session }: LayoutProps) {
                   </span>
                 </div>
               )}
+
+              {/* Permanent Install App Button (auto-hides when running inside installed app) */}
+              <InstallPWAButton variant="header" />
 
               <div className="h-6 w-px bg-slate-200 hidden sm:block"></div>
 
