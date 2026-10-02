@@ -862,7 +862,7 @@ export default function SubmissionReviewView({
                               <span>Perbesar Foto</span>
                             </button>
                             <a
-                              href={selectedSubmission.file_url}
+                              href={getOptimizedMediaUrl(selectedSubmission.file_url)}
                               target="_blank"
                               rel="noreferrer"
                               className="p-2 rounded-xl bg-black/70 hover:bg-black text-white backdrop-blur-xs shadow-md"

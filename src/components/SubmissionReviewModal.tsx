@@ -819,7 +819,7 @@ export default function SubmissionReviewModal({
                                   {selectedSubmission.file_name || 'Foto Observasi'}
                                 </span>
                                 <a
-                                  href={ensureHttpUrl(selectedSubmission.file_url)}
+                                  href={getOptimizedMediaUrl(selectedSubmission.file_url, selectedSubmission.file_type, selectedSubmission.file_name)}
                                   target="_blank"
                                   rel="noreferrer"
                                   className="text-blue-300 hover:text-white font-bold flex items-center gap-1 shrink-0"
@@ -915,7 +915,7 @@ export default function SubmissionReviewModal({
                                             <div className="p-2 bg-slate-900 text-white text-xs flex items-center justify-between">
                                               <span className="truncate text-slate-300">{blockAns?.fileName || 'Foto Murid'}</span>
                                               <a
-                                                href={fileUrlAns}
+                                                href={getOptimizedMediaUrl(fileUrlAns)}
                                                 target="_blank"
                                                 rel="noreferrer"
                                                 className="text-blue-300 hover:text-white font-bold flex items-center gap-1"

@@ -358,16 +358,16 @@ export default function StudentDashboard() {
 
   if (loading) return (
     <div className="animate-pulse space-y-5 pb-10">
-      {/* Student Banner Skeleton */}
-      <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 p-6 sm:p-8 rounded-[2.25rem] border border-white/10 shadow-xl flex items-center justify-between gap-5 min-h-[120px] sm:min-h-[140px]">
+      {/* Student Banner Skeleton - Natural fluid responsive */}
+      <div className="bg-slate-100/90 border border-slate-200/80 p-6 sm:p-8 rounded-[2.25rem] flex items-center justify-between gap-5">
         <div className="flex items-center gap-4 flex-1">
-          <div className="w-14 h-14 rounded-2xl bg-white/15 shrink-0"></div>
+          <div className="w-14 h-14 rounded-2xl bg-slate-200 shrink-0"></div>
           <div className="space-y-2 flex-1">
-            <div className="w-48 sm:w-64 h-7 bg-white/20 rounded-xl"></div>
-            <div className="w-64 sm:w-96 h-4 bg-white/10 rounded-lg"></div>
+            <div className="w-48 sm:w-64 h-7 bg-slate-300 rounded-xl"></div>
+            <div className="w-4/5 max-w-sm h-4 bg-slate-200 rounded-lg"></div>
           </div>
         </div>
-        <div className="hidden sm:block w-28 h-10 bg-white/10 rounded-full"></div>
+        <div className="hidden sm:block w-24 h-9 bg-slate-200 rounded-full"></div>
       </div>
 
       {/* Verse Pet Widget Skeleton */}
@@ -385,22 +385,17 @@ export default function StudentDashboard() {
         <div className="w-32 h-9 bg-slate-100 rounded-xl"></div>
       </div>
 
-      {/* 4 Stat Cards Skeleton - 2 Columns */}
+      {/* 4 Stat Cards Skeleton - 2 Columns Neutral */}
       <div className="grid grid-cols-2 gap-2.5 sm:gap-3.5">
-        {[
-          { bg: 'bg-emerald-700/80', iconBg: 'bg-emerald-600/60' },
-          { bg: 'bg-amber-600/80', iconBg: 'bg-amber-500/60' },
-          { bg: 'bg-blue-800/80', iconBg: 'bg-blue-700/60' },
-          { bg: 'bg-violet-800/80', iconBg: 'bg-violet-700/60' },
-        ].map((item, i) => (
-          <div key={i} className={`p-3 sm:p-4 rounded-2xl ${item.bg} border border-white/10 shadow-sm flex flex-col justify-between h-[86px] sm:h-[96px]`}>
+        {[1, 2, 3, 4].map(i => (
+          <div key={i} className="p-3 sm:p-4 rounded-2xl bg-white border border-slate-200/80 shadow-xs flex flex-col justify-between">
             <div className="flex items-center justify-between">
-              <div className="w-20 h-3 bg-white/40 rounded-md"></div>
-              <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-xl ${item.iconBg}`}></div>
+              <div className="w-20 h-3 bg-slate-200 rounded-md"></div>
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-slate-100"></div>
             </div>
             <div className="flex items-baseline justify-between mt-2">
-              <div className="w-14 sm:w-18 h-6 bg-white/40 rounded-md"></div>
-              <div className="w-16 h-3 bg-white/20 rounded-md"></div>
+              <div className="w-14 sm:w-18 h-6 bg-slate-300 rounded-md"></div>
+              <div className="w-16 h-3 bg-slate-100 rounded-md"></div>
             </div>
           </div>
         ))}

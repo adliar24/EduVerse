@@ -30,11 +30,12 @@ export function getOptimizedMediaUrl(url?: string | null, fileType?: string | nu
 
   const isImg = 
     fileType?.startsWith('image/') || 
-    url.match(/\.(jpeg|jpg|png|webp|gif)/i) || 
-    fileName?.match(/\.(jpeg|jpg|png|webp|gif)/i);
+    url.match(/\.(jpeg|jpg|png|webp|gif|bmp)/i) || 
+    fileName?.match(/\.(jpeg|jpg|png|webp|gif|bmp)/i) ||
+    url.includes('/submissions/');
 
-  // If external storage URL requires CORS proxy, apply weserv
-  if (isImg && url.includes('/storage/buckets/')) {
+  // If external storage URL requires CORS/CDN proxy (Appwrite storage or Cloudflare *.r2.dev domains blocked by Indonesian ISPs Internet Baik/Positif)
+  if (isImg && (url.includes('/storage/buckets/') || url.includes('.r2.dev'))) {
     return `https://images.weserv.nl/?url=${encodeURIComponent(url)}&default=${encodeURIComponent(url)}`;
   }
 
