@@ -379,6 +379,9 @@ export default function App() {
     // Register global sync listeners (visibilitychange, online)
     registerSyncListeners();
 
+    // Lock browser storage persistence (prevents browser from clearing IndexedDB)
+    import('./services/storagePersistence').then(m => m.enablePersistentStorage()).catch(() => {});
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setIsInitialSyncComplete(true);

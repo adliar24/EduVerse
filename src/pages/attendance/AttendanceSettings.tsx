@@ -2,7 +2,9 @@ import React, { Suspense, useState, useEffect, lazy } from 'react';
 import { AppState, TeacherProfile } from '../types';
 import { Button, Card, Modal } from '../../components/UI';
 import { saveTeacherProfile } from '../../services/dbAttendance';
-import { ScanFace, FileText, ShieldCheck, Clock, Bell, Save } from 'lucide-react';
+import { ScanFace, FileText, ShieldCheck, Clock, Bell, Save, HardDrive, Download, Upload, CheckCircle2 } from 'lucide-react';
+import { exportEmergencyBackup, restoreEmergencyBackup } from '../../services/offlineVault';
+import { getStorageEstimate, StorageEstimate } from '../../services/storagePersistence';
 import { Header } from '../Layout';
 
 const FaceBulkEnrollment = lazy(() => import('./FaceBulkEnrollment'));
@@ -24,6 +26,53 @@ export const AttendanceSettings: React.FC<Props> = ({ state, refresh, notify }) 
   const [lateBuffer, setLateBuffer] = useState<string | number>(15);
   const [notifEnabled, setNotifEnabled] = useState(false);
   const [notifBuffer, setNotifBuffer] = useState<string | number>(5);
+
+  // Storage and Vault states
+  const [storageEstimate, setStorageEstimate] = useState<StorageEstimate | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
+  const [isRestoring, setIsRestoring] = useState(false);
+
+  useEffect(() => {
+    getStorageEstimate().then(setStorageEstimate).catch(() => {});
+  }, []);
+
+  const handleExport = async () => {
+    setIsExporting(true);
+    try {
+      const res = await exportEmergencyBackup();
+      notify(`Cadangan berhasil diunduh (${res.filename})`, 'success');
+    } catch (err: any) {
+      notify('Gagal mengunduh berkas cadangan: ' + (err.message || err), 'error');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!window.confirm('Pulihkan data dari berkas cadangan ini? Data lokal akan diperbarui.')) {
+      e.target.value = '';
+      return;
+    }
+
+    setIsRestoring(true);
+    try {
+      const res = await restoreEmergencyBackup(file);
+      if (res.success) {
+        notify(res.message, 'success');
+        refresh();
+      } else {
+        notify(res.message, 'error');
+      }
+    } catch (err: any) {
+      notify('Gagal memulihkan cadangan: ' + (err.message || err), 'error');
+    } finally {
+      setIsRestoring(false);
+      e.target.value = '';
+    }
+  };
 
   useEffect(() => {
     if (state.teacher) {
@@ -256,6 +305,51 @@ export const AttendanceSettings: React.FC<Props> = ({ state, refresh, notify }) 
             <ScanFace className="w-4 h-4" />
             Pendaftaran Wajah Massal (Bulk Enrollment)
           </Button>
+        </Card>
+
+        {/* Emergency Vault & Offline Durability Card */}
+        <Card className="p-6 bg-white border border-slate-200/80 rounded-2xl shadow-sm space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-blue-50 text-[#3B66F5]">
+                <HardDrive className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="font-bold text-slate-800 text-sm">Brankas Cadangan Mandiri</h3>
+                <p className="text-slate-400 text-xs mt-0.5">Simpan dan pulihkan seluruh data kelas, siswa, presensi, & nilai secara lokal.</p>
+              </div>
+            </div>
+            {storageEstimate?.persisted && (
+              <span className="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/60">
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                Penyimpanan Permanen
+              </span>
+            )}
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-3 pt-2">
+            <button
+              type="button"
+              onClick={handleExport}
+              disabled={isExporting}
+              className="flex-1 bg-[#3B66F5] hover:bg-blue-600 text-white text-xs font-semibold py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 shadow-sm transition-colors disabled:opacity-50"
+            >
+              <Download className="w-4 h-4" />
+              <span>{isExporting ? 'Membuat Cadangan...' : 'Unduh Cadangan Lengkap (.json)'}</span>
+            </button>
+
+            <label className="flex-1 border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 cursor-pointer transition-colors">
+              <Upload className="w-4 h-4 text-slate-500" />
+              <span>{isRestoring ? 'Memulihkan...' : 'Pulihkan Data'}</span>
+              <input
+                type="file"
+                accept=".json"
+                onChange={handleImport}
+                disabled={isRestoring}
+                className="hidden"
+              />
+            </label>
+          </div>
         </Card>
 
         {/* Privacy Policy and Terms Links */}
