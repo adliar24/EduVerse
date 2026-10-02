@@ -19,6 +19,7 @@ import { AlertProvider } from './context/AlertContext';
 import { SchoolProvider } from './context/SchoolContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { Loader2 } from 'lucide-react';
+import OfflineIndicator from './components/OfflineIndicator';
 
 // Eagerly loaded for student exam (prevents blank screen on navigation)
 import StudentExam from './pages/student/Exam';
@@ -512,6 +513,7 @@ export default function App() {
           <SchoolProvider>
             <Router>
               <ScrollToTop />
+              <OfflineIndicator />
               <ErrorBoundary>
                 <Suspense fallback={
                   <div className="flex items-center justify-center min-h-screen bg-slate-50">
