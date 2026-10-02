@@ -71,7 +71,7 @@ export default defineConfig(({mode}) => {
           name: 'EduVerse - Digitalisasi Pendidikan',
           short_name: 'EduVerse',
           description: 'Platform pendidikan all-in-one: Ujian online, Absensi digital, dan Penilaian terintegrasi untuk guru dan siswa.',
-          theme_color: '#3B66F5',
+          theme_color: '#1e1b4b',
           background_color: '#ffffff',
           display: 'standalone',
           orientation: 'portrait',

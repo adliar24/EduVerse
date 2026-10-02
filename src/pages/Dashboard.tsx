@@ -347,10 +347,9 @@ export default function Dashboard() {
       icon: FileText, 
       color: 'indigo',
       iconBg: 'bg-indigo-50 text-indigo-600 border border-indigo-100/80',
-      badgeClass: 'bg-indigo-50 text-indigo-700 border-indigo-200/80',
       borderHover: 'hover:border-indigo-400 hover:shadow-indigo-500/10',
       accentBg: 'from-indigo-500/5 to-transparent',
-      desc: `${stats.totalQuestions} Soal aktif`
+      desc: `${stats.totalQuestions} Butir soal`
     },
     { 
       label: 'Jumlah Kelas', 
@@ -358,7 +357,6 @@ export default function Dashboard() {
       icon: BookOpen, 
       color: 'blue',
       iconBg: 'bg-blue-50 text-blue-600 border border-blue-100/80',
-      badgeClass: 'bg-blue-50 text-blue-700 border-blue-200/80',
       borderHover: 'hover:border-blue-400 hover:shadow-blue-500/10',
       accentBg: 'from-blue-500/5 to-transparent',
       desc: 'Kelas terdaftar'
@@ -369,10 +367,9 @@ export default function Dashboard() {
       icon: Users, 
       color: 'sky',
       iconBg: 'bg-sky-50 text-sky-600 border border-sky-100/80',
-      badgeClass: 'bg-sky-50 text-sky-700 border-sky-200/80',
       borderHover: 'hover:border-sky-400 hover:shadow-sky-500/10',
       accentBg: 'from-sky-500/5 to-transparent',
-      desc: 'Siswa aktif'
+      desc: 'Siswa terdaftar'
     },
     { 
       label: 'Presensi', 
@@ -380,7 +377,6 @@ export default function Dashboard() {
       icon: CheckCircle, 
       color: 'emerald',
       iconBg: 'bg-emerald-50 text-emerald-600 border border-emerald-100/80',
-      badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200/80',
       borderHover: 'hover:border-emerald-400 hover:shadow-emerald-500/10',
       accentBg: 'from-emerald-500/5 to-transparent',
       desc: 'Rata-rata hadir'
@@ -391,7 +387,6 @@ export default function Dashboard() {
       icon: TrendingUp, 
       color: 'violet',
       iconBg: 'bg-violet-50 text-violet-600 border border-violet-100/80',
-      badgeClass: 'bg-violet-50 text-violet-700 border-violet-200/80',
       borderHover: 'hover:border-violet-400 hover:shadow-violet-500/10',
       accentBg: 'from-violet-500/5 to-transparent',
       desc: 'Formatif & sumatif'
@@ -402,7 +397,6 @@ export default function Dashboard() {
       icon: Activity, 
       color: 'amber',
       iconBg: 'bg-amber-50 text-amber-600 border border-amber-100/80',
-      badgeClass: 'bg-amber-50 text-amber-700 border-amber-200/80',
       borderHover: 'hover:border-amber-400 hover:shadow-amber-500/10',
       accentBg: 'from-amber-500/5 to-transparent',
       desc: 'Evaluasi digital'
@@ -510,12 +504,9 @@ export default function Dashboard() {
             className={`rounded-2xl p-4 bg-white border border-slate-200/90 shadow-sm hover:shadow-md ${stat.borderHover} transition-all flex flex-col justify-between group relative overflow-hidden`}
           >
             <div className={`absolute top-0 right-0 w-24 h-24 bg-gradient-to-br ${stat.accentBg} rounded-bl-full pointer-events-none`}></div>
-            <div className="flex items-center justify-between mb-3 relative z-10">
+            <div className="flex items-center mb-3 relative z-10">
               <div className={`p-2 rounded-xl transition-transform group-hover:scale-105 ${stat.iconBg}`}>
                 <stat.icon className="w-4 h-4" />
-              </div>
-              <div className={`px-2 py-0.5 rounded text-[9px] font-bold border uppercase tracking-wider ${stat.badgeClass}`}>
-                Aktif
               </div>
             </div>
             <div className="relative z-10">
