@@ -59,38 +59,69 @@ export default function StudentDashboard() {
       }
       const studentObj = JSON.parse(studentSessionStr);
 
-      const { data: studentDb, error: studentDbErr } = await supabase
-        .from('students')
-        .select('id, name, student_code, class_id, classes!students_class_id_fkey(name)')
-        .eq('id', studentObj.id)
-        .maybeSingle();
+      let studentDb = null;
+      if (typeof navigator === 'undefined' || navigator.onLine) {
+        try {
+          const timeoutPromise = new Promise<{ data: any; error: any }>((resolve) => 
+            setTimeout(() => resolve({ data: null, error: new Error('Timeout') }), 2500)
+          );
+          const dbPromise = supabase
+            .from('students')
+            .select('id, name, student_code, class_id, classes!students_class_id_fkey(name)')
+            .eq('id', studentObj.id)
+            .maybeSingle();
 
-      if (studentDbErr || !studentDb) {
+          const res = await Promise.race([dbPromise, timeoutPromise]);
+          studentDb = res.data;
+        } catch (e) {
+          console.warn('[StudentDashboard] Fetch profile failed, using local session:', e);
+        }
+      }
+
+      const activeStudent = studentDb || studentObj;
+      if (!activeStudent?.id) {
         setLoading(false);
         setRefreshing(false);
         return;
       }
 
-      const className = studentDb.classes 
+      const className = studentDb?.classes 
         ? (Array.isArray(studentDb.classes) ? studentDb.classes[0]?.name : (studentDb.classes as any).name)
-        : '';
+        : (studentObj.className || studentObj.class_name || '');
 
-      const classId = studentDb.class_id;
-      const formattedName = capitalizeEachWord(studentDb.name);
+      const classId = activeStudent.class_id;
+      const formattedName = capitalizeEachWord(activeStudent.name || '');
 
       // Synchronize latest student profile back to local session
       localStorage.setItem('student_session', JSON.stringify({
         ...studentObj,
         name: formattedName,
-        class_id: studentDb.class_id
+        class_id: classId,
+        className: className
       }));
 
       setStudentProfile({
-        id: studentDb.id,
+        id: activeStudent.id,
         name: formattedName,
-        class_id: studentDb.class_id,
+        class_id: classId,
         className: className
       });
+
+      // If offline, check local cached dashboard data
+      if (typeof navigator !== 'undefined' && !navigator.onLine) {
+        const cachedDashboard = localStorage.getItem(`student_dashboard_${activeStudent.id}`);
+        if (cachedDashboard) {
+          try {
+            const parsed = JSON.parse(cachedDashboard);
+            setActiveExamSessions(parsed.activeExamSessions || []);
+            setRecentResults(parsed.recentResults || []);
+            setStats(parsed.stats || { examsTaken: 0, avgScore: 0, ongoingExams: 0 });
+          } catch (_) {}
+        }
+        setLoading(false);
+        setRefreshing(false);
+        return;
+      }
 
       const [resultsRes, materialsRes, assignmentsRes, activeSessionsRes, submissionsRes] = await Promise.all([
         supabase
@@ -186,6 +217,19 @@ export default function StudentDashboard() {
         ongoingExams: availableSessions.length
       });
       setRecentResults(results || []);
+
+      // Cache for offline access
+      try {
+        localStorage.setItem(`student_dashboard_${activeStudent.id}`, JSON.stringify({
+          activeExamSessions: availableSessions,
+          recentResults: results || [],
+          stats: {
+            examsTaken: totalTaken,
+            avgScore: Math.round(avgScore),
+            ongoingExams: availableSessions.length
+          }
+        }));
+      } catch (_) {}
 
       // Fetch student verse and lifetime points
       try {

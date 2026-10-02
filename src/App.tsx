@@ -94,8 +94,9 @@ const AttendancePageWrapper = ({ Component }: { Component: React.ComponentType<a
     // 1. Load local state instantly
     loadState();
 
-    // 2. Fetch updates from cloud in background
+    // 2. Fetch updates from cloud in background (skip if offline)
     const autoPull = async () => {
+      if (typeof navigator !== 'undefined' && !navigator.onLine) return;
       try {
         const { syncService } = await import('./services/sync');
         if (syncService.isConfigured()) {
@@ -168,8 +169,9 @@ const GradingPageWrapper = ({ Component }: { Component: React.ComponentType<any>
     // 1. Load local profile instantly
     refreshProfile().then(() => setLoading(false));
 
-    // 2. Pull updates from cloud in background
+    // 2. Pull updates from cloud in background (skip if offline)
     const autoPullGrading = async () => {
+      if (typeof navigator !== 'undefined' && !navigator.onLine) return;
       try {
         await dbGrading.syncCloudToLocal();
         await refreshProfile();
@@ -320,6 +322,13 @@ export default function App() {
 
   const syncInProgressRef = useRef(false);
   const triggerInitialSync = async () => {
+    // If device is offline, skip cloud sync entirely
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      console.log('[App] Device is offline, skipping cloud sync.');
+      setIsInitialSyncComplete(true);
+      return;
+    }
+
     if (syncInProgressRef.current) return;
     syncInProgressRef.current = true;
     try {
@@ -392,6 +401,10 @@ export default function App() {
       } else {
         setLoading(false);
       }
+    }).catch(err => {
+      console.warn('[App] getSession error (offline):', err);
+      setLoading(false);
+      setIsInitialSyncComplete(true);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -424,27 +437,43 @@ export default function App() {
         setProfileCompleted(true);
         setLoading(false);
       }
+
+      // If device is offline, rely on cached status or assume completed
+      if (typeof navigator !== 'undefined' && !navigator.onLine) {
+        const cachedProfile = localStorage.getItem(`profile_completed_${userId}`);
+        setProfileCompleted(cachedProfile !== null ? cachedProfile === 'true' : true);
+        setLoading(false);
+        return;
+      }
       
-      // Then check database to confirm
-      const { data, error } = await supabase
+      // Then check database to confirm with short 2.5s timeout race
+      const timeoutPromise = new Promise<{ data: any; error: any }>((resolve) => 
+        setTimeout(() => resolve({ data: null, error: new Error('Timeout') }), 2500)
+      );
+
+      const dbPromise = supabase
         .from('profiles')
         .select('is_profile_completed')
         .eq('id', userId)
         .maybeSingle();
+
+      const { data, error } = await Promise.race([dbPromise, timeoutPromise]);
       
-      // If error or no data, use metadata
+      // If error or no data, use metadata or cached status
       if (error || !data) {
-        setProfileCompleted(metadataCompleted);
+        const cachedProfile = localStorage.getItem(`profile_completed_${userId}`);
+        setProfileCompleted(metadataCompleted || cachedProfile === 'true');
         setLoading(false);
         return;
       }
       
       const dbCompleted = data?.is_profile_completed === true;
+      localStorage.setItem(`profile_completed_${userId}`, String(dbCompleted));
       setProfileCompleted(dbCompleted || metadataCompleted);
     } catch (err) {
-      console.error('Error checking profile:', err);
-      // Default to false (show setup) on error
-      setProfileCompleted(false);
+      console.warn('Error checking profile (using offline fallback):', err);
+      const cachedProfile = localStorage.getItem(`profile_completed_${userId}`);
+      setProfileCompleted(cachedProfile !== null ? cachedProfile === 'true' : true);
     } finally {
       setLoading(false);
     }
@@ -452,7 +481,8 @@ export default function App() {
 
   const userRole = session ? (session.user?.user_metadata?.role || 'guru') : (studentSession ? 'siswa' : null);
 
-  const isAppReady = !loading && (session ? (profileCompleted !== null && isInitialSyncComplete) : true);
+  const isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
+  const isAppReady = !loading && (session ? (profileCompleted !== null && (isInitialSyncComplete || !isOnline)) : true);
 
   if (!isAppReady && !studentSession) {
     return <ModernLoader />;
