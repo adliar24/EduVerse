@@ -23,11 +23,13 @@ import {
   Sparkles,
   MapPin,
   Compass,
-  ArrowLeft
+  ArrowLeft,
+  Trash2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Assignment, AssignmentSubmission, Student, ClassEntity } from '../types';
 import { supabase } from '../lib/supabase';
+import { deleteFileFromR2 } from '../lib/r2';
 import { formatFileSize, getOptimizedMediaUrl } from '../utils/fileCompressor';
 import { 
   parseLkpdResponse, 
@@ -73,6 +75,10 @@ export default function SubmissionReviewModal({
   const [savingGrade, setSavingGrade] = useState(false);
   const [gradeSuccessMsg, setGradeSuccessMsg] = useState<string | null>(null);
   const [gradeErrorMsg, setGradeErrorMsg] = useState<string | null>(null);
+
+  // Submission deletion state
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [deletingSubmission, setDeletingSubmission] = useState(false);
 
   // Full image preview
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
@@ -483,6 +489,106 @@ export default function SubmissionReviewModal({
     }
   };
 
+  // Handle delete submission
+  const handleDeleteSubmission = async () => {
+    if (!selectedSubmission) return;
+
+    try {
+      setDeletingSubmission(true);
+
+      // 1. Collect all file URLs to delete
+      const fileUrlsToDelete: string[] = [];
+      if (selectedSubmission.file_url) {
+        fileUrlsToDelete.push(selectedSubmission.file_url);
+      }
+
+      if (selectedSubmission.text_response) {
+        const lkpdData = parseLkpdResponse(selectedSubmission.text_response);
+        if (lkpdData?.blockAnswers) {
+          Object.values(lkpdData.blockAnswers).forEach((ans: any) => {
+            if (ans?.fileUrl && !fileUrlsToDelete.includes(ans.fileUrl)) {
+              fileUrlsToDelete.push(ans.fileUrl);
+            }
+          });
+        }
+      }
+
+      // 2. Delete files from R2 and Supabase storage
+      for (const url of fileUrlsToDelete) {
+        try {
+          if (url.includes('r2.dev') || url.includes('.r2.cloudflarestorage.com')) {
+            await deleteFileFromR2(url);
+          } else if (url.includes('assignment-submissions')) {
+            const parts = url.split('assignment-submissions/');
+            if (parts[1]) {
+              const filePath = decodeURIComponent(parts[1].split('?')[0]);
+              await supabase.storage.from('assignment-submissions').remove([filePath]);
+            }
+          }
+        } catch (storageErr) {
+          console.warn('Gagal menghapus berkas lampiran:', storageErr);
+        }
+      }
+
+      // 3. Delete from Supabase Database
+      if (selectedSubmission.id) {
+        const { error } = await supabase
+          .from('assignment_submissions')
+          .delete()
+          .eq('id', selectedSubmission.id);
+        if (error) console.warn('Supabase delete by id error:', error);
+      }
+
+      if (selectedSubmission.assignment_id && selectedSubmission.student_id) {
+        await supabase
+          .from('assignment_submissions')
+          .delete()
+          .eq('assignment_id', selectedSubmission.assignment_id)
+          .eq('student_id', selectedSubmission.student_id);
+      }
+
+      // 4. Purge from localStorage cache
+      try {
+        const rawLocal = localStorage.getItem('eduverse_local_submissions');
+        if (rawLocal) {
+          const localMap = JSON.parse(rawLocal);
+          const key = `${selectedSubmission.assignment_id}_${selectedSubmission.student_id}`;
+          delete localMap[key];
+          Object.keys(localMap).forEach(k => {
+            if (
+              localMap[k]?.id === selectedSubmission.id || 
+              (localMap[k]?.assignment_id === selectedSubmission.assignment_id && localMap[k]?.student_id === selectedSubmission.student_id)
+            ) {
+              delete localMap[k];
+            }
+          });
+          localStorage.setItem('eduverse_local_submissions', JSON.stringify(localMap));
+        }
+      } catch (cacheErr) {
+        console.warn('Gagal membersihkan cache lokal:', cacheErr);
+      }
+
+      // 5. Update component state
+      setSubmissions(prev => 
+        prev.filter(s => 
+          s.id !== selectedSubmission.id && 
+          !(s.assignment_id === selectedSubmission.assignment_id && s.student_id === selectedSubmission.student_id)
+        )
+      );
+      setScoreInput('');
+      setFeedbackInput('');
+      setDeleteConfirmOpen(false);
+
+      // 6. Notify parent component to refresh count/statistics
+      if (onGradeSaved) onGradeSaved();
+    } catch (err: any) {
+      console.error('Error deleting submission:', err);
+      alert(`Gagal menghapus tugas: ${err?.message || 'Terjadi kesalahan'}`);
+    } finally {
+      setDeletingSubmission(false);
+    }
+  };
+
   if (!isOpen || !assignment) return null;
 
   const activeClassObj = assignedClasses.find(c => c.id === selectedClassId);
@@ -765,17 +871,28 @@ export default function SubmissionReviewModal({
 
                   <div>
                     {selectedSubmission ? (
-                      <div className="flex flex-col items-end">
-                        <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1 border ${
-                          selectedSubmission.status === 'late'
-                            ? 'bg-amber-50 text-amber-700 border-amber-200'
-                            : 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                        }`}>
-                          <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                          {selectedSubmission.status === 'late' ? 'Terkumpul (Terlambat)' : 'Terkumpul Tepat Waktu'}
-                        </span>
+                      <div className="flex flex-col items-end gap-1.5">
+                        <div className="flex items-center gap-2">
+                          <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1 border ${
+                            selectedSubmission.status === 'late'
+                              ? 'bg-amber-50 text-amber-700 border-amber-200'
+                              : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                          }`}>
+                            <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                            {selectedSubmission.status === 'late' ? 'Terkumpul (Terlambat)' : 'Terkumpul Tepat Waktu'}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setDeleteConfirmOpen(true)}
+                            title="Hapus tugas yang dikirim oleh murid ini"
+                            className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-colors cursor-pointer"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                            <span>Hapus</span>
+                          </button>
+                        </div>
                         {selectedSubmission.submitted_at && (
-                          <span className="text-[10px] text-slate-400 mt-1 flex items-center gap-1">
+                          <span className="text-[10px] text-slate-400 mt-0.5 flex items-center gap-1">
                             <Clock className="w-3 h-3" />
                             {new Date(selectedSubmission.submitted_at).toLocaleString('id-ID', {
                               day: 'numeric',
@@ -1331,6 +1448,60 @@ export default function SubmissionReviewModal({
           </div>
         </div>
       </motion.div>
+
+      {/* Modal Konfirmasi Hapus Tugas Murid */}
+      {deleteConfirmOpen && selectedSubmission && (
+        <div className="fixed inset-0 z-80 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200 space-y-4 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center gap-3 text-rose-600">
+              <div className="w-10 h-10 rounded-xl bg-rose-50 border border-rose-200 flex items-center justify-center shrink-0">
+                <Trash2 className="w-5 h-5 text-rose-600" />
+              </div>
+              <div>
+                <h3 className="text-base font-extrabold text-slate-900">
+                  Hapus Tugas Murid?
+                </h3>
+                <p className="text-xs text-slate-500 font-medium">
+                  {selectedStudent?.name || 'Murid ini'}
+                </p>
+              </div>
+            </div>
+
+            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+              Tugas yang sudah dikumpulkan beserta berkas/fotonya akan dihapus secara permanen. Murid dapat mengumpulkan ulang kembali dari awal.
+            </p>
+
+            <div className="flex items-center justify-end gap-2.5 pt-2">
+              <button
+                type="button"
+                disabled={deletingSubmission}
+                onClick={() => setDeleteConfirmOpen(false)}
+                className="px-4 py-2 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer disabled:opacity-50"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                disabled={deletingSubmission}
+                onClick={handleDeleteSubmission}
+                className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50 shadow-sm"
+              >
+                {deletingSubmission ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <span>Menghapus...</span>
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Hapus Sekarang</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Full Photo Zoom Modal */}
       {previewImageUrl && (
