@@ -864,10 +864,10 @@ export default function SubmissionReviewView({
                   <>
                     {/* Media / Photo Display */}
                     {(() => {
-                      const lkpdMediaUrl = parsedLkpd?.blockAnswers
-                        ? Object.values(parsedLkpd.blockAnswers).find((a: any) => a?.type === 'media' && a?.fileUrl)?.fileUrl
+                      const lkpdMedia = parsedLkpd?.blockAnswers
+                        ? Object.values(parsedLkpd.blockAnswers).find((a: any) => a?.type === 'media' && a?.fileUrl)
                         : null;
-                      const displayPhotoUrl = selectedSubmission.file_url || lkpdMediaUrl;
+                      const displayPhotoUrl = lkpdMedia?.fileUrl || selectedSubmission.file_url;
 
                       if (!displayPhotoUrl) return null;
 
