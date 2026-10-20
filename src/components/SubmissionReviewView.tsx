@@ -118,12 +118,31 @@ export default function SubmissionReviewView({
       const { data, error } = await supabase
         .from('assignment_submissions')
         .select('*')
-        .in('assignment_id', allAssignmentIds);
+        .in('assignment_id', allAssignmentIds)
+        .order('updated_at', { ascending: false });
 
       if (error) throw error;
-      let subList = (data as AssignmentSubmission[]) || [];
+      let rawCloudList = (data as AssignmentSubmission[]) || [];
 
-      // Merge local submissions backup if available
+      // Map to keep the latest submission per assignment_id + student_id
+      const subMap = new Map<string, AssignmentSubmission>();
+
+      // 1. Process cloud submissions (ordered descending by updated_at)
+      rawCloudList.forEach(s => {
+        const key = `${s.assignment_id}_${s.student_id}`;
+        if (!subMap.has(key)) {
+          subMap.set(key, s);
+        } else {
+          const existing = subMap.get(key)!;
+          const sTime = new Date(s.updated_at || s.submitted_at).getTime();
+          const existTime = new Date(existing.updated_at || existing.submitted_at).getTime();
+          if (sTime > existTime) {
+            subMap.set(key, s);
+          }
+        }
+      });
+
+      // 2. Merge local submissions backup if available and newer
       try {
         const rawLocal = localStorage.getItem('eduverse_local_submissions');
         if (rawLocal) {
@@ -131,16 +150,26 @@ export default function SubmissionReviewView({
           const localItems = (Object.values(localMap) as AssignmentSubmission[]).filter(
             s => allAssignmentIds.includes(s.assignment_id)
           );
-          const existingIds = new Set(subList.map(s => s.student_id));
           localItems.forEach(l => {
-            if (!existingIds.has(l.student_id)) {
-              subList.push(l);
+            const key = `${l.assignment_id}_${l.student_id}`;
+            const existing = subMap.get(key);
+            if (!existing) {
+              subMap.set(key, l);
+            } else {
+              const lTime = new Date(l.updated_at || l.submitted_at).getTime();
+              const existTime = new Date(existing.updated_at || existing.submitted_at).getTime();
+              if (lTime > existTime) {
+                subMap.set(key, l);
+              }
             }
           });
         }
       } catch {
         // ignore
       }
+
+      const subList = Array.from(subMap.values());
+      subList.sort((a, b) => new Date(b.updated_at || b.submitted_at).getTime() - new Date(a.updated_at || a.submitted_at).getTime());
 
       setSubmissions(subList);
     } catch (err) {
@@ -834,46 +863,63 @@ export default function SubmissionReviewView({
                 {selectedSubmission ? (
                   <>
                     {/* Media / Photo Display */}
-                    {selectedSubmission.file_url && (
-                      <div className="space-y-2">
-                        <span className="text-xs font-bold text-[#1D4ED8] uppercase tracking-wider block">
-                          Foto Objek yang Diobservasi
-                        </span>
-                        <div className="rounded-2xl overflow-hidden border-2 border-indigo-100 bg-slate-950 max-w-xl relative group shadow-sm">
-                          {!imgLoadError ? (
-                            <img
-                              src={getOptimizedMediaUrl(selectedSubmission.file_url)}
-                              alt="Foto Siswa"
-                              className="w-full max-h-84 object-contain bg-slate-950"
-                              onError={() => setImgLoadError(true)}
-                            />
-                          ) : (
-                            <div className="p-10 text-center text-xs text-slate-400">
-                              Gambar tidak dapat dimuat langsung.
+                    {(() => {
+                      const lkpdMediaUrl = parsedLkpd?.blockAnswers
+                        ? Object.values(parsedLkpd.blockAnswers).find((a: any) => a?.type === 'media' && a?.fileUrl)?.fileUrl
+                        : null;
+                      const displayPhotoUrl = selectedSubmission.file_url || lkpdMediaUrl;
+
+                      if (!displayPhotoUrl) return null;
+
+                      const optimizedUrl = getOptimizedMediaUrl(
+                        displayPhotoUrl,
+                        selectedSubmission.file_type,
+                        selectedSubmission.file_name,
+                        selectedSubmission.updated_at
+                      );
+
+                      return (
+                        <div className="space-y-2">
+                          <span className="text-xs font-bold text-[#1D4ED8] uppercase tracking-wider block">
+                            Foto Objek yang Diobservasi / Lampiran
+                          </span>
+                          <div className="rounded-2xl overflow-hidden border-2 border-indigo-100 bg-slate-950 max-w-xl relative group shadow-sm">
+                            {!imgLoadError ? (
+                              <img
+                                key={`${selectedSubmission.id}_${displayPhotoUrl}_${selectedSubmission.updated_at}`}
+                                src={optimizedUrl}
+                                alt="Foto Siswa"
+                                className="w-full max-h-84 object-contain bg-slate-950"
+                                onError={() => setImgLoadError(true)}
+                              />
+                            ) : (
+                              <div className="p-10 text-center text-xs text-slate-400">
+                                Gambar tidak dapat dimuat langsung.
+                              </div>
+                            )}
+                            <div className="absolute bottom-3 right-3 flex items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() => setPreviewImageUrl(optimizedUrl)}
+                                className="px-3 py-1.5 rounded-xl bg-black/70 hover:bg-black text-white text-xs font-bold flex items-center gap-1.5 backdrop-blur-xs cursor-pointer shadow-md"
+                              >
+                                <Maximize2 className="w-3.5 h-3.5" />
+                                <span>Perbesar Foto</span>
+                              </button>
+                              <a
+                                href={optimizedUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="p-2 rounded-xl bg-black/70 hover:bg-black text-white backdrop-blur-xs shadow-md"
+                                title="Buka Tab Baru"
+                              >
+                                <ExternalLink className="w-3.5 h-3.5" />
+                              </a>
                             </div>
-                          )}
-                          <div className="absolute bottom-3 right-3 flex items-center gap-2">
-                            <button
-                              type="button"
-                              onClick={() => setPreviewImageUrl(getOptimizedMediaUrl(selectedSubmission.file_url!))}
-                              className="px-3 py-1.5 rounded-xl bg-black/70 hover:bg-black text-white text-xs font-bold flex items-center gap-1.5 backdrop-blur-xs cursor-pointer shadow-md"
-                            >
-                              <Maximize2 className="w-3.5 h-3.5" />
-                              <span>Perbesar Foto</span>
-                            </button>
-                            <a
-                              href={getOptimizedMediaUrl(selectedSubmission.file_url)}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="p-2 rounded-xl bg-black/70 hover:bg-black text-white backdrop-blur-xs shadow-md"
-                              title="Buka Tab Baru"
-                            >
-                              <ExternalLink className="w-3.5 h-3.5" />
-                            </a>
                           </div>
                         </div>
-                      </div>
-                    )}
+                      );
+                    })()}
 
                     {/* LKPD Parsed Content */}
                     {parsedLkpd ? (() => {

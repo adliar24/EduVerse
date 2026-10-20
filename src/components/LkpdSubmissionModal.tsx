@@ -12,6 +12,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { Assignment, AssignmentSubmission } from '../types';
 import { supabase, supabaseAnon } from '../lib/supabase';
+import { deleteFileFromR2 } from '../lib/r2';
 import { compressImageFile, formatFileSize, uploadSubmissionFile, getOptimizedMediaUrl, CompressionResult } from '../utils/fileCompressor';
 import { 
   getNormalizedLkpdBlocks, 
@@ -250,6 +251,11 @@ export default function LkpdSubmissionModal({
       // Upload local files
       const uploadEntries = Object.entries(localFiles) as [string, LocalMediaFile][];
       for (const [bId, item] of uploadEntries) {
+        // Clean up previous file from R2 if student is replacing it
+        if (existingSubmission?.file_url && existingSubmission.file_url.includes('r2.dev')) {
+          deleteFileFromR2(existingSubmission.file_url).catch(() => {});
+        }
+
         const folder = `lkpd_${studentInfo.school_id || 'general'}/${assignment.id}/${studentInfo.id}`;
         const uploadedUrl = await uploadSubmissionFile(item.file, folder);
         
@@ -262,12 +268,11 @@ export default function LkpdSubmissionModal({
           fileSize: item.file.size
         };
 
-        if (!primaryFileUrl) {
-          primaryFileUrl = uploadedUrl;
-          primaryFileName = item.file.name;
-          primaryFileType = item.file.type;
-          primaryFileSize = item.file.size;
-        }
+        // Always update primary file attributes with the latest uploaded file!
+        primaryFileUrl = uploadedUrl;
+        primaryFileName = item.file.name;
+        primaryFileType = item.file.type;
+        primaryFileSize = item.file.size;
       }
 
       // Normalisasi link answers
@@ -293,7 +298,8 @@ export default function LkpdSubmissionModal({
       };
 
       const now = new Date().toISOString();
-      const submissionRecord = {
+      const submissionRecord: any = {
+        ...(existingSubmission?.id ? { id: existingSubmission.id } : {}),
         assignment_id: assignment.id,
         student_id: studentInfo.id,
         school_id: studentInfo.school_id || null,
@@ -311,17 +317,39 @@ export default function LkpdSubmissionModal({
       };
 
       const client = supabaseAnon || supabase;
-      const { data: upsertData, error: upsertErr } = await client
-        .from('assignment_submissions')
-        .upsert(submissionRecord, { onConflict: 'assignment_id,student_id' })
-        .select()
-        .single();
+      let upsertData: any = null;
 
-      if (upsertErr) {
-        const { error: insErr } = await client
+      // 1. If existingSubmission has ID, try direct update by primary key
+      if (existingSubmission?.id) {
+        const { data: updData, error: updErr } = await client
           .from('assignment_submissions')
-          .insert(submissionRecord);
-        if (insErr) throw insErr;
+          .update(submissionRecord)
+          .eq('id', existingSubmission.id)
+          .select();
+
+        if (!updErr && updData && updData.length > 0) {
+          upsertData = updData[0];
+        }
+      }
+
+      // 2. If update didn't run or didn't match, run upsert with onConflict
+      if (!upsertData) {
+        const { data: uData, error: upsertErr } = await client
+          .from('assignment_submissions')
+          .upsert(submissionRecord, { onConflict: 'assignment_id,student_id' })
+          .select()
+          .maybeSingle();
+
+        if (upsertErr) {
+          const { data: insData, error: insErr } = await client
+            .from('assignment_submissions')
+            .insert(submissionRecord)
+            .select();
+          if (insErr) throw insErr;
+          upsertData = insData?.[0];
+        } else {
+          upsertData = uData;
+        }
       }
 
       // Backup local storage

@@ -131,12 +131,30 @@ export default function SubmissionReviewModal({
       const { data, error } = await supabase
         .from('assignment_submissions')
         .select('*')
-        .in('assignment_id', allAssignmentIds);
+        .in('assignment_id', allAssignmentIds)
+        .order('updated_at', { ascending: false });
 
       if (error) throw error;
-      let subList = (data as AssignmentSubmission[]) || [];
+      let rawCloudList = (data as AssignmentSubmission[]) || [];
 
-      // Also merge local submissions if present
+      // Map to keep the latest submission per assignment_id + student_id
+      const subMap = new Map<string, AssignmentSubmission>();
+
+      rawCloudList.forEach(s => {
+        const key = `${s.assignment_id}_${s.student_id}`;
+        if (!subMap.has(key)) {
+          subMap.set(key, s);
+        } else {
+          const existing = subMap.get(key)!;
+          const sTime = new Date(s.updated_at || s.submitted_at).getTime();
+          const existTime = new Date(existing.updated_at || existing.submitted_at).getTime();
+          if (sTime > existTime) {
+            subMap.set(key, s);
+          }
+        }
+      });
+
+      // Also merge local submissions if present and newer
       try {
         const rawLocal = localStorage.getItem('eduverse_local_submissions');
         if (rawLocal) {
@@ -144,16 +162,26 @@ export default function SubmissionReviewModal({
           const localItems = (Object.values(localMap) as AssignmentSubmission[]).filter(
             s => allAssignmentIds.includes(s.assignment_id)
           );
-          const existingIds = new Set(subList.map(s => s.student_id));
           localItems.forEach(l => {
-            if (!existingIds.has(l.student_id)) {
-              subList.push(l);
+            const key = `${l.assignment_id}_${l.student_id}`;
+            const existing = subMap.get(key);
+            if (!existing) {
+              subMap.set(key, l);
+            } else {
+              const lTime = new Date(l.updated_at || l.submitted_at).getTime();
+              const existTime = new Date(existing.updated_at || existing.submitted_at).getTime();
+              if (lTime > existTime) {
+                subMap.set(key, l);
+              }
             }
           });
         }
       } catch {
         // ignore
       }
+
+      const subList = Array.from(subMap.values());
+      subList.sort((a, b) => new Date(b.updated_at || b.submitted_at).getTime() - new Date(a.updated_at || a.submitted_at).getTime());
 
       setSubmissions(subList);
     } catch (err) {
@@ -810,7 +838,8 @@ export default function SubmissionReviewModal({
                             </label>
                             <div className="rounded-xl overflow-hidden border border-slate-200 bg-slate-950">
                               <img 
-                                src={getOptimizedMediaUrl(selectedSubmission.file_url, selectedSubmission.file_type, selectedSubmission.file_name)}
+                                key={`${selectedSubmission.id}_${selectedSubmission.file_url}_${selectedSubmission.updated_at}`}
+                                src={getOptimizedMediaUrl(selectedSubmission.file_url, selectedSubmission.file_type, selectedSubmission.file_name, selectedSubmission.updated_at)}
                                 alt="Foto LKPD"
                                 className="w-full max-h-72 object-contain bg-slate-950"
                               />
@@ -819,7 +848,7 @@ export default function SubmissionReviewModal({
                                   {selectedSubmission.file_name || 'Foto Observasi'}
                                 </span>
                                 <a
-                                  href={getOptimizedMediaUrl(selectedSubmission.file_url, selectedSubmission.file_type, selectedSubmission.file_name)}
+                                  href={getOptimizedMediaUrl(selectedSubmission.file_url, selectedSubmission.file_type, selectedSubmission.file_name, selectedSubmission.updated_at)}
                                   target="_blank"
                                   rel="noreferrer"
                                   className="text-blue-300 hover:text-white font-bold flex items-center gap-1 shrink-0"
@@ -1094,7 +1123,8 @@ export default function SubmissionReviewModal({
                         const displayImageUrl = getOptimizedMediaUrl(
                           selectedSubmission.file_url,
                           selectedSubmission.file_type,
-                          selectedSubmission.file_name
+                          selectedSubmission.file_name,
+                          selectedSubmission.updated_at
                         );
 
                         return (
@@ -1119,6 +1149,7 @@ export default function SubmissionReviewModal({
                                 <div className="relative max-h-56 sm:max-h-64 overflow-hidden rounded-lg bg-slate-100 flex items-center justify-center p-1.5">
                                   {!imgLoadError ? (
                                     <img
+                                      key={`${selectedSubmission.id}_${selectedSubmission.file_url}_${selectedSubmission.updated_at}`}
                                       src={displayImageUrl}
                                       alt={selectedSubmission.file_name || 'Foto Tugas Murid'}
                                       referrerPolicy="no-referrer"

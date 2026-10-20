@@ -238,7 +238,7 @@ export default function StudentSubmissionModal({
         class_id: studentInfo.class_id || assignment.class_id || null,
         student_name: studentInfo.name || studentInfo.nama || 'Murid',
         student_code: studentInfo.student_code || studentInfo.nisn || '',
-        text_response: textResponse.trim() || undefined,
+        text_response: textResponse.trim() || null,
         link: linkUrl.trim() || null,
         file_url: finalFileUrl,
         file_name: finalFileName,
@@ -274,31 +274,59 @@ export default function StudentSubmissionModal({
         let lastErr = null;
         for (const client of clients) {
           try {
-            // First check if a record actually exists in Supabase cloud for this student + assignment
-            const { data: cloudRow, error: checkErr } = await client
-              .from('assignment_submissions')
-              .select('id')
-              .eq('assignment_id', assignment.id)
-              .eq('student_id', studentInfo.id)
-              .maybeSingle();
+            // First check if existingSubmission.id is already known, or query cloudRow safely
+            let targetId = existingSubmission?.id || null;
 
-            if (checkErr) {
-              lastErr = checkErr;
-              continue;
+            if (!targetId) {
+              const { data: cloudRows, error: checkErr } = await client
+                .from('assignment_submissions')
+                .select('id')
+                .eq('assignment_id', assignment.id)
+                .eq('student_id', studentInfo.id)
+                .order('updated_at', { ascending: false })
+                .limit(1);
+
+              if (checkErr) {
+                lastErr = checkErr;
+              } else if (cloudRows && cloudRows.length > 0) {
+                targetId = cloudRows[0].id;
+              }
             }
 
-            if (cloudRow?.id) {
+            // Direct update by ID if known
+            if (targetId) {
               const { data: updData, error: updErr } = await client
                 .from('assignment_submissions')
                 .update(payloadToSave)
-                .eq('id', cloudRow.id)
+                .eq('id', targetId)
                 .select();
 
               if (!updErr && updData && updData.length > 0) {
-                return { success: true, id: cloudRow.id, error: null };
+                return { success: true, id: targetId, error: null };
               }
               if (updErr) lastErr = updErr;
-            } else {
+              else if (!updData || updData.length === 0) {
+                lastErr = new Error('Gagal memperbarui data tugas (baris tidak ditemukan di cloud).');
+              }
+            }
+
+            // Fallback: upsert on unique constraint (assignment_id, student_id)
+            const upsertPayload = {
+              ...payloadToSave,
+              ...(targetId ? { id: targetId } : {})
+            };
+            const { data: upsertData, error: upsertErr } = await client
+              .from('assignment_submissions')
+              .upsert(upsertPayload, { onConflict: 'assignment_id,student_id' })
+              .select();
+
+            if (!upsertErr && upsertData && upsertData.length > 0) {
+              return { success: true, id: upsertData[0].id, error: null };
+            }
+            if (upsertErr) lastErr = upsertErr;
+
+            // Direct insert if completely new
+            if (!targetId) {
               const insertPayload = { ...payloadToSave };
               delete insertPayload.id;
               const { data: insData, error: insErr } = await client
@@ -315,7 +343,7 @@ export default function StudentSubmissionModal({
             lastErr = e;
           }
         }
-        return { success: false, id: null, error: lastErr };
+        return { success: false, id: null, error: lastErr || new Error('Gagal menyimpan tugas ke cloud server.') };
       };
 
       // Attempt 1: Standard payload

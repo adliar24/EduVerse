@@ -24,7 +24,12 @@ export function formatFileSize(bytes: number): string {
  * Resolves media URL with high-speed CDN proxy for external storages
  * to bypass browser origin restrictions if needed.
  */
-export function getOptimizedMediaUrl(url?: string | null, fileType?: string | null, fileName?: string | null): string {
+export function getOptimizedMediaUrl(
+  url?: string | null, 
+  fileType?: string | null, 
+  fileName?: string | null,
+  updatedAt?: string | null
+): string {
   if (!url) return '';
   if (url.startsWith('data:')) return url;
 
@@ -36,7 +41,14 @@ export function getOptimizedMediaUrl(url?: string | null, fileType?: string | nu
 
   // If external storage URL requires CORS/CDN proxy (Appwrite storage or Cloudflare *.r2.dev domains blocked by Indonesian ISPs Internet Baik/Positif)
   if (isImg && (url.includes('/storage/buckets/') || url.includes('.r2.dev'))) {
-    return `https://images.weserv.nl/?url=${encodeURIComponent(url)}&default=${encodeURIComponent(url)}`;
+    let finalUrl = url;
+    if (updatedAt) {
+      const ts = new Date(updatedAt).getTime();
+      if (!isNaN(ts)) {
+        finalUrl = finalUrl.includes('?') ? `${finalUrl}&t=${ts}` : `${finalUrl}?t=${ts}`;
+      }
+    }
+    return `https://images.weserv.nl/?url=${encodeURIComponent(finalUrl)}&default=${encodeURIComponent(finalUrl)}`;
   }
 
   return url;

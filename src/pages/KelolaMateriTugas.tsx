@@ -150,7 +150,8 @@ export default function KelolaMateriTugas({ defaultTab = 'materials', fixedTab =
     try {
       const { data: subData } = await supabase
         .from('assignment_submissions')
-        .select('*');
+        .select('*')
+        .order('updated_at', { ascending: false });
       if (subData && isMountedRef.current) {
         setIsSubmissionTableMissing(false);
         setAllSubmissions(subData as AssignmentSubmission[]);
@@ -228,7 +229,8 @@ export default function KelolaMateriTugas({ defaultTab = 'materials', fixedTab =
       try {
         const { data: subData, error: subErr } = await supabase
           .from('assignment_submissions')
-          .select('*');
+          .select('*')
+          .order('updated_at', { ascending: false });
         if (subErr) {
           if (subErr.code === 'PGRST205' || subErr.message?.toLowerCase().includes('schema cache')) {
             setIsSubmissionTableMissing(true);
@@ -249,9 +251,22 @@ export default function KelolaMateriTugas({ defaultTab = 'materials', fixedTab =
           const localList = Object.values(localMap) as AssignmentSubmission[];
           if (localList.length > 0) {
             setAllSubmissions(prev => {
-              const existingKeys = new Set(prev.map(p => `${p.assignment_id}_${p.student_id}`));
-              const toAdd = localList.filter(l => !existingKeys.has(`${l.assignment_id}_${l.student_id}`));
-              return [...prev, ...toAdd];
+              const subMap = new Map<string, AssignmentSubmission>();
+              prev.forEach(p => subMap.set(`${p.assignment_id}_${p.student_id}`, p));
+              localList.forEach(l => {
+                const key = `${l.assignment_id}_${l.student_id}`;
+                const existing = subMap.get(key);
+                if (!existing) {
+                  subMap.set(key, l);
+                } else {
+                  const lTime = new Date(l.updated_at || l.submitted_at).getTime();
+                  const existTime = new Date(existing.updated_at || existing.submitted_at).getTime();
+                  if (lTime > existTime) {
+                    subMap.set(key, l);
+                  }
+                }
+              });
+              return Array.from(subMap.values());
             });
           }
         }

@@ -109,7 +109,7 @@ export default function MateriTugasSiswa({ defaultTab = 'materials', fixedTab = 
         const [materialsRes, assignmentsRes, submissionsRes] = await Promise.all([
           supabase.from('materials').select('*').eq('class_id', classId),
           supabase.from('assignments').select('*').eq('class_id', classId),
-          supabase.from('assignment_submissions').select('*').eq('student_id', studentDb.id)
+          supabase.from('assignment_submissions').select('*').eq('student_id', studentDb.id).order('updated_at', { ascending: true })
         ]);
 
         if (materialsRes.data) {
@@ -146,10 +146,20 @@ export default function MateriTugasSiswa({ defaultTab = 'materials', fixedTab = 
           console.warn('Error reading local submissions:', lErr);
         }
 
-        // 2. Cloud submissions take precedence
+        // 2. Cloud submissions (newer submissions overwrite, keeping local if local is more recent)
         if (submissionsRes.data) {
           (submissionsRes.data as AssignmentSubmission[]).forEach((sub) => {
-            subMap[sub.assignment_id] = sub;
+            const existing = subMap[sub.assignment_id];
+            if (!existing) {
+              subMap[sub.assignment_id] = sub;
+            } else {
+              const cloudTime = new Date(sub.updated_at || sub.submitted_at).getTime();
+              const existTime = new Date(existing.updated_at || existing.submitted_at).getTime();
+              // Cloud takes precedence unless local is strictly newer
+              if (cloudTime >= existTime) {
+                subMap[sub.assignment_id] = sub;
+              }
+            }
           });
         }
         setSubmissions(subMap);
